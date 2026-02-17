@@ -110,6 +110,11 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
     await _repo.setFirstLaunch(value);
     _loadSettings();
   }
+
+  Future<void> setLocale(String locale) async {
+    await _repo.setLocale(locale);
+    _loadSettings();
+  }
 }
 
 // ============================================================

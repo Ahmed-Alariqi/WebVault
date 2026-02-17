@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -22,7 +24,11 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(20),
         children: [
           // Account section
-          _buildSectionHeader('Account', PhosphorIcons.userCircle(), isDark),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.account,
+            PhosphorIcons.userCircle(),
+            isDark,
+          ),
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
@@ -43,14 +49,14 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    'My Profile',
+                    AppLocalizations.of(context)!.myProfile,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black87,
                     ),
                   ),
                   subtitle: Text(
-                    'View and edit your profile',
+                    AppLocalizations.of(context)!.viewAndEditProfile,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark ? Colors.white54 : Colors.black45,
@@ -121,7 +127,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
 
           // Appearance section
-          _buildSectionHeader('Appearance', PhosphorIcons.paintBrush(), isDark),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.appearance,
+            PhosphorIcons.paintBrush(),
+            isDark,
+          ),
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
@@ -130,7 +140,7 @@ class SettingsScreen extends ConsumerWidget {
                 _buildThemeOption(
                   isDark: isDark,
                   icon: PhosphorIcons.deviceMobile(),
-                  title: 'System',
+                  title: AppLocalizations.of(context)!.system,
                   isSelected: themeMode == 'system',
                   onTap: () => settingsNotifier.setThemeMode('system'),
                 ),
@@ -141,7 +151,7 @@ class SettingsScreen extends ConsumerWidget {
                 _buildThemeOption(
                   isDark: isDark,
                   icon: PhosphorIcons.sun(),
-                  title: 'Light',
+                  title: AppLocalizations.of(context)!.light,
                   isSelected: themeMode == 'light',
                   onTap: () => settingsNotifier.setThemeMode('light'),
                 ),
@@ -152,7 +162,7 @@ class SettingsScreen extends ConsumerWidget {
                 _buildThemeOption(
                   isDark: isDark,
                   icon: PhosphorIcons.moon(),
-                  title: 'Dark',
+                  title: AppLocalizations.of(context)!.dark,
                   isSelected: themeMode == 'dark',
                   onTap: () => settingsNotifier.setThemeMode('dark'),
                 ),
@@ -162,9 +172,51 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 28),
 
+          // Language section
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.language,
+            PhosphorIcons.globe(),
+            isDark,
+          ),
+          const SizedBox(height: 12),
+          Consumer(
+            builder: (context, ref, _) {
+              final locale = ref.watch(localeProvider);
+              return _buildCard(
+                isDark: isDark,
+                child: Column(
+                  children: [
+                    _buildThemeOption(
+                      isDark: isDark,
+                      icon: PhosphorIcons.translate(),
+                      title: AppLocalizations.of(context)!.english,
+                      isSelected: locale.languageCode == 'en',
+                      onTap: () => settingsNotifier.setLocale('en'),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: isDark
+                          ? AppTheme.darkDivider
+                          : AppTheme.lightDivider,
+                    ),
+                    _buildThemeOption(
+                      isDark: isDark,
+                      icon: PhosphorIcons.translate(),
+                      title: AppLocalizations.of(context)!.arabic,
+                      isSelected: locale.languageCode == 'ar',
+                      onTap: () => settingsNotifier.setLocale('ar'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 28),
+
           // Security section
           _buildSectionHeader(
-            'Security & Privacy',
+            AppLocalizations.of(context)!.securityAndPrivacy,
             PhosphorIcons.shield(),
             isDark,
           ),
@@ -185,7 +237,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               title: Text(
-                'Security Settings',
+                AppLocalizations.of(context)!.securitySettings,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: isDark
@@ -194,7 +246,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               subtitle: Text(
-                'PIN, biometrics, screenshot protection',
+                AppLocalizations.of(context)!.securitySubtitle,
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark
@@ -210,7 +262,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 28),
 
           // Data section
-          _buildSectionHeader('Data', PhosphorIcons.hardDrives(), isDark),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.data,
+            PhosphorIcons.hardDrives(),
+            isDark,
+          ),
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
@@ -230,7 +286,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    'Export Backup',
+                    AppLocalizations.of(context)!.exportBackup,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: isDark
@@ -239,7 +295,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    'Save all data as JSON',
+                    AppLocalizations.of(context)!.saveAllDataAsJson,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark
@@ -249,8 +305,10 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Export feature coming soon'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context)!.exportFeatureComingSoon,
+                        ),
                       ),
                     );
                   },
@@ -273,7 +331,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    'Import Backup',
+                    AppLocalizations.of(context)!.importBackup,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: isDark
@@ -282,7 +340,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    'Restore from JSON',
+                    AppLocalizations.of(context)!.restoreFromJson,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark
@@ -292,8 +350,10 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Import feature coming soon'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context)!.importFeatureComingSoon,
+                        ),
                       ),
                     );
                   },
@@ -305,7 +365,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 28),
 
           // About
-          _buildSectionHeader('About', PhosphorIcons.info(), isDark),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.about,
+            PhosphorIcons.info(),
+            isDark,
+          ),
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
@@ -332,7 +396,7 @@ class SettingsScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'WebVault Manager',
+                        AppLocalizations.of(context)!.appName,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -342,7 +406,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        'Version 1.0.0',
+                        '${AppLocalizations.of(context)!.version} ${kAppVersion}',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark

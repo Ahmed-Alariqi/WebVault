@@ -3,9 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import '../../presentation/widgets/notification_badge.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/constants.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -36,7 +39,7 @@ class DashboardScreen extends ConsumerWidget {
 
                 // Stats Section Header
                 _SectionHeader(
-                  title: 'Vault Overview',
+                  title: AppLocalizations.of(context)!.vaultOverview,
                   icon: PhosphorIcons.chartBar(),
                   isDark: isDark,
                 ),
@@ -50,7 +53,7 @@ class DashboardScreen extends ConsumerWidget {
                         icon: PhosphorIcons.browsers(
                           PhosphorIconsStyle.duotone,
                         ),
-                        label: 'Total Pages',
+                        label: AppLocalizations.of(context)!.totalPages,
                         value: '$totalPages',
                         color: AppTheme.primaryColor,
                         isDark: isDark,
@@ -61,7 +64,7 @@ class DashboardScreen extends ConsumerWidget {
                     Expanded(
                       child: _StatCard(
                         icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                        label: 'Favorites',
+                        label: AppLocalizations.of(context)!.favorites,
                         value: '$favCount',
                         color: AppTheme.errorColor,
                         isDark: isDark,
@@ -76,7 +79,7 @@ class DashboardScreen extends ConsumerWidget {
                 // Top Vault / Most Visited
                 if (mostVisited != null) ...[
                   _SectionHeader(
-                    title: 'Top Vault',
+                    title: AppLocalizations.of(context)!.topVault,
                     icon: PhosphorIcons.star(PhosphorIconsStyle.fill),
                     isDark: isDark,
                   ),
@@ -88,7 +91,7 @@ class DashboardScreen extends ConsumerWidget {
                 // Recent activity
                 if (recentPages.isNotEmpty) ...[
                   _SectionHeader(
-                    title: 'Recent Activity',
+                    title: AppLocalizations.of(context)!.recentActivity,
                     icon: PhosphorIcons.clockCounterClockwise(),
                     isDark: isDark,
                   ),
@@ -116,11 +119,11 @@ class _DashboardHeader extends StatelessWidget {
 
   const _DashboardHeader({required this.isDark});
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return AppLocalizations.of(context)!.goodMorning;
+    if (hour < 17) return AppLocalizations.of(context)!.goodAfternoon;
+    return AppLocalizations.of(context)!.goodEvening;
   }
 
   void _showProfilePreview(BuildContext context, bool isDark) {
@@ -156,7 +159,7 @@ class _DashboardHeader extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'User Profile',
+              AppLocalizations.of(context)!.userProfile,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -167,7 +170,7 @@ class _DashboardHeader extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Welcome back to your vault!',
+              AppLocalizations.of(context)!.welcomeBack,
               style: TextStyle(
                 fontSize: 14,
                 color: isDark
@@ -193,9 +196,9 @@ class _DashboardHeader extends StatelessWidget {
                   elevation: 0,
                 ),
                 icon: Icon(PhosphorIcons.gear(), size: 20),
-                label: const Text(
-                  'Manage Settings',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                label: Text(
+                  AppLocalizations.of(context)!.manageSettings,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -225,7 +228,7 @@ class _DashboardHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _getGreeting(),
+                  _getGreeting(context),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -237,7 +240,7 @@ class _DashboardHeader extends StatelessWidget {
                 ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.2),
                 const SizedBox(height: 4),
                 Text(
-                  'WebVault Manager',
+                  AppLocalizations.of(context)!.appName,
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w800,
@@ -250,14 +253,17 @@ class _DashboardHeader extends StatelessWidget {
               ],
             ),
           ),
+
           IconButton(
             onPressed: () => context.push('/notifications'),
-            icon: Icon(
-              PhosphorIcons.bell(),
-              size: 24,
-              color: isDark
-                  ? AppTheme.darkTextSecondary
-                  : AppTheme.lightTextSecondary,
+            icon: NotificationBadge(
+              child: Icon(
+                PhosphorIcons.bell(),
+                size: 24,
+                color: isDark
+                    ? AppTheme.darkTextSecondary
+                    : AppTheme.lightTextSecondary,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -298,28 +304,28 @@ class _QuickActions extends StatelessWidget {
       children: [
         _QuickActionBtn(
           icon: PhosphorIcons.plus(),
-          label: 'New Page',
+          label: AppLocalizations.of(context)!.newPage,
           color: const Color(0xFF6366F1),
           onTap: () => context.push('/add-page'),
           delay: 0,
         ),
         _QuickActionBtn(
           icon: PhosphorIcons.folderPlus(),
-          label: 'Folders',
+          label: AppLocalizations.of(context)!.folders,
           color: const Color(0xFF10B981),
           onTap: () => context.push('/folders'),
           delay: 100,
         ),
         _QuickActionBtn(
           icon: PhosphorIcons.clipboardText(),
-          label: 'Clipboard',
+          label: AppLocalizations.of(context)!.clipboard,
           color: const Color(0xFFF59E0B),
           onTap: () => context.push('/clipboard'),
           delay: 200,
         ),
         _QuickActionBtn(
           icon: PhosphorIcons.shieldCheck(),
-          label: 'Security',
+          label: AppLocalizations.of(context)!.security,
           color: const Color(0xFFEC4899),
           onTap: () => context.push('/settings'),
           delay: 300,
@@ -538,7 +544,7 @@ class _TopVaultCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'MOST VISITED',
+                  AppLocalizations.of(context)!.mostVisited,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
@@ -560,7 +566,7 @@ class _TopVaultCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${page.visitCount} lifetime visits',
+                  '${page.visitCount} ${AppLocalizations.of(context)!.lifetimeVisits}',
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark
@@ -694,7 +700,7 @@ class _EmptyState extends StatelessWidget {
         ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
         const SizedBox(height: 24),
         Text(
-          'Your Vault is Empty',
+          AppLocalizations.of(context)!.yourVaultIsEmpty,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -705,7 +711,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Add your first web page to get started',
+          AppLocalizations.of(context)!.addFirstPage,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -727,9 +733,9 @@ class _EmptyState extends StatelessWidget {
             elevation: 0,
           ),
           icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold), size: 18),
-          label: const Text(
-            'Add My First Page',
-            style: TextStyle(fontWeight: FontWeight.w700),
+          label: Text(
+            AppLocalizations.of(context)!.addMyFirstPage,
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
       ],

@@ -13,6 +13,7 @@ import 'data/repositories/folder_repository.dart';
 import 'data/repositories/clipboard_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'presentation/providers/providers.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,6 +74,7 @@ class WebVaultApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final router = ref.watch(routerProvider);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: kAppName,
@@ -81,6 +83,9 @@ class WebVaultApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme(),
       themeMode: themeMode,
       routerConfig: router,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

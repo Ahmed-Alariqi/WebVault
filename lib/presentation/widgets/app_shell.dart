@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 
 class AppShell extends StatelessWidget {
@@ -81,7 +82,7 @@ class AppShell extends StatelessWidget {
                     context,
                     icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
                     inactiveIcon: PhosphorIcons.squaresFour(),
-                    label: 'Home',
+                    label: AppLocalizations.of(context)!.home,
                     index: 0,
                     selectedIndex: selectedIndex,
                     isDark: isDark,
@@ -90,7 +91,7 @@ class AppShell extends StatelessWidget {
                     context,
                     icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
                     inactiveIcon: PhosphorIcons.browsers(),
-                    label: 'Pages',
+                    label: AppLocalizations.of(context)!.folders,
                     index: 1,
                     selectedIndex: selectedIndex,
                     isDark: isDark,
@@ -99,7 +100,7 @@ class AppShell extends StatelessWidget {
                     context,
                     icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
                     inactiveIcon: PhosphorIcons.compass(),
-                    label: 'Discover',
+                    label: AppLocalizations.of(context)!.discover,
                     index: 2,
                     selectedIndex: selectedIndex,
                     isDark: isDark,
@@ -108,7 +109,7 @@ class AppShell extends StatelessWidget {
                     context,
                     icon: PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
                     inactiveIcon: PhosphorIcons.clipboardText(),
-                    label: 'Clipboard',
+                    label: AppLocalizations.of(context)!.clipboard,
                     index: 3,
                     selectedIndex: selectedIndex,
                     isDark: isDark,
@@ -117,7 +118,7 @@ class AppShell extends StatelessWidget {
                     context,
                     icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
                     inactiveIcon: PhosphorIcons.gear(),
-                    label: 'Settings',
+                    label: AppLocalizations.of(context)!.settings,
                     index: 4,
                     selectedIndex: selectedIndex,
                     isDark: isDark,

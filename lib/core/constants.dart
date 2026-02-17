@@ -18,6 +18,7 @@ const String kIsFirstLaunch = 'is_first_launch';
 const String kSecureModeEnabled = 'secure_mode_enabled';
 const String kPinEnabled = 'pin_enabled';
 const String kLastSyncTime = 'last_sync_time';
+const String kLocale = 'locale';
 const String kOfflineQueueCount = 'offline_queue_count';
 
 // Auto-lock timeout options (in seconds)

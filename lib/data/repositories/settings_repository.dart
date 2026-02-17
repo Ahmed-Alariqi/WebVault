@@ -60,6 +60,11 @@ class SettingsRepository {
       'autoDeleteDays': getAutoDeleteDays(),
       'secureModeEnabled': isSecureModeEnabled(),
       'isFirstLaunch': isFirstLaunch(),
+      'locale': getLocale(),
     };
   }
+
+  // Locale
+  String getLocale() => _box.get(kLocale, defaultValue: 'en') as String;
+  Future<void> setLocale(String locale) => _box.put(kLocale, locale);
 }
