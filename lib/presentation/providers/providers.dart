@@ -305,3 +305,18 @@ final dashboardStatsProvider = Provider<Map<String, dynamic>>((ref) {
     'recentPages': pageRepo.getRecent(limit: 5),
   };
 });
+
+// ============================================================
+// Locale provider
+// ============================================================
+
+final localeProvider = Provider<Locale>((ref) {
+  final settings = ref.watch(settingsProvider);
+  return Locale(settings['locale'] as String? ?? 'en');
+});
+
+// ============================================================
+// Notification provider
+// ============================================================
+
+final notificationCountProvider = StateProvider<int>((ref) => 0);

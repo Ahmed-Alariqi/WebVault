@@ -5,10 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/constants.dart';
+
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});

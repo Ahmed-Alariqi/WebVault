@@ -6,7 +6,7 @@ import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -406,7 +406,7 @@ class SettingsScreen extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '${AppLocalizations.of(context)!.version} ${kAppVersion}',
+                        '${AppLocalizations.of(context)!.version} $kAppVersion',
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark
