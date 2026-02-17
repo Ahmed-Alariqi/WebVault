@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "344480808876",
+    "project_id": "webvalut",
+    "storage_bucket": "webvalut.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:344480808876:android:9c8d7ab454f19852748409",
+        "android_client_info": {
+          "package_name": "com.webvault.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJ9jAwge8fZxF2vpGWSGO9xlUTG2ned5w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

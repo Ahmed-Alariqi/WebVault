@@ -1,0 +1,67 @@
+name: test_app
+description: "WebVault Manager - Web Page Management & Smart Clipboard"
+publish_to: 'none'
+version: 2.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Local Database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Cloud Backend
+  supabase_flutter: ^2.8.4
+
+  # Connectivity
+  connectivity_plus: ^6.1.4
+
+  # WebView
+  webview_flutter: ^4.10.0
+
+  # Authentication
+  local_auth: ^2.3.0
+
+  # Push Notifications
+  onesignal_flutter: ^5.2.12
+
+  # Utilities
+  share_plus: ^10.1.4
+  path_provider: ^2.1.5
+  url_launcher: ^6.3.1
+  uuid: ^4.5.1
+  intl: ^0.20.2
+  encrypt: ^5.0.3
+  file_picker: ^8.1.7
+
+  # UI
+  flutter_animate: ^4.5.2
+  google_fonts: ^6.2.1
+  phosphor_flutter: ^2.1.0
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  fl_chart: ^0.70.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
