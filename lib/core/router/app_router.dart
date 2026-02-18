@@ -12,6 +12,7 @@ import '../../features/settings/pin_lock_screen.dart';
 import '../../features/settings/security_settings_screen.dart';
 import '../../features/pages/add_edit_page_screen.dart';
 import '../../features/folders/folders_screen.dart';
+import '../../features/folders/folder_detail_screen.dart';
 import '../../features/browser/browser_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
@@ -21,6 +22,8 @@ import '../../features/admin/admin_dashboard_screen.dart';
 import '../../features/admin/manage_websites_screen.dart';
 import '../../features/admin/manage_categories_screen.dart';
 import '../../features/admin/send_notification_screen.dart';
+import '../../features/admin/manage_users_screen.dart';
+import '../../features/admin/admin_suggestions_screen.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../presentation/widgets/app_shell.dart';
 
@@ -161,6 +164,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const FoldersScreen(),
       ),
       GoRoute(
+        path: '/folders/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return FolderDetailScreen(folderId: id);
+        },
+      ),
+      GoRoute(
         path: '/browser/:id',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
@@ -196,6 +207,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SendNotificationScreen(),
+      ),
+      GoRoute(
+        path: '/admin/users',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageUsersScreen(),
+      ),
+      GoRoute(
+        path: '/admin/suggestions',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminSuggestionsScreen(),
       ),
       GoRoute(
         path: '/pin-setup',

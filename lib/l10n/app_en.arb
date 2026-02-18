@@ -47,5 +47,94 @@
   "security": "Security",
   "mostVisited": "MOST VISITED",
   "lifetimeVisits": "lifetime visits",
-  "appName": "WebVault Manager"
+  "appName": "WebVault Manager",
+  "newFolder": "New Folder",
+  "folderName": "Folder Name",
+  "createFolder": "Create Folder",
+  "deleteFolder": "Delete Folder",
+  "deleteFolderConfirmation": "Pages inside will not be deleted, just removed from this folder.",
+  "folderEmpty": "This folder is empty",
+  "addPagesFromBrowser": "Add pages from the browser",
+  "addToFolder": "Add to Folder",
+  "addedTo": "Added to {folder}",
+  "@addedTo": {
+    "placeholders": {
+      "folder": {
+        "type": "String"
+      }
+    }
+  },
+  "itemCount": "{count, plural, =0{No items} =1{1 item} other{{count} items}}",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noFoldersYet": "No folders created yet",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "color": "Color",
+  "icon": "Icon",
+  "selectStartPage": "Select Start Page",
+  "error": "Error",
+  "pageNotFound": "Page not found",
+  "back": "Back",
+  "forward": "Forward",
+  "refresh": "Refresh",
+  "openInBrowser": "Open in browser",
+  "suggestToAdmin": "Suggest to Admin",
+  "suggestionSent": "Suggestion sent to admin",
+  "suggestionDescription": "Description (Optional)",
+  "submitSuggestion": "Submit Suggestion",
+  "pending": "Pending",
+  "approved": "Approved",
+  "rejected": "Rejected",
+  "suggestionRejected": "Suggestion rejected",
+  "suggestionApproved": "Suggestion approved and published",
+  "publish": "Publish",
+  "userSuggestions": "User Suggestions",
+  "originalUrl": "Original URL",
+  "suggestedBy": "Suggested by",
+  "approve": "Approve",
+  "reject": "Reject",
+  "noSuggestions": "No pending suggestions",
+  "manageUsers": "Manage Users",
+  "searchUsers": "Search via email or name...",
+  "addUser": "Add User",
+  "editUser": "Edit User",
+  "noUsersFound": "No users found",
+  "noMatchesFound": "No matches found",
+  "deleteUserTitle": "Delete User?",
+  "deleteUserConfirm": "Are you sure you want to delete {email}? This action cannot be undone.",
+  "@deleteUserConfirm": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "userDeleted": "User deleted successfully",
+  "userUpdated": "User updated",
+  "userCreated": "User created",
+  "email": "Email",
+  "password": "Password",
+  "fullName": "Full Name",
+  "role": "Role",
+  "admin": "Admin",
+  "user": "User",
+  "save": "Save",
+  "create": "Create",
+  "required": "Required",
+  "min6Chars": "Min 6 chars",
+  "editChangeRole": "Edit / Change Role",
+  "lastLogin": "Last login: {date}",
+  "@lastLogin": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

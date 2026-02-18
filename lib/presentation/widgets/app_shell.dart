@@ -47,85 +47,77 @@ class AppShell extends StatelessWidget {
 
     return Scaffold(
       body: child,
-      extendBody: true, // Important for floating effect
+      // extendBody: false, // Default is false, ensuring body doesn't go under nav bar
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         decoration: BoxDecoration(
-          color: (isDark ? AppTheme.darkSurface : AppTheme.lightSurface)
-              .withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.white.withValues(alpha: 0.5),
-            width: 1.5,
+          color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
+          border: Border(
+            top: BorderSide(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
+              width: 1,
+            ),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.1),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              spreadRadius: 2,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
           ],
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildNavItem(
-                    context,
-                    icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
-                    inactiveIcon: PhosphorIcons.squaresFour(),
-                    label: AppLocalizations.of(context)!.home,
-                    index: 0,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
-                    inactiveIcon: PhosphorIcons.browsers(),
-                    label: AppLocalizations.of(context)!.folders,
-                    index: 1,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
-                    inactiveIcon: PhosphorIcons.compass(),
-                    label: AppLocalizations.of(context)!.discover,
-                    index: 2,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
-                    inactiveIcon: PhosphorIcons.clipboardText(),
-                    label: AppLocalizations.of(context)!.clipboard,
-                    index: 3,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
-                    inactiveIcon: PhosphorIcons.gear(),
-                    label: AppLocalizations.of(context)!.settings,
-                    index: 4,
-                    selectedIndex: selectedIndex,
-                    isDark: isDark,
-                  ),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildNavItem(
+                context,
+                icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
+                inactiveIcon: PhosphorIcons.squaresFour(),
+                label: AppLocalizations.of(context)!.home,
+                index: 0,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
               ),
-            ),
+              _buildNavItem(
+                context,
+                icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
+                inactiveIcon: PhosphorIcons.browsers(),
+                label: AppLocalizations.of(context)!.folders,
+                index: 1,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
+              ),
+              _buildNavItem(
+                context,
+                icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
+                inactiveIcon: PhosphorIcons.compass(),
+                label: AppLocalizations.of(context)!.discover,
+                index: 2,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
+              ),
+              _buildNavItem(
+                context,
+                icon: PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
+                inactiveIcon: PhosphorIcons.clipboardText(),
+                label: AppLocalizations.of(context)!.clipboard,
+                index: 3,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
+              ),
+              _buildNavItem(
+                context,
+                icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
+                inactiveIcon: PhosphorIcons.gear(),
+                label: AppLocalizations.of(context)!.settings,
+                index: 4,
+                selectedIndex: selectedIndex,
+                isDark: isDark,
+              ),
+            ],
           ),
         ),
       ),

@@ -27,6 +27,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
   bool _isFavorite = false;
   bool _isEditing = false;
   PageModel? _existingPage;
+  String? _selectedFolderId;
 
   @override
   void initState() {
@@ -42,7 +43,10 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
           _titleController.text = page.title;
           _notesController.text = page.notes;
           _tagsController.text = page.tags.join(', ');
-          setState(() => _isFavorite = page.isFavorite);
+          setState(() {
+            _isFavorite = page.isFavorite;
+            _selectedFolderId = page.folderId;
+          });
         }
       });
     }
@@ -73,6 +77,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             notes: _notesController.text.trim(),
             tags: tags,
             isFavorite: _isFavorite,
+            folderId: _selectedFolderId,
           )
         : PageModel(
             id: const Uuid().v4(),
@@ -84,6 +89,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             tags: tags,
             isFavorite: _isFavorite,
             createdAt: DateTime.now(),
+            folderId: _selectedFolderId,
           );
 
     if (_isEditing) {
@@ -98,6 +104,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final folders = ref.watch(foldersProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -199,11 +206,26 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
 
             const SizedBox(height: 24),
 
-            // Details Section
-            ModernFormWidgets.sectionHeader('Details', isDark: isDark),
-            TextFormField(
-              controller: _notesController,
-              maxLines: 3,
+            // Organization Section
+            ModernFormWidgets.sectionHeader('Organization', isDark: isDark),
+
+            // Folder Dropdown
+            DropdownButtonFormField<String?>(
+              value: _selectedFolderId, // ignore: deprecated_member_use
+              decoration: ModernFormWidgets.inputDecoration(
+                context,
+                label: 'Folder',
+                hint: 'Select a folder',
+                icon: PhosphorIcons.folder(),
+                isDark: isDark,
+              ),
+              dropdownColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              icon: Icon(
+                PhosphorIcons.caretDown(),
+                color: isDark
+                    ? AppTheme.darkTextSecondary
+                    : AppTheme.lightTextSecondary,
+              ),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -211,14 +233,41 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
                     ? AppTheme.darkTextPrimary
                     : AppTheme.lightTextPrimary,
               ),
-              decoration: ModernFormWidgets.inputDecoration(
-                context,
-                label: 'Notes',
-                hint: 'What is this page about?',
-                icon: PhosphorIcons.note(),
-                isDark: isDark,
-              ),
-            ).animate().fadeIn(delay: 300.ms),
+              items: [
+                DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text(
+                    'None',
+                    style: TextStyle(
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                ...folders.map(
+                  (folder) => DropdownMenuItem<String?>(
+                    value: folder.id,
+                    child: Row(
+                      children: [
+                        Icon(
+                          IconData(
+                            folder.iconCodePoint,
+                            fontFamily: 'MaterialIcons',
+                          ),
+                          size: 18,
+                          color: Color(folder.colorValue),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(folder.name),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              onChanged: (value) => setState(() => _selectedFolderId = value),
+            ).animate().fadeIn(delay: 250.ms),
 
             const SizedBox(height: 16),
 
@@ -238,7 +287,30 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
                 icon: PhosphorIcons.tag(),
                 isDark: isDark,
               ),
-            ).animate().fadeIn(delay: 400.ms),
+            ).animate().fadeIn(delay: 300.ms),
+
+            const SizedBox(height: 24),
+
+            // Details Section
+            ModernFormWidgets.sectionHeader('Details', isDark: isDark),
+            TextFormField(
+              controller: _notesController,
+              maxLines: 3,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: isDark
+                    ? AppTheme.darkTextPrimary
+                    : AppTheme.lightTextPrimary,
+              ),
+              decoration: ModernFormWidgets.inputDecoration(
+                context,
+                label: 'Notes',
+                hint: 'What is this page about?',
+                icon: PhosphorIcons.note(),
+                isDark: isDark,
+              ),
+            ).animate().fadeIn(delay: 350.ms),
 
             const SizedBox(height: 48),
 

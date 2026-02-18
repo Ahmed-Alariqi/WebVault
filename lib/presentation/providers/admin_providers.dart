@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/suggestion_model.dart';
+import '../../data/repositories/suggestion_repository.dart';
 
 final _client = SupabaseConfig.client;
 
@@ -65,7 +68,7 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
 
   // 2. Trigger Edge Function to push via OneSignal
   try {
-    await _client.functions.invoke(
+    final response = await _client.functions.invoke(
       'send-notification',
       body: {
         'title': data['title'],
@@ -75,24 +78,99 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
         'created_by': user?.id,
       },
     );
+    debugPrint('OneSignal push response: ${response.status} ${response.data}');
   } catch (e) {
-    // If the Edge Function fails (e.g. missing secrets), we still keep the DB record
-    // but might want to log it or show a warning.
-    // For now, we swallow it so the admin UI doesn't crash on "success".
     debugPrint('Edge Function invoke failed: $e');
+    // Don't swallow - rethrow so admin sees push failed
+    rethrow;
   }
 }
 
 // --------------- Admin Stats ---------------
 
 final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
-  final websitesCount = await _client.from('websites').select('id');
-  final categoriesCount = await _client.from('categories').select('id');
-  final profilesCount = await _client.from('profiles').select('id');
+  final websitesCount = await _client.from('websites').count(CountOption.exact);
+  final categoriesCount = await _client
+      .from('categories')
+      .count(CountOption.exact);
+  final profilesCount = await _client.from('profiles').count(CountOption.exact);
 
   return {
-    'websites': (websitesCount as List).length,
-    'categories': (categoriesCount as List).length,
-    'users': (profilesCount as List).length,
+    'websites': websitesCount,
+    'categories': categoriesCount,
+    'users': profilesCount,
   };
 });
+
+// --------------- Admin User Management ---------------
+
+final adminUsersProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
+  try {
+    final response = await _client.functions.invoke(
+      'admin-user-actions',
+      body: {'action': 'list_users'},
+    );
+    final data = response.data as List;
+    return data.map((e) => e as Map<String, dynamic>).toList();
+  } catch (e) {
+    debugPrint('Error listing users: $e');
+    throw Exception('Failed to load users');
+  }
+});
+
+Future<void> adminCreateUser(
+  String email,
+  String password,
+  String fullName,
+  String role,
+) async {
+  await _client.functions.invoke(
+    'admin-user-actions',
+    body: {
+      'action': 'create_user',
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+      'role': role,
+    },
+  );
+}
+
+Future<void> adminUpdateUser(String userId, {String? role}) async {
+  await _client.functions.invoke(
+    'admin-user-actions',
+    body: {'action': 'update_user', 'userId': userId, 'role': role},
+  );
+}
+
+Future<void> adminDeleteUser(String userId) async {
+  await _client.functions.invoke(
+    'admin-user-actions',
+    body: {'action': 'delete_user', 'userId': userId},
+  );
+}
+// --------------- Admin Suggestions ---------------
+
+final suggestionRepositoryProvider = Provider<SuggestionRepository>((ref) {
+  return SuggestionRepository();
+});
+
+final adminSuggestionsProvider = StreamProvider<List<SuggestionModel>>((ref) {
+  return SupabaseConfig.client
+      .from('page_suggestions')
+      .stream(primaryKey: ['id'])
+      .eq('status', 'pending')
+      .order('created_at', ascending: false)
+      .map((data) => data.map((e) => SuggestionModel.fromJson(e)).toList());
+});
+
+Future<void> adminUpdateSuggestion(String id, String status) async {
+  await SupabaseConfig.client
+      .from('page_suggestions')
+      .update({'status': status})
+      .eq('id', id);
+}
+
+// Re-export repository for convenience if needed, but usually we use provider

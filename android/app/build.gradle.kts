@@ -10,6 +10,12 @@ android {
     namespace = "com.webvault.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    
+    externalNativeBuild {
+        cmake {
+            version = "3.31.5"
+        }
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -391,6 +391,372 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'WebVault Manager'**
   String get appName;
+
+  /// No description provided for @newFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'New Folder'**
+  String get newFolder;
+
+  /// No description provided for @folderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder Name'**
+  String get folderName;
+
+  /// No description provided for @createFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Folder'**
+  String get createFolder;
+
+  /// No description provided for @deleteFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Folder'**
+  String get deleteFolder;
+
+  /// No description provided for @deleteFolderConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages inside will not be deleted, just removed from this folder.'**
+  String get deleteFolderConfirmation;
+
+  /// No description provided for @folderEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty'**
+  String get folderEmpty;
+
+  /// No description provided for @addPagesFromBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Add pages from the browser'**
+  String get addPagesFromBrowser;
+
+  /// No description provided for @addToFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Folder'**
+  String get addToFolder;
+
+  /// No description provided for @addedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {folder}'**
+  String addedTo(String folder);
+
+  /// No description provided for @itemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No items} =1{1 item} other{{count} items}}'**
+  String itemCount(int count);
+
+  /// No description provided for @noFoldersYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No folders created yet'**
+  String get noFoldersYet;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @color.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get color;
+
+  /// No description provided for @icon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get icon;
+
+  /// No description provided for @selectStartPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Start Page'**
+  String get selectStartPage;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
+
+  /// No description provided for @pageNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found'**
+  String get pageNotFound;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @forward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get forward;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @openInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get openInBrowser;
+
+  /// No description provided for @suggestToAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest to Admin'**
+  String get suggestToAdmin;
+
+  /// No description provided for @suggestionSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion sent to admin'**
+  String get suggestionSent;
+
+  /// No description provided for @suggestionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (Optional)'**
+  String get suggestionDescription;
+
+  /// No description provided for @submitSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Suggestion'**
+  String get submitSuggestion;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approved;
+
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
+  /// No description provided for @suggestionRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion rejected'**
+  String get suggestionRejected;
+
+  /// No description provided for @suggestionApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion approved and published'**
+  String get suggestionApproved;
+
+  /// No description provided for @publish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get publish;
+
+  /// No description provided for @userSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'User Suggestions'**
+  String get userSuggestions;
+
+  /// No description provided for @originalUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Original URL'**
+  String get originalUrl;
+
+  /// No description provided for @suggestedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested by'**
+  String get suggestedBy;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approve;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get reject;
+
+  /// No description provided for @noSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending suggestions'**
+  String get noSuggestions;
+
+  /// No description provided for @manageUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Users'**
+  String get manageUsers;
+
+  /// No description provided for @searchUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search via email or name...'**
+  String get searchUsers;
+
+  /// No description provided for @addUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Add User'**
+  String get addUser;
+
+  /// No description provided for @editUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit User'**
+  String get editUser;
+
+  /// No description provided for @noUsersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No users found'**
+  String get noUsersFound;
+
+  /// No description provided for @noMatchesFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches found'**
+  String get noMatchesFound;
+
+  /// No description provided for @deleteUserTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete User?'**
+  String get deleteUserTitle;
+
+  /// No description provided for @deleteUserConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete {email}? This action cannot be undone.'**
+  String deleteUserConfirm(String email);
+
+  /// No description provided for @userDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'User deleted successfully'**
+  String get userDeleted;
+
+  /// No description provided for @userUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'User updated'**
+  String get userUpdated;
+
+  /// No description provided for @userCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'User created'**
+  String get userCreated;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @role.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get role;
+
+  /// No description provided for @admin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get admin;
+
+  /// No description provided for @user.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
+  String get create;
+
+  /// No description provided for @required.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get required;
+
+  /// No description provided for @min6Chars.
+  ///
+  /// In en, this message translates to:
+  /// **'Min 6 chars'**
+  String get min6Chars;
+
+  /// No description provided for @editChangeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit / Change Role'**
+  String get editChangeRole;
+
+  /// No description provided for @lastLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'Last login: {date}'**
+  String lastLogin(String date);
 }
 
 class _AppLocalizationsDelegate

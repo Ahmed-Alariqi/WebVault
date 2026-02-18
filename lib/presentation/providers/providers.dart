@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/constants.dart';
+import '../../core/supabase_config.dart';
 import '../../data/repositories/page_repository.dart';
 import '../../data/repositories/folder_repository.dart';
 import '../../data/repositories/clipboard_repository.dart';
@@ -182,6 +185,37 @@ class PagesNotifier extends StateNotifier<List<PageModel>> {
     await _repo.incrementVisit(id);
     refresh();
   }
+
+  Future<void> removeFromFolder(String id) async {
+    final page = _repo.getById(id);
+    if (page != null) {
+      // We cannot use copyWith because it ignores nulls
+      final updated = PageModel(
+        id: page.id,
+        url: page.url,
+        title: page.title,
+        notes: page.notes,
+        tags: page.tags,
+        folderId: null, // Clear folder
+        isFavorite: page.isFavorite,
+        visitCount: page.visitCount,
+        lastOpened: page.lastOpened,
+        createdAt: page.createdAt,
+        scrollPosition: page.scrollPosition,
+      );
+      await _repo.save(updated);
+      refresh();
+    }
+  }
+
+  Future<void> addToFolder(String pageId, String folderId) async {
+    final page = _repo.getById(pageId);
+    if (page != null) {
+      final updated = page.copyWith(folderId: folderId);
+      await _repo.save(updated);
+      refresh();
+    }
+  }
 }
 
 final pageSearchProvider = StateProvider<String>((ref) => '');
@@ -319,4 +353,36 @@ final localeProvider = Provider<Locale>((ref) {
 // Notification provider
 // ============================================================
 
-final notificationCountProvider = StateProvider<int>((ref) => 0);
+/// Tracks the last time the user opened the notifications screen.
+/// Notifications created after this timestamp are considered "unread".
+final lastSeenNotificationProvider = StateProvider<DateTime>((ref) {
+  final box = Hive.box(kSettingsBox);
+  final stored = box.get('lastSeenNotification') as String?;
+  if (stored != null) {
+    return DateTime.parse(stored);
+  }
+  return DateTime.now();
+});
+
+/// Counts unread notifications from Supabase (created after lastSeen timestamp).
+final notificationCountProvider = FutureProvider<int>((ref) async {
+  final lastSeen = ref.watch(lastSeenNotificationProvider);
+  try {
+    final response = await SupabaseConfig.client
+        .from('notifications')
+        .select('id')
+        .gt('created_at', lastSeen.toIso8601String());
+    return (response as List).length;
+  } catch (_) {
+    return 0;
+  }
+});
+
+/// Marks all notifications as read by updating the lastSeen timestamp.
+Future<void> markNotificationsRead(WidgetRef ref) async {
+  final now = DateTime.now();
+  final box = Hive.box(kSettingsBox);
+  await box.put('lastSeenNotification', now.toIso8601String());
+  ref.read(lastSeenNotificationProvider.notifier).state = now;
+  ref.invalidate(notificationCountProvider);
+}

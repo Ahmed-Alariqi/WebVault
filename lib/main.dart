@@ -31,18 +31,23 @@ Future<void> main() async {
   await SupabaseConfig.initialize();
 
   // Initialize OneSignal
-  // Remove this method to stop OneSignal Debugging
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize(SupabaseConfig.oneSignalAppId);
-  // The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
   OneSignal.Notifications.requestPermission(true);
 
-  // FORCE SHOW notification in foreground (User request: "appears even if user outside app", but also consistency)
+  // Create a global container so we can invalidate providers from callbacks
+  final container = ProviderContainer();
+
+  // Show notification in foreground AND refresh badge count
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    // Prevent the default behavior (which might be to suppress)
-    // Actually, to SHow it, we usually don't need to do anything if default is show.
-    // But if we want to ensure it shows as a system notification:
     event.notification.display();
+    // Refresh the unread notifications count
+    container.invalidate(notificationCountProvider);
+  });
+
+  // Also refresh count when notification is clicked (user returns from background)
+  OneSignal.Notifications.addClickListener((event) {
+    container.invalidate(notificationCountProvider);
   });
 
   // Seed dummy data on first launch
@@ -64,7 +69,9 @@ Future<void> main() async {
     ),
   );
 
-  runApp(const ProviderScope(child: WebVaultApp()));
+  runApp(
+    UncontrolledProviderScope(container: container, child: const WebVaultApp()),
+  );
 }
 
 class WebVaultApp extends ConsumerWidget {
@@ -79,8 +86,8 @@ class WebVaultApp extends ConsumerWidget {
     return MaterialApp.router(
       title: kAppName,
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme(),
-      darkTheme: AppTheme.darkTheme(),
+      theme: AppTheme.lightTheme(locale.languageCode),
+      darkTheme: AppTheme.darkTheme(locale.languageCode),
       themeMode: themeMode,
       routerConfig: router,
       locale: locale,

@@ -34,11 +34,14 @@ class AppTheme {
   static const double borderRadiusSm = 12.0;
   static const double borderRadiusLg = 24.0;
 
-  static TextTheme _buildTextTheme(TextTheme base) {
+  static TextTheme _buildTextTheme(TextTheme base, String? languageCode) {
+    if (languageCode == 'ar') {
+      return GoogleFonts.tajawalTextTheme(base);
+    }
     return GoogleFonts.interTextTheme(base);
   }
 
-  static ThemeData lightTheme() {
+  static ThemeData lightTheme(String? languageCode) {
     final base = ThemeData.light(useMaterial3: true);
     return base.copyWith(
       colorScheme: ColorScheme.fromSeed(
@@ -50,18 +53,24 @@ class AppTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: lightBg,
-      textTheme: _buildTextTheme(base.textTheme),
+      textTheme: _buildTextTheme(base.textTheme, languageCode),
       appBarTheme: AppBarTheme(
         backgroundColor: lightSurface,
         foregroundColor: lightTextPrimary,
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.inter(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: lightTextPrimary,
-        ),
+        titleTextStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: lightTextPrimary,
+              )
+            : GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: lightTextPrimary,
+              ),
       ),
       cardTheme: CardThemeData(
         color: lightCard,
@@ -100,10 +109,9 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
-          textStyle: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: languageCode == 'ar'
+              ? GoogleFonts.tajawal(fontSize: 15, fontWeight: FontWeight.w600)
+              : GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -137,7 +145,7 @@ class AppTheme {
     );
   }
 
-  static ThemeData darkTheme() {
+  static ThemeData darkTheme(String? languageCode) {
     final base = ThemeData.dark(useMaterial3: true);
     return base.copyWith(
       colorScheme: ColorScheme.fromSeed(
@@ -149,18 +157,24 @@ class AppTheme {
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: darkBg,
-      textTheme: _buildTextTheme(base.textTheme),
+      textTheme: _buildTextTheme(base.textTheme, languageCode),
       appBarTheme: AppBarTheme(
         backgroundColor: darkSurface,
         foregroundColor: darkTextPrimary,
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.inter(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: darkTextPrimary,
-        ),
+        titleTextStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: darkTextPrimary,
+              )
+            : GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: darkTextPrimary,
+              ),
       ),
       cardTheme: CardThemeData(
         color: darkCard,
@@ -199,10 +213,9 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
-          textStyle: GoogleFonts.inter(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: languageCode == 'ar'
+              ? GoogleFonts.tajawal(fontSize: 15, fontWeight: FontWeight.w600)
+              : GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(

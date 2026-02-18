@@ -154,4 +154,203 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appName => 'WebVault Manager';
+
+  @override
+  String get newFolder => 'New Folder';
+
+  @override
+  String get folderName => 'Folder Name';
+
+  @override
+  String get createFolder => 'Create Folder';
+
+  @override
+  String get deleteFolder => 'Delete Folder';
+
+  @override
+  String get deleteFolderConfirmation =>
+      'Pages inside will not be deleted, just removed from this folder.';
+
+  @override
+  String get folderEmpty => 'This folder is empty';
+
+  @override
+  String get addPagesFromBrowser => 'Add pages from the browser';
+
+  @override
+  String get addToFolder => 'Add to Folder';
+
+  @override
+  String addedTo(String folder) {
+    return 'Added to $folder';
+  }
+
+  @override
+  String itemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+      zero: 'No items',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noFoldersYet => 'No folders created yet';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get color => 'Color';
+
+  @override
+  String get icon => 'Icon';
+
+  @override
+  String get selectStartPage => 'Select Start Page';
+
+  @override
+  String get error => 'Error';
+
+  @override
+  String get pageNotFound => 'Page not found';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get forward => 'Forward';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get openInBrowser => 'Open in browser';
+
+  @override
+  String get suggestToAdmin => 'Suggest to Admin';
+
+  @override
+  String get suggestionSent => 'Suggestion sent to admin';
+
+  @override
+  String get suggestionDescription => 'Description (Optional)';
+
+  @override
+  String get submitSuggestion => 'Submit Suggestion';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get approved => 'Approved';
+
+  @override
+  String get rejected => 'Rejected';
+
+  @override
+  String get suggestionRejected => 'Suggestion rejected';
+
+  @override
+  String get suggestionApproved => 'Suggestion approved and published';
+
+  @override
+  String get publish => 'Publish';
+
+  @override
+  String get userSuggestions => 'User Suggestions';
+
+  @override
+  String get originalUrl => 'Original URL';
+
+  @override
+  String get suggestedBy => 'Suggested by';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get reject => 'Reject';
+
+  @override
+  String get noSuggestions => 'No pending suggestions';
+
+  @override
+  String get manageUsers => 'Manage Users';
+
+  @override
+  String get searchUsers => 'Search via email or name...';
+
+  @override
+  String get addUser => 'Add User';
+
+  @override
+  String get editUser => 'Edit User';
+
+  @override
+  String get noUsersFound => 'No users found';
+
+  @override
+  String get noMatchesFound => 'No matches found';
+
+  @override
+  String get deleteUserTitle => 'Delete User?';
+
+  @override
+  String deleteUserConfirm(String email) {
+    return 'Are you sure you want to delete $email? This action cannot be undone.';
+  }
+
+  @override
+  String get userDeleted => 'User deleted successfully';
+
+  @override
+  String get userUpdated => 'User updated';
+
+  @override
+  String get userCreated => 'User created';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get fullName => 'Full Name';
+
+  @override
+  String get role => 'Role';
+
+  @override
+  String get admin => 'Admin';
+
+  @override
+  String get user => 'User';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get required => 'Required';
+
+  @override
+  String get min6Chars => 'Min 6 chars';
+
+  @override
+  String get editChangeRole => 'Edit / Change Role';
+
+  @override
+  String lastLogin(String date) {
+    return 'Last login: $date';
+  }
 }

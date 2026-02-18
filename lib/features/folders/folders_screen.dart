@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
@@ -105,7 +106,13 @@ class FoldersScreen extends ConsumerWidget {
     // Fix: We'll interpret codePoint as Material if it matches known Material range or just standard Icon()
     // For simplicity, we are building *new* features.
 
+    final itemCount = ref
+        .watch(pagesProvider)
+        .where((p) => p.folderId == folder.id)
+        .length;
+
     return GestureDetector(
+      onTap: () => context.push('/folders/${folder.id}'),
       onLongPress: () {
         showModalBottomSheet(
           context: context,
@@ -195,7 +202,7 @@ class FoldersScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '0 items', // Placeholder for count
+              '$itemCount items',
               style: TextStyle(
                 fontSize: 11,
                 color: isDark

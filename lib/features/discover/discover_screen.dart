@@ -252,7 +252,7 @@ class DiscoverScreen extends ConsumerWidget {
           ).animate().fadeIn(),
           const SizedBox(height: 14),
           SizedBox(
-            height: 200,
+            height: 280, // Increased height
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -306,7 +306,7 @@ class DiscoverScreen extends ConsumerWidget {
             child: Stack(
               children: [
                 SizedBox(
-                  height: 100,
+                  height: 120, // Increased image height slightly
                   width: double.infinity,
                   child: site.imageUrl != null && site.imageUrl!.isNotEmpty
                       ? CachedNetworkImage(
@@ -406,17 +406,18 @@ class DiscoverScreen extends ConsumerWidget {
                             ? AppTheme.darkTextSecondary
                             : AppTheme.lightTextSecondary,
                       ),
-                      maxLines: 2,
+                      maxLines: 3, // Increased lines
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
                         child: SizedBox(
-                          height: 30,
+                          height: 32,
                           child: ElevatedButton(
-                            onPressed: () => _openUrl(site.url),
+                            onPressed: () => _openUrl(site.url, inApp: true),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryColor,
                               padding: EdgeInsets.zero,
@@ -435,14 +436,42 @@ class DiscoverScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       SizedBox(
-                        height: 30,
-                        width: 30,
+                        height: 32,
+                        width: 32,
+                        child: IconButton(
+                          onPressed: () => _openUrl(site.url, inApp: false),
+                          icon: Icon(PhosphorIcons.globe(), size: 18),
+                          padding: EdgeInsets.zero,
+                          style: IconButton.styleFrom(
+                            backgroundColor: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.05),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          tooltip: 'Open in Browser',
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      SizedBox(
+                        height: 32,
+                        width: 32,
                         child: IconButton(
                           onPressed: () => _saveSite(ref, site),
-                          icon: Icon(PhosphorIcons.bookmarkSimple(), size: 16),
+                          icon: Icon(PhosphorIcons.bookmarkSimple(), size: 18),
                           padding: EdgeInsets.zero,
+                          style: IconButton.styleFrom(
+                            backgroundColor: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.05),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                           color: isDark ? Colors.white54 : Colors.black45,
                         ),
                       ),
@@ -459,7 +488,7 @@ class DiscoverScreen extends ConsumerWidget {
 
   Widget _placeholderImage(bool isDark) {
     return Container(
-      height: 100,
+      height: 120,
       color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
       child: Center(
         child: Icon(
@@ -494,7 +523,7 @@ class DiscoverScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
           SizedBox(
-            height: 200,
+            height: 280,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -562,10 +591,13 @@ class DiscoverScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _openUrl(String url, {bool inApp = true}) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+      await launchUrl(
+        uri,
+        mode: inApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
+      );
     }
   }
 

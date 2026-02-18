@@ -6,13 +6,29 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/providers/providers.dart';
 import '../../data/models/notification_model.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Mark all notifications as read when user opens this screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      markNotificationsRead(ref);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(notificationsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

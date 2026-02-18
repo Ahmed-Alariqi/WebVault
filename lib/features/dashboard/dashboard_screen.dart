@@ -5,10 +5,11 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../core/theme/app_theme.dart';
-
 import '../../presentation/providers/providers.dart';
+import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/providers/auth_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -101,6 +102,12 @@ class DashboardScreen extends ConsumerWidget {
                       page: entry.value,
                       isDark: isDark,
                       index: entry.key,
+                      onSuggestion: () => showSuggestionDialog(
+                        context,
+                        ref,
+                        title: entry.value.title,
+                        url: entry.value.url,
+                      ),
                     ),
                   ),
                 ] else if (totalPages == 0)
@@ -114,7 +121,7 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _DashboardHeader extends StatelessWidget {
+class _DashboardHeader extends ConsumerWidget {
   final bool isDark;
 
   const _DashboardHeader({required this.isDark});
@@ -210,7 +217,11 @@ class _DashboardHeader extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unreadCount = ref.watch(notificationCountProvider).valueOrNull ?? 0;
+    final hasUnread = unreadCount > 0;
+    final isAdmin = ref.watch(isAdminProvider).valueOrNull ?? false;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         20,
@@ -254,15 +265,32 @@ class _DashboardHeader extends StatelessWidget {
             ),
           ),
 
+          if (isAdmin) ...[
+            IconButton(
+              onPressed: () => context.push('/admin'),
+              icon: Icon(
+                PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                size: 24,
+                color: AppTheme.primaryColor,
+              ),
+              tooltip: 'Admin Dashboard',
+            ).animate().fadeIn().scale(),
+            const SizedBox(width: 8),
+          ],
+
           IconButton(
             onPressed: () => context.push('/notifications'),
             icon: NotificationBadge(
               child: Icon(
-                PhosphorIcons.bell(),
+                hasUnread
+                    ? PhosphorIcons.bellRinging(PhosphorIconsStyle.fill)
+                    : PhosphorIcons.bell(),
                 size: 24,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
+                color: hasUnread
+                    ? AppTheme.primaryColor
+                    : (isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary),
               ),
             ),
           ),
@@ -591,85 +619,91 @@ class _RecentItem extends StatelessWidget {
   final PageModel page;
   final bool isDark;
   final int index;
+  final VoidCallback onSuggestion;
 
   const _RecentItem({
     required this.page,
     required this.isDark,
     required this.index,
+    required this.onSuggestion,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
+    return GestureDetector(
+      onTap: () => context.push('/browser/${page.id}'),
+      onLongPress: onSuggestion,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color:
-                  (index % 2 == 0
-                          ? AppTheme.primaryColor
-                          : AppTheme.accentColor)
-                      .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color:
+                    (index % 2 == 0
+                            ? AppTheme.primaryColor
+                            : AppTheme.accentColor)
+                        .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+                color: index % 2 == 0
+                    ? AppTheme.primaryColor
+                    : AppTheme.accentColor,
+                size: 24,
+              ),
             ),
-            child: Icon(
-              PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-              color: index % 2 == 0
-                  ? AppTheme.primaryColor
-                  : AppTheme.accentColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  page.title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? AppTheme.darkTextPrimary
-                        : AppTheme.lightTextPrimary,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    page.title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  page.url,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark
-                        ? AppTheme.darkTextSecondary
-                        : AppTheme.lightTextSecondary,
+                  const SizedBox(height: 2),
+                  Text(
+                    page.url,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          if (page.isFavorite)
-            Icon(
-              PhosphorIcons.heart(PhosphorIconsStyle.fill),
-              size: 16,
-              color: AppTheme.errorColor,
-            ),
-        ],
+            if (page.isFavorite)
+              Icon(
+                PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                size: 16,
+                color: AppTheme.errorColor,
+              ),
+          ],
+        ),
       ),
     ).animate().fadeIn(delay: (700 + (index * 50)).ms).slideX(begin: 0.05);
   }
