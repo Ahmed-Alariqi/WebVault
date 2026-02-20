@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
 
         const payload = {
             app_id: appId,
-            included_segments: ["Subscribed Users", "Active Users"],
+            included_segments: ["Total Subscriptions"],
             target_channel: "push",
             headings: { en: title },
             contents: { en: body || title },

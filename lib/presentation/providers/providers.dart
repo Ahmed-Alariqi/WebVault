@@ -389,7 +389,7 @@ final notificationCountProvider = FutureProvider<int>((ref) async {
 
 /// Marks all notifications as read by updating the lastSeen timestamp.
 Future<void> markNotificationsRead(WidgetRef ref) async {
-  final now = DateTime.now();
+  final now = DateTime.now().toUtc();
   final box = Hive.box(kSettingsBox);
   await box.put('lastSeenNotification', now.toIso8601String());
   ref.read(lastSeenNotificationProvider.notifier).state = now;
