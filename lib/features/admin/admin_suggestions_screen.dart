@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/providers/discover_providers.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/website_model.dart';
 
@@ -23,43 +24,70 @@ class AdminSuggestionsScreen extends ConsumerWidget {
       text: suggestion.pageDescription ?? '',
     );
     final urlController = TextEditingController(text: suggestion.pageUrl);
+    bool isTrending = false;
+    bool isPopular = false;
+    bool isFeatured = false;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Approve & Publish'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: urlController,
-                decoration: const InputDecoration(labelText: 'URL'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(labelText: 'Description'),
-                maxLines: 3,
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Approve & Publish'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(labelText: 'Title'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: urlController,
+                  decoration: const InputDecoration(labelText: 'URL'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descController,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                CheckboxListTile(
+                  title: const Text('Trending', style: TextStyle(fontSize: 14)),
+                  value: isTrending,
+                  onChanged: (v) =>
+                      setDialogState(() => isTrending = v ?? false),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: const Text('Popular', style: TextStyle(fontSize: 14)),
+                  value: isPopular,
+                  onChanged: (v) =>
+                      setDialogState(() => isPopular = v ?? false),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                CheckboxListTile(
+                  title: const Text('Featured', style: TextStyle(fontSize: 14)),
+                  value: isFeatured,
+                  onChanged: (v) =>
+                      setDialogState(() => isFeatured = v ?? false),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Publish'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Publish'),
-          ),
-        ],
       ),
     );
 
@@ -77,9 +105,9 @@ class AdminSuggestionsScreen extends ConsumerWidget {
           description: descController.text,
           imageUrl: null, // Could be enhanced to fetch OG image
           tags: [], // Could be enhanced to allow tag editing
-          isTrending: false,
-          isPopular: false,
-          isFeatured: false,
+          isTrending: isTrending,
+          isPopular: isPopular,
+          isFeatured: isFeatured,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
@@ -94,6 +122,11 @@ class AdminSuggestionsScreen extends ConsumerWidget {
           );
           // Refresh the list
           final _ = ref.refresh(adminSuggestionsProvider);
+          ref.invalidate(trendingWebsitesProvider);
+          ref.invalidate(popularWebsitesProvider);
+          ref.invalidate(featuredWebsitesProvider);
+          ref.invalidate(discoverWebsitesProvider);
+          ref.invalidate(adminWebsitesProvider);
         }
       } catch (e) {
         if (context.mounted) {

@@ -353,4 +353,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String lastLogin(String date) {
     return 'Last login: $date';
   }
+
+  @override
+  String get backupSuccessful => 'Backup successful';
+
+  @override
+  String get importSuccessful => 'Import successful';
+
+  @override
+  String get backupFailed => 'Backup failed';
+
+  @override
+  String get importFailed => 'Import failed';
+
+  @override
+  String get invalidBackupFile => 'Invalid backup file';
 }

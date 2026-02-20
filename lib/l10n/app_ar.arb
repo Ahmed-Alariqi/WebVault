@@ -108,5 +108,10 @@
   "required": "مطلوب",
   "min6Chars": "6 محارف على الأقل",
   "editChangeRole": "تعديل / تغيير الدور",
-  "lastLogin": "آخر دخول: {date}"
+  "lastLogin": "آخر دخول: {date}",
+  "backupSuccessful": "تم إنشاء النسخة الاحتياطية بنجاح",
+  "importSuccessful": "تم الاستيراد بنجاح",
+  "backupFailed": "فشل إنشاء النسخة الاحتياطية",
+  "importFailed": "فشل الاستيراد",
+  "invalidBackupFile": "ملف نسخة احتياطية غير صالح"
 }

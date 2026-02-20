@@ -137,82 +137,7 @@ class _DashboardHeader extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            CircleAvatar(
-              radius: 40,
-              backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-              child: Icon(
-                PhosphorIcons.user(PhosphorIconsStyle.fill),
-                size: 40,
-                color: AppTheme.primaryColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              AppLocalizations.of(context)!.userProfile,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark
-                    ? AppTheme.darkTextPrimary
-                    : AppTheme.lightTextPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              AppLocalizations.of(context)!.welcomeBack,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  context.pop(); // Close modal
-                  context.push('/settings'); // Go to settings
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                icon: Icon(PhosphorIcons.gear(), size: 20),
-                label: Text(
-                  AppLocalizations.of(context)!.manageSettings,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+      builder: (context) => _ProfilePreviewSheet(isDark: isDark),
     );
   }
 
@@ -305,15 +230,7 @@ class _DashboardHeader extends ConsumerWidget {
                   colors: [AppTheme.primaryColor, AppTheme.accentColor],
                 ),
               ),
-              child: CircleAvatar(
-                radius: 24,
-                backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
-                child: Icon(
-                  PhosphorIcons.user(PhosphorIconsStyle.bold),
-                  color: AppTheme.primaryColor,
-                  size: 24,
-                ),
-              ),
+              child: _HeaderAvatar(isDark: isDark),
             ),
           ).animate().scale(delay: 200.ms, curve: Curves.elasticOut),
         ],
@@ -773,6 +690,187 @@ class _EmptyState extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HeaderAvatar extends ConsumerWidget {
+  final bool isDark;
+
+  const _HeaderAvatar({required this.isDark});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userProfileAsync = ref.watch(userProfileProvider);
+
+    return userProfileAsync.when(
+      data: (profile) {
+        final fullName = profile?['full_name'] as String? ?? '';
+        final initials = fullName.isNotEmpty ? fullName[0].toUpperCase() : '?';
+
+        return CircleAvatar(
+          radius: 24,
+          backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+          child: Text(
+            initials,
+            style: const TextStyle(
+              color: AppTheme.primaryColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+        );
+      },
+      loading: () => CircleAvatar(
+        radius: 24,
+        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+        child: const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (_, __) => CircleAvatar(
+        radius: 24,
+        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+        child: Icon(
+          PhosphorIcons.user(PhosphorIconsStyle.bold),
+          color: AppTheme.primaryColor,
+          size: 24,
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfilePreviewSheet extends ConsumerWidget {
+  final bool isDark;
+
+  const _ProfilePreviewSheet({required this.isDark});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userProfileAsync = ref.watch(userProfileProvider);
+    final currentUser = ref.watch(currentUserProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: userProfileAsync.when(
+        data: (profile) {
+          final fullName = profile?['full_name'] as String? ?? 'Vault User';
+          final email = currentUser?.email ?? 'No email';
+          final initials = fullName.isNotEmpty
+              ? fullName[0].toUpperCase()
+              : '?';
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                fullName,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                email,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    context.pop();
+                    context.push('/settings');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: Icon(PhosphorIcons.gear(), size: 20),
+                  label: Text(
+                    AppLocalizations.of(context)!.manageSettings,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    context.pop();
+                    await ref.read(authServiceProvider).signOut();
+                    if (context.mounted) {
+                      context.go('/');
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.errorColor,
+                    side: BorderSide(
+                      color: AppTheme.errorColor.withValues(alpha: 0.5),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: Icon(PhosphorIcons.signOut(), size: 20),
+                  label: const Text(
+                    'Sign Out',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, s) => const Center(child: Text('Error loading profile')),
+      ),
     );
   }
 }

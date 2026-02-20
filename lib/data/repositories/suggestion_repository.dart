@@ -12,8 +12,9 @@ class SuggestionRepository {
     String? description,
   }) async {
     final user = _client.auth.currentUser;
-    if (user == null)
+    if (user == null) {
       throw Exception('User must be logged in to suggest pages');
+    }
 
     await _client.from('page_suggestions').insert({
       'user_id': user.id,

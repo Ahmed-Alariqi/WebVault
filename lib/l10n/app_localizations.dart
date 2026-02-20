@@ -757,6 +757,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last login: {date}'**
   String lastLogin(String date);
+
+  /// No description provided for @backupSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup successful'**
+  String get backupSuccessful;
+
+  /// No description provided for @importSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Import successful'**
+  String get importSuccessful;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed'**
+  String get backupFailed;
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Import failed'**
+  String get importFailed;
+
+  /// No description provided for @invalidBackupFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid backup file'**
+  String get invalidBackupFile;
 }
 
 class _AppLocalizationsDelegate

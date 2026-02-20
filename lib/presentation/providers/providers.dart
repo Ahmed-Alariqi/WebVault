@@ -10,6 +10,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../data/models/page_model.dart';
 import '../../data/models/folder_model.dart';
 import '../../data/models/clipboard_item_model.dart';
+import '../../data/services/backup_service.dart';
 
 // ============================================================
 // Repository providers
@@ -29,6 +30,13 @@ final clipboardRepositoryProvider = Provider<ClipboardRepository>((ref) {
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository();
+});
+
+final backupServiceProvider = Provider<BackupService>((ref) {
+  final pageRepo = ref.read(pageRepositoryProvider);
+  final folderRepo = ref.read(folderRepositoryProvider);
+  final clipboardRepo = ref.read(clipboardRepositoryProvider);
+  return BackupService(pageRepo, folderRepo, clipboardRepo);
 });
 
 // ============================================================
@@ -361,7 +369,8 @@ final lastSeenNotificationProvider = StateProvider<DateTime>((ref) {
   if (stored != null) {
     return DateTime.parse(stored);
   }
-  return DateTime.now();
+  // Default to a completely old date so all notifications show as unread if never opened
+  return DateTime.fromMillisecondsSinceEpoch(0);
 });
 
 /// Counts unread notifications from Supabase (created after lastSeen timestamp).

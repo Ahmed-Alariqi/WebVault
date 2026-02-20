@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_config.dart';
 
@@ -26,6 +27,9 @@ class AuthService {
       email: email,
       password: password,
       data: {'full_name': fullName, 'username': username},
+      emailRedirectTo: kIsWeb
+          ? 'http://localhost:5789'
+          : 'io.supabase.webvault://login-callback',
     );
     return response;
   }

@@ -136,5 +136,10 @@
         "type": "String"
       }
     }
-  }
+  },
+  "backupSuccessful": "Backup successful",
+  "importSuccessful": "Import successful",
+  "backupFailed": "Backup failed",
+  "importFailed": "Import failed",
+  "invalidBackupFile": "Invalid backup file"
 }

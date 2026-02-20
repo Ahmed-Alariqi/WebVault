@@ -303,14 +303,22 @@ class SettingsScreen extends ConsumerWidget {
                           : AppTheme.lightTextSecondary,
                     ),
                   ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.exportFeatureComingSoon,
+                  onTap: () async {
+                    final success = await ref
+                        .read(backupServiceProvider)
+                        .exportData();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? AppLocalizations.of(context)!.backupSuccessful
+                                : AppLocalizations.of(context)!.backupFailed,
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
                 Divider(
@@ -348,14 +356,29 @@ class SettingsScreen extends ConsumerWidget {
                           : AppTheme.lightTextSecondary,
                     ),
                   ),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.importFeatureComingSoon,
+                  onTap: () async {
+                    final success = await ref
+                        .read(backupServiceProvider)
+                        .importData();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? AppLocalizations.of(context)!.importSuccessful
+                                : AppLocalizations.of(context)!.importFailed,
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
                         ),
-                      ),
-                    );
+                      );
+
+                      // Refresh providers to reflect new data
+                      if (success) {
+                        ref.read(pagesProvider.notifier).refresh();
+                        ref.read(foldersProvider.notifier).refresh();
+                        ref.read(clipboardItemsProvider.notifier).refresh();
+                      }
+                    }
                   },
                 ),
               ],

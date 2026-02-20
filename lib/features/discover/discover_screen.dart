@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/widgets/notification_badge.dart';
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -36,11 +37,13 @@ class DiscoverScreen extends ConsumerWidget {
             forceMaterialTransparency: true,
             actions: [
               IconButton(
-                icon: Icon(
-                  PhosphorIcons.bell(),
-                  color: isDark ? Colors.white70 : Colors.black54,
-                ),
                 onPressed: () => context.push('/notifications'),
+                icon: NotificationBadge(
+                  child: Icon(
+                    PhosphorIcons.bell(),
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
               ),
             ],
           ),

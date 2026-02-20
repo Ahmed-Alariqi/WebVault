@@ -356,4 +356,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String lastLogin(String date) {
     return 'آخر دخول: $date';
   }
+
+  @override
+  String get backupSuccessful => 'تم إنشاء النسخة الاحتياطية بنجاح';
+
+  @override
+  String get importSuccessful => 'تم الاستيراد بنجاح';
+
+  @override
+  String get backupFailed => 'فشل إنشاء النسخة الاحتياطية';
+
+  @override
+  String get importFailed => 'فشل الاستيراد';
+
+  @override
+  String get invalidBackupFile => 'ملف نسخة احتياطية غير صالح';
 }
