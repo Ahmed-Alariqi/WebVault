@@ -17,7 +17,8 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 
 // --------------- Current User Provider ---------------
 
-final currentUserProvider = StateProvider<User?>((ref) {
+final currentUserProvider = Provider<User?>((ref) {
+  ref.watch(authStateProvider); // Re-evaluate when auth state changes
   final authService = ref.watch(authServiceProvider);
   return authService.currentUser;
 });
@@ -25,6 +26,7 @@ final currentUserProvider = StateProvider<User?>((ref) {
 // --------------- User Profile Provider ---------------
 
 final userProfileProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  ref.watch(authStateProvider); // Re-evaluate when auth state changes
   final authService = ref.watch(authServiceProvider);
   if (!authService.isAuthenticated) return null;
   return authService.getProfile();
@@ -40,6 +42,7 @@ final isAdminProvider = FutureProvider<bool>((ref) async {
 // --------------- Is Authenticated Provider ---------------
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
+  ref.watch(authStateProvider); // Re-evaluate when auth state changes
   final authService = ref.watch(authServiceProvider);
   return authService.isAuthenticated;
 });

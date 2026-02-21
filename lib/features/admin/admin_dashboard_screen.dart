@@ -181,8 +181,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 100,
                     ),
                     _ActionCard(
-                      title: 'Notifications',
-                      subtitle: 'Push Alerts',
+                      title: 'Push Notifications',
+                      subtitle: 'Send outside alerts',
                       icon: PhosphorIcons.bellRinging(
                         PhosphorIconsStyle.duotone,
                       ),
@@ -190,6 +190,15 @@ class AdminDashboardScreen extends ConsumerWidget {
                       isDark: isDark,
                       onTap: () => context.push('/admin/notifications'),
                       delay: 200,
+                    ),
+                    _ActionCard(
+                      title: 'In-App Messages',
+                      subtitle: 'Popup campaigns',
+                      icon: PhosphorIcons.megaphone(PhosphorIconsStyle.duotone),
+                      color: const Color(0xFF14B8A6), // Teal
+                      isDark: isDark,
+                      onTap: () => context.push('/admin/in-app-messages'),
+                      delay: 250,
                     ),
                     _ActionCard(
                       title: 'Users',

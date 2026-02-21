@@ -10,12 +10,28 @@ import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../core/services/in_app_message_service.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        InAppMessageService.checkAndShowMessage(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final stats = ref.watch(dashboardStatsProvider);
     final totalPages = stats['totalPages'] as int;

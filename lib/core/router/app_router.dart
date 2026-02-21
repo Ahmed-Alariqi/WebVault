@@ -22,6 +22,7 @@ import '../../features/admin/admin_dashboard_screen.dart';
 import '../../features/admin/manage_websites_screen.dart';
 import '../../features/admin/manage_categories_screen.dart';
 import '../../features/admin/send_notification_screen.dart';
+import '../../features/admin/manage_in_app_messages_screen.dart';
 import '../../features/admin/manage_users_screen.dart';
 import '../../features/admin/admin_suggestions_screen.dart';
 import '../../features/discover/notifications_screen.dart';
@@ -207,6 +208,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SendNotificationScreen(),
+      ),
+      GoRoute(
+        path: '/admin/in-app-messages',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageInAppMessagesScreen(),
       ),
       GoRoute(
         path: '/admin/users',

@@ -48,6 +48,9 @@ Future<void> main() async {
   // Also refresh count when notification is clicked (user returns from background)
   OneSignal.Notifications.addClickListener((event) {
     container.invalidate(notificationCountProvider);
+    // Route to notifications screen
+    final router = container.read(routerProvider);
+    router.push('/notifications');
   });
 
   // Seed dummy data on first launch

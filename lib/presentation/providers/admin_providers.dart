@@ -86,6 +86,35 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
   }
 }
 
+// --------------- Admin In-App Messages ---------------
+
+final adminInAppMessagesProvider = FutureProvider<List<Map<String, dynamic>>>((
+  ref,
+) async {
+  final response = await _client
+      .from('in_app_messages')
+      .select()
+      .order('created_at', ascending: false);
+  return List<Map<String, dynamic>>.from(response);
+});
+
+Future<void> adminCreateInAppMessage(Map<String, dynamic> data) async {
+  await _client.from('in_app_messages').insert(data);
+}
+
+Future<void> adminToggleInAppMessage(String id, bool isActive) async {
+  // If activating one, we optionally could deactivate all others to avoid clashes,
+  // but for now we'll just let the UI handle it or trust the query limit(1) logic in the service.
+  await _client
+      .from('in_app_messages')
+      .update({'is_active': isActive})
+      .eq('id', id);
+}
+
+Future<void> adminDeleteInAppMessage(String id) async {
+  await _client.from('in_app_messages').delete().eq('id', id);
+}
+
 // --------------- Admin Stats ---------------
 
 final adminStatsProvider = FutureProvider<Map<String, int>>((ref) async {
