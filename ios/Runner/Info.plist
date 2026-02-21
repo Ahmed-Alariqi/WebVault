@@ -74,6 +74,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.supabase.webvault</string>
+				<string>com.googleusercontent.apps.344480808876-r1qbuol918n8s6arkcrncap49off5tah</string>
 			</array>
 		</dict>
 	</array>

@@ -70,6 +70,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final authService = ref.read(authServiceProvider);
+      await authService.signInWithGoogle();
+      // GoRouter handles the rest automatically
+    } catch (e) {
+      if (mounted) setState(() => _error = _parseError(e.toString()));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   String _parseError(String error) {
     if (error.contains('Invalid login credentials')) {
       return 'Invalid email or password';
@@ -381,17 +398,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 const SizedBox(height: 20),
 
-                // Google Placeholder
+                // Google Button
                 OutlinedButton.icon(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Google Sign-In coming soon!'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.g_mobiledata_rounded, size: 24),
-                  label: const Text('Continue with Google'),
+                  onPressed: _loading ? null : _signInWithGoogle,
+                  icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
+                  label: const Text(
+                    'Continue with Google',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(

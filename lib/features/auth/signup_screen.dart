@@ -96,6 +96,27 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
+  Future<void> _signUpWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final authService = ref.read(authServiceProvider);
+      await authService.signInWithGoogle();
+      // GoRouter will pick up the valid session and route safely
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = _parseSignUpError(e.toString());
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   String _parseSignUpError(String error) {
     if (error.contains('already registered')) {
       return 'This email is already registered. Try signing in.';
@@ -431,6 +452,27 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               icon: _loading ? null : PhosphorIcons.userPlus(),
               onPressed: _loading ? null : _signUp,
               loading: _loading,
+            ),
+            const SizedBox(height: 16),
+
+            // Google Button
+            OutlinedButton.icon(
+              onPressed: _loading ? null : _signUpWithGoogle,
+              icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
+              label: const Text(
+                'Sign up with Google',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                side: BorderSide(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                ),
+                foregroundColor: isDark ? Colors.white70 : Colors.black54,
+              ),
             ),
           ],
         ),

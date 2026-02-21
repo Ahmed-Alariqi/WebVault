@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_sign_in/google_sign_in.dart' as gs;
 import '../../core/supabase_config.dart';
 
 /// Service handling all Supabase Auth operations
@@ -45,6 +46,40 @@ class AuthService {
       password: password,
     );
     return response;
+  }
+
+  // --------------- Google Sign In ---------------
+
+  Future<AuthResponse?> signInWithGoogle() async {
+    // For Web, use Supabase's native OAuth redirect directly
+    if (kIsWeb) {
+      await _client.auth.signInWithOAuth(OAuthProvider.google);
+      return null; // Return null since it redirects the page
+    }
+
+    const webClientId =
+        '344480808876-tnmifigbi96sjgo7kgoqdaobk30oaqng.apps.googleusercontent.com';
+    const iosClientId =
+        '344480808876-r1qbuol918n8s6arkcrncap49off5tah.apps.googleusercontent.com';
+
+    await gs.GoogleSignIn.instance.initialize(
+      clientId: iosClientId,
+      serverClientId: webClientId,
+    );
+
+    final googleUser = await gs.GoogleSignIn.instance.authenticate();
+
+    final googleAuth = googleUser.authentication;
+    final idToken = googleAuth.idToken;
+
+    if (idToken == null) {
+      throw 'No ID Token found from Google.';
+    }
+
+    return _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
   }
 
   // --------------- Sign Out ---------------
