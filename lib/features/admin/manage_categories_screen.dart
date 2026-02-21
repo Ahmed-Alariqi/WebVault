@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/category_model.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/providers/discover_providers.dart';
 
 class ManageCategoriesScreen extends ConsumerWidget {
   const ManageCategoriesScreen({super.key});
@@ -19,6 +20,11 @@ class ManageCategoriesScreen extends ConsumerWidget {
         title: const Text('Manage Categories'),
         forceMaterialTransparency: true,
         actions: [
+          IconButton(
+            icon: Icon(PhosphorIcons.magicWand()),
+            tooltip: 'Seed Default Categories',
+            onPressed: () => _seedDefaultCategories(ref, context),
+          ),
           IconButton(
             icon: const Icon(Icons.add_rounded),
             onPressed: () => _showAddEditDialog(context, ref, isDark),
@@ -55,6 +61,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
               final cat = list[oldI];
               await adminUpdateCategory(cat.id, {'sort_order': newI});
               ref.invalidate(adminCategoriesProvider);
+              ref.invalidate(categoriesProvider);
             },
             itemBuilder: (ctx, i) {
               final cat = list[i];
@@ -122,6 +129,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
                       onPressed: () async {
                         await adminDeleteCategory(cat.id);
                         ref.invalidate(adminCategoriesProvider);
+                        ref.invalidate(categoriesProvider);
                       },
                     ),
                     Icon(
@@ -139,6 +147,83 @@ class ManageCategoriesScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('Error: $e')),
       ),
     );
+  }
+
+  Future<void> _seedDefaultCategories(
+    WidgetRef ref,
+    BuildContext context,
+  ) async {
+    final defaults = [
+      {
+        'name': 'Technology',
+        'icon_code_point': PhosphorIcons.desktop().codePoint,
+        'color_value': 0xFF3F51B5.toSigned(32),
+        'sort_order': 0,
+      },
+      {
+        'name': 'Education',
+        'icon_code_point': PhosphorIcons.bookBookmark().codePoint,
+        'color_value': 0xFF4CAF50.toSigned(32),
+        'sort_order': 1,
+      },
+      {
+        'name': 'Software',
+        'icon_code_point': PhosphorIcons.code().codePoint,
+        'color_value': 0xFFF44336.toSigned(32),
+        'sort_order': 2,
+      },
+      {
+        'name': 'Design',
+        'icon_code_point': PhosphorIcons.paintBrush().codePoint,
+        'color_value': 0xFFE91E63.toSigned(32),
+        'sort_order': 3,
+      },
+      {
+        'name': 'Business',
+        'icon_code_point': PhosphorIcons.briefcase().codePoint,
+        'color_value': 0xFFFF9800.toSigned(32),
+        'sort_order': 4,
+      },
+    ];
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+      );
+
+      for (final cat in defaults) {
+        await adminAddCategory(cat);
+      }
+
+      ref.invalidate(adminCategoriesProvider);
+      ref.invalidate(categoriesProvider);
+
+      if (context.mounted) {
+        Navigator.pop(context); // close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Default categories injected successfully!'),
+            backgroundColor: AppTheme.primaryColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) Navigator.pop(context); // close loading
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to seed categories: $e'),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _showAddEditDialog(
@@ -178,13 +263,25 @@ class ManageCategoriesScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () async {
               if (nameCtrl.text.trim().isEmpty) return;
-              final data = {'name': nameCtrl.text.trim()};
+
+              final data = <String, dynamic>{'name': nameCtrl.text.trim()};
+
               if (existing == null) {
+                // Must supply default icons and color values explicitly since DB might lack defaults
+                // Colors must utilize toSigned(32) to respect PostgreSQL bounds.
+                data['icon_code_point'] = PhosphorIcons.tag().codePoint;
+                data['color_value'] = AppTheme.primaryColor.toARGB32().toSigned(
+                  32,
+                );
+                data['sort_order'] = 0; // Or query max
+
                 await adminAddCategory(data);
               } else {
                 await adminUpdateCategory(existing.id, data);
               }
+
               ref.invalidate(adminCategoriesProvider);
+              ref.invalidate(categoriesProvider);
               if (ctx.mounted) Navigator.pop(ctx);
             },
             style: ElevatedButton.styleFrom(

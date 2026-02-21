@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/providers/discover_providers.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
   const ManageWebsitesScreen({super.key});
@@ -80,6 +81,17 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     bool isDark,
     int index,
   ) {
+    final categoriesAsync = ref.watch(adminCategoriesProvider);
+    String? catName;
+
+    if (site.categoryId != null) {
+      categoriesAsync.whenData((cats) {
+        try {
+          catName = cats.firstWhere((c) => c.id == site.categoryId).name;
+        } catch (_) {}
+      });
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -132,6 +144,8 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 Wrap(
                   spacing: 4,
                   children: [
+                    if (catName != null)
+                      _badge(catName!, AppTheme.primaryColor, isDark),
                     if (site.isTrending)
                       _badge('Trending', const Color(0xFFFF6B6B), isDark),
                     if (site.isPopular)
@@ -150,6 +164,10 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
               } else if (v == 'delete') {
                 await adminDeleteWebsite(site.id);
                 ref.invalidate(adminWebsitesProvider);
+                ref.invalidate(discoverWebsitesProvider);
+                ref.invalidate(trendingWebsitesProvider);
+                ref.invalidate(popularWebsitesProvider);
+                ref.invalidate(featuredWebsitesProvider);
               }
             },
             itemBuilder: (_) => [
@@ -193,6 +211,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     bool isTrending = existing?.isTrending ?? false;
     bool isPopular = existing?.isPopular ?? false;
     bool isFeatured = existing?.isFeatured ?? false;
+    String? selectedCategoryId = existing?.categoryId;
 
     showDialog(
       context: context,
@@ -214,6 +233,70 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 _dialogField(descCtrl, 'Description', isDark, maxLines: 3),
                 const SizedBox(height: 12),
                 _dialogField(imgCtrl, 'Image URL (optional)', isDark),
+                const SizedBox(height: 12),
+
+                // Category Dropdown
+                Consumer(
+                  builder: (context, ref, _) {
+                    final categoriesAsync = ref.watch(adminCategoriesProvider);
+                    return categoriesAsync.when(
+                      data: (cats) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : Colors.black.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String?>(
+                              isExpanded: true,
+                              dropdownColor: isDark
+                                  ? AppTheme.darkCard
+                                  : AppTheme.lightCard,
+                              value: selectedCategoryId,
+                              hint: Text(
+                                'Select Category',
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white38
+                                      : Colors.black38,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              items: [
+                                const DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text('No Category'),
+                                ),
+                                ...cats.map(
+                                  (c) => DropdownMenuItem(
+                                    value: c.id,
+                                    child: Text(
+                                      c.name,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              onChanged: (val) {
+                                setDialogState(() => selectedCategoryId = val);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const CircularProgressIndicator(),
+                      error: (e, _) => const Text('Error loading categories'),
+                    );
+                  },
+                ),
+
                 const SizedBox(height: 12),
                 CheckboxListTile(
                   title: const Text('Trending', style: TextStyle(fontSize: 14)),
@@ -253,6 +336,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                   'title': titleCtrl.text.trim(),
                   'url': urlCtrl.text.trim(),
                   'description': descCtrl.text.trim(),
+                  'category_id': selectedCategoryId,
                   'image_url': imgCtrl.text.trim().isEmpty
                       ? null
                       : imgCtrl.text.trim(),
@@ -265,7 +349,13 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 } else {
                   await adminUpdateWebsite(existing.id, data);
                 }
+
                 ref.invalidate(adminWebsitesProvider);
+                ref.invalidate(discoverWebsitesProvider);
+                ref.invalidate(trendingWebsitesProvider);
+                ref.invalidate(popularWebsitesProvider);
+                ref.invalidate(featuredWebsitesProvider);
+
                 if (ctx.mounted) Navigator.pop(ctx);
               },
               style: ElevatedButton.styleFrom(

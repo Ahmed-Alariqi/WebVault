@@ -11,6 +11,7 @@ import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
+import '../../presentation/widgets/website_details_dialog.dart';
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -21,6 +22,10 @@ class DiscoverScreen extends ConsumerWidget {
     final trending = ref.watch(trendingWebsitesProvider);
     final popular = ref.watch(popularWebsitesProvider);
     final featured = ref.watch(featuredWebsitesProvider);
+    final discover = ref.watch(discoverWebsitesProvider);
+
+    final selected = ref.watch(selectedCategoryProvider);
+    final search = ref.watch(discoverSearchProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -136,10 +141,31 @@ class DiscoverScreen extends ConsumerWidget {
             ),
           ),
 
+          // All Websites / Filter Results Section
+          SliverToBoxAdapter(
+            child: discover.when(
+              data: (sites) => sites.isEmpty
+                  ? const SizedBox()
+                  : _buildSection(
+                      context,
+                      ref,
+                      (selected != null || search.isNotEmpty)
+                          ? 'Results'
+                          : 'Newly Added',
+                      PhosphorIcons.stack(),
+                      sites,
+                      isDark,
+                    ),
+              loading: () => _buildShimmerSection(isDark),
+              error: (e, st) => const SizedBox(),
+            ),
+          ),
+
           // Empty State
           if (trending.valueOrNull?.isEmpty == true &&
               popular.valueOrNull?.isEmpty == true &&
-              featured.valueOrNull?.isEmpty == true)
+              featured.valueOrNull?.isEmpty == true &&
+              discover.valueOrNull?.isEmpty == true)
             SliverFillRemaining(
               hasScrollBody: false,
               child: _buildEmptyState(isDark),
@@ -283,208 +309,242 @@ class DiscoverScreen extends ConsumerWidget {
     bool showBadge,
     int index,
   ) {
-    return Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 14),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => WebsiteDetailsDialog(site: site),
+        );
+      },
+      child: Container(
+        width: 260,
+        margin: const EdgeInsets.only(right: 14),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.06),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: 120, // Increased image height slightly
-                  width: double.infinity,
-                  child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: site.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (ctx, url) => Container(
-                            color: isDark
-                                ? Colors.white10
-                                : Colors.black.withValues(alpha: 0.05),
-                            child: Center(
-                              child: Icon(
-                                PhosphorIcons.image(),
-                                color: isDark ? Colors.white24 : Colors.black12,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 120, // Increased image height slightly
+                    width: double.infinity,
+                    child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: site.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (ctx, url) => Container(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                              child: Center(
+                                child: Icon(
+                                  PhosphorIcons.image(),
+                                  color: isDark
+                                      ? Colors.white24
+                                      : Colors.black12,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (ctx, url, err) =>
+                                _placeholderImage(isDark),
+                          )
+                        : _placeholderImage(isDark),
+                  ),
+                  if (showBadge)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child:
+                          Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF6B6B),
+                                      Color(0xFFFF8E53),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      PhosphorIcons.trendUp(),
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Text(
+                                      'Trending',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .animate(onPlay: (c) => c.repeat(reverse: true))
+                              .shimmer(
+                                duration: 2000.ms,
+                                color: Colors.white.withValues(alpha: 0.3),
+                              ),
+                    ),
+                ],
+              ),
+            ),
+
+            // Content
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      site.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppTheme.darkTextPrimary
+                            : AppTheme.lightTextPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            site.description,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark
+                                  ? AppTheme.darkTextSecondary
+                                  : AppTheme.lightTextSecondary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (site.description.length > 50)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                'Read more...',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 32,
+                            child: ElevatedButton(
+                              onPressed: () => _openUrl(site.url, inApp: true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Open',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                          errorWidget: (ctx, url, err) =>
-                              _placeholderImage(isDark),
-                        )
-                      : _placeholderImage(isDark),
-                ),
-                if (showBadge)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    child:
-                        Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFFFF6B6B),
-                                    Color(0xFFFF8E53),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    PhosphorIcons.trendUp(),
-                                    size: 12,
-                                    color: Colors.white,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    'Trending',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                            .animate(onPlay: (c) => c.repeat(reverse: true))
-                            .shimmer(
-                              duration: 2000.ms,
-                              color: Colors.white.withValues(alpha: 0.3),
-                            ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    site.title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isDark
-                          ? AppTheme.darkTextPrimary
-                          : AppTheme.lightTextPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Expanded(
-                    child: Text(
-                      site.description,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark
-                            ? AppTheme.darkTextSecondary
-                            : AppTheme.lightTextSecondary,
-                      ),
-                      maxLines: 3, // Increased lines
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
                           height: 32,
-                          child: ElevatedButton(
-                            onPressed: () => _openUrl(site.url, inApp: true),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              padding: EdgeInsets.zero,
+                          width: 32,
+                          child: IconButton(
+                            onPressed: () => _openUrl(site.url, inApp: false),
+                            icon: Icon(PhosphorIcons.globe(), size: 18),
+                            padding: EdgeInsets.zero,
+                            style: IconButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
-                              'Open',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            tooltip: 'Open in Browser',
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          height: 32,
+                          width: 32,
+                          child: IconButton(
+                            onPressed: () => _saveSite(ref, site),
+                            icon: Icon(
+                              PhosphorIcons.bookmarkSimple(),
+                              size: 18,
+                            ),
+                            padding: EdgeInsets.zero,
+                            style: IconButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                            color: isDark ? Colors.white54 : Colors.black45,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 6),
-                      SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: IconButton(
-                          onPressed: () => _openUrl(site.url, inApp: false),
-                          icon: Icon(PhosphorIcons.globe(), size: 18),
-                          padding: EdgeInsets.zero,
-                          style: IconButton.styleFrom(
-                            backgroundColor: isDark
-                                ? Colors.white10
-                                : Colors.black.withValues(alpha: 0.05),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          color: isDark ? Colors.white70 : Colors.black54,
-                          tooltip: 'Open in Browser',
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      SizedBox(
-                        height: 32,
-                        width: 32,
-                        child: IconButton(
-                          onPressed: () => _saveSite(ref, site),
-                          icon: Icon(PhosphorIcons.bookmarkSimple(), size: 18),
-                          padding: EdgeInsets.zero,
-                          style: IconButton.styleFrom(
-                            backgroundColor: isDark
-                                ? Colors.white10
-                                : Colors.black.withValues(alpha: 0.05),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          color: isDark ? Colors.white54 : Colors.black45,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     ).animate(delay: (index * 100).ms).fadeIn().slideX(begin: 0.1);
   }

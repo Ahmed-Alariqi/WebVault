@@ -14,54 +14,89 @@ final _client = SupabaseConfig.client;
 final discoverWebsitesProvider = FutureProvider<List<WebsiteModel>>((
   ref,
 ) async {
-  final response = await _client
-      .from('websites')
-      .select()
-      .order('created_at', ascending: false);
+  final categoryId = ref.watch(selectedCategoryProvider);
+  final search = ref.watch(discoverSearchProvider);
+
+  var query = _client.from('websites').select();
+
+  if (categoryId != null) {
+    query = query.eq('category_id', categoryId);
+  }
+  if (search.isNotEmpty) {
+    query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+  }
+
+  final response = await query.order('created_at', ascending: false);
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
 final trendingWebsitesProvider = FutureProvider<List<WebsiteModel>>((
   ref,
 ) async {
-  final response = await _client
-      .from('websites')
-      .select()
-      .eq('is_trending', true)
-      .order('created_at', ascending: false)
-      .limit(10);
+  final categoryId = ref.watch(selectedCategoryProvider);
+  final search = ref.watch(discoverSearchProvider);
+
+  var query = _client.from('websites').select().eq('is_trending', true);
+
+  if (categoryId != null) {
+    query = query.eq('category_id', categoryId);
+  }
+  if (search.isNotEmpty) {
+    query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+  }
+
+  final response = await query.order('created_at', ascending: false).limit(20);
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
 final popularWebsitesProvider = FutureProvider<List<WebsiteModel>>((ref) async {
-  final response = await _client
-      .from('websites')
-      .select()
-      .eq('is_popular', true)
-      .order('created_at', ascending: false)
-      .limit(10);
+  final categoryId = ref.watch(selectedCategoryProvider);
+  final search = ref.watch(discoverSearchProvider);
+
+  var query = _client.from('websites').select().eq('is_popular', true);
+
+  if (categoryId != null) {
+    query = query.eq('category_id', categoryId);
+  }
+  if (search.isNotEmpty) {
+    query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+  }
+
+  final response = await query.order('created_at', ascending: false).limit(20);
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
 final featuredWebsitesProvider = FutureProvider<List<WebsiteModel>>((
   ref,
 ) async {
-  final response = await _client
-      .from('websites')
-      .select()
-      .eq('is_featured', true)
-      .order('created_at', ascending: false)
-      .limit(10);
+  final categoryId = ref.watch(selectedCategoryProvider);
+  final search = ref.watch(discoverSearchProvider);
+
+  var query = _client.from('websites').select().eq('is_featured', true);
+
+  if (categoryId != null) {
+    query = query.eq('category_id', categoryId);
+  }
+  if (search.isNotEmpty) {
+    query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+  }
+
+  final response = await query.order('created_at', ascending: false).limit(20);
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
 // --------------- Tools ---------------
 
 final discoverToolsProvider = FutureProvider<List<ToolModel>>((ref) async {
-  final response = await _client
-      .from('tools')
-      .select()
-      .order('created_at', ascending: false);
+  final search = ref.watch(discoverSearchProvider);
+
+  var query = _client.from('tools').select();
+
+  if (search.isNotEmpty) {
+    query = query.or('name.ilike.%$search%,description.ilike.%$search%');
+  }
+
+  final response = await query.order('created_at', ascending: false);
   return (response as List).map((e) => ToolModel.fromJson(e)).toList();
 });
 
