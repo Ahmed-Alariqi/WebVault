@@ -65,196 +65,206 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Stack(
               children: [
-                // Header Image
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
-                  child: SizedBox(
-                    height: 180,
-                    width: double.infinity,
-                    child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: site.imageUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (ctx, url) => Container(
-                              color: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              child: Center(
-                                child: Icon(
-                                  PhosphorIcons.image(),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header Image
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(28),
+                      ),
+                      child: SizedBox(
+                        height: 180,
+                        width: double.infinity,
+                        child:
+                            site.imageUrl != null && site.imageUrl!.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: site.imageUrl!,
+                                fit: BoxFit.cover,
+                                placeholder: (ctx, url) => Container(
                                   color: isDark
-                                      ? Colors.white24
-                                      : Colors.black12,
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.05),
+                                  child: Center(
+                                    child: Icon(
+                                      PhosphorIcons.image(),
+                                      color: isDark
+                                          ? Colors.white24
+                                          : Colors.black12,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            errorWidget: (ctx, url, err) => Container(
-                              color: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              child: Center(
-                                child: Icon(
-                                  PhosphorIcons.globe(),
-                                  size: 48,
+                                errorWidget: (ctx, url, err) => Container(
                                   color: isDark
-                                      ? Colors.white24
-                                      : Colors.black12,
-                                ),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            color: isDark
-                                ? Colors.white10
-                                : Colors.black.withValues(alpha: 0.05),
-                            child: Center(
-                              child: Icon(
-                                PhosphorIcons.globe(),
-                                size: 48,
-                                color: isDark ? Colors.white24 : Colors.black12,
-                              ),
-                            ),
-                          ),
-                  ),
-                ),
-
-                // Content Body
-                Flexible(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title and Badges
-                        Text(
-                          site.title,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? AppTheme.darkTextPrimary
-                                : AppTheme.lightTextPrimary,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // Badges row
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            if (categoryName != null)
-                              _badge(
-                                categoryName!,
-                                AppTheme.primaryColor,
-                                isDark,
-                              ),
-                            if (site.isTrending)
-                              _badge(
-                                'Trending',
-                                const Color(0xFFFF6B6B),
-                                isDark,
-                              ),
-                            if (site.isPopular)
-                              _badge(
-                                'Popular',
-                                const Color(0xFFFF9800),
-                                isDark,
-                              ),
-                            if (site.isFeatured)
-                              _badge(
-                                'Featured',
-                                const Color(0xFF4CAF50),
-                                isDark,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Divider
-                        Divider(
-                          color: isDark
-                              ? Colors.white10
-                              : Colors.black.withValues(alpha: 0.05),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Full Description
-                        Text(
-                          site.description,
-                          style: TextStyle(
-                            fontSize: 15,
-                            height: 1.6,
-                            color: isDark
-                                ? AppTheme.darkTextSecondary
-                                : AppTheme.lightTextSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Action Buttons
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: () =>
-                                    _openUrl(site.url, inApp: true),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primaryColor,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                icon: Icon(
-                                  PhosphorIcons.rocketLaunch(
-                                    PhosphorIconsStyle.fill,
-                                  ),
-                                  size: 20,
-                                ),
-                                label: const Text(
-                                  'Open App',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.05),
+                                  child: Center(
+                                    child: Icon(
+                                      PhosphorIcons.globe(),
+                                      size: 48,
+                                      color: isDark
+                                          ? Colors.white24
+                                          : Colors.black12,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Container(
-                              decoration: BoxDecoration(
+                              )
+                            : Container(
                                 color: isDark
-                                    ? Colors.white.withValues(alpha: 0.05)
+                                    ? Colors.white10
                                     : Colors.black.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(16),
+                                child: Center(
+                                  child: Icon(
+                                    PhosphorIcons.globe(),
+                                    size: 48,
+                                    color: isDark
+                                        ? Colors.white24
+                                        : Colors.black12,
+                                  ),
+                                ),
                               ),
-                              child: IconButton(
-                                onPressed: () =>
-                                    _openUrl(site.url, inApp: false),
-                                icon: Icon(PhosphorIcons.browser(), size: 22),
+                      ),
+                    ),
+
+                    // Content Body
+                    Flexible(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title and Badges
+                            Text(
+                              site.title,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
                                 color: isDark
                                     ? AppTheme.darkTextPrimary
                                     : AppTheme.lightTextPrimary,
-                                tooltip: 'Open in Browser',
+                                letterSpacing: -0.5,
                               ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            // Badges row
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                if (categoryName != null)
+                                  _badge(
+                                    categoryName!,
+                                    AppTheme.primaryColor,
+                                    isDark,
+                                  ),
+                                if (site.isTrending)
+                                  _badge(
+                                    'Trending',
+                                    const Color(0xFFFF6B6B),
+                                    isDark,
+                                  ),
+                                if (site.isPopular)
+                                  _badge(
+                                    'Popular',
+                                    const Color(0xFFFF9800),
+                                    isDark,
+                                  ),
+                                if (site.isFeatured)
+                                  _badge(
+                                    'Featured',
+                                    const Color(0xFF4CAF50),
+                                    isDark,
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Divider
+                            Divider(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Full Description
+                            Text(
+                              site.description,
+                              style: TextStyle(
+                                fontSize: 15,
+                                height: 1.6,
+                                color: isDark
+                                    ? AppTheme.darkTextSecondary
+                                    : AppTheme.lightTextSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Action Buttons
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: () =>
+                                        _openUrl(site.url, inApp: true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    icon: Icon(
+                                      PhosphorIcons.rocketLaunch(
+                                        PhosphorIconsStyle.fill,
+                                      ),
+                                      size: 20,
+                                    ),
+                                    label: const Text(
+                                      'Open App',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: IconButton(
+                                    onPressed: () =>
+                                        _openUrl(site.url, inApp: false),
+                                    icon: Icon(
+                                      PhosphorIcons.browser(),
+                                      size: 22,
+                                    ),
+                                    color: isDark
+                                        ? AppTheme.darkTextPrimary
+                                        : AppTheme.lightTextPrimary,
+                                    tooltip: 'Open in Browser',
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
 
                 // Close Button Overlay

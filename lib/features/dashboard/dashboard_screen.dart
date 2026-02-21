@@ -746,7 +746,7 @@ class _HeaderAvatar extends ConsumerWidget {
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
       ),
-      error: (_, __) => CircleAvatar(
+      error: (_, _) => CircleAvatar(
         radius: 24,
         backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
         child: Icon(

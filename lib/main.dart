@@ -41,7 +41,6 @@ Future<void> main() async {
   // Show notification in foreground AND refresh badge count
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
     event.notification.display();
-    // Refresh the unread notifications count
     container.invalidate(notificationCountProvider);
   });
 

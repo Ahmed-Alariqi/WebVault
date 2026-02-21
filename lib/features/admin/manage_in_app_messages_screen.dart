@@ -348,7 +348,7 @@ class _ManageInAppMessagesScreenState
                           children: [
                             Switch(
                               value: isActive,
-                              activeColor: AppTheme.primaryColor,
+                              activeThumbColor: AppTheme.primaryColor,
                               onChanged: (val) =>
                                   _toggleStatus(msg['id'], isActive),
                             ),

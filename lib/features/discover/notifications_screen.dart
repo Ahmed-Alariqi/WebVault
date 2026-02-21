@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/notification_model.dart';
+import '../../presentation/widgets/notification_details_dialog.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -127,15 +127,17 @@ class _NotificationCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : color.withValues(alpha: 0.1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -143,31 +145,35 @@ class _NotificationCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            if (notification.targetUrl != null &&
-                notification.targetUrl!.isNotEmpty) {
-              launchUrl(Uri.parse(notification.targetUrl!));
-            }
+            // Unify tapping to open the beautiful Notification dialog popup
+            showDialog(
+              context: context,
+              builder: (ctx) =>
+                  NotificationDetailsDialog(notification: notification),
+            );
           },
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
+          highlightColor: color.withValues(alpha: 0.05),
+          splashColor: color.withValues(alpha: 0.1),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon Badge
+                // Icon Badge Container
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     _getTypeIcon(notification.type),
                     color: color,
-                    size: 20,
+                    size: 22,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 18),
 
                 // Content
                 Expanded(
@@ -175,53 +181,91 @@ class _NotificationCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
                             child: Text(
                               notification.title,
                               style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isDark
+                                    ? AppTheme.darkTextPrimary
+                                    : AppTheme.lightTextPrimary,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            timeAgo,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark ? Colors.white38 : Colors.black38,
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              timeAgo,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white54 : Colors.black45,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Text(
                         notification.body,
                         style: TextStyle(
-                          fontSize: 13,
+                          fontSize: 14,
                           height: 1.4,
-                          color: isDark ? Colors.white70 : Colors.black54,
+                          color: isDark
+                              ? AppTheme.darkTextSecondary
+                              : AppTheme.lightTextSecondary,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
+
+                      // Action Pill snippet
                       if (notification.targetUrl != null &&
                           notification.targetUrl!.isNotEmpty) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
-                            Text(
-                              'Tap to open',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: AppTheme.primaryColor,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
                               ),
-                            ),
-                            Icon(
-                              PhosphorIcons.arrowRight(),
-                              size: 12,
-                              color: AppTheme.primaryColor,
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    PhosphorIcons.link(),
+                                    size: 12,
+                                    color: color,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Has Link',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: color,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
