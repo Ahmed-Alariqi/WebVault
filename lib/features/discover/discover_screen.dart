@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/utils/text_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
@@ -444,7 +445,9 @@ class DiscoverScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            site.description,
+                            TextUtils.getPlainTextFromDescription(
+                              site.description,
+                            ),
                             style: TextStyle(
                               fontSize: 11,
                               color: isDark
@@ -454,7 +457,10 @@ class DiscoverScreen extends ConsumerWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (site.description.length > 50)
+                          if (TextUtils.getPlainTextFromDescription(
+                                site.description,
+                              ).length >
+                              50)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(

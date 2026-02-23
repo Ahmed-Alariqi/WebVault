@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
@@ -29,7 +30,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context, ref, isDark),
+            onPressed: () => context.push('/admin/websites/edit'),
           ),
         ],
       ),
@@ -96,10 +97,14 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Row(
@@ -160,7 +165,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
           PopupMenuButton<String>(
             onSelected: (v) async {
               if (v == 'edit') {
-                _showAddEditDialog(context, ref, isDark, existing: site);
+                context.push('/admin/websites/edit', extra: site);
               } else if (v == 'delete') {
                 await adminDeleteWebsite(site.id);
                 ref.invalidate(adminWebsitesProvider);
@@ -193,215 +198,6 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
           fontSize: 9,
           fontWeight: FontWeight.w700,
           color: color,
-        ),
-      ),
-    );
-  }
-
-  void _showAddEditDialog(
-    BuildContext context,
-    WidgetRef ref,
-    bool isDark, {
-    WebsiteModel? existing,
-  }) {
-    final titleCtrl = TextEditingController(text: existing?.title ?? '');
-    final urlCtrl = TextEditingController(text: existing?.url ?? '');
-    final descCtrl = TextEditingController(text: existing?.description ?? '');
-    final imgCtrl = TextEditingController(text: existing?.imageUrl ?? '');
-    bool isTrending = existing?.isTrending ?? false;
-    bool isPopular = existing?.isPopular ?? false;
-    bool isFeatured = existing?.isFeatured ?? false;
-    String? selectedCategoryId = existing?.categoryId;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(existing == null ? 'Add Website' : 'Edit Website'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _dialogField(titleCtrl, 'Title', isDark),
-                const SizedBox(height: 12),
-                _dialogField(urlCtrl, 'URL', isDark),
-                const SizedBox(height: 12),
-                _dialogField(descCtrl, 'Description', isDark, maxLines: 3),
-                const SizedBox(height: 12),
-                _dialogField(imgCtrl, 'Image URL (optional)', isDark),
-                const SizedBox(height: 12),
-
-                // Category Dropdown
-                Consumer(
-                  builder: (context, ref, _) {
-                    final categoriesAsync = ref.watch(adminCategoriesProvider);
-                    return categoriesAsync.when(
-                      data: (cats) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.06)
-                                : Colors.black.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String?>(
-                              isExpanded: true,
-                              dropdownColor: isDark
-                                  ? AppTheme.darkCard
-                                  : AppTheme.lightCard,
-                              value: selectedCategoryId,
-                              hint: Text(
-                                'Select Category',
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black38,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              items: [
-                                const DropdownMenuItem<String?>(
-                                  value: null,
-                                  child: Text('No Category'),
-                                ),
-                                ...cats.map(
-                                  (c) => DropdownMenuItem(
-                                    value: c.id,
-                                    child: Text(
-                                      c.name,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              onChanged: (val) {
-                                setDialogState(() => selectedCategoryId = val);
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      loading: () => const CircularProgressIndicator(),
-                      error: (e, _) => const Text('Error loading categories'),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-                CheckboxListTile(
-                  title: const Text('Trending', style: TextStyle(fontSize: 14)),
-                  value: isTrending,
-                  onChanged: (v) =>
-                      setDialogState(() => isTrending = v ?? false),
-                  activeColor: AppTheme.primaryColor,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                CheckboxListTile(
-                  title: const Text('Popular', style: TextStyle(fontSize: 14)),
-                  value: isPopular,
-                  onChanged: (v) =>
-                      setDialogState(() => isPopular = v ?? false),
-                  activeColor: AppTheme.primaryColor,
-                  contentPadding: EdgeInsets.zero,
-                ),
-                CheckboxListTile(
-                  title: const Text('Featured', style: TextStyle(fontSize: 14)),
-                  value: isFeatured,
-                  onChanged: (v) =>
-                      setDialogState(() => isFeatured = v ?? false),
-                  activeColor: AppTheme.primaryColor,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final data = {
-                  'title': titleCtrl.text.trim(),
-                  'url': urlCtrl.text.trim(),
-                  'description': descCtrl.text.trim(),
-                  'category_id': selectedCategoryId,
-                  'image_url': imgCtrl.text.trim().isEmpty
-                      ? null
-                      : imgCtrl.text.trim(),
-                  'is_trending': isTrending,
-                  'is_popular': isPopular,
-                  'is_featured': isFeatured,
-                };
-                if (existing == null) {
-                  await adminAddWebsite(data);
-                } else {
-                  await adminUpdateWebsite(existing.id, data);
-                }
-
-                ref.invalidate(adminWebsitesProvider);
-                ref.invalidate(discoverWebsitesProvider);
-                ref.invalidate(trendingWebsitesProvider);
-                ref.invalidate(popularWebsitesProvider);
-                ref.invalidate(featuredWebsitesProvider);
-
-                if (ctx.mounted) Navigator.pop(ctx);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                existing == null ? 'Add' : 'Save',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _dialogField(
-    TextEditingController ctrl,
-    String label,
-    bool isDark, {
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: ctrl,
-      maxLines: maxLines,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: isDark ? Colors.white38 : Colors.black38,
-          fontSize: 14,
-        ),
-        filled: true,
-        fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.03),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
         ),
       ),
     );

@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -192,15 +195,63 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                             const SizedBox(height: 16),
 
                             // Full Description
-                            Text(
-                              site.description,
-                              style: TextStyle(
-                                fontSize: 15,
-                                height: 1.6,
-                                color: isDark
-                                    ? AppTheme.darkTextSecondary
-                                    : AppTheme.lightTextSecondary,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                Document doc;
+                                bool isRichText = false;
+                                try {
+                                  if (site.description.isNotEmpty) {
+                                    final decoded = jsonDecode(
+                                      site.description,
+                                    );
+                                    doc = Document.fromJson(decoded);
+                                    isRichText = true;
+                                  } else {
+                                    doc = Document();
+                                  }
+                                } catch (_) {
+                                  // Fallback for older plain text strings
+                                  doc = Document()..insert(0, site.description);
+                                }
+
+                                if (isRichText) {
+                                  final quillController = QuillController(
+                                    document: doc,
+                                    selection: const TextSelection.collapsed(
+                                      offset: 0,
+                                    ),
+                                    readOnly: true,
+                                  );
+
+                                  return DefaultTextStyle(
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      height: 1.6,
+                                      color: isDark
+                                          ? AppTheme.darkTextSecondary
+                                          : AppTheme.lightTextSecondary,
+                                    ),
+                                    child: QuillEditor.basic(
+                                      controller: quillController,
+                                      config: const QuillEditorConfig(
+                                        showCursor: false,
+                                        scrollable: false,
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  return Text(
+                                    site.description,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      height: 1.6,
+                                      color: isDark
+                                          ? AppTheme.darkTextSecondary
+                                          : AppTheme.lightTextSecondary,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                             const SizedBox(height: 24),
 
@@ -209,8 +260,13 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: ElevatedButton.icon(
-                                    onPressed: () =>
-                                        _openUrl(site.url, inApp: true),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      context.push(
+                                        '/discover-browser',
+                                        extra: site,
+                                      );
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppTheme.primaryColor,
                                       foregroundColor: Colors.white,

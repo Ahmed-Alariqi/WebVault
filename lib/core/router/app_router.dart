@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/supabase_config.dart';
+import '../../data/models/website_model.dart';
 import '../../presentation/providers/providers.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/pages/pages_screen.dart';
@@ -14,6 +15,7 @@ import '../../features/pages/add_edit_page_screen.dart';
 import '../../features/folders/folders_screen.dart';
 import '../../features/folders/folder_detail_screen.dart';
 import '../../features/browser/browser_screen.dart';
+import '../../features/discover/discover_browser_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
@@ -25,6 +27,7 @@ import '../../features/admin/send_notification_screen.dart';
 import '../../features/admin/manage_in_app_messages_screen.dart';
 import '../../features/admin/manage_users_screen.dart';
 import '../../features/admin/admin_suggestions_screen.dart';
+import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../presentation/widgets/app_shell.dart';
 
@@ -180,6 +183,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           return BrowserScreen(pageId: id);
         },
       ),
+      GoRoute(
+        path: '/discover-browser',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final site = state.extra as WebsiteModel;
+          return DiscoverBrowserScreen(site: site);
+        },
+      ),
 
       // ---- Profile ----
       GoRoute(
@@ -198,6 +209,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/websites',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageWebsitesScreen(),
+      ),
+      GoRoute(
+        path: '/admin/websites/edit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final existing = state.extra as WebsiteModel?;
+          return AddEditWebsiteScreen(existing: existing);
+        },
       ),
       GoRoute(
         path: '/admin/categories',
