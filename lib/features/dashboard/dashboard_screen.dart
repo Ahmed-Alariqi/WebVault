@@ -5,12 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/providers.dart';
+import '../../presentation/providers/auth_providers.dart';
+import '../../core/services/in_app_message_service.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
-import '../../presentation/providers/auth_providers.dart';
-import '../../core/services/in_app_message_service.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -162,6 +163,9 @@ class _DashboardHeader extends ConsumerWidget {
     final unreadCount = ref.watch(notificationCountProvider).valueOrNull ?? 0;
     final hasUnread = unreadCount > 0;
     final isAdmin = ref.watch(isAdminProvider).valueOrNull ?? false;
+    final chatUnreadCount =
+        ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
+    final hasUnreadChats = chatUnreadCount > 0;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -238,15 +242,35 @@ class _DashboardHeader extends ConsumerWidget {
           const SizedBox(width: 8),
           GestureDetector(
             onTap: () => _showProfilePreview(context, isDark),
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [AppTheme.primaryColor, AppTheme.accentColor],
+            child: Stack(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryColor, AppTheme.accentColor],
+                    ),
+                  ),
+                  child: _HeaderAvatar(isDark: isDark),
                 ),
-              ),
-              child: _HeaderAvatar(isDark: isDark),
+                if (hasUnreadChats)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ).animate().scale(delay: 200.ms, curve: Curves.elasticOut),
         ],
@@ -775,117 +799,123 @@ class _ProfilePreviewSheet extends ConsumerWidget {
         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: userProfileAsync.when(
-        data: (profile) {
-          final fullName = profile?['full_name'] as String? ?? 'Vault User';
-          final email = currentUser?.email ?? 'No email';
-          final initials = fullName.isNotEmpty
-              ? fullName[0].toUpperCase()
-              : '?';
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: userProfileAsync.when(
+            data: (profile) {
+              final fullName = profile?['full_name'] as String? ?? 'Vault User';
+              final email = currentUser?.email ?? 'No email';
+              final initials = fullName.isNotEmpty
+                  ? fullName[0].toUpperCase()
+                  : '?';
 
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 24),
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                child: Text(
-                  initials,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                fullName,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppTheme.darkTextPrimary
-                      : AppTheme.lightTextPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                email,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? AppTheme.darkTextSecondary
-                      : AppTheme.lightTextSecondary,
-                ),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    context.pop();
-                    context.push('/settings');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  icon: Icon(PhosphorIcons.gear(), size: 20),
-                  label: Text(
-                    AppLocalizations.of(context)!.manageSettings,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    context.pop();
-                    await ref.read(authServiceProvider).signOut();
-                    if (context.mounted) {
-                      context.go('/');
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppTheme.errorColor,
-                    side: BorderSide(
-                      color: AppTheme.errorColor.withValues(alpha: 0.5),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  icon: Icon(PhosphorIcons.signOut(), size: 20),
-                  label: const Text(
-                    'Sign Out',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  const SizedBox(height: 24),
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppTheme.primaryColor.withValues(
+                      alpha: 0.1,
+                    ),
+                    child: Text(
+                      initials,
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => const Center(child: Text('Error loading profile')),
+                  const SizedBox(height: 16),
+                  Text(
+                    fullName,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    email,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        context.pop();
+                        context.push('/settings');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 0,
+                      ),
+                      icon: Icon(PhosphorIcons.gear(), size: 20),
+                      label: Text(
+                        AppLocalizations.of(context)!.manageSettings,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        context.pop();
+                        await ref.read(authServiceProvider).signOut();
+                        if (context.mounted) {
+                          context.go('/');
+                        }
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.errorColor,
+                        side: BorderSide(
+                          color: AppTheme.errorColor.withValues(alpha: 0.5),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      icon: Icon(PhosphorIcons.signOut(), size: 20),
+                      label: const Text(
+                        'Sign Out',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, s) => const Center(child: Text('Error loading profile')),
+          ),
+        ),
       ),
     );
   }

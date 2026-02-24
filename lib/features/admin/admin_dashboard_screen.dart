@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
@@ -209,6 +210,27 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => context.push('/admin/users'),
                       delay: 300,
                     ),
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final unreadCountAsync = ref.watch(
+                          adminTotalUnreadCountProvider,
+                        );
+                        final count = unreadCountAsync.valueOrNull ?? 0;
+
+                        return _ActionCard(
+                          title: 'User Messages',
+                          subtitle: 'Support chats',
+                          icon: PhosphorIcons.chatCircleDots(
+                            PhosphorIconsStyle.duotone,
+                          ),
+                          color: const Color(0xFFF43F5E), // Rose
+                          isDark: isDark,
+                          onTap: () => context.push('/admin/user-chats'),
+                          delay: 350,
+                          badge: count > 0 ? _buildBadge(count) : null,
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -349,6 +371,7 @@ class _ActionCard extends StatelessWidget {
   final bool isDark;
   final VoidCallback onTap;
   final int delay;
+  final Widget? badge;
 
   const _ActionCard({
     required this.title,
@@ -358,65 +381,95 @@ class _ActionCard extends StatelessWidget {
     required this.isDark,
     required this.onTap,
     required this.delay,
+    this.badge,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget card = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    if (badge != null) {
+      card = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          card,
+          Positioned(top: -4, right: -4, child: badge!),
+        ],
+      );
+    }
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.05),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.white54 : Colors.black45,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+      child: card,
     ).animate(delay: delay.ms).fadeIn().scale(begin: const Offset(0.9, 0.9));
   }
+}
+
+Widget _buildBadge(int count) {
+  return Container(
+    padding: const EdgeInsets.all(6),
+    decoration: const BoxDecoration(
+      color: AppTheme.primaryColor,
+      shape: BoxShape.circle,
+    ),
+    child: Text(
+      count > 99 ? '99+' : count.toString(),
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+      textAlign: TextAlign.center,
+    ),
+  );
 }
 
 class _AccessDeniedView extends StatelessWidget {

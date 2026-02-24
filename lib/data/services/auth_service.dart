@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart' as gs;
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/supabase_config.dart';
+import '../../core/constants.dart';
 
 /// Service handling all Supabase Auth operations
 class AuthService {
@@ -100,12 +102,27 @@ class AuthService {
     final user = currentUser;
     if (user == null) return null;
 
-    final response = await _client
-        .from('profiles')
-        .select()
-        .eq('id', user.id)
-        .single();
-    return response;
+    final box = Hive.box(kSettingsBox);
+    final cacheKey = 'profile_${user.id}';
+
+    try {
+      final response = await _client
+          .from('profiles')
+          .select()
+          .eq('id', user.id)
+          .single();
+
+      // Cache it for offline use
+      box.put(cacheKey, response);
+      return response;
+    } catch (e) {
+      // If offline or request fails, attempt to read from cache
+      final cached = box.get(cacheKey);
+      if (cached != null) {
+        return Map<String, dynamic>.from(cached as Map);
+      }
+      rethrow;
+    }
   }
 
   Future<void> updateProfile({

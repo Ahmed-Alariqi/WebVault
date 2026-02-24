@@ -30,6 +30,9 @@ import '../../features/admin/admin_suggestions_screen.dart';
 import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../presentation/widgets/app_shell.dart';
+import '../../features/chat/chat_screen.dart';
+import '../../features/admin/manage_user_chats_screen.dart';
+import '../../features/admin/admin_chat_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -192,7 +195,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ---- Profile ----
+      // ---- Profile & Account ----
+      GoRoute(
+        path: '/chat',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ChatScreen(),
+      ),
       GoRoute(
         path: '/profile',
         parentNavigatorKey: _rootNavigatorKey,
@@ -242,6 +250,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/suggestions',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AdminSuggestionsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/user-chats',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageUserChatsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/chats/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AdminChatScreen(conversationId: id);
+        },
       ),
       GoRoute(
         path: '/pin-setup',

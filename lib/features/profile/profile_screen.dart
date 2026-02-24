@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/chat_providers.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -290,6 +292,79 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05),
 
           const SizedBox(height: 20),
+
+          // Contact Support
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.06),
+              ),
+            ),
+            child: ListTile(
+              leading: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    final unreadCountAsync = ref.watch(
+                      userUnreadCountStreamProvider,
+                    );
+                    final unreadCount = unreadCountAsync.valueOrNull ?? 0;
+
+                    return Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(
+                          PhosphorIcons.chatCircleDots(),
+                          color: AppTheme.primaryColor,
+                          size: 20,
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.errorColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+              title: Text(
+                'Contact Support',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              trailing: Icon(
+                PhosphorIcons.caretRight(),
+                size: 18,
+                color: isDark ? Colors.white38 : Colors.black38,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              onTap: () => context.push('/chat'),
+            ),
+          ).animate().fadeIn(delay: 250.ms),
+
+          const SizedBox(height: 12),
 
           // Sign Out
           Container(

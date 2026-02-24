@@ -6,6 +6,7 @@ import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/chat_providers.dart';
 import '../../l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -442,6 +443,90 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+          const SizedBox(height: 28),
+
+          // Support section
+          _buildSectionHeader('Support', PhosphorIcons.headset(), isDark),
+          const SizedBox(height: 12),
+          Consumer(
+            builder: (ctx, ref, _) {
+              final unreadCountAsync = ref.watch(userUnreadCountStreamProvider);
+              final unreadCount = unreadCountAsync.value ?? 0;
+
+              return _buildCard(
+                isDark: isDark,
+                child: ListTile(
+                  leading: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Center(
+                          child: Icon(
+                            PhosphorIcons.chatCircleDots(
+                              PhosphorIconsStyle.fill,
+                            ),
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            top: -2,
+                            right: -2,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.errorColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? AppTheme.darkCard
+                                      : AppTheme.lightCard,
+                                  width: 2,
+                                ),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 12,
+                                minHeight: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  title: Text(
+                    'Contact Support',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Get help from an administrator',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                    ),
+                  ),
+                  trailing: Icon(
+                    PhosphorIcons.caretRight(),
+                    size: 18,
+                    color: isDark ? Colors.white38 : Colors.black26,
+                  ),
+                  onTap: () => context.push('/chat'),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 40),
         ],
