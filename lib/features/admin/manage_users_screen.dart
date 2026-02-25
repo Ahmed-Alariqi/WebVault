@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
@@ -62,10 +63,22 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
         }
       } catch (e) {
         if (mounted) {
+          final errStr = e.toString().toLowerCase();
+          final isOffline =
+              errStr.contains('socketexception') ||
+              errStr.contains('failed host lookup') ||
+              errStr.contains('connection refused') ||
+              errStr.contains('clientexception') ||
+              errStr.contains('network is unreachable');
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('${AppLocalizations.of(context)!.error}: $e'),
-              backgroundColor: Colors.red,
+              content: Text(
+                isOffline
+                    ? 'You are offline. Please check your internet connection.'
+                    : '${AppLocalizations.of(context)!.error}: $e',
+              ),
+              backgroundColor: isOffline ? Colors.orange : Colors.red,
             ),
           );
         }
@@ -287,9 +300,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(
-                child: Text('${AppLocalizations.of(context)!.error}: $err'),
-              ),
+              error: (err, stack) => OfflineWarningWidget(error: err),
             ),
           ),
         ],
@@ -372,10 +383,22 @@ class _UserDialogState extends State<_UserDialog> {
       }
     } catch (e) {
       if (mounted) {
+        final errStr = e.toString().toLowerCase();
+        final isOffline =
+            errStr.contains('socketexception') ||
+            errStr.contains('failed host lookup') ||
+            errStr.contains('connection refused') ||
+            errStr.contains('clientexception') ||
+            errStr.contains('network is unreachable');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
-            backgroundColor: Colors.red,
+            content: Text(
+              isOffline
+                  ? 'You are offline. Please check your internet connection.'
+                  : '${AppLocalizations.of(context)!.error}: $e',
+            ),
+            backgroundColor: isOffline ? Colors.orange : Colors.red,
           ),
         );
       }

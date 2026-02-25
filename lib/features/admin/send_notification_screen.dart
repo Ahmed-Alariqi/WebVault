@@ -53,9 +53,24 @@ class _SendNotificationScreenState
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        final errStr = e.toString().toLowerCase();
+        final isOffline =
+            errStr.contains('socketexception') ||
+            errStr.contains('failed host lookup') ||
+            errStr.contains('connection refused') ||
+            errStr.contains('clientexception') ||
+            errStr.contains('network is unreachable');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isOffline
+                  ? 'You are offline. Please check your internet connection.'
+                  : 'Failed: $e',
+            ),
+            backgroundColor: isOffline ? Colors.orange : Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -37,30 +37,40 @@ import '../../features/admin/admin_chat_screen.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
-/// A listenable that notifies GoRouter when auth state changes
-class AuthNotifier extends ChangeNotifier {
-  AuthNotifier() {
+/// A listenable that notifies GoRouter when auth or lock state changes
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(Ref ref) {
     SupabaseConfig.client.auth.onAuthStateChange.listen((_) {
       notifyListeners();
+    });
+
+    ref.listen(appLockedProvider, (prev, next) {
+      if (prev != next) notifyListeners();
+    });
+
+    ref.listen(settingsProvider.select((s) => s['pinEnabled'] == true), (
+      prev,
+      next,
+    ) {
+      if (prev != next) notifyListeners();
     });
   }
 }
 
-final _authNotifier = AuthNotifier();
-
 /// Single GoRouter instance — never recreated
 final routerProvider = Provider<GoRouter>((ref) {
-  // Watch settings for PIN lock feature
-  final settings = ref.watch(settingsProvider);
-  final isLocked = ref.watch(appLockedProvider);
+  final notifier = RouterNotifier(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/dashboard',
-    refreshListenable: _authNotifier,
+    refreshListenable: notifier,
     redirect: (context, state) {
       final isLoggedIn = SupabaseConfig.client.auth.currentSession != null;
       final location = state.matchedLocation;
+
+      final settings = ref.read(settingsProvider);
+      final isLocked = ref.read(appLockedProvider);
 
       // Auth routes (no guard)
       final authRoutes = ['/login', '/signup', '/forgot-password'];

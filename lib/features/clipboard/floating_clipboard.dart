@@ -56,7 +56,18 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final items = ref.watch(clipboardItemsProvider);
+    final isVisible = ref.watch(clipboardVisibilityProvider);
     final screenSize = MediaQuery.of(context).size;
+
+    if (!isVisible) {
+      // If the clipboard tool is globally hidden, reset expansion and return empty box
+      if (_isExpanded) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _isExpanded = false);
+        });
+      }
+      return const SizedBox.shrink();
+    }
 
     return Stack(
       children: [

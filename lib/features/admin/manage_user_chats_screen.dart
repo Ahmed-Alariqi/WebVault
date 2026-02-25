@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageUserChatsScreen extends ConsumerWidget {
   const ManageUserChatsScreen({super.key});
@@ -122,209 +123,237 @@ class ManageUserChatsScreen extends ConsumerWidget {
                           context.push('/admin/chats/${conv.id}');
                         },
                         borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: isDark ? AppTheme.darkCard : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                            border: hasUnread
-                                ? Border.all(
-                                    color: AppTheme.primaryColor.withValues(
-                                      alpha: 0.5,
-                                    ),
-                                    width: 1.5,
-                                  )
-                                : Border.all(
-                                    color: isDark
-                                        ? Colors.white12
-                                        : Colors.black.withValues(alpha: 0.05),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? AppTheme.darkCard
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CircleAvatar(
-                                radius: 24,
-                                backgroundColor: AppTheme.primaryColor
-                                    .withValues(alpha: 0.15),
-                                child: profileAsync.when(
-                                  data: (p) {
-                                    if (p?['avatar_url'] != null) {
-                                      return ClipOval(
-                                        child: Image.network(
-                                          p!['avatar_url'],
-                                          width: 48,
-                                          height: 48,
-                                          fit: BoxFit.cover,
+                                ],
+                                border: hasUnread
+                                    ? Border.all(
+                                        color: AppTheme.errorColor.withValues(
+                                          alpha: 0.8,
                                         ),
-                                      );
-                                    }
-                                    return Text(
-                                      (p?['full_name'] ?? '?')
-                                          .toString()
-                                          .toUpperCase()[0],
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.primaryColor,
-                                        fontSize: 20,
+                                        width: 1.5,
+                                      )
+                                    : Border.all(
+                                        color: isDark
+                                            ? Colors.white12
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
                                       ),
-                                    );
-                                  },
-                                  loading: () =>
-                                      const CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                  error: (e, trace) => const Icon(
-                                    Icons.person,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24,
+                                    backgroundColor: AppTheme.primaryColor
+                                        .withValues(alpha: 0.15),
+                                    child: profileAsync.when(
+                                      data: (p) {
+                                        if (p?['avatar_url'] != null) {
+                                          return ClipOval(
+                                            child: Image.network(
+                                              p!['avatar_url'],
+                                              width: 48,
+                                              height: 48,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          );
+                                        }
+                                        return Text(
+                                          (p?['full_name'] ?? '?')
+                                              .toString()
+                                              .toUpperCase()[0],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.primaryColor,
+                                            fontSize: 20,
+                                          ),
+                                        );
+                                      },
+                                      loading: () =>
+                                          const CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                      error: (e, trace) => const Icon(
+                                        Icons.person,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: profileAsync.when(
-                                            data: (p) {
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: profileAsync.when(
+                                                data: (p) {
+                                                  return Text(
+                                                    p?['full_name'] ??
+                                                        'Unknown User',
+                                                    style: TextStyle(
+                                                      fontWeight: hasUnread
+                                                          ? FontWeight.bold
+                                                          : FontWeight.w600,
+                                                      fontSize: 16,
+                                                      color: isDark
+                                                          ? Colors.white
+                                                          : Colors.black87,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  );
+                                                },
+                                                loading: () =>
+                                                    const Text('Loading...'),
+                                                error: (e, trace) =>
+                                                    const Text('Error'),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              DateFormat.jm().format(
+                                                conv.lastMessageAt,
+                                              ),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: hasUnread
+                                                    ? AppTheme.errorColor
+                                                    : (isDark
+                                                          ? Colors.white54
+                                                          : Colors.black54),
+                                                fontWeight: hasUnread
+                                                    ? FontWeight.bold
+                                                    : FontWeight.normal,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Builder(
+                                          builder: (context) {
+                                            String? email;
+                                            if (allUsersAsync.hasValue) {
+                                              final users =
+                                                  allUsersAsync.value!;
+                                              final u = users
+                                                  .cast<Map<String, dynamic>?>()
+                                                  .firstWhere(
+                                                    (u) =>
+                                                        u?['id'] == conv.userId,
+                                                    orElse: () => null,
+                                                  );
+                                              email = u?['email'];
+                                            }
+
+                                            if (email != null) {
                                               return Text(
-                                                p?['full_name'] ??
-                                                    'Unknown User',
+                                                email,
                                                 style: TextStyle(
-                                                  fontWeight: hasUnread
-                                                      ? FontWeight.bold
-                                                      : FontWeight.w600,
-                                                  fontSize: 16,
+                                                  fontSize: 12,
                                                   color: isDark
-                                                      ? Colors.white
-                                                      : Colors.black87,
+                                                      ? Colors.white70
+                                                      : Colors.black54,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               );
-                                            },
-                                            loading: () =>
-                                                const Text('Loading...'),
-                                            error: (e, trace) =>
-                                                const Text('Error'),
-                                          ),
+                                            }
+                                            return const SizedBox.shrink();
+                                          },
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          DateFormat.jm().format(
-                                            conv.lastMessageAt,
-                                          ),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: hasUnread
-                                                ? AppTheme.primaryColor
-                                                : (isDark
-                                                      ? Colors.white54
-                                                      : Colors.black54),
-                                            fontWeight: hasUnread
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Builder(
-                                      builder: (context) {
-                                        String? email;
-                                        if (allUsersAsync.hasValue) {
-                                          final users = allUsersAsync.value!;
-                                          final u = users
-                                              .cast<Map<String, dynamic>?>()
-                                              .firstWhere(
-                                                (u) => u?['id'] == conv.userId,
-                                                orElse: () => null,
-                                              );
-                                          email = u?['email'];
-                                        }
-
-                                        if (email != null) {
-                                          return Text(
-                                            email,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: isDark
-                                                  ? Colors.white70
-                                                  : Colors.black54,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          );
-                                        }
-                                        return const SizedBox.shrink();
-                                      },
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            conv.lastMessage ??
-                                                'Started a conversation',
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: hasUnread
-                                                  ? (isDark
-                                                        ? Colors.white
-                                                        : Colors.black87)
-                                                  : (isDark
-                                                        ? Colors.white70
-                                                        : Colors.black54),
-                                              fontWeight: hasUnread
-                                                  ? FontWeight.w600
-                                                  : FontWeight.normal,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                        ),
-                                        if (hasUnread) ...[
-                                          const SizedBox(width: 12),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.primaryColor,
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                            child: Text(
-                                              '${conv.unreadAdminCount} New',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                conv.lastMessage ??
+                                                    'Started a conversation',
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: hasUnread
+                                                      ? (isDark
+                                                            ? Colors.white
+                                                            : Colors.black87)
+                                                      : (isDark
+                                                            ? Colors.white70
+                                                            : Colors.black54),
+                                                  fontWeight: hasUnread
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                  height: 1.4,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ],
                                     ),
-                                  ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (hasUnread)
+                              Positioned(
+                                top: -8,
+                                right: -8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.errorColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? AppTheme.darkCard
+                                          : Colors.white,
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    '${conv.unreadAdminCount} NEW',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
@@ -335,7 +364,7 @@ class ManageUserChatsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => OfflineWarningWidget(error: e),
       ),
     );
   }

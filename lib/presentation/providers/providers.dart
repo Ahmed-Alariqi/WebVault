@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/supabase_config.dart';
@@ -10,6 +12,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../data/models/page_model.dart';
 import '../../data/models/folder_model.dart';
 import '../../data/models/clipboard_item_model.dart';
+import 'package:uuid/uuid.dart';
 import '../../data/services/backup_service.dart';
 
 // ============================================================
@@ -119,6 +122,11 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 
   Future<void> setFirstLaunch(bool value) async {
     await _repo.setFirstLaunch(value);
+    _loadSettings();
+  }
+
+  Future<void> setAdvancedCopyEnabled(bool enabled) async {
+    await _repo.setAdvancedCopyEnabled(enabled);
     _loadSettings();
   }
 
@@ -281,17 +289,83 @@ class FoldersNotifier extends StateNotifier<List<FolderModel>> {
 // Clipboard provider
 // ============================================================
 
+final clipboardVisibilityProvider = StateProvider<bool>((ref) => false);
+
 final clipboardItemsProvider =
     StateNotifierProvider<ClipboardNotifier, List<ClipboardItemModel>>((ref) {
       final repo = ref.read(clipboardRepositoryProvider);
-      return ClipboardNotifier(repo);
+      return ClipboardNotifier(repo, ref);
     });
 
 class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
   final ClipboardRepository _repo;
+  final Ref _ref; // Passed internally to check settings provider dynamically
+  Timer? _pollingTimer;
+  String _lastPolledText = '';
 
-  ClipboardNotifier(this._repo) : super([]) {
+  ClipboardNotifier(this._repo, this._ref) : super([]) {
     refresh();
+    _startPollingListener();
+  }
+
+  void _startPollingListener() {
+    // 2 Second Timer interval
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      // Step 1: Query global setting
+      final Map<String, dynamic> currentSettings;
+      try {
+        currentSettings = _ref.read(settingsProvider);
+      } catch (e) {
+        return; // Guard if disposed
+      }
+
+      final isAdvanced =
+          currentSettings['isAdvancedCopyEnabled'] as bool? ?? false;
+
+      // Step 2: Skip polling if explicitly disabled or app locked
+      if (!isAdvanced) return;
+
+      try {
+        final lockState = _ref.read(appLockedProvider);
+        if (lockState) return;
+      } catch (e) {
+        return; // If locked out, prevent polling
+      }
+
+      // Step 3: Extract from native system clipboard
+      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
+      final textData = clipboardData?.text;
+
+      if (textData != null && textData.trim().isNotEmpty) {
+        // Did the payload change from what we already tracked?
+        if (textData != _lastPolledText) {
+          _lastPolledText = textData;
+
+          // Check if this explicit text entry already exists to avoid redundant UI loops
+          final existingMatch = state
+              .where((item) => item.value == textData)
+              .toList();
+
+          if (existingMatch.isEmpty) {
+            // 100% brand new background clipboard capture! Insert silently.
+            final newItem = ClipboardItemModel(
+              id: const Uuid().v4(),
+              label: 'Smart Capture',
+              value: textData,
+              createdAt: DateTime.now(),
+              isPinned: false,
+            );
+            await addItem(newItem);
+          }
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   void refresh() {

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageInAppMessagesScreen extends ConsumerStatefulWidget {
   const ManageInAppMessagesScreen({super.key});
@@ -72,9 +73,24 @@ class _ManageInAppMessagesScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        final errStr = e.toString().toLowerCase();
+        final isOffline =
+            errStr.contains('socketexception') ||
+            errStr.contains('failed host lookup') ||
+            errStr.contains('connection refused') ||
+            errStr.contains('clientexception') ||
+            errStr.contains('network is unreachable');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isOffline
+                  ? 'You are offline. Please check your internet connection.'
+                  : 'Failed: $e',
+            ),
+            backgroundColor: isOffline ? Colors.orange : Colors.red,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -87,9 +103,24 @@ class _ManageInAppMessagesScreenState
       ref.invalidate(adminInAppMessagesProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+        final errStr = e.toString().toLowerCase();
+        final isOffline =
+            errStr.contains('socketexception') ||
+            errStr.contains('failed host lookup') ||
+            errStr.contains('connection refused') ||
+            errStr.contains('clientexception') ||
+            errStr.contains('network is unreachable');
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isOffline
+                  ? 'You are offline. Please check your internet connection.'
+                  : 'Failed to update status: $e',
+            ),
+            backgroundColor: isOffline ? Colors.orange : Colors.red,
+          ),
+        );
       }
     }
   }
@@ -120,9 +151,24 @@ class _ManageInAppMessagesScreenState
         ref.invalidate(adminInAppMessagesProvider);
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+          final errStr = e.toString().toLowerCase();
+          final isOffline =
+              errStr.contains('socketexception') ||
+              errStr.contains('failed host lookup') ||
+              errStr.contains('connection refused') ||
+              errStr.contains('clientexception') ||
+              errStr.contains('network is unreachable');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isOffline
+                    ? 'You are offline. Please check your internet connection.'
+                    : 'Delete failed: $e',
+              ),
+              backgroundColor: isOffline ? Colors.orange : Colors.red,
+            ),
+          );
         }
       }
     }
@@ -372,7 +418,7 @@ class _ManageInAppMessagesScreenState
               child: Center(child: CircularProgressIndicator()),
             ),
             error: (e, s) =>
-                SliverToBoxAdapter(child: Center(child: Text('Error: $e'))),
+                SliverToBoxAdapter(child: OfflineWarningWidget(error: e)),
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 40)),

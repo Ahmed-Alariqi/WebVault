@@ -13,6 +13,7 @@ import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
@@ -162,8 +163,29 @@ class DiscoverScreen extends ConsumerWidget {
             ),
           ),
 
+          // Offline Error State
+          if (trending.hasError &&
+              popular.hasError &&
+              featured.hasError &&
+              discover.hasError)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: OfflineWarningWidget(
+                error:
+                    trending.error ??
+                    popular.error ??
+                    featured.error ??
+                    discover.error ??
+                    'Network error',
+              ),
+            ),
+
           // Empty State
-          if (trending.valueOrNull?.isEmpty == true &&
+          if (!trending.hasError &&
+              !popular.hasError &&
+              !featured.hasError &&
+              !discover.hasError &&
+              trending.valueOrNull?.isEmpty == true &&
               popular.valueOrNull?.isEmpty == true &&
               featured.valueOrNull?.isEmpty == true &&
               discover.valueOrNull?.isEmpty == true)

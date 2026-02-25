@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -124,7 +125,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     data: (stats) => _StatsGrid(stats: stats, isDark: isDark),
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, s) => Text('Error: $e'),
+                    error: (e, s) => OfflineWarningWidget(error: e),
                   ),
                 ),
               ),
@@ -414,14 +415,22 @@ class _ActionCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-            textAlign: TextAlign.center,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (badge != null) const SizedBox(width: 8),
+              if (badge != null) badge!,
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -436,16 +445,6 @@ class _ActionCard extends StatelessWidget {
       ),
     );
 
-    if (badge != null) {
-      card = Stack(
-        clipBehavior: Clip.none,
-        children: [
-          card,
-          Positioned(top: -4, right: -4, child: badge!),
-        ],
-      );
-    }
-
     return GestureDetector(
       onTap: onTap,
       child: card,
@@ -455,10 +454,18 @@ class _ActionCard extends StatelessWidget {
 
 Widget _buildBadge(int count) {
   return Container(
-    padding: const EdgeInsets.all(6),
-    decoration: const BoxDecoration(
-      color: AppTheme.primaryColor,
+    padding: const EdgeInsets.all(8),
+    decoration: BoxDecoration(
+      color: Colors.red,
       shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.red.withValues(alpha: 0.3),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
     ),
     child: Text(
       count > 99 ? '99+' : count.toString(),

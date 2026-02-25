@@ -10,6 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../utils/clipboard_helper.dart';
+import '../../utils/text_utils.dart';
 
 class WebsiteDetailsDialog extends ConsumerWidget {
   final WebsiteModel site;
@@ -223,31 +225,49 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                     readOnly: true,
                                   );
 
-                                  return DefaultTextStyle(
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      height: 1.6,
-                                      color: isDark
-                                          ? AppTheme.darkTextSecondary
-                                          : AppTheme.lightTextSecondary,
-                                    ),
-                                    child: QuillEditor.basic(
-                                      controller: quillController,
-                                      config: const QuillEditorConfig(
-                                        showCursor: false,
-                                        scrollable: false,
+                                  return GestureDetector(
+                                    onLongPress: () =>
+                                        ClipboardHelper.copyAndPrompt(
+                                          context,
+                                          ref,
+                                          TextUtils.getPlainTextFromDescription(
+                                            site.description,
+                                          ),
+                                        ),
+                                    child: DefaultTextStyle(
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        height: 1.6,
+                                        color: isDark
+                                            ? AppTheme.darkTextSecondary
+                                            : AppTheme.lightTextSecondary,
+                                      ),
+                                      child: QuillEditor.basic(
+                                        controller: quillController,
+                                        config: const QuillEditorConfig(
+                                          showCursor: false,
+                                          scrollable: false,
+                                        ),
                                       ),
                                     ),
                                   );
                                 } else {
-                                  return Text(
-                                    site.description,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      height: 1.6,
-                                      color: isDark
-                                          ? AppTheme.darkTextSecondary
-                                          : AppTheme.lightTextSecondary,
+                                  return GestureDetector(
+                                    onLongPress: () =>
+                                        ClipboardHelper.copyAndPrompt(
+                                          context,
+                                          ref,
+                                          site.description,
+                                        ),
+                                    child: Text(
+                                      site.description,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        height: 1.6,
+                                        color: isDark
+                                            ? AppTheme.darkTextSecondary
+                                            : AppTheme.lightTextSecondary,
+                                      ),
                                     ),
                                   );
                                 }

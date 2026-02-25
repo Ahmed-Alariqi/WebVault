@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/category_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageCategoriesScreen extends ConsumerWidget {
   const ManageCategoriesScreen({super.key});
@@ -144,7 +145,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => OfflineWarningWidget(error: e),
       ),
     );
   }

@@ -45,6 +45,12 @@ class SettingsRepository {
   Future<void> setSecureModeEnabled(bool enabled) =>
       _box.put(kSecureModeEnabled, enabled);
 
+  // Advanced Smart Copy
+  bool isAdvancedCopyEnabled() =>
+      _box.get(kAdvancedCopyEnabled, defaultValue: false) as bool;
+  Future<void> setAdvancedCopyEnabled(bool enabled) =>
+      _box.put(kAdvancedCopyEnabled, enabled);
+
   // First launch
   bool isFirstLaunch() => _box.get(kIsFirstLaunch, defaultValue: true) as bool;
   Future<void> setFirstLaunch(bool value) => _box.put(kIsFirstLaunch, value);
@@ -59,6 +65,7 @@ class SettingsRepository {
       'themeMode': getThemeMode(),
       'autoDeleteDays': getAutoDeleteDays(),
       'secureModeEnabled': isSecureModeEnabled(),
+      'isAdvancedCopyEnabled': isAdvancedCopyEnabled(),
       'isFirstLaunch': isFirstLaunch(),
       'locale': getLocale(),
     };

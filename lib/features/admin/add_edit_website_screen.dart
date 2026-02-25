@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
@@ -124,10 +125,22 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final errStr = e.toString().toLowerCase();
+        final isOffline =
+            errStr.contains('socketexception') ||
+            errStr.contains('failed host lookup') ||
+            errStr.contains('connection refused') ||
+            errStr.contains('clientexception') ||
+            errStr.contains('network is unreachable');
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving: $e'),
-            backgroundColor: Colors.red.shade600,
+            content: Text(
+              isOffline
+                  ? 'You are offline. Please check your internet connection.'
+                  : 'Error saving: $e',
+            ),
+            backgroundColor: isOffline ? Colors.orange : Colors.red.shade600,
           ),
         );
       }
@@ -398,7 +411,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                       child: CircularProgressIndicator(),
                                     ),
                                     error: (e, _) =>
-                                        const Text('Error loading categories'),
+                                        OfflineWarningWidget(error: e),
                                   );
                                 },
                               ),

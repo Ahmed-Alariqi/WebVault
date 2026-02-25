@@ -262,6 +262,58 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 28),
 
+          // Utility Additions section
+          _buildSectionHeader('Utilities', PhosphorIcons.wrench(), isDark),
+          const SizedBox(height: 12),
+          _buildCard(
+            isDark: isDark,
+            child: Consumer(
+              builder: (ctx, ref, _) {
+                final isAdvancedCopyEnabled =
+                    settings['isAdvancedCopyEnabled'] as bool? ?? false;
+                return SwitchListTile(
+                  secondary: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      PhosphorIcons.clipboardText(),
+                      color: Colors.blue,
+                    ),
+                  ),
+                  title: Text(
+                    'Smart Background Copy',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Auto-saves anything you copy to the device clipboard directly into WebVault',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                    ),
+                  ),
+                  value: isAdvancedCopyEnabled,
+                  activeColor: AppTheme.primaryColor,
+                  onChanged: (val) => ref
+                      .read(settingsProvider.notifier)
+                      .setAdvancedCopyEnabled(val),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
           // Data section
           _buildSectionHeader(
             AppLocalizations.of(context)!.data,

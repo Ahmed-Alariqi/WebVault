@@ -10,6 +10,7 @@ import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../clipboard/floating_clipboard.dart';
+import '../../utils/clipboard_helper.dart';
 
 class BrowserScreen extends ConsumerStatefulWidget {
   final String pageId;
@@ -116,16 +117,28 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
             ),
             tooltip: AppLocalizations.of(context)!.suggestToAdmin,
           ),
-          IconButton(
-            icon: Icon(
-              currentPage.isFavorite
-                  ? PhosphorIcons.heart(PhosphorIconsStyle.fill)
-                  : PhosphorIcons.heart(),
-              color: currentPage.isFavorite ? AppTheme.errorColor : null,
-              size: 20,
+          Tooltip(
+            message: 'Toggle Clipboard (Long press to Quick-Add)',
+            child: InkWell(
+              onTap: () {
+                ref
+                    .read(clipboardVisibilityProvider.notifier)
+                    .update((s) => !s);
+              },
+              onLongPress: () {
+                ClipboardHelper.showManualEntrySheet(context, ref);
+              },
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  ref.watch(clipboardVisibilityProvider)
+                      ? PhosphorIcons.clipboardText(PhosphorIconsStyle.fill)
+                      : PhosphorIcons.clipboardText(),
+                  size: 20,
+                ),
+              ),
             ),
-            onPressed: () =>
-                ref.read(pagesProvider.notifier).toggleFavorite(widget.pageId),
           ),
           IconButton(
             icon: Icon(PhosphorIcons.arrowSquareOut(), size: 20),

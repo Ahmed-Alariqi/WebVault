@@ -9,6 +9,7 @@ import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/website_model.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class AdminSuggestionsScreen extends ConsumerWidget {
   const AdminSuggestionsScreen({super.key});
@@ -279,7 +280,7 @@ class AdminSuggestionsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
+        error: (err, stack) => OfflineWarningWidget(error: err),
       ),
     );
   }

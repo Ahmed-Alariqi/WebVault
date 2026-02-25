@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
   const ManageWebsitesScreen({super.key});
@@ -70,7 +71,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => OfflineWarningWidget(error: e),
       ),
     );
   }
