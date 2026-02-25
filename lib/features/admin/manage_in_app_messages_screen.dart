@@ -21,6 +21,8 @@ class _ManageInAppMessagesScreenState
   final _imageUrlCtrl = TextEditingController();
   final _actionUrlCtrl = TextEditingController();
   final _actionTextCtrl = TextEditingController();
+  final _targetVersionCtrl = TextEditingController();
+  bool _isDismissible = true;
   bool _isLoading = false;
 
   @override
@@ -30,6 +32,7 @@ class _ManageInAppMessagesScreenState
     _imageUrlCtrl.dispose();
     _actionUrlCtrl.dispose();
     _actionTextCtrl.dispose();
+    _targetVersionCtrl.dispose();
     super.dispose();
   }
 
@@ -56,6 +59,10 @@ class _ManageInAppMessagesScreenState
         'action_text': _actionTextCtrl.text.trim().isEmpty
             ? null
             : _actionTextCtrl.text.trim(),
+        'is_dismissible': _isDismissible,
+        'target_version': _targetVersionCtrl.text.trim().isEmpty
+            ? null
+            : _targetVersionCtrl.text.trim(),
         'is_active': false, // created inactive by default
       });
 
@@ -64,6 +71,8 @@ class _ManageInAppMessagesScreenState
       _imageUrlCtrl.clear();
       _actionUrlCtrl.clear();
       _actionTextCtrl.clear();
+      _targetVersionCtrl.clear();
+      setState(() => _isDismissible = true);
       ref.invalidate(adminInAppMessagesProvider);
 
       if (mounted) {
@@ -246,6 +255,37 @@ class _ManageInAppMessagesScreenState
                       'Button Text (optional)',
                       isDark,
                     ),
+                    const SizedBox(height: 12),
+                    SwitchListTile(
+                      title: Text(
+                        'Allow User to Dismiss',
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'If disabled, the message blocks the app until completion or update.',
+                        style: TextStyle(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      value: _isDismissible,
+                      activeThumbColor: AppTheme.primaryColor,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (val) {
+                        setState(() => _isDismissible = val);
+                      },
+                    ),
+                    if (!_isDismissible) ...[
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        _targetVersionCtrl,
+                        'Target Version Required (e.g. 1.0.5) (optional)',
+                        isDark,
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     ElevatedButton(
                       onPressed: _isLoading ? null : _createMessage,
@@ -356,6 +396,30 @@ class _ManageInAppMessagesScreenState
                                         'ACTIVE',
                                         style: TextStyle(
                                           color: Colors.green,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  if (msg['is_dismissible'] == false)
+                                    Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        msg['target_version'] != null
+                                            ? 'UPDATE: ${msg['target_version']}'
+                                            : 'MANDATORY',
+                                        style: const TextStyle(
+                                          color: Colors.orange,
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                         ),

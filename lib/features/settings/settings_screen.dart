@@ -303,7 +303,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   value: isAdvancedCopyEnabled,
-                  activeColor: AppTheme.primaryColor,
+                  activeThumbColor: AppTheme.primaryColor,
                   onChanged: (val) => ref
                       .read(settingsProvider.notifier)
                       .setAdvancedCopyEnabled(val),

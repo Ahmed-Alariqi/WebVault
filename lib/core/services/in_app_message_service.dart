@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../theme/app_theme.dart';
 import '../supabase_config.dart';
 import '../constants.dart';
@@ -23,6 +24,37 @@ class InAppMessageService {
 
       if (response == null) return;
 
+      bool isDismissible = response['is_dismissible'] ?? true;
+      final String? targetVersionStr = response['target_version'];
+
+      if (targetVersionStr != null && targetVersionStr.isNotEmpty) {
+        final packageInfo = await PackageInfo.fromPlatform();
+        final currentVersion = packageInfo.version;
+
+        bool isCurrentLower = _isVersionLower(currentVersion, targetVersionStr);
+        if (isCurrentLower) {
+          isDismissible = false; // Block the app, force update
+        } else {
+          // If they meet or exceed the required version, they don't need to see the update message
+          return;
+        }
+      }
+
+      // Explicit Admin Override
+      // If the user is an Admin, they can bypass ANY Non-Dismissible message organically to prevent lockouts.
+      final currentUser = SupabaseConfig.client.auth.currentUser;
+      if (currentUser != null && !isDismissible) {
+        final profile = await SupabaseConfig.client
+            .from('profiles')
+            .select('role')
+            .eq('id', currentUser.id)
+            .maybeSingle();
+
+        if (profile != null && profile['role'] == 'admin') {
+          isDismissible = true;
+        }
+      }
+
       final messageId = response['id'] as String;
 
       // Check if user already dismissed this specific message ID
@@ -36,10 +68,34 @@ class InAppMessageService {
       }
 
       if (context.mounted) {
-        _showCampaignDialog(context, response, messageId, box, dismissedIds);
+        _showCampaignDialog(
+          context,
+          response,
+          messageId,
+          box,
+          dismissedIds,
+          isDismissible,
+        );
       }
     } catch (e) {
       debugPrint('Error loading in-app messages: $e');
+    }
+  }
+
+  static bool _isVersionLower(String current, String target) {
+    try {
+      final currentParts = current.split('.');
+      final targetParts = target.split('.');
+
+      for (int i = 0; i < currentParts.length && i < targetParts.length; i++) {
+        final c = int.tryParse(currentParts[i]) ?? 0;
+        final t = int.tryParse(targetParts[i]) ?? 0;
+        if (c < t) return true;
+        if (c > t) return false;
+      }
+      return currentParts.length < targetParts.length;
+    } catch (_) {
+      return false;
     }
   }
 
@@ -49,6 +105,7 @@ class InAppMessageService {
     String messageId,
     Box box,
     List<String> dismissedIds,
+    bool isDismissible,
   ) {
     final title = data['title'] as String;
     final message = data['message'] as String;
@@ -59,7 +116,7 @@ class InAppMessageService {
 
     showDialog(
       context: context,
-      barrierDismissible: false, // Force them to explicitly dismiss it
+      barrierDismissible: isDismissible,
       builder: (ctx) {
         return Dialog(
           backgroundColor: Colors.transparent,
@@ -173,10 +230,11 @@ class InAppMessageService {
                                   mode: LaunchMode.externalApplication,
                                 );
                               }
-                              // Mark as dismissed and close
-                              dismissedIds.add(messageId);
-                              await box.put(_dismissedKey, dismissedIds);
-                              if (ctx.mounted) Navigator.pop(ctx);
+                              if (isDismissible) {
+                                dismissedIds.add(messageId);
+                                await box.put(_dismissedKey, dismissedIds);
+                                if (ctx.mounted) Navigator.pop(ctx);
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primaryColor,
@@ -199,32 +257,33 @@ class InAppMessageService {
                       const SizedBox(height: 12),
 
                       // Dismiss Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: TextButton(
-                          onPressed: () async {
-                            dismissedIds.add(messageId);
-                            await box.put(_dismissedKey, dismissedIds);
-                            if (ctx.mounted) Navigator.pop(ctx);
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: isDark
-                                ? Colors.white54
-                                : Colors.black54,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
+                      if (isDismissible)
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: TextButton(
+                            onPressed: () async {
+                              dismissedIds.add(messageId);
+                              await box.put(_dismissedKey, dismissedIds);
+                              if (ctx.mounted) Navigator.pop(ctx);
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? Colors.white54
+                                  : Colors.black54,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Dismiss',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                            child: const Text(
+                              'Dismiss',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),

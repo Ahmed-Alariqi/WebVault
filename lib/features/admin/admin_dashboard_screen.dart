@@ -429,7 +429,7 @@ class _ActionCard extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               if (badge != null) const SizedBox(width: 8),
-              if (badge != null) badge!,
+              ?badge,
             ],
           ),
           const SizedBox(height: 4),
