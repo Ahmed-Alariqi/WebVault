@@ -22,7 +22,8 @@ class _ManageInAppMessagesScreenState
   final _actionUrlCtrl = TextEditingController();
   final _actionTextCtrl = TextEditingController();
   final _targetVersionCtrl = TextEditingController();
-  bool _isDismissible = true;
+  // 0 = Standard (Shows once), 1 = Recurring (Shows every time), 2 = Hard Block (Not dismissible)
+  int _campaignMode = 0;
   bool _isLoading = false;
 
   @override
@@ -59,10 +60,12 @@ class _ManageInAppMessagesScreenState
         'action_text': _actionTextCtrl.text.trim().isEmpty
             ? null
             : _actionTextCtrl.text.trim(),
-        'is_dismissible': _isDismissible,
-        'target_version': _targetVersionCtrl.text.trim().isEmpty
-            ? null
-            : _targetVersionCtrl.text.trim(),
+        'is_dismissible': _campaignMode != 2,
+        'show_every_time': _campaignMode != 0,
+        'target_version':
+            (_campaignMode == 2 && _targetVersionCtrl.text.trim().isNotEmpty)
+            ? _targetVersionCtrl.text.trim()
+            : null,
         'is_active': false, // created inactive by default
       });
 
@@ -72,7 +75,7 @@ class _ManageInAppMessagesScreenState
       _actionUrlCtrl.clear();
       _actionTextCtrl.clear();
       _targetVersionCtrl.clear();
-      setState(() => _isDismissible = true);
+      setState(() => _campaignMode = 0);
       ref.invalidate(adminInAppMessagesProvider);
 
       if (mounted) {
@@ -255,31 +258,68 @@ class _ManageInAppMessagesScreenState
                       'Button Text (optional)',
                       isDark,
                     ),
-                    const SizedBox(height: 12),
-                    SwitchListTile(
-                      title: Text(
-                        'Allow User to Dismiss',
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Campaign Mode',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
                       ),
-                      subtitle: Text(
-                        'If disabled, the message blocks the app until completion or update.',
-                        style: TextStyle(
-                          color: isDark ? Colors.white54 : Colors.black54,
-                          fontSize: 12,
-                        ),
-                      ),
-                      value: _isDismissible,
-                      activeThumbColor: AppTheme.primaryColor,
-                      contentPadding: EdgeInsets.zero,
-                      onChanged: (val) {
-                        setState(() => _isDismissible = val);
-                      },
                     ),
-                    if (!_isDismissible) ...[
-                      const SizedBox(height: 12),
+                    const SizedBox(height: 12),
+                    SegmentedButton<int>(
+                      segments: const [
+                        ButtonSegment(
+                          value: 0,
+                          icon: Icon(Icons.looks_one_outlined),
+                          label: Text('Standard'),
+                        ),
+                        ButtonSegment(
+                          value: 1,
+                          icon: Icon(Icons.repeat),
+                          label: Text('Recurring'),
+                        ),
+                        ButtonSegment(
+                          value: 2,
+                          icon: Icon(Icons.block),
+                          label: Text('Hard Block'),
+                        ),
+                      ],
+                      selected: {_campaignMode},
+                      onSelectionChanged: (Set<int> newSelection) {
+                        setState(() {
+                          _campaignMode = newSelection.first;
+                        });
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                          (states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return AppTheme.primaryColor.withValues(
+                                alpha: 0.2,
+                              );
+                            }
+                            return Colors.transparent;
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _campaignMode == 0
+                          ? 'Shows once per user. They can dismiss it forever.'
+                          : _campaignMode == 1
+                          ? 'Shows every time the user opens the app, but they can dismiss it.'
+                          : 'Shows every time, CANNOT be dismissed. Blocks the app completely.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.white54 : Colors.black54,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_campaignMode == 2) ...[
+                      const SizedBox(height: 16),
                       _buildTextField(
                         _targetVersionCtrl,
                         'Target Version Required (e.g. 1.0.5) (optional)',
@@ -409,7 +449,7 @@ class _ManageInAppMessagesScreenState
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.orange.withValues(
+                                        color: Colors.red.withValues(
                                           alpha: 0.2,
                                         ),
                                         borderRadius: BorderRadius.circular(10),
@@ -417,9 +457,31 @@ class _ManageInAppMessagesScreenState
                                       child: Text(
                                         msg['target_version'] != null
                                             ? 'UPDATE: ${msg['target_version']}'
-                                            : 'MANDATORY',
+                                            : 'HARD BLOCK',
                                         style: const TextStyle(
-                                          color: Colors.orange,
+                                          color: Colors.red,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  else if (msg['show_every_time'] == true)
+                                    Container(
+                                      margin: const EdgeInsets.only(right: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.purple.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Text(
+                                        'RECURRING',
+                                        style: TextStyle(
+                                          color: Colors.purple,
                                           fontSize: 10,
                                           fontWeight: FontWeight.bold,
                                         ),
