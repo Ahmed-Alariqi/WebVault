@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/utils/text_utils.dart';
@@ -17,6 +18,15 @@ import '../../presentation/widgets/offline_warning_widget.dart';
 
 class DiscoverScreen extends ConsumerWidget {
   const DiscoverScreen({super.key});
+
+  // ── Content Type Tab definitions ──
+  static const _typeFilters = [
+    {'value': null, 'label': 'All', 'icon': null},
+    {'value': 'website', 'label': 'Websites'},
+    {'value': 'prompt', 'label': 'Prompts'},
+    {'value': 'offer', 'label': 'Offers'},
+    {'value': 'announcement', 'label': 'News'},
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,13 +68,13 @@ class DiscoverScreen extends ConsumerWidget {
           // Search Bar
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: TextField(
                 onChanged: (v) =>
                     ref.read(discoverSearchProvider.notifier).state = v,
                 style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
-                  hintText: 'Search websites & tools...',
+                  hintText: 'Search discover...',
                   prefixIcon: Icon(
                     PhosphorIcons.magnifyingGlass(),
                     size: 20,
@@ -84,6 +94,9 @@ class DiscoverScreen extends ConsumerWidget {
               ),
             ).animate().fadeIn(),
           ),
+
+          // Content Type Filter Tabs
+          SliverToBoxAdapter(child: _buildContentTypeTabs(ref, isDark)),
 
           // Category Chips
           SliverToBoxAdapter(child: _buildCategoryChips(ref, isDark)),
@@ -143,7 +156,7 @@ class DiscoverScreen extends ConsumerWidget {
             ),
           ),
 
-          // All Websites / Filter Results Section
+          // All / Filter Results Section
           SliverToBoxAdapter(
             child: discover.when(
               data: (sites) => sites.isEmpty
@@ -200,6 +213,86 @@ class DiscoverScreen extends ConsumerWidget {
     );
   }
 
+  // ── Content Type Tabs ──
+  Widget _buildContentTypeTabs(WidgetRef ref, bool isDark) {
+    final selectedType = ref.watch(selectedContentTypeProvider);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: SizedBox(
+        height: 38,
+        child: ListView(
+          scrollDirection: Axis.horizontal,
+          children: _typeFilters.map((filter) {
+            final value = filter['value'];
+            final label = filter['label'] as String;
+            final isActive = selectedType == value;
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: GestureDetector(
+                onTap: () =>
+                    ref.read(selectedContentTypeProvider.notifier).state =
+                        value,
+                child: AnimatedContainer(
+                  duration: 200.ms,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: isActive
+                        ? const LinearGradient(
+                            colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+                          )
+                        : null,
+                    color: isActive
+                        ? null
+                        : (isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.04)),
+                    borderRadius: BorderRadius.circular(10),
+                    border: isActive
+                        ? null
+                        : Border.all(
+                            color: isDark ? Colors.white10 : Colors.black12,
+                          ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (value != null) ...[
+                        Icon(
+                          _typeIcon(value),
+                          size: 14,
+                          color: isActive
+                              ? Colors.white
+                              : (isDark ? Colors.white54 : Colors.black45),
+                        ),
+                        const SizedBox(width: 5),
+                      ],
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isActive
+                              ? Colors.white
+                              : (isDark ? Colors.white60 : Colors.black54),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  // ── Category Chips ──
   Widget _buildCategoryChips(WidgetRef ref, bool isDark) {
     final categories = ref.watch(categoriesProvider);
     final selected = ref.watch(selectedCategoryProvider);
@@ -269,6 +362,7 @@ class DiscoverScreen extends ConsumerWidget {
     );
   }
 
+  // ── Section Builder ──
   Widget _buildSection(
     BuildContext context,
     WidgetRef ref,
@@ -304,12 +398,12 @@ class DiscoverScreen extends ConsumerWidget {
           ).animate().fadeIn(),
           const SizedBox(height: 14),
           SizedBox(
-            height: 280, // Increased height
+            height: 290,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: sites.length,
-              itemBuilder: (ctx, i) => _buildWebsiteCard(
+              itemBuilder: (ctx, i) => _buildDiscoverCard(
                 context,
                 ref,
                 sites[i],
@@ -324,7 +418,8 @@ class DiscoverScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWebsiteCard(
+  // ── Dynamic Card Builder ──
+  Widget _buildDiscoverCard(
     BuildContext context,
     WidgetRef ref,
     WebsiteModel site,
@@ -361,7 +456,7 @@ class DiscoverScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // ── Image + Badges ──
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
@@ -369,7 +464,7 @@ class DiscoverScreen extends ConsumerWidget {
               child: Stack(
                 children: [
                   SizedBox(
-                    height: 120, // Increased image height slightly
+                    height: 120,
                     width: double.infinity,
                     child: site.imageUrl != null && site.imageUrl!.isNotEmpty
                         ? CachedNetworkImage(
@@ -381,7 +476,7 @@ class DiscoverScreen extends ConsumerWidget {
                                   : Colors.black.withValues(alpha: 0.05),
                               child: Center(
                                 child: Icon(
-                                  PhosphorIcons.image(),
+                                  _typeIcon(site.contentType),
                                   color: isDark
                                       ? Colors.white24
                                       : Colors.black12,
@@ -389,10 +484,11 @@ class DiscoverScreen extends ConsumerWidget {
                               ),
                             ),
                             errorWidget: (ctx, url, err) =>
-                                _placeholderImage(isDark),
+                                _placeholderImage(isDark, site.contentType),
                           )
-                        : _placeholderImage(isDark),
+                        : _placeholderImage(isDark, site.contentType),
                   ),
+                  // Trending badge
                   if (showBadge)
                     Positioned(
                       top: 8,
@@ -438,11 +534,83 @@ class DiscoverScreen extends ConsumerWidget {
                                 color: Colors.white.withValues(alpha: 0.3),
                               ),
                     ),
+                  // Content type badge
+                  if (site.contentType != 'website')
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _typeColor(
+                            site.contentType,
+                          ).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _typeIcon(site.contentType),
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _typeLabel(site.contentType),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  // Expiry badge
+                  if (site.expiresAt != null)
+                    Positioned(
+                      bottom: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.timer_outlined,
+                              size: 10,
+                              color: Colors.white70,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _formatTimeLeft(site.expiresAt!),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
 
-            // Content
+            // ── Content ──
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
@@ -466,23 +634,57 @@ class DiscoverScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            TextUtils.getPlainTextFromDescription(
-                              site.description,
+                          // For prompts/offers: show the copyable value preview
+                          if (site.hasCopyableValue) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.06),
+                                ),
+                              ),
+                              child: Text(
+                                site.actionValue,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontFamily: 'monospace',
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isDark
-                                  ? AppTheme.darkTextSecondary
-                                  : AppTheme.lightTextSecondary,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (TextUtils.getPlainTextFromDescription(
+                          ] else ...[
+                            Text(
+                              TextUtils.getPlainTextFromDescription(
                                 site.description,
-                              ).length >
-                              50)
+                              ),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppTheme.darkTextSecondary
+                                    : AppTheme.lightTextSecondary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                          if (TextUtils.getPlainTextFromDescription(
+                                    site.description,
+                                  ).length >
+                                  50 &&
+                              !site.hasCopyableValue)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: Text(
@@ -498,78 +700,8 @@ class DiscoverScreen extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 32,
-                            child: ElevatedButton(
-                              onPressed: () => context.push(
-                                '/discover-browser',
-                                extra: site,
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                padding: EdgeInsets.zero,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Open',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        SizedBox(
-                          height: 32,
-                          width: 32,
-                          child: IconButton(
-                            onPressed: () => _openUrl(site.url, inApp: false),
-                            icon: Icon(PhosphorIcons.globe(), size: 18),
-                            padding: EdgeInsets.zero,
-                            style: IconButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            color: isDark ? Colors.white70 : Colors.black54,
-                            tooltip: 'Open in Browser',
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        SizedBox(
-                          height: 32,
-                          width: 32,
-                          child: IconButton(
-                            onPressed: () => _saveSite(ref, site),
-                            icon: Icon(
-                              PhosphorIcons.bookmarkSimple(),
-                              size: 18,
-                            ),
-                            padding: EdgeInsets.zero,
-                            style: IconButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            color: isDark ? Colors.white54 : Colors.black45,
-                          ),
-                        ),
-                      ],
-                    ),
+                    // ── Dynamic Action Buttons ──
+                    _buildActionButtons(context, ref, site, isDark),
                   ],
                 ),
               ),
@@ -580,15 +712,280 @@ class DiscoverScreen extends ConsumerWidget {
     ).animate(delay: (index * 100).ms).fadeIn().slideX(begin: 0.1);
   }
 
-  Widget _placeholderImage(bool isDark) {
+  // ── Action Buttons per content type ──
+  Widget _buildActionButtons(
+    BuildContext context,
+    WidgetRef ref,
+    WebsiteModel site,
+    bool isDark,
+  ) {
+    switch (site.contentType) {
+      case 'prompt':
+        return Row(
+          children: [
+            // Copy button
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: ElevatedButton.icon(
+                  onPressed: () => _copyToClipboard(context, site.actionValue),
+                  icon: Icon(PhosphorIcons.copy(), size: 14),
+                  label: const Text(
+                    'Copy',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF9C27B0),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Try button (only if URL exists)
+            if (site.hasUrl) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: IconButton(
+                  onPressed: () =>
+                      context.push('/discover-browser', extra: site),
+                  icon: Icon(PhosphorIcons.arrowSquareOut(), size: 16),
+                  padding: EdgeInsets.zero,
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  tooltip: 'Try Prompt',
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            _bookmarkButton(ref, site, isDark),
+          ],
+        );
+
+      case 'offer':
+        return Row(
+          children: [
+            // Copy code button
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: ElevatedButton.icon(
+                  onPressed: site.hasCopyableValue
+                      ? () => _copyToClipboard(context, site.actionValue)
+                      : null,
+                  icon: Icon(PhosphorIcons.key(), size: 14),
+                  label: Text(
+                    site.hasCopyableValue ? 'Copy Code' : 'View',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF9800),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: IconButton(
+                  onPressed: () =>
+                      context.push('/discover-browser', extra: site),
+                  icon: Icon(PhosphorIcons.globe(), size: 16),
+                  padding: EdgeInsets.zero,
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  tooltip: 'Visit',
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            _bookmarkButton(ref, site, isDark),
+          ],
+        );
+
+      case 'announcement':
+        return Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => WebsiteDetailsDialog(site: site),
+                    );
+                  },
+                  icon: Icon(PhosphorIcons.article(), size: 14),
+                  label: const Text(
+                    'Read',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2196F3),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: IconButton(
+                  onPressed: () =>
+                      context.push('/discover-browser', extra: site),
+                  icon: Icon(PhosphorIcons.globe(), size: 16),
+                  padding: EdgeInsets.zero,
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  tooltip: 'Visit',
+                ),
+              ),
+            ],
+            const SizedBox(width: 6),
+            _bookmarkButton(ref, site, isDark),
+          ],
+        );
+
+      default: // website
+        return Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      context.push('/discover-browser', extra: site),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Open',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              height: 32,
+              width: 32,
+              child: IconButton(
+                onPressed: () => _openUrl(site.url, inApp: false),
+                icon: Icon(PhosphorIcons.globe(), size: 18),
+                padding: EdgeInsets.zero,
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.05),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                color: isDark ? Colors.white70 : Colors.black54,
+                tooltip: 'Open in Browser',
+              ),
+            ),
+            const SizedBox(width: 6),
+            _bookmarkButton(ref, site, isDark),
+          ],
+        );
+    }
+  }
+
+  Widget _bookmarkButton(WidgetRef ref, WebsiteModel site, bool isDark) {
+    return SizedBox(
+      height: 32,
+      width: 32,
+      child: IconButton(
+        onPressed: () => _saveSite(ref, site),
+        icon: Icon(PhosphorIcons.bookmarkSimple(), size: 18),
+        padding: EdgeInsets.zero,
+        style: IconButton.styleFrom(
+          backgroundColor: isDark
+              ? Colors.white10
+              : Colors.black.withValues(alpha: 0.05),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        color: isDark ? Colors.white54 : Colors.black45,
+      ),
+    );
+  }
+
+  // ── Placeholder image based on content type ──
+  Widget _placeholderImage(bool isDark, String contentType) {
     return Container(
       height: 120,
       color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
       child: Center(
-        child: Icon(
-          PhosphorIcons.globe(),
-          size: 32,
-          color: isDark ? Colors.white24 : Colors.black12,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _typeIcon(contentType),
+              size: 32,
+              color: _typeColor(contentType).withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _typeLabel(contentType),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white24 : Colors.black26,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -617,7 +1014,7 @@ class DiscoverScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
           SizedBox(
-            height: 280,
+            height: 290,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -681,6 +1078,74 @@ class DiscoverScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Utilities ──
+
+  IconData _typeIcon(String type) {
+    switch (type) {
+      case 'prompt':
+        return PhosphorIcons.sparkle();
+      case 'offer':
+        return PhosphorIcons.tag();
+      case 'announcement':
+        return PhosphorIcons.megaphone();
+      default:
+        return PhosphorIcons.globe();
+    }
+  }
+
+  Color _typeColor(String type) {
+    switch (type) {
+      case 'prompt':
+        return const Color(0xFF9C27B0);
+      case 'offer':
+        return const Color(0xFFFF9800);
+      case 'announcement':
+        return const Color(0xFF2196F3);
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
+  String _typeLabel(String type) {
+    switch (type) {
+      case 'prompt':
+        return 'Prompt';
+      case 'offer':
+        return 'Offer';
+      case 'announcement':
+        return 'News';
+      default:
+        return 'Website';
+    }
+  }
+
+  String _formatTimeLeft(DateTime expiresAt) {
+    final diff = expiresAt.difference(DateTime.now());
+    if (diff.isNegative) return 'Expired';
+    if (diff.inDays > 0) return '${diff.inDays}d left';
+    if (diff.inHours > 0) return '${diff.inHours}h left';
+    return '${diff.inMinutes}m left';
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text('Copied to clipboard!'),
+          ],
+        ),
+        backgroundColor: Colors.green.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

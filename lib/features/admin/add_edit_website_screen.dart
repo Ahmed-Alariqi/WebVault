@@ -25,13 +25,39 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   late final TextEditingController _titleCtrl;
   late final TextEditingController _urlCtrl;
   late final TextEditingController _imgCtrl;
+  late final TextEditingController _actionValueCtrl;
   late final QuillController _quillController;
 
   bool _isTrending = false;
   bool _isPopular = false;
   bool _isFeatured = false;
+  bool _isActive = true;
   String? _selectedCategoryId;
+  String _contentType = 'website';
+  DateTime? _expiresAt;
+  bool _sendNotification = false;
   bool _isSaving = false;
+
+  static const _contentTypeValues = [
+    'website',
+    'prompt',
+    'offer',
+    'announcement',
+  ];
+  static const _contentTypeLabels = ['Website', 'Prompt', 'Offer', 'Announce'];
+
+  IconData _contentTypeIcon(String type) {
+    switch (type) {
+      case 'prompt':
+        return PhosphorIcons.sparkle();
+      case 'offer':
+        return PhosphorIcons.tag();
+      case 'announcement':
+        return PhosphorIcons.megaphone();
+      default:
+        return PhosphorIcons.globe();
+    }
+  }
 
   @override
   void initState() {
@@ -39,11 +65,17 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _titleCtrl = TextEditingController(text: widget.existing?.title ?? '');
     _urlCtrl = TextEditingController(text: widget.existing?.url ?? '');
     _imgCtrl = TextEditingController(text: widget.existing?.imageUrl ?? '');
+    _actionValueCtrl = TextEditingController(
+      text: widget.existing?.actionValue ?? '',
+    );
 
     _isTrending = widget.existing?.isTrending ?? false;
     _isPopular = widget.existing?.isPopular ?? false;
     _isFeatured = widget.existing?.isFeatured ?? false;
+    _isActive = widget.existing?.isActive ?? true;
     _selectedCategoryId = widget.existing?.categoryId;
+    _contentType = widget.existing?.contentType ?? 'website';
+    _expiresAt = widget.existing?.expiresAt;
 
     Document doc;
     try {
@@ -68,14 +100,22 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _titleCtrl.dispose();
     _urlCtrl.dispose();
     _imgCtrl.dispose();
+    _actionValueCtrl.dispose();
     _quillController.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    if (_titleCtrl.text.trim().isEmpty || _urlCtrl.text.trim().isEmpty) {
+    if (_titleCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Title is required.')));
+      return;
+    }
+
+    if (_contentType == 'website' && _urlCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and URL are required.')),
+        const SnackBar(content: Text('URL is required for websites.')),
       );
       return;
     }
@@ -96,12 +136,36 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         'is_trending': _isTrending,
         'is_popular': _isPopular,
         'is_featured': _isFeatured,
+        'content_type': _contentType,
+        'action_value': _actionValueCtrl.text.trim(),
+        'expires_at': _expiresAt?.toUtc().toIso8601String(),
+        'is_active': _isActive,
       };
 
       if (widget.existing == null) {
         await adminAddWebsite(data);
       } else {
         await adminUpdateWebsite(widget.existing!.id, data);
+      }
+
+      // Send notification if toggled on (only for new items)
+      if (_sendNotification && widget.existing == null) {
+        try {
+          await adminSendNotification({
+            'title': '✨ ${_titleCtrl.text.trim()}',
+            'body': _contentType == 'offer'
+                ? '🔥 New offer available! Check it out now.'
+                : _contentType == 'prompt'
+                ? '💡 New prompt added! Tap to explore.'
+                : _contentType == 'announcement'
+                ? '📢 New announcement! Tap to read.'
+                : '🌐 New content just added! Tap to discover.',
+            'type': 'announcement',
+            'target_url': null,
+          });
+        } catch (_) {
+          // Notification failure shouldn't block save
+        }
       }
 
       ref.invalidate(adminWebsitesProvider);
@@ -116,8 +180,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           SnackBar(
             content: Text(
               widget.existing == null
-                  ? 'Website added successfully!'
-                  : 'Website updated successfully!',
+                  ? 'Published successfully!'
+                  : 'Updated successfully!',
             ),
             backgroundColor: Colors.green.shade600,
           ),
@@ -149,12 +213,52 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     }
   }
 
+  Future<void> _pickExpiryDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _expiresAt ?? now.add(const Duration(days: 7)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
+    );
+    if (picked != null && mounted) {
+      final time = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(_expiresAt ?? now),
+      );
+      setState(() {
+        _expiresAt = DateTime(
+          picked.year,
+          picked.month,
+          picked.day,
+          time?.hour ?? 23,
+          time?.minute ?? 59,
+        );
+      });
+    }
+  }
+
+  // ── Helper label for content type ──
+  String get _typeLabel {
+    switch (_contentType) {
+      case 'prompt':
+        return 'Prompt';
+      case 'offer':
+        return 'Offer';
+      case 'announcement':
+        return 'Announcement';
+      default:
+        return 'Website';
+    }
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required bool isDark,
     IconData? prefixIcon,
     int maxLines = 1,
+    String? helperText,
   }) {
     return TextFormField(
       controller: controller,
@@ -165,6 +269,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       ),
       decoration: InputDecoration(
         labelText: label,
+        helperText: helperText,
+        helperStyle: TextStyle(
+          color: isDark ? Colors.white38 : Colors.black38,
+          fontSize: 11,
+        ),
         labelStyle: TextStyle(
           color: isDark ? Colors.white54 : Colors.black54,
           fontSize: 14,
@@ -256,7 +365,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: Text(
-          widget.existing == null ? 'New Website' : 'Edit Website',
+          widget.existing == null ? 'New $_typeLabel' : 'Edit $_typeLabel',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -278,42 +387,256 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Basic Info Section
+                    // ── Content Type Selector ──
                     _buildCard(
                       isDark: isDark,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            'Basic Information',
-                            PhosphorIcons.info(),
+                            'Content Type',
+                            PhosphorIcons.squaresFour(),
                             isDark,
                           ),
-                          _buildTextField(
-                            controller: _titleCtrl,
-                            label: 'Website Title',
-                            prefixIcon: PhosphorIcons.textT(),
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            controller: _urlCtrl,
-                            label: 'URL (https://...)',
-                            prefixIcon: PhosphorIcons.link(),
-                            isDark: isDark,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildTextField(
-                            controller: _imgCtrl,
-                            label: 'Cover Image URL (Optional)',
-                            prefixIcon: PhosphorIcons.image(),
-                            isDark: isDark,
+                          Row(
+                            children: [
+                              for (
+                                int i = 0;
+                                i < _contentTypeValues.length;
+                                i++
+                              ) ...[
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setState(
+                                      () =>
+                                          _contentType = _contentTypeValues[i],
+                                    ),
+                                    child: AnimatedContainer(
+                                      duration: 200.ms,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _contentType ==
+                                                _contentTypeValues[i]
+                                            ? AppTheme.primaryColor
+                                            : (isDark
+                                                  ? Colors.white.withValues(
+                                                      alpha: 0.04,
+                                                    )
+                                                  : Colors.black.withValues(
+                                                      alpha: 0.02,
+                                                    )),
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(
+                                          color:
+                                              _contentType ==
+                                                  _contentTypeValues[i]
+                                              ? AppTheme.primaryColor
+                                              : (isDark
+                                                    ? Colors.white12
+                                                    : Colors.black12),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            _contentTypeIcon(
+                                              _contentTypeValues[i],
+                                            ),
+                                            size: 22,
+                                            color:
+                                                _contentType ==
+                                                    _contentTypeValues[i]
+                                                ? Colors.white
+                                                : (isDark
+                                                      ? Colors.white60
+                                                      : Colors.black54),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            _contentTypeLabels[i],
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color:
+                                                  _contentType ==
+                                                      _contentTypeValues[i]
+                                                  ? Colors.white
+                                                  : (isDark
+                                                        ? Colors.white60
+                                                        : Colors.black54),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                if (i < _contentTypeValues.length - 1)
+                                  const SizedBox(width: 8),
+                              ],
+                            ],
                           ),
                         ],
                       ),
                     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
 
-                    // Categorization Section
+                    // ── Basic Info Section ──
+                    _buildCard(
+                          isDark: isDark,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionHeader(
+                                'Basic Information',
+                                PhosphorIcons.info(),
+                                isDark,
+                              ),
+                              _buildTextField(
+                                controller: _titleCtrl,
+                                label: '$_typeLabel Title',
+                                prefixIcon: PhosphorIcons.textT(),
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 16),
+                              // URL field — required for websites, optional for others
+                              _buildTextField(
+                                controller: _urlCtrl,
+                                label: _contentType == 'website'
+                                    ? 'URL (https://...)'
+                                    : 'Link URL (Optional)',
+                                prefixIcon: PhosphorIcons.link(),
+                                isDark: isDark,
+                                helperText: _contentType != 'website'
+                                    ? 'Optional: add a link for users to visit'
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildTextField(
+                                controller: _imgCtrl,
+                                label: 'Cover Image URL (Optional)',
+                                prefixIcon: PhosphorIcons.image(),
+                                isDark: isDark,
+                                helperText: _contentType == 'prompt'
+                                    ? 'Add an image showing the prompt result'
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 100.ms, duration: 400.ms)
+                        .slideY(begin: 0.1),
+
+                    // ── Copyable Content (Prompt / Offer / Announcement) ──
+                    if (_contentType != 'website')
+                      _buildCard(
+                        isDark: isDark,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSectionHeader(
+                              _contentType == 'prompt'
+                                  ? 'Prompt Text'
+                                  : _contentType == 'offer'
+                                  ? 'Offer Code / Key'
+                                  : 'Announcement Text',
+                              _contentType == 'prompt'
+                                  ? PhosphorIcons.sparkle()
+                                  : _contentType == 'offer'
+                                  ? PhosphorIcons.key()
+                                  : PhosphorIcons.megaphone(),
+                              isDark,
+                            ),
+                            _buildTextField(
+                              controller: _actionValueCtrl,
+                              label: _contentType == 'prompt'
+                                  ? 'Enter the prompt text (users can copy this)'
+                                  : _contentType == 'offer'
+                                  ? 'Enter code, key, or offer details'
+                                  : 'Announcement details (optional)',
+                              prefixIcon: PhosphorIcons.clipboardText(),
+                              isDark: isDark,
+                              maxLines: _contentType == 'prompt' ? 6 : 3,
+                              helperText:
+                                  'Users will see a Copy button for this content',
+                            ),
+                            // Expiry date for offers
+                            if (_contentType == 'offer') ...[
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onTap: _pickExpiryDate,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 16,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.04)
+                                        : Colors.black.withValues(alpha: 0.02),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.05)
+                                          : Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        PhosphorIcons.clock(),
+                                        color: _expiresAt != null
+                                            ? AppTheme.primaryColor
+                                            : (isDark
+                                                  ? Colors.white54
+                                                  : Colors.black54),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _expiresAt != null
+                                              ? 'Expires: ${_expiresAt!.day}/${_expiresAt!.month}/${_expiresAt!.year} ${_expiresAt!.hour.toString().padLeft(2, '0')}:${_expiresAt!.minute.toString().padLeft(2, '0')}'
+                                              : 'Set Expiry Date (Optional)',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: _expiresAt != null
+                                                ? (isDark
+                                                      ? Colors.white
+                                                      : Colors.black87)
+                                                : (isDark
+                                                      ? Colors.white54
+                                                      : Colors.black54),
+                                          ),
+                                        ),
+                                      ),
+                                      if (_expiresAt != null)
+                                        GestureDetector(
+                                          onTap: () =>
+                                              setState(() => _expiresAt = null),
+                                          child: Icon(
+                                            PhosphorIcons.x(),
+                                            size: 18,
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.black54,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
+
+                    // ── Categorization Section ──
                     _buildCard(
                           isDark: isDark,
                           child: Column(
@@ -371,7 +694,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                   : Colors.black54,
                                             ),
                                             hint: Text(
-                                              'Select Reference Category',
+                                              'Select Category',
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white54
@@ -419,10 +742,10 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           ),
                         )
                         .animate()
-                        .fadeIn(delay: 100.ms, duration: 400.ms)
+                        .fadeIn(delay: 200.ms, duration: 400.ms)
                         .slideY(begin: 0.1),
 
-                    // Rich Text Description Section
+                    // ── Rich Text Description Section ──
                     _buildCard(
                           isDark: isDark,
                           child: Column(
@@ -506,7 +829,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                   config: const QuillEditorConfig(
                                     padding: EdgeInsets.zero,
                                     placeholder:
-                                        'Write a highly detailed beautiful description...',
+                                        'Write a detailed description...',
                                     scrollable: true,
                                     expands: true,
                                   ),
@@ -516,27 +839,50 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           ),
                         )
                         .animate()
-                        .fadeIn(delay: 200.ms, duration: 400.ms)
+                        .fadeIn(delay: 300.ms, duration: 400.ms)
                         .slideY(begin: 0.1),
 
-                    // Status Flags Section
+                    // ── Status Flags Section ──
                     _buildCard(
                           isDark: isDark,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionHeader(
-                                'Display Flags',
+                                'Display & Visibility',
                                 PhosphorIcons.tag(),
                                 isDark,
                               ),
+                              SwitchListTile(
+                                title: const Text(
+                                  'Active',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Text(
+                                  'Show this item in Discover',
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black54,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                value: _isActive,
+                                activeTrackColor: Colors.green.withValues(
+                                  alpha: 0.5,
+                                ),
+                                activeThumbColor: Colors.green,
+                                onChanged: (v) => setState(() => _isActive = v),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              const Divider(height: 8),
                               SwitchListTile(
                                 title: const Text(
                                   'Show in Trending',
                                   style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 subtitle: Text(
-                                  'Highlight this website in the trending slider',
+                                  'Highlight in the trending slider',
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -558,7 +904,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                   style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 subtitle: Text(
-                                  'List this website in the popular section',
+                                  'Show in the popular section',
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -580,7 +926,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                   style: TextStyle(fontWeight: FontWeight.w600),
                                 ),
                                 subtitle: Text(
-                                  'Flag this website as a featured discovery',
+                                  'Flag as a featured discovery',
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -600,8 +946,52 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           ),
                         )
                         .animate()
-                        .fadeIn(delay: 300.ms, duration: 400.ms)
+                        .fadeIn(delay: 400.ms, duration: 400.ms)
                         .slideY(begin: 0.1),
+
+                    // ── Notification Toggle (only for new items) ──
+                    if (widget.existing == null)
+                      _buildCard(
+                            isDark: isDark,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader(
+                                  'Notification',
+                                  PhosphorIcons.bellRinging(),
+                                  isDark,
+                                ),
+                                SwitchListTile(
+                                  title: const Text(
+                                    'Send Notification on Publish',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    'Notify all users about this new item',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  value: _sendNotification,
+                                  activeTrackColor: const Color(
+                                    0xFFFF6B6B,
+                                  ).withValues(alpha: 0.5),
+                                  activeThumbColor: const Color(0xFFFF6B6B),
+                                  onChanged: (v) =>
+                                      setState(() => _sendNotification = v),
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ],
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: 500.ms, duration: 400.ms)
+                          .slideY(begin: 0.1),
 
                     const SizedBox(height: 30),
                   ],
@@ -609,7 +999,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
               ),
             ),
 
-            // Fixed Bottom Save/Cancel Bar
+            // ── Fixed Bottom Save/Cancel Bar ──
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
@@ -670,7 +1060,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             )
                           : Text(
                               widget.existing == null
-                                  ? 'Publish Website'
+                                  ? 'Publish $_typeLabel'
                                   : 'Save Changes',
                               style: const TextStyle(
                                 fontSize: 16,

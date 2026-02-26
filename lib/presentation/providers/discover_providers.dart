@@ -9,25 +9,43 @@ import '../../data/models/notification_model.dart';
 
 final _client = SupabaseConfig.client;
 
-// --------------- Websites ---------------
+// --------------- Helper: filter expired + inactive ---------------
+
+List<WebsiteModel> _filterActive(List<WebsiteModel> items) {
+  final now = DateTime.now();
+  return items.where((item) {
+    if (!item.isActive) return false;
+    if (item.expiresAt != null && item.expiresAt!.isBefore(now)) return false;
+    return true;
+  }).toList();
+}
+
+// --------------- Discover Items ---------------
 
 final discoverWebsitesProvider = FutureProvider<List<WebsiteModel>>((
   ref,
 ) async {
   final categoryId = ref.watch(selectedCategoryProvider);
   final search = ref.watch(discoverSearchProvider);
+  final contentType = ref.watch(selectedContentTypeProvider);
 
-  var query = _client.from('websites').select();
+  var query = _client.from('websites').select().eq('is_active', true);
 
   if (categoryId != null) {
     query = query.eq('category_id', categoryId);
+  }
+  if (contentType != null) {
+    query = query.eq('content_type', contentType);
   }
   if (search.isNotEmpty) {
     query = query.or('title.ilike.%$search%,description.ilike.%$search%');
   }
 
   final response = await query.order('created_at', ascending: false);
-  return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
+  final items = (response as List)
+      .map((e) => WebsiteModel.fromJson(e))
+      .toList();
+  return _filterActive(items);
 });
 
 final trendingWebsitesProvider = FutureProvider<List<WebsiteModel>>((
@@ -35,35 +53,57 @@ final trendingWebsitesProvider = FutureProvider<List<WebsiteModel>>((
 ) async {
   final categoryId = ref.watch(selectedCategoryProvider);
   final search = ref.watch(discoverSearchProvider);
+  final contentType = ref.watch(selectedContentTypeProvider);
 
-  var query = _client.from('websites').select().eq('is_trending', true);
+  var query = _client
+      .from('websites')
+      .select()
+      .eq('is_trending', true)
+      .eq('is_active', true);
 
   if (categoryId != null) {
     query = query.eq('category_id', categoryId);
+  }
+  if (contentType != null) {
+    query = query.eq('content_type', contentType);
   }
   if (search.isNotEmpty) {
     query = query.or('title.ilike.%$search%,description.ilike.%$search%');
   }
 
   final response = await query.order('created_at', ascending: false).limit(20);
-  return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
+  final items = (response as List)
+      .map((e) => WebsiteModel.fromJson(e))
+      .toList();
+  return _filterActive(items);
 });
 
 final popularWebsitesProvider = FutureProvider<List<WebsiteModel>>((ref) async {
   final categoryId = ref.watch(selectedCategoryProvider);
   final search = ref.watch(discoverSearchProvider);
+  final contentType = ref.watch(selectedContentTypeProvider);
 
-  var query = _client.from('websites').select().eq('is_popular', true);
+  var query = _client
+      .from('websites')
+      .select()
+      .eq('is_popular', true)
+      .eq('is_active', true);
 
   if (categoryId != null) {
     query = query.eq('category_id', categoryId);
+  }
+  if (contentType != null) {
+    query = query.eq('content_type', contentType);
   }
   if (search.isNotEmpty) {
     query = query.or('title.ilike.%$search%,description.ilike.%$search%');
   }
 
   final response = await query.order('created_at', ascending: false).limit(20);
-  return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
+  final items = (response as List)
+      .map((e) => WebsiteModel.fromJson(e))
+      .toList();
+  return _filterActive(items);
 });
 
 final featuredWebsitesProvider = FutureProvider<List<WebsiteModel>>((
@@ -71,18 +111,29 @@ final featuredWebsitesProvider = FutureProvider<List<WebsiteModel>>((
 ) async {
   final categoryId = ref.watch(selectedCategoryProvider);
   final search = ref.watch(discoverSearchProvider);
+  final contentType = ref.watch(selectedContentTypeProvider);
 
-  var query = _client.from('websites').select().eq('is_featured', true);
+  var query = _client
+      .from('websites')
+      .select()
+      .eq('is_featured', true)
+      .eq('is_active', true);
 
   if (categoryId != null) {
     query = query.eq('category_id', categoryId);
+  }
+  if (contentType != null) {
+    query = query.eq('content_type', contentType);
   }
   if (search.isNotEmpty) {
     query = query.or('title.ilike.%$search%,description.ilike.%$search%');
   }
 
   final response = await query.order('created_at', ascending: false).limit(20);
-  return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
+  final items = (response as List)
+      .map((e) => WebsiteModel.fromJson(e))
+      .toList();
+  return _filterActive(items);
 });
 
 // --------------- Tools ---------------
@@ -127,6 +178,7 @@ final notificationsProvider = FutureProvider<List<NotificationModel>>((
 
 final discoverSearchProvider = StateProvider<String>((ref) => '');
 final selectedCategoryProvider = StateProvider<String?>((ref) => null);
+final selectedContentTypeProvider = StateProvider<String?>((ref) => null);
 
 // --------------- User Saved ---------------
 

@@ -7,11 +7,13 @@ import 'core/constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/supabase_config.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'data/dummy_data.dart';
 import 'data/repositories/page_repository.dart';
 import 'data/repositories/folder_repository.dart';
 import 'data/repositories/clipboard_repository.dart';
 import 'data/repositories/settings_repository.dart';
+import 'data/services/auth_service.dart';
 import 'presentation/providers/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -34,19 +36,89 @@ Future<void> main() async {
   // Initialize OneSignal
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize(SupabaseConfig.oneSignalAppId);
+
+  // Request push notification permission
   OneSignal.Notifications.requestPermission(true);
+
+  // Enable push subscription explicitly (OneSignal v5+ requires this)
+  OneSignal.User.pushSubscription.optIn();
 
   // Create a global container so we can invalidate providers from callbacks
   final container = ProviderContainer();
+  final authService = AuthService();
+
+  // ── Monitor push subscription changes ──
+  // This fires when the device first gets a push token,
+  // or when subscription status changes.
+  OneSignal.User.pushSubscription.addObserver((state) {
+    debugPrint('[OneSignal] Push subscription changed:');
+    debugPrint('[OneSignal]   ID: ${state.current.id}');
+    debugPrint('[OneSignal]   Token: ${state.current.token}');
+    debugPrint('[OneSignal]   OptedIn: ${state.current.optedIn}');
+
+    // Store the subscription ID in the user's profile whenever it's available
+    final subId = state.current.id;
+    final user = SupabaseConfig.client.auth.currentUser;
+    if (subId != null && subId.isNotEmpty && user != null) {
+      authService
+          .updateProfile(onesignalPlayerId: subId)
+          .then((_) {
+            debugPrint('[OneSignal] Stored subscription ID to profile: $subId');
+          })
+          .catchError((e) {
+            debugPrint('[OneSignal] Failed to store sub ID: $e');
+          });
+    }
+  });
+
+  // ── Link Supabase user to OneSignal on auth state changes ──
+  SupabaseConfig.client.auth.onAuthStateChange.listen((data) async {
+    final event = data.event;
+    final session = data.session;
+
+    if (event == AuthChangeEvent.signedIn ||
+        event == AuthChangeEvent.tokenRefreshed ||
+        event == AuthChangeEvent.initialSession) {
+      final userId = session?.user.id;
+      if (userId != null) {
+        // Link this device to the Supabase user in OneSignal
+        await OneSignal.login(userId);
+        debugPrint('[OneSignal] Logged in user: $userId');
+
+        // Also ensure push subscription is opted in
+        OneSignal.User.pushSubscription.optIn();
+
+        // Try to store the subscription ID right away
+        final subId = OneSignal.User.pushSubscription.id;
+        final token = OneSignal.User.pushSubscription.token;
+        debugPrint('[OneSignal] Current sub ID: $subId, token: $token');
+        if (subId != null && subId.isNotEmpty) {
+          try {
+            await authService.updateProfile(onesignalPlayerId: subId);
+            debugPrint('[OneSignal] Stored subscription ID: $subId');
+          } catch (e) {
+            debugPrint('[OneSignal] Failed to store sub ID: $e');
+          }
+        }
+      }
+    } else if (event == AuthChangeEvent.signedOut) {
+      OneSignal.logout();
+      debugPrint('[OneSignal] Logged out');
+    }
+  });
 
   // Show notification in foreground AND refresh badge count
   OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    debugPrint(
+      '[OneSignal] Foreground notification received: ${event.notification.title}',
+    );
     event.notification.display();
     container.invalidate(notificationCountProvider);
   });
 
   // Also refresh count when notification is clicked (user returns from background)
   OneSignal.Notifications.addClickListener((event) {
+    debugPrint('[OneSignal] Notification clicked: ${event.notification.title}');
     container.invalidate(notificationCountProvider);
     // Route to notifications screen
     final router = container.read(routerProvider);

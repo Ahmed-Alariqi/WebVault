@@ -1,4 +1,4 @@
-/// Model for admin-published websites shown in Discover
+/// Model for admin-published items shown in Discover
 class WebsiteModel {
   final String id;
   final String title;
@@ -14,6 +14,12 @@ class WebsiteModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // ── New fields ──
+  final String contentType; // 'website' | 'prompt' | 'offer' | 'announcement'
+  final String actionValue; // Copyable text (prompt, code, key…)
+  final DateTime? expiresAt; // Auto-hide after this time
+  final bool isActive; // Manual on/off toggle
+
   const WebsiteModel({
     required this.id,
     required this.title,
@@ -28,7 +34,21 @@ class WebsiteModel {
     this.createdBy,
     required this.createdAt,
     required this.updatedAt,
+    this.contentType = 'website',
+    this.actionValue = '',
+    this.expiresAt,
+    this.isActive = true,
   });
+
+  /// Whether this item has expired
+  bool get isExpired =>
+      expiresAt != null && expiresAt!.isBefore(DateTime.now());
+
+  /// Whether this item has a copyable value
+  bool get hasCopyableValue => actionValue.trim().isNotEmpty;
+
+  /// Whether this item has a visitable URL
+  bool get hasUrl => url.trim().isNotEmpty;
 
   WebsiteModel copyWith({
     String? title,
@@ -40,6 +60,10 @@ class WebsiteModel {
     bool? isTrending,
     bool? isPopular,
     bool? isFeatured,
+    String? contentType,
+    String? actionValue,
+    DateTime? expiresAt,
+    bool? isActive,
   }) {
     return WebsiteModel(
       id: id,
@@ -55,6 +79,10 @@ class WebsiteModel {
       createdBy: createdBy,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      contentType: contentType ?? this.contentType,
+      actionValue: actionValue ?? this.actionValue,
+      expiresAt: expiresAt ?? this.expiresAt,
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -62,7 +90,7 @@ class WebsiteModel {
     return WebsiteModel(
       id: json['id'] as String,
       title: json['title'] as String,
-      url: json['url'] as String,
+      url: json['url'] as String? ?? '',
       description: json['description'] as String? ?? '',
       imageUrl: json['image_url'] as String?,
       tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
@@ -73,6 +101,12 @@ class WebsiteModel {
       createdBy: json['created_by'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      contentType: json['content_type'] as String? ?? 'website',
+      actionValue: json['action_value'] as String? ?? '',
+      expiresAt: json['expires_at'] != null
+          ? DateTime.parse(json['expires_at'] as String)
+          : null,
+      isActive: json['is_active'] as bool? ?? true,
     );
   }
 
@@ -87,6 +121,10 @@ class WebsiteModel {
       'is_trending': isTrending,
       'is_popular': isPopular,
       'is_featured': isFeatured,
+      'content_type': contentType,
+      'action_value': actionValue,
+      'expires_at': expiresAt?.toIso8601String(),
+      'is_active': isActive,
     };
   }
 }

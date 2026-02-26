@@ -79,6 +79,14 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
       },
     );
     debugPrint('OneSignal push response: ${response.status} ${response.data}');
+    // Log detailed info for debugging
+    if (response.data is Map) {
+      final data2 = response.data as Map;
+      debugPrint('  Recipients: ${data2['recipients'] ?? 'unknown'}');
+      if (data2['_debug'] != null) {
+        debugPrint('  Debug: ${data2['_debug']}');
+      }
+    }
   } catch (e) {
     debugPrint('Edge Function invoke failed: $e');
     // Don't swallow - rethrow so admin sees push failed
@@ -113,6 +121,13 @@ Future<void> adminToggleInAppMessage(String id, bool isActive) async {
 
 Future<void> adminDeleteInAppMessage(String id) async {
   await _client.from('in_app_messages').delete().eq('id', id);
+}
+
+Future<void> adminUpdateInAppMessage(
+  String id,
+  Map<String, dynamic> data,
+) async {
+  await _client.from('in_app_messages').update(data).eq('id', id);
 }
 
 // --------------- Admin Stats ---------------

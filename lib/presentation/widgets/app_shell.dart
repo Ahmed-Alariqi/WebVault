@@ -3,11 +3,29 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/in_app_message_service.dart';
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  @override
+  void initState() {
+    super.initState();
+    // Check for in-app messages globally — fires on first app entry,
+    // regardless of which tab the user is on.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        InAppMessageService.checkAndShowMessage(context);
+      }
+    });
+  }
 
   static int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
@@ -45,7 +63,7 @@ class AppShell extends StatelessWidget {
     final selectedIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
-      body: child,
+      body: widget.child,
       // extendBody: false, // Default is false, ensuring body doesn't go under nav bar
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

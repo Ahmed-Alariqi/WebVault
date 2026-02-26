@@ -26,7 +26,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Manage Websites'),
+        title: const Text('Manage Items'),
         forceMaterialTransparency: true,
         actions: [
           IconButton(
@@ -49,7 +49,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'No websites yet',
+                    'No items yet',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -114,12 +114,12 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              color: _typeColor(site.contentType).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
-              PhosphorIcons.globe(),
-              color: AppTheme.primaryColor,
+              _typeIcon(site.contentType),
+              color: _typeColor(site.contentType),
               size: 24,
             ),
           ),
@@ -150,6 +150,12 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 Wrap(
                   spacing: 4,
                   children: [
+                    if (site.contentType != 'website')
+                      _badge(
+                        _typeDisplayName(site.contentType),
+                        _typeColor(site.contentType),
+                        isDark,
+                      ),
                     if (catName != null)
                       _badge(catName!, AppTheme.primaryColor, isDark),
                     if (site.isTrending)
@@ -158,6 +164,8 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                       _badge('Popular', const Color(0xFFFF9800), isDark),
                     if (site.isFeatured)
                       _badge('Featured', const Color(0xFF4CAF50), isDark),
+                    if (!site.isActive) _badge('Inactive', Colors.grey, isDark),
+                    if (site.isExpired) _badge('Expired', Colors.red, isDark),
                   ],
                 ),
               ],
@@ -202,5 +210,44 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         ),
       ),
     );
+  }
+
+  IconData _typeIcon(String type) {
+    switch (type) {
+      case 'prompt':
+        return PhosphorIcons.sparkle();
+      case 'offer':
+        return PhosphorIcons.tag();
+      case 'announcement':
+        return PhosphorIcons.megaphone();
+      default:
+        return PhosphorIcons.globe();
+    }
+  }
+
+  Color _typeColor(String type) {
+    switch (type) {
+      case 'prompt':
+        return const Color(0xFF9C27B0);
+      case 'offer':
+        return const Color(0xFFFF9800);
+      case 'announcement':
+        return const Color(0xFF2196F3);
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
+  String _typeDisplayName(String type) {
+    switch (type) {
+      case 'prompt':
+        return 'Prompt';
+      case 'offer':
+        return 'Offer';
+      case 'announcement':
+        return 'Announce';
+      default:
+        return 'Website';
+    }
   }
 }

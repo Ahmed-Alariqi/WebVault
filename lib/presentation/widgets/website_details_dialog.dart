@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -160,6 +161,12 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
+                                if (site.contentType != 'website')
+                                  _badge(
+                                    _typeLabel(site.contentType),
+                                    _typeColor(site.contentType),
+                                    isDark,
+                                  ),
                                 if (categoryName != null)
                                   _badge(
                                     categoryName!,
@@ -182,6 +189,12 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                   _badge(
                                     'Featured',
                                     const Color(0xFF4CAF50),
+                                    isDark,
+                                  ),
+                                if (site.expiresAt != null)
+                                  _badge(
+                                    _formatTimeLeft(site.expiresAt!),
+                                    Colors.orange,
                                     isDark,
                                   ),
                               ],
@@ -275,67 +288,131 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: 24),
 
-                            // Action Buttons
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: ElevatedButton.icon(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      context.push(
-                                        '/discover-browser',
-                                        extra: site,
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      elevation: 0,
+                            // Copyable Content (prompts, offers)
+                            if (site.hasCopyableValue) ...[
+                              Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.04)
+                                      : Colors.black.withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black12,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          PhosphorIcons.clipboardText(),
+                                          size: 14,
+                                          color: _typeColor(site.contentType),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          site.contentType == 'prompt'
+                                              ? 'Prompt Text'
+                                              : 'Code / Key',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color: _typeColor(site.contentType),
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        GestureDetector(
+                                          onTap: () {
+                                            Clipboard.setData(
+                                              ClipboardData(
+                                                text: site.actionValue,
+                                              ),
+                                            );
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: const Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.white,
+                                                      size: 18,
+                                                    ),
+                                                    SizedBox(width: 8),
+                                                    Text('Copied!'),
+                                                  ],
+                                                ),
+                                                backgroundColor:
+                                                    Colors.green.shade600,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: _typeColor(
+                                                site.contentType,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.copy,
+                                                  size: 12,
+                                                  color: Colors.white,
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  'Copy',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    icon: Icon(
-                                      PhosphorIcons.rocketLaunch(
-                                        PhosphorIconsStyle.fill,
-                                      ),
-                                      size: 20,
-                                    ),
-                                    label: const Text(
-                                      'Open App',
+                                    const SizedBox(height: 8),
+                                    SelectableText(
+                                      site.actionValue,
                                       style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                        fontFamily: 'monospace',
+                                        height: 1.5,
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black87,
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.05)
-                                        : Colors.black.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: IconButton(
-                                    onPressed: () =>
-                                        _openUrl(site.url, inApp: false),
-                                    icon: Icon(
-                                      PhosphorIcons.browser(),
-                                      size: 22,
-                                    ),
-                                    color: isDark
-                                        ? AppTheme.darkTextPrimary
-                                        : AppTheme.lightTextPrimary,
-                                    tooltip: 'Open in Browser',
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
+                            // Action Buttons — dynamic per content type
+                            _buildDialogActions(context, ref, site, isDark),
                           ],
                         ),
                       ),
@@ -389,5 +466,265 @@ class WebsiteDetailsDialog extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildDialogActions(
+    BuildContext context,
+    WidgetRef ref,
+    WebsiteModel site,
+    bool isDark,
+  ) {
+    switch (site.contentType) {
+      case 'prompt':
+        return Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: site.actionValue));
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text('Prompt copied!'),
+                        ],
+                      ),
+                      backgroundColor: Colors.green.shade600,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF9C27B0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: Icon(PhosphorIcons.copy(), size: 20),
+                label: const Text(
+                  'Copy Prompt',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.push('/discover-browser', extra: site);
+                  },
+                  icon: Icon(PhosphorIcons.arrowSquareOut(), size: 22),
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                  tooltip: 'Try It',
+                ),
+              ),
+            ],
+          ],
+        );
+
+      case 'offer':
+        return Row(
+          children: [
+            if (site.hasCopyableValue)
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: site.actionValue));
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Row(
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text('Code copied!'),
+                          ],
+                        ),
+                        backgroundColor: Colors.green.shade600,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF9800),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: Icon(PhosphorIcons.key(), size: 20),
+                  label: const Text(
+                    'Copy Code',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.push('/discover-browser', extra: site);
+                  },
+                  icon: Icon(PhosphorIcons.globe(), size: 22),
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                  tooltip: 'Visit',
+                ),
+              ),
+            ],
+          ],
+        );
+
+      case 'announcement':
+        if (site.hasUrl) {
+          return SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.push('/discover-browser', extra: site);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2196F3),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              icon: Icon(PhosphorIcons.globe(), size: 20),
+              label: const Text(
+                'Visit Link',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              ),
+            ),
+          );
+        }
+        return const SizedBox();
+
+      default: // website
+        return Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  context.push('/discover-browser', extra: site);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                icon: Icon(
+                  PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+                  size: 20,
+                ),
+                label: const Text(
+                  'Open App',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: IconButton(
+                onPressed: () => _openUrl(site.url, inApp: false),
+                icon: Icon(PhosphorIcons.browser(), size: 22),
+                color: isDark
+                    ? AppTheme.darkTextPrimary
+                    : AppTheme.lightTextPrimary,
+                tooltip: 'Open in Browser',
+              ),
+            ),
+          ],
+        );
+    }
+  }
+
+  String _typeLabel(String type) {
+    switch (type) {
+      case 'prompt':
+        return 'Prompt';
+      case 'offer':
+        return 'Offer';
+      case 'announcement':
+        return 'News';
+      default:
+        return 'Website';
+    }
+  }
+
+  Color _typeColor(String type) {
+    switch (type) {
+      case 'prompt':
+        return const Color(0xFF9C27B0);
+      case 'offer':
+        return const Color(0xFFFF9800);
+      case 'announcement':
+        return const Color(0xFF2196F3);
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
+  String _formatTimeLeft(DateTime expiresAt) {
+    final diff = expiresAt.difference(DateTime.now());
+    if (diff.isNegative) return 'Expired';
+    if (diff.inDays > 0) return '${diff.inDays}d left';
+    if (diff.inHours > 0) return '${diff.inHours}h left';
+    return '${diff.inMinutes}m left';
   }
 }
