@@ -504,7 +504,10 @@ class DiscoverScreen extends ConsumerWidget {
                           child: SizedBox(
                             height: 32,
                             child: ElevatedButton(
-                              onPressed: () => _openUrl(site.url, inApp: true),
+                              onPressed: () => context.push(
+                                '/discover-browser',
+                                extra: site,
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryColor,
                                 padding: EdgeInsets.zero,
