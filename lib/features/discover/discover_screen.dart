@@ -21,11 +21,11 @@ class DiscoverScreen extends ConsumerWidget {
 
   // ── Content Type Tab definitions ──
   static const _typeFilters = [
-    {'value': null, 'label': 'All', 'icon': null},
-    {'value': 'website', 'label': 'Websites'},
-    {'value': 'prompt', 'label': 'Prompts'},
-    {'value': 'offer', 'label': 'Offers'},
-    {'value': 'announcement', 'label': 'News'},
+    {'value': null, 'label': 'All', 'icon': 'all'},
+    {'value': 'website', 'label': 'Websites', 'icon': 'website'},
+    {'value': 'prompt', 'label': 'Prompts', 'icon': 'prompt'},
+    {'value': 'offer', 'label': 'Offers', 'icon': 'offer'},
+    {'value': 'announcement', 'label': 'News', 'icon': 'announcement'},
   ];
 
   @override
@@ -53,6 +53,25 @@ class DiscoverScreen extends ConsumerWidget {
             ),
             forceMaterialTransparency: true,
             actions: [
+              // Bookmark toggle
+              IconButton(
+                onPressed: () {
+                  final current = ref.read(showBookmarksOnlyProvider);
+                  ref.read(showBookmarksOnlyProvider.notifier).state = !current;
+                  if (!current) {
+                    ref.invalidate(bookmarkedWebsitesProvider);
+                  }
+                },
+                icon: Icon(
+                  ref.watch(showBookmarksOnlyProvider)
+                      ? PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill)
+                      : PhosphorIcons.bookmarkSimple(),
+                  color: ref.watch(showBookmarksOnlyProvider)
+                      ? AppTheme.primaryColor
+                      : (isDark ? Colors.white70 : Colors.black54),
+                ),
+                tooltip: 'Bookmarks',
+              ),
               IconButton(
                 onPressed: () => context.push('/notifications'),
                 icon: NotificationBadge(
@@ -95,117 +114,175 @@ class DiscoverScreen extends ConsumerWidget {
             ).animate().fadeIn(),
           ),
 
-          // Content Type Filter Tabs
-          SliverToBoxAdapter(child: _buildContentTypeTabs(ref, isDark)),
-
-          // Category Chips
-          SliverToBoxAdapter(child: _buildCategoryChips(ref, isDark)),
-
-          // Trending Section
-          SliverToBoxAdapter(
-            child: trending.when(
-              data: (sites) => sites.isEmpty
-                  ? const SizedBox()
-                  : _buildSection(
-                      context,
-                      ref,
-                      'Trending',
-                      PhosphorIcons.trendUp(),
-                      sites,
-                      isDark,
-                      showBadge: true,
-                    ),
-              loading: () => _buildShimmerSection(isDark),
-              error: (e, st) => const SizedBox(),
+          // Bookmarks-only mode vs normal discover
+          if (ref.watch(showBookmarksOnlyProvider)) ...[
+            // Bookmarks View
+            SliverToBoxAdapter(
+              child: ref
+                  .watch(bookmarkedWebsitesProvider)
+                  .when(
+                    data: (sites) {
+                      if (sites.isEmpty) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 80),
+                          child: Column(
+                            children: [
+                              Icon(
+                                PhosphorIcons.bookmarkSimple(),
+                                size: 64,
+                                color: isDark ? Colors.white24 : Colors.black12,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No bookmarks yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white38
+                                      : Colors.black38,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap the bookmark icon on any item to save it here',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: isDark
+                                      ? Colors.white24
+                                      : Colors.black26,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return _buildSection(
+                        context,
+                        ref,
+                        'Your Bookmarks',
+                        PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
+                        sites,
+                        isDark,
+                      );
+                    },
+                    loading: () => _buildShimmerSection(isDark),
+                    error: (e, st) => const SizedBox(),
+                  ),
             ),
-          ),
+          ] else ...[
+            // Content Type Filter Tabs
+            SliverToBoxAdapter(child: _buildContentTypeTabs(ref, isDark)),
 
-          // Popular Section
-          SliverToBoxAdapter(
-            child: popular.when(
-              data: (sites) => sites.isEmpty
-                  ? const SizedBox()
-                  : _buildSection(
-                      context,
-                      ref,
-                      'Popular',
-                      PhosphorIcons.fire(),
-                      sites,
-                      isDark,
-                    ),
-              loading: () => _buildShimmerSection(isDark),
-              error: (e, st) => const SizedBox(),
-            ),
-          ),
+            // Category Chips
+            SliverToBoxAdapter(child: _buildCategoryChips(ref, isDark)),
 
-          // Featured Section
-          SliverToBoxAdapter(
-            child: featured.when(
-              data: (sites) => sites.isEmpty
-                  ? const SizedBox()
-                  : _buildSection(
-                      context,
-                      ref,
-                      'Featured',
-                      PhosphorIcons.star(),
-                      sites,
-                      isDark,
-                    ),
-              loading: () => _buildShimmerSection(isDark),
-              error: (e, st) => const SizedBox(),
-            ),
-          ),
-
-          // All / Filter Results Section
-          SliverToBoxAdapter(
-            child: discover.when(
-              data: (sites) => sites.isEmpty
-                  ? const SizedBox()
-                  : _buildSection(
-                      context,
-                      ref,
-                      (selected != null || search.isNotEmpty)
-                          ? 'Results'
-                          : 'Newly Added',
-                      PhosphorIcons.stack(),
-                      sites,
-                      isDark,
-                    ),
-              loading: () => _buildShimmerSection(isDark),
-              error: (e, st) => const SizedBox(),
-            ),
-          ),
-
-          // Offline Error State
-          if (trending.hasError &&
-              popular.hasError &&
-              featured.hasError &&
-              discover.hasError)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: OfflineWarningWidget(
-                error:
-                    trending.error ??
-                    popular.error ??
-                    featured.error ??
-                    discover.error ??
-                    'Network error',
+            // Trending Section
+            SliverToBoxAdapter(
+              child: trending.when(
+                data: (sites) => sites.isEmpty
+                    ? const SizedBox()
+                    : _buildSection(
+                        context,
+                        ref,
+                        'Trending',
+                        PhosphorIcons.trendUp(),
+                        sites,
+                        isDark,
+                        showBadge: true,
+                      ),
+                loading: () => _buildShimmerSection(isDark),
+                error: (e, st) => const SizedBox(),
               ),
             ),
 
-          // Empty State
-          if (!trending.hasError &&
-              !popular.hasError &&
-              !featured.hasError &&
-              !discover.hasError &&
-              trending.valueOrNull?.isEmpty == true &&
-              popular.valueOrNull?.isEmpty == true &&
-              featured.valueOrNull?.isEmpty == true &&
-              discover.valueOrNull?.isEmpty == true)
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: _buildEmptyState(isDark),
+            // Popular Section
+            SliverToBoxAdapter(
+              child: popular.when(
+                data: (sites) => sites.isEmpty
+                    ? const SizedBox()
+                    : _buildSection(
+                        context,
+                        ref,
+                        'Popular',
+                        PhosphorIcons.fire(),
+                        sites,
+                        isDark,
+                      ),
+                loading: () => _buildShimmerSection(isDark),
+                error: (e, st) => const SizedBox(),
+              ),
             ),
+
+            // Featured Section
+            SliverToBoxAdapter(
+              child: featured.when(
+                data: (sites) => sites.isEmpty
+                    ? const SizedBox()
+                    : _buildSection(
+                        context,
+                        ref,
+                        'Featured',
+                        PhosphorIcons.star(),
+                        sites,
+                        isDark,
+                      ),
+                loading: () => _buildShimmerSection(isDark),
+                error: (e, st) => const SizedBox(),
+              ),
+            ),
+
+            // All / Filter Results Section
+            SliverToBoxAdapter(
+              child: discover.when(
+                data: (sites) => sites.isEmpty
+                    ? const SizedBox()
+                    : _buildSection(
+                        context,
+                        ref,
+                        (selected != null || search.isNotEmpty)
+                            ? 'Results'
+                            : 'Newly Added',
+                        PhosphorIcons.stack(),
+                        sites,
+                        isDark,
+                      ),
+                loading: () => _buildShimmerSection(isDark),
+                error: (e, st) => const SizedBox(),
+              ),
+            ),
+
+            // Offline Error State
+            if (trending.hasError &&
+                popular.hasError &&
+                featured.hasError &&
+                discover.hasError)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: OfflineWarningWidget(
+                  error:
+                      trending.error ??
+                      popular.error ??
+                      featured.error ??
+                      discover.error ??
+                      'Network error',
+                ),
+              ),
+
+            // Empty State
+            if (!trending.hasError &&
+                !popular.hasError &&
+                !featured.hasError &&
+                !discover.hasError &&
+                trending.valueOrNull?.isEmpty == true &&
+                popular.valueOrNull?.isEmpty == true &&
+                featured.valueOrNull?.isEmpty == true &&
+                discover.valueOrNull?.isEmpty == true)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _buildEmptyState(isDark),
+              ),
+          ],
 
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
@@ -218,75 +295,119 @@ class DiscoverScreen extends ConsumerWidget {
     final selectedType = ref.watch(selectedContentTypeProvider);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
       child: SizedBox(
-        height: 38,
-        child: ListView(
+        height: 42,
+        child: ListView.separated(
           scrollDirection: Axis.horizontal,
-          children: _typeFilters.map((filter) {
+          itemCount: _typeFilters.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            final filter = _typeFilters[index];
             final value = filter['value'];
             final label = filter['label'] as String;
+            final iconKey = filter['icon'] as String;
             final isActive = selectedType == value;
 
-            return Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: GestureDetector(
-                onTap: () =>
-                    ref.read(selectedContentTypeProvider.notifier).state =
-                        value,
-                child: AnimatedContainer(
-                  duration: 200.ms,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: isActive
-                        ? const LinearGradient(
-                            colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
-                          )
-                        : null,
+            // Pick icon per type
+            IconData icon;
+            Color activeColor;
+            switch (iconKey) {
+              case 'website':
+                icon = PhosphorIcons.globe(
+                  isActive
+                      ? PhosphorIconsStyle.fill
+                      : PhosphorIconsStyle.regular,
+                );
+                activeColor = const Color(0xFF6366F1);
+                break;
+              case 'prompt':
+                icon = PhosphorIcons.lightbulb(
+                  isActive
+                      ? PhosphorIconsStyle.fill
+                      : PhosphorIconsStyle.regular,
+                );
+                activeColor = const Color(0xFFEC4899);
+                break;
+              case 'offer':
+                icon = PhosphorIcons.tag(
+                  isActive
+                      ? PhosphorIconsStyle.fill
+                      : PhosphorIconsStyle.regular,
+                );
+                activeColor = const Color(0xFFF59E0B);
+                break;
+              case 'announcement':
+                icon = PhosphorIcons.megaphone(
+                  isActive
+                      ? PhosphorIconsStyle.fill
+                      : PhosphorIconsStyle.regular,
+                );
+                activeColor = const Color.fromARGB(255, 72, 157, 236);
+                break;
+              default: // 'all'
+                icon = PhosphorIcons.squaresFour(
+                  isActive
+                      ? PhosphorIconsStyle.fill
+                      : PhosphorIconsStyle.regular,
+                );
+                activeColor = AppTheme.primaryColor;
+            }
+
+            return GestureDetector(
+              onTap: () =>
+                  ref.read(selectedContentTypeProvider.notifier).state = value,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? activeColor.withValues(alpha: 0.15)
+                      : (isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.03)),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
                     color: isActive
-                        ? null
+                        ? activeColor.withValues(alpha: 0.4)
                         : (isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.04)),
-                    borderRadius: BorderRadius.circular(10),
-                    border: isActive
-                        ? null
-                        : Border.all(
-                            color: isDark ? Colors.white10 : Colors.black12,
-                          ),
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.06)),
+                    width: isActive ? 1.5 : 1,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (value != null) ...[
-                        Icon(
-                          _typeIcon(value),
-                          size: 14,
-                          color: isActive
-                              ? Colors.white
-                              : (isDark ? Colors.white54 : Colors.black45),
-                        ),
-                        const SizedBox(width: 5),
-                      ],
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: isActive
-                              ? Colors.white
-                              : (isDark ? Colors.white60 : Colors.black54),
-                        ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 16,
+                      color: isActive
+                          ? activeColor
+                          : (isDark ? Colors.white38 : Colors.black38),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isActive
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isActive
+                            ? activeColor
+                            : (isDark ? Colors.white54 : Colors.black45),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             );
-          }).toList(),
+          },
         ),
       ),
     );
@@ -300,65 +421,74 @@ class DiscoverScreen extends ConsumerWidget {
     return categories.when(
       data: (cats) {
         if (cats.isEmpty) return const SizedBox(height: 8);
-        return SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            children: [
-              _chip(
-                'All',
-                selected == null,
-                isDark,
-                () => ref.read(selectedCategoryProvider.notifier).state = null,
-              ),
-              ...cats.map(
-                (c) => _chip(
-                  c.name,
-                  selected == c.id,
-                  isDark,
-                  () =>
-                      ref.read(selectedCategoryProvider.notifier).state = c.id,
-                ),
-              ),
-            ],
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: SizedBox(
+            height: 42,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: cats.length + 1, // +1 for "All"
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, index) {
+                final isAll = index == 0;
+                final isActive = isAll
+                    ? selected == null
+                    : selected == cats[index - 1].id;
+                final label = isAll ? 'All' : cats[index - 1].name;
+                final onTap = isAll
+                    ? () => ref.read(selectedCategoryProvider.notifier).state =
+                          null
+                    : () => ref.read(selectedCategoryProvider.notifier).state =
+                          cats[index - 1].id;
+
+                return GestureDetector(
+                  onTap: onTap,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 0,
+                    ),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppTheme.primaryColor.withValues(alpha: 0.12)
+                          : (isDark
+                                ? Colors.white.withValues(alpha: 0.04)
+                                : Colors.black.withValues(alpha: 0.03)),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isActive
+                            ? AppTheme.primaryColor.withValues(alpha: 0.35)
+                            : (isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.06)),
+                        width: isActive ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isActive
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        color: isActive
+                            ? AppTheme.primaryColor
+                            : (isDark ? Colors.white54 : Colors.black45),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
-      loading: () => const SizedBox(height: 48),
+      loading: () => const SizedBox(height: 42),
       error: (e, st) => const SizedBox(height: 8),
-    );
-  }
-
-  Widget _chip(String label, bool active, bool isDark, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: 200.ms,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: active
-                ? AppTheme.primaryColor
-                : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
-            borderRadius: BorderRadius.circular(12),
-            border: active
-                ? null
-                : Border.all(color: isDark ? Colors.white12 : Colors.black12),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: active
-                  ? Colors.white
-                  : (isDark ? Colors.white60 : Colors.black54),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -944,20 +1074,36 @@ class DiscoverScreen extends ConsumerWidget {
   }
 
   Widget _bookmarkButton(WidgetRef ref, WebsiteModel site, bool isDark) {
+    final bookmarkedIds = ref.watch(bookmarkedIdsProvider).valueOrNull ?? {};
+    final isBookmarked = bookmarkedIds.contains(site.id);
+
     return SizedBox(
       height: 32,
       width: 32,
       child: IconButton(
-        onPressed: () => _saveSite(ref, site),
-        icon: Icon(PhosphorIcons.bookmarkSimple(), size: 18),
+        onPressed: () async {
+          await toggleBookmark(site.id);
+          ref.invalidate(bookmarkedIdsProvider);
+          ref.invalidate(bookmarkedWebsitesProvider);
+        },
+        icon: Icon(
+          isBookmarked
+              ? PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill)
+              : PhosphorIcons.bookmarkSimple(),
+          size: 18,
+        ),
         padding: EdgeInsets.zero,
         style: IconButton.styleFrom(
-          backgroundColor: isDark
-              ? Colors.white10
-              : Colors.black.withValues(alpha: 0.05),
+          backgroundColor: isBookmarked
+              ? AppTheme.primaryColor.withValues(alpha: 0.15)
+              : (isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.05)),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        color: isDark ? Colors.white54 : Colors.black45,
+        color: isBookmarked
+            ? AppTheme.primaryColor
+            : (isDark ? Colors.white54 : Colors.black45),
       ),
     );
   }
@@ -1158,19 +1304,5 @@ class DiscoverScreen extends ConsumerWidget {
         mode: inApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
       );
     }
-  }
-
-  Future<void> _saveSite(WidgetRef ref, WebsiteModel site) async {
-    try {
-      final client = SupabaseConfig.client;
-      final user = client.auth.currentUser;
-      if (user == null) return;
-
-      await client.from('user_saved_websites').upsert({
-        'user_id': user.id,
-        'website_id': site.id,
-      });
-      ref.invalidate(savedWebsiteIdsProvider);
-    } catch (_) {}
   }
 }

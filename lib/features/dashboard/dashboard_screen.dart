@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
@@ -273,11 +274,11 @@ class _DashboardHeader extends ConsumerWidget {
   }
 }
 
-class _QuickActions extends StatelessWidget {
+class _QuickActions extends ConsumerWidget {
   const _QuickActions();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -303,10 +304,14 @@ class _QuickActions extends StatelessWidget {
           delay: 200,
         ),
         _QuickActionBtn(
-          icon: PhosphorIcons.shieldCheck(),
-          label: AppLocalizations.of(context)!.security,
+          icon: PhosphorIcons.bookmarkSimple(),
+          label: 'Bookmarks',
           color: const Color(0xFFEC4899),
-          onTap: () => context.push('/settings'),
+          onTap: () {
+            ref.read(showBookmarksOnlyProvider.notifier).state = true;
+            ref.invalidate(bookmarkedWebsitesProvider);
+            context.go('/discover');
+          },
           delay: 300,
         ),
       ],

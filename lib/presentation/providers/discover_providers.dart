@@ -191,3 +191,63 @@ final savedWebsiteIdsProvider = FutureProvider<Set<String>>((ref) async {
       .eq('user_id', user.id);
   return (response as List).map((e) => e['website_id'] as String).toSet();
 });
+
+// --------------- Discover Bookmarks ---------------
+
+final showBookmarksOnlyProvider = StateProvider<bool>((ref) => false);
+
+final bookmarkedIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final user = _client.auth.currentUser;
+  if (user == null) return {};
+  final response = await _client
+      .from('discover_bookmarks')
+      .select('website_id')
+      .eq('user_id', user.id);
+  return (response as List).map((e) => e['website_id'] as String).toSet();
+});
+
+final bookmarkedWebsitesProvider = FutureProvider<List<WebsiteModel>>((
+  ref,
+) async {
+  final user = _client.auth.currentUser;
+  if (user == null) return [];
+  // Get bookmarked website IDs
+  final bookmarkRows = await _client
+      .from('discover_bookmarks')
+      .select('website_id')
+      .eq('user_id', user.id)
+      .order('created_at', ascending: false);
+  final ids = (bookmarkRows as List)
+      .map((e) => e['website_id'] as String)
+      .toList();
+  if (ids.isEmpty) return [];
+  // Fetch the websites
+  final response = await _client.from('websites').select().inFilter('id', ids);
+  final items = (response as List)
+      .map((e) => WebsiteModel.fromJson(e))
+      .toList();
+  // Preserve bookmark order
+  final idOrder = {for (var i = 0; i < ids.length; i++) ids[i]: i};
+  items.sort((a, b) => (idOrder[a.id] ?? 999).compareTo(idOrder[b.id] ?? 999));
+  return _filterActive(items);
+});
+
+Future<void> toggleBookmark(String websiteId) async {
+  final user = _client.auth.currentUser;
+  if (user == null) return;
+  // Check if already bookmarked
+  final existing = await _client
+      .from('discover_bookmarks')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('website_id', websiteId)
+      .maybeSingle();
+  if (existing != null) {
+    await _client.from('discover_bookmarks').delete().eq('id', existing['id']);
+  } else {
+    await _client.from('discover_bookmarks').insert({
+      'user_id': user.id,
+      'website_id': websiteId,
+    });
+  }
+}
