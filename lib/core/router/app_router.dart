@@ -27,6 +27,7 @@ import '../../features/admin/send_notification_screen.dart';
 import '../../features/admin/manage_in_app_messages_screen.dart';
 import '../../features/admin/manage_users_screen.dart';
 import '../../features/admin/admin_suggestions_screen.dart';
+import '../../features/admin/admin_analytics_screen.dart';
 import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../presentation/widgets/app_shell.dart';
@@ -260,6 +261,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/suggestions',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AdminSuggestionsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/analytics',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminAnalyticsScreen(),
       ),
       GoRoute(
         path: '/admin/user-chats',

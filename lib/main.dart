@@ -17,6 +17,7 @@ import 'data/services/auth_service.dart';
 import 'presentation/providers/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'core/services/analytics_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -143,6 +144,9 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
+
+  // Track app open asynchronously
+  AnalyticsService.trackAppOpen();
 
   runApp(
     UncontrolledProviderScope(container: container, child: const WebVaultApp()),

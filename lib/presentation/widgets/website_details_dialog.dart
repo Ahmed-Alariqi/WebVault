@@ -15,11 +15,24 @@ import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../utils/clipboard_helper.dart';
 import '../../utils/text_utils.dart';
+import '../../core/services/analytics_service.dart';
 
-class WebsiteDetailsDialog extends ConsumerWidget {
+class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
 
   const WebsiteDetailsDialog({super.key, required this.site});
+
+  @override
+  ConsumerState<WebsiteDetailsDialog> createState() =>
+      _WebsiteDetailsDialogState();
+}
+
+class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.trackItemView(widget.site.id);
+  }
 
   Future<void> _openUrl(String url, {bool inApp = true}) async {
     final uri = Uri.parse(url);
@@ -32,16 +45,18 @@ class WebsiteDetailsDialog extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final categoriesAsync = ref.watch(categoriesProvider);
 
     // Attempt to find the category name if it exists
     String? categoryName;
-    if (site.categoryId != null) {
+    if (widget.site.categoryId != null) {
       categoriesAsync.whenData((categories) {
         try {
-          final cat = categories.firstWhere((c) => c.id == site.categoryId);
+          final cat = categories.firstWhere(
+            (c) => c.id == widget.site.categoryId,
+          );
           categoryName = cat.name;
         } catch (_) {}
       });
@@ -88,9 +103,10 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                         height: 180,
                         width: double.infinity,
                         child:
-                            site.imageUrl != null && site.imageUrl!.isNotEmpty
+                            widget.site.imageUrl != null &&
+                                widget.site.imageUrl!.isNotEmpty
                             ? CachedNetworkImage(
-                                imageUrl: site.imageUrl!,
+                                imageUrl: widget.site.imageUrl!,
                                 fit: BoxFit.cover,
                                 placeholder: (ctx, url) => Container(
                                   color: isDark
@@ -146,7 +162,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                           children: [
                             // Title and Badges
                             Text(
-                              site.title,
+                              widget.site.title,
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
@@ -163,10 +179,10 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                if (site.contentType != 'website')
+                                if (widget.site.contentType != 'website')
                                   _badge(
-                                    _typeLabel(site.contentType),
-                                    _typeColor(site.contentType),
+                                    _typeLabel(widget.site.contentType),
+                                    _typeColor(widget.site.contentType),
                                     isDark,
                                   ),
                                 if (categoryName != null)
@@ -175,27 +191,27 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                     AppTheme.primaryColor,
                                     isDark,
                                   ),
-                                if (site.isTrending)
+                                if (widget.site.isTrending)
                                   _badge(
                                     'Trending',
                                     const Color(0xFFFF6B6B),
                                     isDark,
                                   ),
-                                if (site.isPopular)
+                                if (widget.site.isPopular)
                                   _badge(
                                     'Popular',
                                     const Color(0xFFFF9800),
                                     isDark,
                                   ),
-                                if (site.isFeatured)
+                                if (widget.site.isFeatured)
                                   _badge(
                                     'Featured',
                                     const Color(0xFF4CAF50),
                                     isDark,
                                   ),
-                                if (site.expiresAt != null)
+                                if (widget.site.expiresAt != null)
                                   _badge(
-                                    _formatTimeLeft(site.expiresAt!),
+                                    _formatTimeLeft(widget.site.expiresAt!),
                                     Colors.orange,
                                     isDark,
                                   ),
@@ -217,9 +233,9 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                 Document doc;
                                 bool isRichText = false;
                                 try {
-                                  if (site.description.isNotEmpty) {
+                                  if (widget.site.description.isNotEmpty) {
                                     final decoded = jsonDecode(
-                                      site.description,
+                                      widget.site.description,
                                     );
                                     doc = Document.fromJson(decoded);
                                     isRichText = true;
@@ -228,7 +244,8 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                   }
                                 } catch (_) {
                                   // Fallback for older plain text strings
-                                  doc = Document()..insert(0, site.description);
+                                  doc = Document()
+                                    ..insert(0, widget.site.description);
                                 }
 
                                 if (isRichText) {
@@ -246,7 +263,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                           context,
                                           ref,
                                           TextUtils.getPlainTextFromDescription(
-                                            site.description,
+                                            widget.site.description,
                                           ),
                                         ),
                                     child: DefaultTextStyle(
@@ -272,10 +289,10 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                         ClipboardHelper.copyAndPrompt(
                                           context,
                                           ref,
-                                          site.description,
+                                          widget.site.description,
                                         ),
                                     child: Text(
-                                      site.description,
+                                      widget.site.description,
                                       style: TextStyle(
                                         fontSize: 15,
                                         height: 1.6,
@@ -291,7 +308,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                             const SizedBox(height: 24),
 
                             // Copyable Content (prompts, offers)
-                            if (site.hasCopyableValue) ...[
+                            if (widget.site.hasCopyableValue) ...[
                               Container(
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
@@ -313,17 +330,21 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                         Icon(
                                           PhosphorIcons.clipboardText(),
                                           size: 14,
-                                          color: _typeColor(site.contentType),
+                                          color: _typeColor(
+                                            widget.site.contentType,
+                                          ),
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          site.contentType == 'prompt'
+                                          widget.site.contentType == 'prompt'
                                               ? 'Prompt Text'
                                               : 'Code / Key',
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
-                                            color: _typeColor(site.contentType),
+                                            color: _typeColor(
+                                              widget.site.contentType,
+                                            ),
                                           ),
                                         ),
                                         const Spacer(),
@@ -331,7 +352,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                           onTap: () {
                                             Clipboard.setData(
                                               ClipboardData(
-                                                text: site.actionValue,
+                                                text: widget.site.actionValue,
                                               ),
                                             );
                                             ScaffoldMessenger.of(
@@ -367,7 +388,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                             ),
                                             decoration: BoxDecoration(
                                               color: _typeColor(
-                                                site.contentType,
+                                                widget.site.contentType,
                                               ),
                                               borderRadius:
                                                   BorderRadius.circular(8),
@@ -397,7 +418,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 8),
                                     SelectableText(
-                                      site.actionValue,
+                                      widget.site.actionValue,
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontFamily: 'monospace',
@@ -414,16 +435,21 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                             ],
 
                             // Video Player Section
-                            if (site.hasVideo) ...[
+                            if (widget.site.hasVideo) ...[
                               _VideoSection(
-                                videoUrl: site.videoUrl!,
+                                videoUrl: widget.site.videoUrl!,
                                 isDark: isDark,
                               ),
                               const SizedBox(height: 16),
                             ],
 
                             // Action Buttons — dynamic per content type
-                            _buildDialogActions(context, ref, site, isDark),
+                            _buildDialogActions(
+                              context,
+                              ref,
+                              widget.site,
+                              isDark,
+                            ),
                           ],
                         ),
                       ),
@@ -485,14 +511,16 @@ class WebsiteDetailsDialog extends ConsumerWidget {
     WebsiteModel site,
     bool isDark,
   ) {
-    switch (site.contentType) {
+    switch (widget.site.contentType) {
       case 'prompt':
         return Row(
           children: [
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: site.actionValue));
+                  Clipboard.setData(
+                    ClipboardData(text: widget.site.actionValue),
+                  );
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -531,7 +559,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                 ),
               ),
             ),
-            if (site.hasUrl) ...[
+            if (widget.site.hasUrl) ...[
               const SizedBox(width: 12),
               Container(
                 decoration: BoxDecoration(
@@ -559,11 +587,13 @@ class WebsiteDetailsDialog extends ConsumerWidget {
       case 'offer':
         return Row(
           children: [
-            if (site.hasCopyableValue)
+            if (widget.site.hasCopyableValue)
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: site.actionValue));
+                    Clipboard.setData(
+                      ClipboardData(text: widget.site.actionValue),
+                    );
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -602,7 +632,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                   ),
                 ),
               ),
-            if (site.hasUrl) ...[
+            if (widget.site.hasUrl) ...[
               const SizedBox(width: 12),
               Container(
                 decoration: BoxDecoration(
@@ -628,7 +658,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
         );
 
       case 'announcement':
-        if (site.hasUrl) {
+        if (widget.site.hasUrl) {
           return SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -692,7 +722,7 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: IconButton(
-                onPressed: () => _openUrl(site.url, inApp: false),
+                onPressed: () => _openUrl(widget.site.url, inApp: false),
                 icon: Icon(PhosphorIcons.browser(), size: 22),
                 color: isDark
                     ? AppTheme.darkTextPrimary

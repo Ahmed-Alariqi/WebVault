@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/services/analytics_service.dart';
 import '../../core/utils/text_utils.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -15,8 +17,21 @@ import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 
-class DiscoverScreen extends ConsumerWidget {
+class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
+
+  @override
+  ConsumerState<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
+  Timer? _searchDebounce;
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
+  }
 
   // ── Content Type Tab definitions ──
   static const _typeFilters = [
@@ -28,7 +43,7 @@ class DiscoverScreen extends ConsumerWidget {
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final trending = ref.watch(trendingWebsitesProvider);
     final popular = ref.watch(popularWebsitesProvider);
@@ -88,8 +103,21 @@ class DiscoverScreen extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
               child: TextField(
-                onChanged: (v) =>
-                    ref.read(discoverSearchProvider.notifier).state = v,
+                onChanged: (v) {
+                  ref.read(discoverSearchProvider.notifier).state = v;
+
+                  if (_searchDebounce?.isActive ?? false) {
+                    _searchDebounce!.cancel();
+                  }
+                  _searchDebounce = Timer(
+                    const Duration(milliseconds: 1500),
+                    () {
+                      if (v.trim().isNotEmpty) {
+                        AnalyticsService.trackSearch(v);
+                      }
+                    },
+                  );
+                },
                 style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                 decoration: InputDecoration(
                   hintText: 'Search discover...',
@@ -1119,6 +1147,7 @@ class DiscoverScreen extends ConsumerWidget {
           await toggleBookmark(site.id);
           ref.invalidate(bookmarkedIdsProvider);
           ref.invalidate(bookmarkedWebsitesProvider);
+          AnalyticsService.trackBookmark(site.id, !isBookmarked);
         },
         icon: Icon(
           isBookmarked

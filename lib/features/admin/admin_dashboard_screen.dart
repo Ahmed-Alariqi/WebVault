@@ -156,6 +156,17 @@ class AdminDashboardScreen extends ConsumerWidget {
                   childAspectRatio: 1.1,
                   children: [
                     _ActionCard(
+                      title: 'App Activities',
+                      subtitle: 'Analytics & Tracking',
+                      icon: PhosphorIcons.chartLineUp(
+                        PhosphorIconsStyle.duotone,
+                      ),
+                      color: const Color(0xFF6366F1), // Indigo
+                      isDark: isDark,
+                      onTap: () => context.push('/admin/analytics'),
+                      delay: 0,
+                    ),
+                    _ActionCard(
                       title: 'Suggestions',
                       subtitle: 'Review Requests',
                       icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.duotone),

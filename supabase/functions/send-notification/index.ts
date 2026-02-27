@@ -29,12 +29,23 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        const payload = {
+        const payload: Record<string, any> = {
             app_id: appId,
-            included_segments: ["Subscribed Users", "Active Users"],
+            // "Total Subscriptions" is the default segment that includes ALL opted-in users
+            included_segments: ["Total Subscriptions"],
             headings: { en: title },
             contents: { en: body || title },
             data: { type, target_url, created_by },
+            // ── Android: force heads-up / status bar display ──
+            priority: 10,                          // FCM high priority
+            android_channel_id: "webvault_push",    // Must match channel created in Flutter
+            android_group: "webvault_notifications",
+            // ── iOS ──
+            ios_sound: "default",
+            // ── General ──
+            isAndroid: true,
+            isIos: true,
+            isAnyWeb: true,
         };
 
         const response = await fetch(ONE_SIGNAL_API_URL, {
