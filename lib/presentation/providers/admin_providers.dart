@@ -75,6 +75,7 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
         'body': data['body'],
         'type': data['type'],
         'target_url': data['target_url'],
+        'image_url': data['image_url'],
         'created_by': user?.id,
       },
     );

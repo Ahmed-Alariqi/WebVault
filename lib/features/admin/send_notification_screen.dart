@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../core/services/imagekit_service.dart';
 
 class SendNotificationScreen extends ConsumerStatefulWidget {
   const SendNotificationScreen({super.key});
@@ -18,9 +20,12 @@ class _SendNotificationScreenState
   final _titleCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
   final _urlCtrl = TextEditingController();
+  final _imageUrlCtrl = TextEditingController();
   String _type = 'general';
   bool _loading = false;
   bool _sent = false;
+  bool _isUploading = false;
+  double _uploadProgress = 0;
 
   final _types = ['general', 'announcement', 'update', 'alert'];
 
@@ -29,6 +34,7 @@ class _SendNotificationScreenState
     _titleCtrl.dispose();
     _bodyCtrl.dispose();
     _urlCtrl.dispose();
+    _imageUrlCtrl.dispose();
     super.dispose();
   }
 
@@ -44,12 +50,17 @@ class _SendNotificationScreenState
         'target_url': _urlCtrl.text.trim().isEmpty
             ? null
             : _urlCtrl.text.trim(),
+        'image_url': _imageUrlCtrl.text.trim().isEmpty
+            ? null
+            : _imageUrlCtrl.text.trim(),
       });
       setState(() {
         _sent = true;
         _titleCtrl.clear();
         _bodyCtrl.clear();
         _urlCtrl.clear();
+        _imageUrlCtrl.clear();
+        _type = 'general';
       });
     } catch (e) {
       if (mounted) {
@@ -168,7 +179,167 @@ class _SendNotificationScreenState
                   _field(_bodyCtrl, 'Body', isDark, maxLines: 4),
                   const SizedBox(height: 14),
                   _field(_urlCtrl, 'Target URL (optional)', isDark),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Notification Image (Optional)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 48,
+                          child: ElevatedButton.icon(
+                            onPressed: _isUploading
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isUploading = true;
+                                      _uploadProgress = 0;
+                                    });
+                                    try {
+                                      final url =
+                                          await ImageKitService.pickAndUpload(
+                                            folder: '/notifications',
+                                            onProgress: (p) {
+                                              if (mounted) {
+                                                setState(
+                                                  () => _uploadProgress = p,
+                                                );
+                                              }
+                                            },
+                                          );
+                                      if (url != null && context.mounted) {
+                                        setState(() {
+                                          _imageUrlCtrl.text = url;
+                                        });
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Image uploaded successfully!',
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      } else if (context.mounted &&
+                                          _uploadProgress > 0) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Upload failed. Try again.',
+                                            ),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() {
+                                          _isUploading = false;
+                                          _uploadProgress = 0;
+                                        });
+                                      }
+                                    }
+                                  },
+                            icon: _isUploading
+                                ? SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      value: _uploadProgress > 0
+                                          ? _uploadProgress
+                                          : null,
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Icon(PhosphorIcons.uploadSimple(), size: 18),
+                            label: Text(
+                              _isUploading ? 'Uploading...' : 'Upload Image',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _field(_imageUrlCtrl, 'Or Image URL', isDark),
+                      ),
+                    ],
+                  ),
+
+                  // Live Image Preview
+                  if (_imageUrlCtrl.text.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      height: 120,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.05),
+                        ),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          imageUrl: _imageUrlCtrl.text,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                PhosphorIcons.imageBroken(),
+                                color: isDark ? Colors.white54 : Colors.black45,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Invalid image URL',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? Colors.white54
+                                      : Colors.black45,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ).animate().fadeIn().scale(begin: const Offset(0.95, 0.95)),
+                  ],
+                  const SizedBox(height: 20),
 
                   // Type selector
                   Text(

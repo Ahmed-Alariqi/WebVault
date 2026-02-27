@@ -17,7 +17,7 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-        const { title, body, type, target_url, created_by } = await req.json();
+        const { title, body, type, target_url, image_url, created_by } = await req.json();
 
         const appId = Deno.env.get("ONESIGNAL_APP_ID");
         const apiKey = Deno.env.get("ONESIGNAL_REST_API_KEY");
@@ -35,7 +35,9 @@ Deno.serve(async (req: Request) => {
             included_segments: ["Total Subscriptions"],
             headings: { en: title },
             contents: { en: body || title },
-            data: { type, target_url, created_by },
+            data: { type, target_url, image_url, created_by },
+            // ── Imagery ──
+            ...(image_url ? { big_picture: image_url, ios_attachments: { id1: image_url } } : {}),
             // ── Android: force heads-up / status bar display ──
             priority: 10,                          // FCM high priority
             android_channel_id: "webvault_push",    // Must match channel created in Flutter

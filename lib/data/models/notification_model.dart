@@ -4,6 +4,7 @@ class NotificationModel {
   final String title;
   final String body;
   final String type;
+  final String? imageUrl;
   final String? targetUrl;
   final String? createdBy;
   final DateTime createdAt;
@@ -14,6 +15,7 @@ class NotificationModel {
     required this.title,
     this.body = '',
     this.type = 'general',
+    this.imageUrl,
     this.targetUrl,
     this.createdBy,
     required this.createdAt,
@@ -26,6 +28,7 @@ class NotificationModel {
       title: json['title'] as String,
       body: json['body'] as String? ?? '',
       type: json['type'] as String? ?? 'general',
+      imageUrl: json['image_url'] as String?,
       targetUrl: json['target_url'] as String?,
       createdBy: json['created_by'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -37,6 +40,7 @@ class NotificationModel {
       'title': title,
       'body': body,
       'type': type,
+      'image_url': imageUrl,
       'target_url': targetUrl,
     };
   }

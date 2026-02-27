@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/notification_model.dart';
 
@@ -12,7 +14,11 @@ class NotificationDetailsDialog extends ConsumerWidget {
 
   const NotificationDetailsDialog({super.key, required this.notification});
 
-  Future<void> _openUrl(String url, {bool inApp = true}) async {
+  Future<void> _openUrl(
+    BuildContext context,
+    String url, {
+    bool inApp = true,
+  }) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(
@@ -91,44 +97,67 @@ class NotificationDetailsDialog extends ConsumerWidget {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(28),
                       ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 36),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              color.withValues(alpha: 0.2),
-                              color.withValues(alpha: 0.05),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                        ),
-                        child:
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: color.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: color.withValues(alpha: 0.2),
-                                      blurRadius: 20,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                                child: Icon(
-                                  _getTypeIcon(notification.type),
-                                  size: 64,
-                                  color: color,
+                      child:
+                          notification.imageUrl != null &&
+                              notification.imageUrl!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: notification.imageUrl!,
+                              height: 180,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                height: 180,
+                                color: color.withValues(alpha: 0.1),
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
                                 ),
                               ),
-                            ).animate().scale(
-                              duration: 400.ms,
-                              curve: Curves.easeOutBack,
+                              errorWidget: (context, url, error) => Container(
+                                height: 180,
+                                color: color.withValues(alpha: 0.1),
+                                child: const Center(
+                                  child: Icon(Icons.broken_image),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.symmetric(vertical: 36),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    color.withValues(alpha: 0.2),
+                                    color.withValues(alpha: 0.05),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child:
+                                  Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.15),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: color.withValues(alpha: 0.2),
+                                            blurRadius: 20,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        _getTypeIcon(notification.type),
+                                        size: 64,
+                                        color: color,
+                                      ),
+                                    ),
+                                  ).animate().scale(
+                                    duration: 400.ms,
+                                    curve: Curves.easeOutBack,
+                                  ),
                             ),
-                      ),
                     ),
 
                     // Content Body
@@ -223,10 +252,24 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                 children: [
                                   Expanded(
                                     child: ElevatedButton.icon(
-                                      onPressed: () => _openUrl(
-                                        notification.targetUrl!,
-                                        inApp: true,
-                                      ),
+                                      onPressed: () {
+                                        if (notification.targetUrl!.startsWith(
+                                          'app://',
+                                        )) {
+                                          final route = notification.targetUrl!
+                                              .replaceFirst('app:/', '');
+                                          Navigator.of(
+                                            context,
+                                          ).pop(); // Close dialog
+                                          context.go(route);
+                                        } else {
+                                          _openUrl(
+                                            context,
+                                            notification.targetUrl!,
+                                            inApp: true,
+                                          );
+                                        }
+                                      },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: color,
                                         foregroundColor: Colors.white,
@@ -266,10 +309,24 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: IconButton(
-                                      onPressed: () => _openUrl(
-                                        notification.targetUrl!,
-                                        inApp: false,
-                                      ),
+                                      onPressed: () {
+                                        if (notification.targetUrl!.startsWith(
+                                          'app://',
+                                        )) {
+                                          final route = notification.targetUrl!
+                                              .replaceFirst('app:/', '');
+                                          Navigator.of(
+                                            context,
+                                          ).pop(); // Close dialog
+                                          context.go(route);
+                                        } else {
+                                          _openUrl(
+                                            context,
+                                            notification.targetUrl!,
+                                            inApp: false,
+                                          );
+                                        }
+                                      },
                                       icon: Icon(
                                         PhosphorIcons.browser(),
                                         size: 22,

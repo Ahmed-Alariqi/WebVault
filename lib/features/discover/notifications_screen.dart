@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/providers/providers.dart';
@@ -162,16 +163,31 @@ class _NotificationCard extends StatelessWidget {
               children: [
                 // Icon Badge Container
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
+                    image:
+                        notification.imageUrl != null &&
+                            notification.imageUrl!.isNotEmpty
+                        ? DecorationImage(
+                            image: CachedNetworkImageProvider(
+                              notification.imageUrl!,
+                            ),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
-                  child: Icon(
-                    _getTypeIcon(notification.type),
-                    color: color,
-                    size: 22,
-                  ),
+                  child:
+                      notification.imageUrl == null ||
+                          notification.imageUrl!.isEmpty
+                      ? Icon(
+                          _getTypeIcon(notification.type),
+                          color: color,
+                          size: 22,
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 18),
 

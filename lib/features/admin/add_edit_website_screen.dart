@@ -177,7 +177,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                 ? '📢 New announcement! Tap to read.'
                 : '🌐 New content just added! Tap to discover.',
             'type': 'announcement',
-            'target_url': null,
+            'target_url': 'app://discover',
           });
         } catch (_) {
           // Notification failure shouldn't block save
