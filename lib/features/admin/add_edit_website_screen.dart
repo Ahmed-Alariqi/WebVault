@@ -6,10 +6,12 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/imagekit_service.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
@@ -26,6 +28,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   late final TextEditingController _urlCtrl;
   late final TextEditingController _imgCtrl;
   late final TextEditingController _actionValueCtrl;
+  late final TextEditingController _videoUrlCtrl;
   late final QuillController _quillController;
 
   bool _isTrending = false;
@@ -37,6 +40,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   DateTime? _expiresAt;
   bool _sendNotification = false;
   bool _isSaving = false;
+  bool _isUploading = false;
+  double _uploadProgress = 0;
+  bool _showVideoSection = false;
+  bool _isUploadingVideo = false;
+  double _videoUploadProgress = 0;
 
   static const _contentTypeValues = [
     'website',
@@ -68,6 +76,10 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _actionValueCtrl = TextEditingController(
       text: widget.existing?.actionValue ?? '',
     );
+    _videoUrlCtrl = TextEditingController(
+      text: widget.existing?.videoUrl ?? '',
+    );
+    _showVideoSection = widget.existing?.hasVideo ?? false;
 
     _isTrending = widget.existing?.isTrending ?? false;
     _isPopular = widget.existing?.isPopular ?? false;
@@ -101,6 +113,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _urlCtrl.dispose();
     _imgCtrl.dispose();
     _actionValueCtrl.dispose();
+    _videoUrlCtrl.dispose();
     _quillController.dispose();
     super.dispose();
   }
@@ -140,6 +153,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         'action_value': _actionValueCtrl.text.trim(),
         'expires_at': _expiresAt?.toUtc().toIso8601String(),
         'is_active': _isActive,
+        'video_url': _videoUrlCtrl.text.trim().isEmpty
+            ? null
+            : _videoUrlCtrl.text.trim(),
       };
 
       if (widget.existing == null) {
@@ -485,50 +501,509 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
                     // ── Basic Info Section ──
                     _buildCard(
-                          isDark: isDark,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      isDark: isDark,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            'Basic Information',
+                            PhosphorIcons.info(),
+                            isDark,
+                          ),
+                          _buildTextField(
+                            controller: _titleCtrl,
+                            label: '$_typeLabel Title',
+                            prefixIcon: PhosphorIcons.textT(),
+                            isDark: isDark,
+                          ),
+                          const SizedBox(height: 16),
+                          // URL field — required for websites, optional for others
+                          _buildTextField(
+                            controller: _urlCtrl,
+                            label: _contentType == 'website'
+                                ? 'URL (https://...)'
+                                : 'Link URL (Optional)',
+                            prefixIcon: PhosphorIcons.link(),
+                            isDark: isDark,
+                            helperText: _contentType != 'website'
+                                ? 'Optional: add a link for users to visit'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          // ── Cover Image Section ──
+                          _buildSectionHeader(
+                            'Cover Image',
+                            PhosphorIcons.image(),
+                            isDark,
+                          ),
+                          const SizedBox(height: 8),
+                          // Upload button row
+                          Row(
                             children: [
-                              _buildSectionHeader(
-                                'Basic Information',
-                                PhosphorIcons.info(),
-                                isDark,
+                              Expanded(
+                                child: SizedBox(
+                                  height: 44,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _isUploading
+                                        ? null
+                                        : () async {
+                                            setState(() {
+                                              _isUploading = true;
+                                              _uploadProgress = 0;
+                                            });
+                                            try {
+                                              final url =
+                                                  await ImageKitService.pickAndUpload(
+                                                    folder: '/discover',
+                                                    onProgress: (p) {
+                                                      if (mounted) {
+                                                        setState(
+                                                          () =>
+                                                              _uploadProgress =
+                                                                  p,
+                                                        );
+                                                      }
+                                                    },
+                                                  );
+                                              if (url != null && mounted) {
+                                                setState(() {
+                                                  _imgCtrl.text = url;
+                                                });
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Image uploaded successfully!',
+                                                    ),
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                  ),
+                                                );
+                                              } else if (mounted &&
+                                                  _uploadProgress > 0) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Upload failed. Try again.',
+                                                    ),
+                                                    backgroundColor: Colors.red,
+                                                  ),
+                                                );
+                                              }
+                                            } finally {
+                                              if (mounted) {
+                                                setState(() {
+                                                  _isUploading = false;
+                                                  _uploadProgress = 0;
+                                                });
+                                              }
+                                            }
+                                          },
+                                    icon: _isUploading
+                                        ? SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              value: _uploadProgress > 0
+                                                  ? _uploadProgress
+                                                  : null,
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : Icon(
+                                            PhosphorIcons.uploadSimple(),
+                                            size: 18,
+                                          ),
+                                    label: Text(
+                                      _isUploading
+                                          ? 'Uploading...'
+                                          : 'Upload from Device',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                              _buildTextField(
-                                controller: _titleCtrl,
-                                label: '$_typeLabel Title',
-                                prefixIcon: PhosphorIcons.textT(),
-                                isDark: isDark,
-                              ),
-                              const SizedBox(height: 16),
-                              // URL field — required for websites, optional for others
-                              _buildTextField(
-                                controller: _urlCtrl,
-                                label: _contentType == 'website'
-                                    ? 'URL (https://...)'
-                                    : 'Link URL (Optional)',
-                                prefixIcon: PhosphorIcons.link(),
-                                isDark: isDark,
-                                helperText: _contentType != 'website'
-                                    ? 'Optional: add a link for users to visit'
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTextField(
-                                controller: _imgCtrl,
-                                label: 'Cover Image URL (Optional)',
-                                prefixIcon: PhosphorIcons.image(),
-                                isDark: isDark,
-                                helperText: _contentType == 'prompt'
-                                    ? 'Add an image showing the prompt result'
-                                    : null,
+                              const SizedBox(width: 8),
+                              Container(
+                                height: 44,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black12,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      PhosphorIcons.link(),
+                                      size: 16,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black45,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'or paste URL',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.black45,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                        )
-                        .animate()
-                        .fadeIn(delay: 100.ms, duration: 400.ms)
-                        .slideY(begin: 0.1),
+                          const SizedBox(height: 10),
+                          _buildTextField(
+                            controller: _imgCtrl,
+                            label: 'Image URL',
+                            prefixIcon: PhosphorIcons.link(),
+                            isDark: isDark,
+                            helperText: _contentType == 'prompt'
+                                ? 'Add an image showing the prompt result'
+                                : null,
+                          ),
+                          // ── Image Preview ──
+                          if (_imgCtrl.text.trim().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Stack(
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: _imgCtrl.text.trim(),
+                                      height: 160,
+                                      width: double.infinity,
+                                      fit: BoxFit.cover,
+                                      placeholder: (ctx, url) => Container(
+                                        height: 160,
+                                        color: isDark
+                                            ? Colors.white10
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                      errorWidget: (ctx, url, err) => Container(
+                                        height: 160,
+                                        color: isDark
+                                            ? Colors.white10
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        child: Center(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                PhosphorIcons.imageBroken(),
+                                                color: Colors.red.withValues(
+                                                  alpha: 0.5,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                'Invalid URL',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.red.withValues(
+                                                    alpha: 0.7,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Remove button
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: GestureDetector(
+                                        onTap: () =>
+                                            setState(() => _imgCtrl.clear()),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.close,
+                                            size: 16,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.1),
+
+                    // ── Video Section (Toggle) ──
+                    _buildCard(
+                      isDark: isDark,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                PhosphorIcons.videoCamera(),
+                                size: 18,
+                                color: AppTheme.primaryColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Tutorial Video',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? AppTheme.darkTextPrimary
+                                        : AppTheme.lightTextPrimary,
+                                  ),
+                                ),
+                              ),
+                              Switch.adaptive(
+                                value: _showVideoSection,
+                                activeTrackColor: AppTheme.primaryColor,
+                                onChanged: (v) {
+                                  setState(() {
+                                    _showVideoSection = v;
+                                    if (!v) _videoUrlCtrl.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                          if (_showVideoSection) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Add a tutorial or explainer video (max 50MB)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark ? Colors.white38 : Colors.black38,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            // Upload video button
+                            SizedBox(
+                              height: 44,
+                              width: double.infinity,
+                              child: ElevatedButton.icon(
+                                onPressed: _isUploadingVideo
+                                    ? null
+                                    : () async {
+                                        setState(() {
+                                          _isUploadingVideo = true;
+                                          _videoUploadProgress = 0;
+                                        });
+                                        try {
+                                          final url =
+                                              await ImageKitService.pickAndUploadVideo(
+                                                folder: '/discover/videos',
+                                                onProgress: (p) {
+                                                  if (mounted) {
+                                                    setState(
+                                                      () =>
+                                                          _videoUploadProgress =
+                                                              p,
+                                                    );
+                                                  }
+                                                },
+                                              );
+                                          if (url != null && mounted) {
+                                            setState(() {
+                                              _videoUrlCtrl.text = url;
+                                            });
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Video uploaded!',
+                                                ),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          } else if (mounted &&
+                                              _videoUploadProgress > 0) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Upload failed or video too large (max 50MB).',
+                                                ),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
+                                        } finally {
+                                          if (mounted) {
+                                            setState(() {
+                                              _isUploadingVideo = false;
+                                              _videoUploadProgress = 0;
+                                            });
+                                          }
+                                        }
+                                      },
+                                icon: _isUploadingVideo
+                                    ? SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          value: _videoUploadProgress > 0
+                                              ? _videoUploadProgress
+                                              : null,
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : Icon(
+                                        PhosphorIcons.uploadSimple(),
+                                        size: 18,
+                                      ),
+                                label: Text(
+                                  _isUploadingVideo
+                                      ? 'Uploading Video...'
+                                      : 'Upload Video from Device',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF7C3AED),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Progress bar
+                            if (_isUploadingVideo && _videoUploadProgress > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: _videoUploadProgress,
+                                    backgroundColor: isDark
+                                        ? Colors.white10
+                                        : Colors.black12,
+                                    color: const Color(0xFF7C3AED),
+                                    minHeight: 4,
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 10),
+                            _buildTextField(
+                              controller: _videoUrlCtrl,
+                              label: 'Video URL (or paste link)',
+                              prefixIcon: PhosphorIcons.link(),
+                              isDark: isDark,
+                            ),
+                            // Video URL preview
+                            if (_videoUrlCtrl.text.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFF7C3AED,
+                                    ).withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFF7C3AED,
+                                      ).withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        PhosphorIcons.filmSlate(
+                                          PhosphorIconsStyle.fill,
+                                        ),
+                                        color: const Color(0xFF7C3AED),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          _videoUrlCtrl.text.trim(),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: 'monospace',
+                                            color: isDark
+                                                ? Colors.white70
+                                                : Colors.black54,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      GestureDetector(
+                                        onTap: () => setState(
+                                          () => _videoUrlCtrl.clear(),
+                                        ),
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 18,
+                                          color: isDark
+                                              ? Colors.white38
+                                              : Colors.black38,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
 
                     // ── Copyable Content (Prompt / Offer / Announcement) ──
                     if (_contentType != 'website')

@@ -19,6 +19,7 @@ class WebsiteModel {
   final String actionValue; // Copyable text (prompt, code, key…)
   final DateTime? expiresAt; // Auto-hide after this time
   final bool isActive; // Manual on/off toggle
+  final String? videoUrl; // Optional tutorial/explainer video
 
   const WebsiteModel({
     required this.id,
@@ -38,6 +39,7 @@ class WebsiteModel {
     this.actionValue = '',
     this.expiresAt,
     this.isActive = true,
+    this.videoUrl,
   });
 
   /// Whether this item has expired
@@ -49,6 +51,9 @@ class WebsiteModel {
 
   /// Whether this item has a visitable URL
   bool get hasUrl => url.trim().isNotEmpty;
+
+  /// Whether this item has a video
+  bool get hasVideo => videoUrl != null && videoUrl!.trim().isNotEmpty;
 
   WebsiteModel copyWith({
     String? title,
@@ -64,6 +69,7 @@ class WebsiteModel {
     String? actionValue,
     DateTime? expiresAt,
     bool? isActive,
+    String? videoUrl,
   }) {
     return WebsiteModel(
       id: id,
@@ -83,6 +89,7 @@ class WebsiteModel {
       actionValue: actionValue ?? this.actionValue,
       expiresAt: expiresAt ?? this.expiresAt,
       isActive: isActive ?? this.isActive,
+      videoUrl: videoUrl ?? this.videoUrl,
     );
   }
 
@@ -107,6 +114,7 @@ class WebsiteModel {
           ? DateTime.parse(json['expires_at'] as String)
           : null,
       isActive: json['is_active'] as bool? ?? true,
+      videoUrl: json['video_url'] as String?,
     );
   }
 
@@ -125,6 +133,7 @@ class WebsiteModel {
       'action_value': actionValue,
       'expires_at': expiresAt?.toIso8601String(),
       'is_active': isActive,
+      'video_url': videoUrl,
     };
   }
 }

@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
@@ -411,6 +413,15 @@ class WebsiteDetailsDialog extends ConsumerWidget {
                               const SizedBox(height: 16),
                             ],
 
+                            // Video Player Section
+                            if (site.hasVideo) ...[
+                              _VideoSection(
+                                videoUrl: site.videoUrl!,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             // Action Buttons — dynamic per content type
                             _buildDialogActions(context, ref, site, isDark),
                           ],
@@ -726,5 +737,295 @@ class WebsiteDetailsDialog extends ConsumerWidget {
     if (diff.inDays > 0) return '${diff.inDays}d left';
     if (diff.inHours > 0) return '${diff.inHours}h left';
     return '${diff.inMinutes}m left';
+  }
+}
+
+/// Stateful widget for the video section (manages controller lifecycle)
+class _VideoSection extends StatefulWidget {
+  final String videoUrl;
+  final bool isDark;
+
+  const _VideoSection({required this.videoUrl, required this.isDark});
+
+  @override
+  State<_VideoSection> createState() => _VideoSectionState();
+}
+
+class _VideoSectionState extends State<_VideoSection> {
+  VideoPlayerController? _videoController;
+  ChewieController? _chewieController;
+  bool _isInitialized = false;
+  bool _hasError = false;
+
+  /// Check if the URL is an external video platform (YouTube, Vimeo, etc.)
+  bool get _isExternalVideo {
+    final url = widget.videoUrl.toLowerCase();
+    return url.contains('youtube.com') ||
+        url.contains('youtu.be') ||
+        url.contains('vimeo.com') ||
+        url.contains('dailymotion.com') ||
+        url.contains('tiktok.com') ||
+        // Not a direct video file
+        (!url.endsWith('.mp4') &&
+            !url.endsWith('.mov') &&
+            !url.endsWith('.webm') &&
+            !url.endsWith('.avi') &&
+            !url.contains('imagekit.io'));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_isExternalVideo) {
+      _initDirectVideo();
+    }
+  }
+
+  Future<void> _initDirectVideo() async {
+    try {
+      _videoController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.videoUrl),
+      );
+
+      // Listen for errors
+      _videoController!.addListener(() {
+        if (_videoController!.value.hasError && mounted) {
+          setState(() => _hasError = true);
+          debugPrint(
+            'Video error: ${_videoController!.value.errorDescription}',
+          );
+        }
+      });
+
+      await _videoController!.initialize();
+      if (!mounted) return;
+
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController!,
+        autoPlay: false,
+        looping: false,
+        allowFullScreen: true,
+        allowMuting: true,
+        showControls: true,
+        errorBuilder: (context, errorMessage) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    PhosphorIcons.warning(),
+                    color: Colors.white38,
+                    size: 28,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Video playback error',
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: () => _openExternally(),
+                    icon: const Icon(
+                      Icons.open_in_new,
+                      size: 14,
+                      color: Colors.white70,
+                    ),
+                    label: const Text(
+                      'Open Externally',
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        materialProgressColors: ChewieProgressColors(
+          playedColor: AppTheme.primaryColor,
+          handleColor: AppTheme.primaryColor,
+          backgroundColor: Colors.white24,
+          bufferedColor: Colors.white38,
+        ),
+      );
+      setState(() => _isInitialized = true);
+    } catch (e) {
+      debugPrint('Video init error: $e');
+      if (mounted) setState(() => _hasError = true);
+    }
+  }
+
+  Future<void> _openExternally() async {
+    final uri = Uri.parse(widget.videoUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  @override
+  void dispose() {
+    _chewieController?.dispose();
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Divider(
+          color: widget.isDark
+              ? Colors.white10
+              : Colors.black.withValues(alpha: 0.05),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(
+              PhosphorIcons.videoCamera(PhosphorIconsStyle.fill),
+              size: 16,
+              color: const Color(0xFF7C3AED),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Watch Tutorial',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF7C3AED),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // External video (YouTube, Vimeo, etc.) — open button
+        if (_isExternalVideo)
+          GestureDetector(
+            onTap: _openExternally,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFF5B21B6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Watch Video',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getExternalLabel(),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        // Direct video — inline player
+        else
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxHeight: 220),
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: _hasError
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              PhosphorIcons.warning(),
+                              color: Colors.white38,
+                              size: 28,
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Could not load video',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: _openExternally,
+                              icon: const Icon(
+                                Icons.open_in_new,
+                                size: 14,
+                                color: Color(0xFF7C3AED),
+                              ),
+                              label: const Text(
+                                'Open in Browser',
+                                style: TextStyle(
+                                  color: Color(0xFF7C3AED),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : !_isInitialized
+                  ? const SizedBox(
+                      height: 180,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                    )
+                  : Chewie(controller: _chewieController!),
+            ),
+          ),
+        const SizedBox(height: 4),
+      ],
+    );
+  }
+
+  String _getExternalLabel() {
+    final url = widget.videoUrl.toLowerCase();
+    if (url.contains('youtube') || url.contains('youtu.be')) {
+      return 'Opens on YouTube';
+    } else if (url.contains('vimeo')) {
+      return 'Opens on Vimeo';
+    }
+    return 'Opens in browser';
   }
 }
