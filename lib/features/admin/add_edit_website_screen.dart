@@ -565,7 +565,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                       }
                                                     },
                                                   );
-                                              if (url != null && mounted) {
+                                              if (url != null &&
+                                                  context.mounted) {
                                                 setState(() {
                                                   _imgCtrl.text = url;
                                                 });
@@ -580,7 +581,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                         Colors.green,
                                                   ),
                                                 );
-                                              } else if (mounted &&
+                                              } else if (context.mounted &&
                                                   _uploadProgress > 0) {
                                                 ScaffoldMessenger.of(
                                                   context,
@@ -849,7 +850,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                   }
                                                 },
                                               );
-                                          if (url != null && mounted) {
+                                          if (url != null && context.mounted) {
                                             setState(() {
                                               _videoUrlCtrl.text = url;
                                             });
@@ -863,7 +864,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                 backgroundColor: Colors.green,
                                               ),
                                             );
-                                          } else if (mounted &&
+                                          } else if (context.mounted &&
                                               _videoUploadProgress > 0) {
                                             ScaffoldMessenger.of(
                                               context,

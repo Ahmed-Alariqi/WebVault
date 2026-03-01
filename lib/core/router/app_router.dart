@@ -28,8 +28,12 @@ import '../../features/admin/manage_in_app_messages_screen.dart';
 import '../../features/admin/manage_users_screen.dart';
 import '../../features/admin/admin_suggestions_screen.dart';
 import '../../features/admin/admin_analytics_screen.dart';
+import '../../features/admin/admin_community_screen.dart';
 import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/discover/notifications_screen.dart';
+import '../../features/discover/community_screen.dart';
+import '../../features/discover/community_post_detail.dart';
+import '../../data/models/community_model.dart';
 import '../../presentation/widgets/app_shell.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/admin/manage_user_chats_screen.dart';
@@ -151,6 +155,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NotificationsScreen(),
           ),
           GoRoute(
+            path: '/community',
+            builder: (context, state) => const CommunityScreen(),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsScreen(),
           ),
@@ -205,6 +213,14 @@ final routerProvider = Provider<GoRouter>((ref) {
           return DiscoverBrowserScreen(site: site);
         },
       ),
+      GoRoute(
+        path: '/community/post/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final post = state.extra as CommunityPost;
+          return CommunityPostDetail(post: post);
+        },
+      ),
 
       // ---- Profile & Account ----
       GoRoute(
@@ -256,6 +272,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/users',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageUsersScreen(),
+      ),
+      GoRoute(
+        path: '/admin/community',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminCommunityScreen(),
       ),
       GoRoute(
         path: '/admin/suggestions',

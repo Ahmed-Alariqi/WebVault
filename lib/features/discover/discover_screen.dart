@@ -67,6 +67,16 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ),
             forceMaterialTransparency: true,
             actions: [
+              // Community Button
+              IconButton(
+                onPressed: () => context.push('/community'),
+                icon: Icon(
+                  PhosphorIcons.globeHemisphereWest(PhosphorIconsStyle.fill),
+                  color: AppTheme.primaryColor,
+                  size: 26,
+                ),
+                tooltip: 'Community',
+              ),
               // Bookmark toggle
               IconButton(
                 onPressed: () {

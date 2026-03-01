@@ -91,16 +91,18 @@ final adminConversationsStreamProvider =
     });
 
 /// Streams the sum of all unread_admin_count for the Badge on Admin Dashboard
-final adminTotalUnreadCountProvider = StreamProvider.autoDispose<int>((ref) {
-  return ref.watch(adminConversationsStreamProvider.stream).map((
-    conversations,
-  ) {
-    int total = 0;
-    for (var conv in conversations) {
-      total += conv.unreadAdminCount;
-    }
-    return total;
-  });
+final adminTotalUnreadCountProvider = Provider.autoDispose<int>((ref) {
+  final conversationsAsync = ref.watch(adminConversationsStreamProvider);
+  return conversationsAsync.maybeWhen(
+    data: (conversations) {
+      int total = 0;
+      for (var conv in conversations) {
+        total += conv.unreadAdminCount;
+      }
+      return total;
+    },
+    orElse: () => 0,
+  );
 });
 
 /// Fetches the profile for a specific conversation

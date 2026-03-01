@@ -11,6 +11,38 @@ class ImageKitService {
   static const String _uploadUrl =
       'https://upload.imagekit.io/api/v1/files/upload';
 
+  /// Upload raw image bytes to ImageKit.
+  /// Throws an exception if the upload fails.
+  static Future<String> uploadImage({
+    required Uint8List fileBytes,
+    required String fileName,
+    String folder = '/community',
+  }) async {
+    final String authHeader =
+        'Basic ${base64Encode(utf8.encode('$_privateKey:'))}';
+
+    final request = http.MultipartRequest('POST', Uri.parse(_uploadUrl));
+    request.headers['Authorization'] = authHeader;
+    request.fields['fileName'] = fileName;
+    request.fields['folder'] = folder;
+    request.fields['publicKey'] = _publicKey;
+    request.files.add(
+      http.MultipartFile.fromBytes('file', fileBytes, filename: fileName),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['url'] as String;
+    } else {
+      throw Exception(
+        'ImageKit upload failed: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
   /// Pick an image from gallery and upload it to ImageKit.
   /// Returns the uploaded image URL, or null if cancelled/failed.
   static Future<String?> pickAndUpload({

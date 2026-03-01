@@ -222,12 +222,21 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => context.push('/admin/users'),
                       delay: 300,
                     ),
+                    _ActionCard(
+                      title: 'Community',
+                      subtitle: 'Manage Posts',
+                      icon: PhosphorIcons.globeHemisphereWest(
+                        PhosphorIconsStyle.duotone,
+                      ),
+                      color: const Color(0xFFEAB308), // Yellow
+                      isDark: isDark,
+                      onTap: () => context.push('/admin/community'),
+                      delay: 325,
+                    ),
+
                     Consumer(
                       builder: (context, ref, _) {
-                        final unreadCountAsync = ref.watch(
-                          adminTotalUnreadCountProvider,
-                        );
-                        final count = unreadCountAsync.valueOrNull ?? 0;
+                        final count = ref.watch(adminTotalUnreadCountProvider);
 
                         return _ActionCard(
                           title: 'User Messages',
