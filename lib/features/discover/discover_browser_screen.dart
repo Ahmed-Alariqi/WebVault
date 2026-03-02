@@ -149,7 +149,7 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
               ),
 
             // Floating clipboard tool (always active)
-            const FloatingClipboard(),
+            FloatingClipboard(webViewController: _controller),
           ],
         ),
       ),

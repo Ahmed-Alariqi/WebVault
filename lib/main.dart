@@ -18,6 +18,23 @@ import 'presentation/providers/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'core/services/analytics_service.dart';
+import 'features/clipboard/overlay_clipboard.dart';
+
+// ============================================================
+// Overlay entry point — runs in its own isolate
+// ============================================================
+@pragma("vm:entry-point")
+void overlayMain() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: OverlayClipboard(),
+    ),
+  );
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +44,37 @@ Future<void> main() async {
   await Hive.openBox(kPagesBox);
   await Hive.openBox(kFoldersBox);
   await Hive.openBox(kClipboardBox);
+  await Hive.openBox(kClipboardGroupsBox);
   await Hive.openBox(kSettingsBox);
   await Hive.openBox(kDiscoverCacheBox);
   await Hive.openBox(kSyncQueueBox);
+
+  // Listen for text shared from outside the app (Android Share Sheet)
+  const MethodChannel('com.webvault.app/overlay').setMethodCallHandler((
+    call,
+  ) async {
+    if (call.method == 'shareReceived') {
+      final args = Map<String, dynamic>.from(call.arguments as Map);
+      final label = args['label'] as String? ?? 'Shared item';
+      final text = args['text'] as String? ?? '';
+      if (text.isNotEmpty) {
+        final id = DateTime.now().millisecondsSinceEpoch.toString();
+        final item = {
+          'id': id,
+          'label': label,
+          'value': text,
+          'type': 0,
+          'isPinned': false,
+          'sortOrder': Hive.box(kClipboardBox).length,
+          'isEncrypted': false,
+          'createdAt': DateTime.now().toIso8601String(),
+          'autoDeleteAt': null,
+          'groupId': null,
+        };
+        await Hive.box(kClipboardBox).put(id, item);
+      }
+    }
+  });
 
   // Initialize Supabase
   await SupabaseConfig.initialize();

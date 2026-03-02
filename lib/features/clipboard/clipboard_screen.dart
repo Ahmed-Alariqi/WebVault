@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/clipboard_item_model.dart';
@@ -15,40 +16,293 @@ class ClipboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final items = ref.watch(clipboardItemsProvider);
+    final allItems = ref.watch(clipboardItemsProvider);
+    final groups = ref.watch(clipboardGroupsProvider);
+    final activeGroupId = ref.watch(selectedClipboardGroupProvider);
+
+    // Filter items
+    final items = activeGroupId == null
+        ? allItems
+        : activeGroupId == 'uncategorized'
+        ? allItems.where((i) => i.groupId == null).toList()
+        : allItems.where((i) => i.groupId == activeGroupId).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: const Text('Clipboard'),
         forceMaterialTransparency: true,
+        actions: [
+          IconButton(
+            icon: Icon(PhosphorIcons.gear()),
+            tooltip: 'Quick Access Settings',
+            onPressed: () => _showQuickAccessSettings(context, isDark),
+          ),
+        ],
       ),
-      body: items.isEmpty
-          ? _buildEmpty(isDark)
-          : ReorderableListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              itemCount: items.length,
-              onReorder: (oldIdx, newIdx) {
-                final mutable = List<ClipboardItemModel>.from(items);
-                if (newIdx > oldIdx) newIdx--;
-                final item = mutable.removeAt(oldIdx);
-                mutable.insert(newIdx, item);
-                ref.read(clipboardItemsProvider.notifier).reorder(mutable);
-              },
-              itemBuilder: (context, i) {
-                final item = items[i];
-                return _ClipboardTile(
-                  key: ValueKey(item.id),
-                  item: item,
-                  isDark: isDark,
-                );
-              },
-            ),
+      body: Column(
+        children: [
+          _buildGroupsBar(context, ref, groups, activeGroupId, isDark),
+          Expanded(
+            child: items.isEmpty
+                ? _buildEmpty(isDark)
+                : ReorderableListView.builder(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    itemCount: items.length,
+                    onReorder: (oldIdx, newIdx) {
+                      final mutable = List<ClipboardItemModel>.from(items);
+                      if (newIdx > oldIdx) newIdx--;
+                      final item = mutable.removeAt(oldIdx);
+                      mutable.insert(newIdx, item);
+                      ref
+                          .read(clipboardItemsProvider.notifier)
+                          .reorder(mutable);
+                    },
+                    itemBuilder: (context, i) {
+                      final item = items[i];
+                      return _ClipboardTile(
+                        key: ValueKey(item.id),
+                        item: item,
+                        isDark: isDark,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDialog(context, ref, isDark),
+        onPressed: () => _showAddDialog(context, ref, isDark, activeGroupId),
         icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold)),
         label: const Text('Add Value'),
       ),
+    );
+  }
+
+  void _showQuickAccessSettings(BuildContext context, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor,
+                              AppTheme.accentColor,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.widgets_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Text(
+                        'Quick Access Tile',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Access your clipboard from anywhere! Add the WebVault tile to your Quick Settings panel.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark
+                          ? AppTheme.darkTextSecondary
+                          : AppTheme.lightTextSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Permission button
+                  FutureBuilder<bool>(
+                    future: FlutterOverlayWindow.isPermissionGranted(),
+                    builder: (ctx, snap) {
+                      final granted = snap.data ?? false;
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: granted
+                              ? AppTheme.successColor.withValues(alpha: 0.1)
+                              : AppTheme.warningColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: granted
+                                ? AppTheme.successColor.withValues(alpha: 0.3)
+                                : AppTheme.warningColor.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              granted
+                                  ? Icons.check_circle_rounded
+                                  : Icons.warning_amber_rounded,
+                              color: granted
+                                  ? AppTheme.successColor
+                                  : AppTheme.warningColor,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                granted
+                                    ? 'Overlay permission granted ✓'
+                                    : 'Overlay permission required',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? AppTheme.darkTextPrimary
+                                      : AppTheme.lightTextPrimary,
+                                ),
+                              ),
+                            ),
+                            if (!granted)
+                              TextButton(
+                                onPressed: () async {
+                                  await FlutterOverlayWindow.requestPermission();
+                                  setModalState(() {});
+                                },
+                                child: const Text('Grant'),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  // Instructions
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.04)
+                          : Colors.black.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'How to add the tile:',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isDark
+                                ? AppTheme.darkTextPrimary
+                                : AppTheme.lightTextPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _instructionStep(
+                          '1',
+                          'Swipe down twice to open Quick Settings',
+                          isDark,
+                        ),
+                        const SizedBox(height: 8),
+                        _instructionStep(
+                          '2',
+                          'Tap the pencil/edit icon',
+                          isDark,
+                        ),
+                        const SizedBox(height: 8),
+                        _instructionStep(
+                          '3',
+                          'Find "WebVault Clipboard" and drag it up',
+                          isDark,
+                        ),
+                        const SizedBox(height: 8),
+                        _instructionStep(
+                          '4',
+                          'Tap the tile anytime to open clipboard!',
+                          isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _instructionStep(String num, String text, bool isDark) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            num,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark
+                  ? AppTheme.darkTextSecondary
+                  : AppTheme.lightTextSecondary,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -96,10 +350,83 @@ class ClipboardScreen extends ConsumerWidget {
     );
   }
 
-  void _showAddDialog(BuildContext context, WidgetRef ref, bool isDark) {
+  Widget _buildGroupsBar(
+    BuildContext context,
+    WidgetRef ref,
+    List<ClipboardGroupModel> groups,
+    String? activeGroupId,
+    bool isDark,
+  ) {
+    return Container(
+      height: 50,
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          _GroupChip(
+            label: 'All Items',
+            icon: PhosphorIcons.infinity(),
+            isSelected: activeGroupId == null,
+            onTap: () =>
+                ref.read(selectedClipboardGroupProvider.notifier).state = null,
+            isDark: isDark,
+          ),
+          const SizedBox(width: 8),
+          _GroupChip(
+            label: 'Uncategorized',
+            icon: PhosphorIcons.tray(),
+            isSelected: activeGroupId == 'uncategorized',
+            onTap: () =>
+                ref.read(selectedClipboardGroupProvider.notifier).state =
+                    'uncategorized',
+            isDark: isDark,
+          ),
+          ...groups.map((g) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _GroupChip(
+                label: g.name,
+                icon: PhosphorIcons.folder(),
+                color: Color(int.parse(g.colorHex.replaceFirst('#', '0xFF'))),
+                isSelected: activeGroupId == g.id,
+                onTap: () =>
+                    ref.read(selectedClipboardGroupProvider.notifier).state =
+                        g.id,
+                onLongPress: () => _showGroupOptions(context, ref, g, isDark),
+                isDark: isDark,
+              ),
+            );
+          }),
+          const SizedBox(width: 8),
+          ActionChip(
+            backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            side: BorderSide(
+              color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
+            ),
+            label: const Icon(Icons.add, size: 18),
+            onPressed: () => _showManageGroupDialog(context, ref, null, isDark),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddDialog(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+    String? currentGroupId,
+  ) {
     final labelCtrl = TextEditingController();
     final valueCtrl = TextEditingController();
     var selectedType = ClipboardItemType.text;
+    String? assignedGroupId = currentGroupId == 'uncategorized'
+        ? null
+        : currentGroupId;
 
     showModalBottomSheet(
       context: context,
@@ -258,6 +585,7 @@ class ClipboardScreen extends ConsumerWidget {
                         value: valueCtrl.text.trim(),
                         type: selectedType,
                         createdAt: DateTime.now(),
+                        groupId: assignedGroupId,
                       );
                       ref.read(clipboardItemsProvider.notifier).addItem(item);
                       Navigator.pop(ctx);
@@ -480,4 +808,201 @@ class _ClipboardTile extends ConsumerWidget {
       ),
     ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1, end: 0);
   }
+}
+
+class _GroupChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final VoidCallback? onLongPress;
+  final Color? color;
+  final bool isDark;
+
+  const _GroupChip({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+    this.onLongPress,
+    this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = color ?? AppTheme.primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      child: AnimatedContainer(
+        duration: 200.ms,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primary
+              : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? primary
+                : (isDark ? AppTheme.darkDivider : AppTheme.lightDivider),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white70 : Colors.black87),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : Colors.black87),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _showGroupOptions(
+  BuildContext context,
+  WidgetRef ref,
+  ClipboardGroupModel group,
+  bool isDark,
+) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white24 : Colors.black12,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          ListTile(
+            leading: Icon(
+              PhosphorIcons.pencilSimple(),
+              color: AppTheme.primaryColor,
+            ),
+            title: const Text('Edit Group'),
+            onTap: () {
+              Navigator.pop(ctx);
+              _showManageGroupDialog(context, ref, group, isDark);
+            },
+          ),
+          ListTile(
+            leading: Icon(PhosphorIcons.trash(), color: AppTheme.errorColor),
+            title: const Text(
+              'Delete Group & Items',
+              style: TextStyle(color: AppTheme.errorColor),
+            ),
+            onTap: () {
+              if (ref.read(selectedClipboardGroupProvider) == group.id) {
+                ref.read(selectedClipboardGroupProvider.notifier).state = null;
+              }
+              ref.read(clipboardGroupsProvider.notifier).deleteGroup(group.id);
+              Navigator.pop(ctx);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showManageGroupDialog(
+  BuildContext context,
+  WidgetRef ref,
+  ClipboardGroupModel? existingGroup,
+  bool isDark,
+) {
+  final nameCtrl = TextEditingController(text: existingGroup?.name ?? '');
+
+  showDialog(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(existingGroup == null ? 'New Group' : 'Edit Group'),
+      content: TextFormField(
+        controller: nameCtrl,
+        autofocus: true,
+        style: TextStyle(color: isDark ? Colors.white : Colors.black),
+        decoration: ModernFormWidgets.inputDecoration(
+          context,
+          label: 'Group Name',
+          hint: 'e.g. Work, Social',
+          icon: PhosphorIcons.folder(),
+          isDark: isDark,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            if (nameCtrl.text.trim().isEmpty) return;
+            final notifier = ref.read(clipboardGroupsProvider.notifier);
+            if (existingGroup == null) {
+              notifier.addGroup(
+                ClipboardGroupModel(
+                  id: const Uuid().v4(),
+                  name: nameCtrl.text.trim(),
+                  createdAt: DateTime.now(),
+                ),
+              );
+            } else {
+              notifier.updateGroup(
+                existingGroup.copyWith(name: nameCtrl.text.trim()),
+              );
+            }
+            Navigator.pop(ctx);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
 }

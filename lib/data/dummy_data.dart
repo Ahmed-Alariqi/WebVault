@@ -159,7 +159,7 @@ class DummyData {
       ),
     ];
     for (final c in clipboardItems) {
-      await clipboardRepo.save(c);
+      await clipboardRepo.saveItem(c);
     }
   }
 }

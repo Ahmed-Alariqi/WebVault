@@ -167,7 +167,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
               ),
             ),
           // Floating clipboard
-          const FloatingClipboard(),
+          FloatingClipboard(webViewController: _controller),
         ],
       ),
     );

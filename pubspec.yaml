@@ -34,6 +34,9 @@ dependencies:
   # WebView
   webview_flutter: ^4.10.0
 
+  # System Overlay
+  flutter_overlay_window: ^0.5.0
+
   # Authentication
   local_auth: ^2.3.0
 

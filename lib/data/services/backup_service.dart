@@ -25,7 +25,10 @@ class BackupService {
     try {
       final pages = _pageRepo.getAll().map((p) => p.toJson()).toList();
       final folders = _folderRepo.getAll().map((f) => f.toJson()).toList();
-      final clipboard = _clipboardRepo.getAll().map((c) => c.toJson()).toList();
+      final clipboard = _clipboardRepo
+          .getAllItems()
+          .map((c) => c.toJson())
+          .toList();
 
       final backupData = {
         'version': 1,
@@ -141,9 +144,9 @@ class BackupService {
             final item = ClipboardItemModel.fromJson(
               Map<String, dynamic>.from(c as Map),
             );
-            final existing = _clipboardRepo.getById(item.id);
+            final existing = _clipboardRepo.getItemById(item.id);
             if (existing == null) {
-              await _clipboardRepo.save(item);
+              await _clipboardRepo.saveItem(item);
             }
           } catch (e) {
             debugPrint('Skipping invalid clipboard item on import: $e');

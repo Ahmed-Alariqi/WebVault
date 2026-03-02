@@ -2,6 +2,7 @@
 const String kPagesBox = 'pages_box';
 const String kFoldersBox = 'folders_box';
 const String kClipboardBox = 'clipboard_box';
+const String kClipboardGroupsBox = 'clipboard_groups_box';
 const String kSettingsBox = 'settings_box';
 const String kCopyHistoryBox = 'copy_history_box';
 const String kDiscoverCacheBox = 'discover_cache_box';

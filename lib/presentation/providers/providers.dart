@@ -369,39 +369,85 @@ class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
   }
 
   void refresh() {
-    state = _repo.getAll();
+    state = _repo.getAllItems();
   }
 
   Future<void> addItem(ClipboardItemModel item) async {
-    await _repo.save(item);
+    await _repo.saveItem(item);
     refresh();
   }
 
   Future<void> updateItem(ClipboardItemModel item) async {
-    await _repo.save(item);
+    await _repo.saveItem(item);
     refresh();
   }
 
   Future<void> deleteItem(String id) async {
-    await _repo.delete(id);
+    await _repo.deleteItem(id);
     refresh();
   }
 
   Future<void> togglePin(String id) async {
-    final item = _repo.getById(id);
+    final item = _repo.getItemById(id);
     if (item != null) {
-      await _repo.save(item.copyWith(isPinned: !item.isPinned));
+      await _repo.saveItem(item.copyWith(isPinned: !item.isPinned));
       refresh();
     }
   }
 
   Future<void> reorder(List<ClipboardItemModel> items) async {
-    await _repo.reorder(items);
+    await _repo.reorderItems(items);
     refresh();
   }
 
   Future<void> cleanExpired() async {
     await _repo.cleanExpired();
+    refresh();
+  }
+}
+
+// ============================================================
+// Clipboard Groups provider
+// ============================================================
+
+final clipboardGroupsProvider =
+    StateNotifierProvider<ClipboardGroupsNotifier, List<ClipboardGroupModel>>((
+      ref,
+    ) {
+      final repo = ref.read(clipboardRepositoryProvider);
+      return ClipboardGroupsNotifier(repo);
+    });
+
+final selectedClipboardGroupProvider = StateProvider<String?>((ref) => null);
+
+class ClipboardGroupsNotifier extends StateNotifier<List<ClipboardGroupModel>> {
+  final ClipboardRepository _repo;
+
+  ClipboardGroupsNotifier(this._repo) : super([]) {
+    refresh();
+  }
+
+  void refresh() {
+    state = _repo.getAllGroups();
+  }
+
+  Future<void> addGroup(ClipboardGroupModel group) async {
+    await _repo.saveGroup(group);
+    refresh();
+  }
+
+  Future<void> updateGroup(ClipboardGroupModel group) async {
+    await _repo.saveGroup(group);
+    refresh();
+  }
+
+  Future<void> deleteGroup(String id) async {
+    await _repo.deleteGroup(id);
+    refresh();
+  }
+
+  Future<void> reorder(List<ClipboardGroupModel> groups) async {
+    await _repo.reorderGroups(groups);
     refresh();
   }
 }
