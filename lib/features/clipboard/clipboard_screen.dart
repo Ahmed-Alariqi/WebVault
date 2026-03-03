@@ -10,11 +10,44 @@ import '../../presentation/providers/providers.dart';
 import '../../data/models/clipboard_item_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 
-class ClipboardScreen extends ConsumerWidget {
+class ClipboardScreen extends ConsumerStatefulWidget {
   const ClipboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ClipboardScreen> createState() => _ClipboardScreenState();
+}
+
+class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
+  final Set<String> _selectedIds = {};
+  bool _isMultiSelectMode = false;
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _isMultiSelectMode = false;
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _exitMultiSelect() {
+    setState(() {
+      _selectedIds.clear();
+      _isMultiSelectMode = false;
+    });
+  }
+
+  void _enterMultiSelect(String firstId) {
+    setState(() {
+      _isMultiSelectMode = true;
+      _selectedIds.add(firstId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final allItems = ref.watch(clipboardItemsProvider);
     final groups = ref.watch(clipboardGroupsProvider);
@@ -30,14 +63,66 @@ class ClipboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Clipboard'),
+        title: _isMultiSelectMode
+            ? Text('${_selectedIds.length} selected')
+            : const Text('Clipboard'),
         forceMaterialTransparency: true,
+        leading: _isMultiSelectMode
+            ? IconButton(
+                icon: Icon(PhosphorIcons.x()),
+                onPressed: _exitMultiSelect,
+              )
+            : null,
         actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.gear()),
-            tooltip: 'Clipboard Settings',
-            onPressed: () => context.push('/clipboard-settings'),
-          ),
+          if (_isMultiSelectMode) ...[
+            // Select / Deselect all
+            IconButton(
+              icon: Icon(
+                _selectedIds.length == items.length
+                    ? PhosphorIcons.checkSquare(PhosphorIconsStyle.fill)
+                    : PhosphorIcons.square(),
+              ),
+              tooltip: 'Select All',
+              onPressed: () {
+                setState(() {
+                  if (_selectedIds.length == items.length) {
+                    _selectedIds.clear();
+                    _isMultiSelectMode = false;
+                  } else {
+                    _selectedIds.addAll(items.map((i) => i.id));
+                  }
+                });
+              },
+            ),
+            // Move selected
+            IconButton(
+              icon: Icon(PhosphorIcons.arrowBendUpRight()),
+              tooltip: 'Move to Group',
+              onPressed: () => _showMoveToGroupDialog(
+                context,
+                ref,
+                isDark,
+                _selectedIds.toList(),
+              ),
+            ),
+            // Delete selected
+            IconButton(
+              icon: Icon(PhosphorIcons.trash(), color: AppTheme.errorColor),
+              tooltip: 'Delete Selected',
+              onPressed: () {
+                for (final id in _selectedIds) {
+                  ref.read(clipboardItemsProvider.notifier).deleteItem(id);
+                }
+                _exitMultiSelect();
+              },
+            ),
+          ] else ...[
+            IconButton(
+              icon: Icon(PhosphorIcons.gear()),
+              tooltip: 'Clipboard Settings',
+              onPressed: () => context.push('/clipboard-settings'),
+            ),
+          ],
         ],
       ),
       body: Column(
@@ -53,6 +138,9 @@ class ClipboardScreen extends ConsumerWidget {
                     ),
                     itemCount: items.length,
                     onReorder: (oldIdx, newIdx) {
+                      if (_isMultiSelectMode) {
+                        return; // Disable reorder in multi-select
+                      }
                       final mutable = List<ClipboardItemModel>.from(items);
                       if (newIdx > oldIdx) newIdx--;
                       final item = mutable.removeAt(oldIdx);
@@ -63,21 +151,39 @@ class ClipboardScreen extends ConsumerWidget {
                     },
                     itemBuilder: (context, i) {
                       final item = items[i];
+                      final isSelected = _selectedIds.contains(item.id);
                       return _ClipboardTile(
                         key: ValueKey(item.id),
                         item: item,
                         isDark: isDark,
+                        isMultiSelectMode: _isMultiSelectMode,
+                        isSelected: isSelected,
+                        onToggleSelect: () => _toggleSelection(item.id),
+                        onLongPress: () {
+                          if (!_isMultiSelectMode) {
+                            _enterMultiSelect(item.id);
+                          }
+                        },
+                        onMoveToGroup: () => _showMoveToGroupDialog(
+                          context,
+                          ref,
+                          isDark,
+                          [item.id],
+                        ),
                       );
                     },
                   ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddDialog(context, ref, isDark, activeGroupId),
-        icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold)),
-        label: const Text('Add Value'),
-      ),
+      floatingActionButton: _isMultiSelectMode
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () =>
+                  _showAddDialog(context, ref, isDark, activeGroupId),
+              icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold)),
+              label: const Text('Add Value'),
+            ),
     );
   }
 
@@ -190,6 +296,127 @@ class ClipboardScreen extends ConsumerWidget {
     );
   }
 
+  // ── Move to Group Dialog ──
+  void _showMoveToGroupDialog(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+    List<String> itemIds,
+  ) {
+    final groups = ref.read(clipboardGroupsProvider);
+    final count = itemIds.length;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.arrowBendUpRight(),
+                  size: 22,
+                  color: AppTheme.primaryColor,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  count == 1 ? 'Move to Group' : 'Move $count items',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Uncategorized option
+            ListTile(
+              leading: Icon(PhosphorIcons.tray(), color: Colors.grey),
+              title: const Text('Uncategorized'),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onTap: () {
+                ref
+                    .read(clipboardItemsProvider.notifier)
+                    .moveItemsToGroup(itemIds, null);
+                Navigator.pop(ctx);
+                _exitMultiSelect();
+                _showMovedSnackbar(context, 'Uncategorized');
+              },
+            ),
+            // Group options
+            ...groups.map((g) {
+              final gColor = Color(
+                int.parse(g.colorHex.replaceFirst('#', '0xFF')),
+              );
+              return ListTile(
+                leading: Icon(
+                  PhosphorIcons.folder(PhosphorIconsStyle.fill),
+                  color: gColor,
+                ),
+                title: Text(g.name),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  ref
+                      .read(clipboardItemsProvider.notifier)
+                      .moveItemsToGroup(itemIds, g.id);
+                  Navigator.pop(ctx);
+                  _exitMultiSelect();
+                  _showMovedSnackbar(context, g.name);
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMovedSnackbar(BuildContext context, String groupName) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text('Moved to "$groupName"'),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppTheme.successColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _showAddDialog(
     BuildContext context,
     WidgetRef ref,
@@ -222,8 +449,7 @@ class ClipboardScreen extends ConsumerWidget {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment
-                    .stretch, // Stretch for full width buttons
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Center(
                     child: Container(
@@ -379,8 +605,22 @@ class ClipboardScreen extends ConsumerWidget {
 class _ClipboardTile extends ConsumerWidget {
   final ClipboardItemModel item;
   final bool isDark;
+  final bool isMultiSelectMode;
+  final bool isSelected;
+  final VoidCallback onToggleSelect;
+  final VoidCallback onLongPress;
+  final VoidCallback onMoveToGroup;
 
-  const _ClipboardTile({super.key, required this.item, required this.isDark});
+  const _ClipboardTile({
+    super.key,
+    required this.item,
+    required this.isDark,
+    this.isMultiSelectMode = false,
+    this.isSelected = false,
+    required this.onToggleSelect,
+    required this.onLongPress,
+    required this.onMoveToGroup,
+  });
 
   IconData _typeIcon(ClipboardItemType type) {
     switch (type) {
@@ -401,6 +641,10 @@ class _ClipboardTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () {
+        if (isMultiSelectMode) {
+          onToggleSelect();
+          return;
+        }
         Clipboard.setData(ClipboardData(text: item.value));
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -427,73 +671,25 @@ class _ClipboardTile extends ConsumerWidget {
         );
       },
       onLongPress: () {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          builder: (ctx) => Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(
-                    item.isPinned
-                        ? PhosphorIcons.pushPinSlash()
-                        : PhosphorIcons.pushPin(),
-                    color: AppTheme.accentColor,
-                  ),
-                  title: Text(item.isPinned ? 'Unpin Item' : 'Pin to Top'),
-                  onTap: () {
-                    ref
-                        .read(clipboardItemsProvider.notifier)
-                        .togglePin(item.id);
-                    Navigator.pop(ctx);
-                  },
-                ),
-                ListTile(
-                  leading: Icon(
-                    PhosphorIcons.trash(),
-                    color: AppTheme.errorColor,
-                  ),
-                  title: const Text(
-                    'Delete',
-                    style: TextStyle(color: AppTheme.errorColor),
-                  ),
-                  onTap: () {
-                    ref
-                        .read(clipboardItemsProvider.notifier)
-                        .deleteItem(item.id);
-                    Navigator.pop(ctx);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
+        if (isMultiSelectMode) return;
+        _showItemOptions(context, ref);
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.08)
+              : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: item.isPinned
+            color: isSelected
+                ? AppTheme.primaryColor.withValues(alpha: 0.5)
+                : item.isPinned
                 ? AppTheme.accentColor.withValues(alpha: 0.3)
                 : (isDark ? AppTheme.darkDivider : AppTheme.lightDivider),
-            width: item.isPinned ? 1.5 : 1,
+            width: isSelected || item.isPinned ? 1.5 : 1,
           ),
           boxShadow: [
             BoxShadow(
@@ -505,19 +701,44 @@ class _ClipboardTile extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppTheme.accentColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
+            // Selection checkbox or type icon
+            if (isMultiSelectMode)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                      : (isDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.04)),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isSelected
+                      ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
+                      : PhosphorIcons.circle(),
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : (isDark ? Colors.white38 : Colors.black26),
+                  size: 24,
+                ),
+              )
+            else
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  _typeIcon(item.type),
+                  color: AppTheme.accentColor,
+                  size: 24,
+                ),
               ),
-              child: Icon(
-                _typeIcon(item.type),
-                color: AppTheme.accentColor,
-                size: 24,
-              ),
-            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -566,22 +787,93 @@ class _ClipboardTile extends ConsumerWidget {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            if (!isMultiSelectMode)
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  PhosphorIcons.copySimple(),
+                  size: 18,
+                  color: AppTheme.primaryColor,
+                ),
               ),
-              child: Icon(
-                PhosphorIcons.copySimple(),
-                size: 18,
-                color: AppTheme.primaryColor,
-              ),
-            ),
           ],
         ),
       ),
     ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  void _showItemOptions(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: Icon(
+                item.isPinned
+                    ? PhosphorIcons.pushPinSlash()
+                    : PhosphorIcons.pushPin(),
+                color: AppTheme.accentColor,
+              ),
+              title: Text(item.isPinned ? 'Unpin Item' : 'Pin to Top'),
+              onTap: () {
+                ref.read(clipboardItemsProvider.notifier).togglePin(item.id);
+                Navigator.pop(ctx);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                PhosphorIcons.arrowBendUpRight(),
+                color: AppTheme.primaryColor,
+              ),
+              title: const Text('Move to Group'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onMoveToGroup();
+              },
+            ),
+            ListTile(
+              leading: Icon(PhosphorIcons.checks(), color: Colors.teal),
+              title: const Text('Select Multiple'),
+              onTap: () {
+                Navigator.pop(ctx);
+                onLongPress();
+              },
+            ),
+            ListTile(
+              leading: Icon(PhosphorIcons.trash(), color: AppTheme.errorColor),
+              title: const Text(
+                'Delete',
+                style: TextStyle(color: AppTheme.errorColor),
+              ),
+              onTap: () {
+                ref.read(clipboardItemsProvider.notifier).deleteItem(item.id);
+                Navigator.pop(ctx);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

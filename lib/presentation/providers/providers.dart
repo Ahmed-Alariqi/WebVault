@@ -95,11 +95,6 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
     _loadSettings();
   }
 
-  Future<void> setScreenshotPrevention(bool enabled) async {
-    await _repo.setScreenshotPrevention(enabled);
-    _loadSettings();
-  }
-
   Future<void> setAutoLockTimeout(int seconds) async {
     await _repo.setAutoLockTimeout(seconds);
     _loadSettings();
@@ -112,11 +107,6 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 
   Future<void> setAutoDeleteDays(int days) async {
     await _repo.setAutoDeleteDays(days);
-    _loadSettings();
-  }
-
-  Future<void> setSecureMode(bool enabled) async {
-    await _repo.setSecureModeEnabled(enabled);
     _loadSettings();
   }
 
@@ -402,6 +392,30 @@ class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
 
   Future<void> cleanExpired() async {
     await _repo.cleanExpired();
+    refresh();
+  }
+
+  Future<void> moveItemToGroup(String itemId, String? groupId) async {
+    final item = _repo.getItemById(itemId);
+    if (item != null) {
+      final updated = groupId == null
+          ? item.copyWith(clearGroupId: true)
+          : item.copyWith(groupId: groupId);
+      await _repo.saveItem(updated);
+      refresh();
+    }
+  }
+
+  Future<void> moveItemsToGroup(List<String> itemIds, String? groupId) async {
+    for (final id in itemIds) {
+      final item = _repo.getItemById(id);
+      if (item != null) {
+        final updated = groupId == null
+            ? item.copyWith(clearGroupId: true)
+            : item.copyWith(groupId: groupId);
+        await _repo.saveItem(updated);
+      }
+    }
     refresh();
   }
 }

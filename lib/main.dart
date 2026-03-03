@@ -32,32 +32,54 @@ Future<void> main() async {
   await Hive.openBox(kDiscoverCacheBox);
   await Hive.openBox(kSyncQueueBox);
 
-  // Listen for text shared from outside the app (Android Share Sheet)
-  const MethodChannel('com.webvault.app/overlay').setMethodCallHandler((
-    call,
-  ) async {
-    if (call.method == 'shareReceived') {
-      final args = Map<String, dynamic>.from(call.arguments as Map);
-      final label = args['label'] as String? ?? 'Shared item';
-      final text = args['text'] as String? ?? '';
-      if (text.isNotEmpty) {
-        final id = DateTime.now().millisecondsSinceEpoch.toString();
-        final item = {
-          'id': id,
-          'label': label,
-          'value': text,
-          'type': 0,
-          'isPinned': false,
-          'sortOrder': Hive.box(kClipboardBox).length,
-          'isEncrypted': false,
-          'createdAt': DateTime.now().toIso8601String(),
-          'autoDeleteAt': null,
-          'groupId': null,
-        };
-        await Hive.box(kClipboardBox).put(id, item);
+  // ── Share Intent handling ──
+  // Channel for communicating with native Android code
+  const shareChannel = MethodChannel('com.webvault.app/overlay');
+
+  // Function to check and process all pending shared items from the queue
+  Future<void> checkAndProcessPendingShares() async {
+    try {
+      final result = await shareChannel.invokeMethod('getPendingShares');
+      if (result != null) {
+        final items = List<Map<dynamic, dynamic>>.from(result as List);
+        final box = Hive.box(kClipboardBox);
+        for (final raw in items) {
+          final args = Map<String, dynamic>.from(raw);
+          final label = args['label'] as String? ?? 'Shared item';
+          final text = args['text'] as String? ?? '';
+          if (text.isNotEmpty) {
+            final id = DateTime.now().microsecondsSinceEpoch.toString();
+            final item = {
+              'id': id,
+              'label': label,
+              'value': text,
+              'type': 0,
+              'isPinned': false,
+              'sortOrder': box.length,
+              'isEncrypted': false,
+              'createdAt': DateTime.now().toIso8601String(),
+              'autoDeleteAt': null,
+              'groupId': null,
+            };
+            await box.put(id, item);
+            debugPrint('[Share] Saved shared item: label=$label');
+          }
+        }
+        debugPrint('[Share] Processed ${items.length} pending shares');
       }
+    } catch (e) {
+      debugPrint('[Share] Error checking pending shares: $e');
     }
-  });
+  }
+
+  // Check for pending shares on startup
+  await checkAndProcessPendingShares();
+
+  // Also check on every app resume (user shared while app was in background)
+  // ignore: unused_local_variable
+  final lifecycleListener = AppLifecycleListener(
+    onResume: () => checkAndProcessPendingShares(),
+  );
 
   // Initialize Supabase
   await SupabaseConfig.initialize();

@@ -18,12 +18,6 @@ class SettingsRepository {
   Future<void> setBiometricEnabled(bool enabled) =>
       _box.put(kBiometricEnabled, enabled);
 
-  // Screenshot Prevention
-  bool isScreenshotPreventionEnabled() =>
-      _box.get(kScreenshotPrevention, defaultValue: false) as bool;
-  Future<void> setScreenshotPrevention(bool enabled) =>
-      _box.put(kScreenshotPrevention, enabled);
-
   // Auto-lock timeout (in seconds, 0 = immediate)
   int getAutoLockTimeout() =>
       _box.get(kAutoLockTimeout, defaultValue: 0) as int;
@@ -38,12 +32,6 @@ class SettingsRepository {
   // Auto-delete days for clipboard (-1 = never)
   int getAutoDeleteDays() => _box.get(kAutoDeleteDays, defaultValue: -1) as int;
   Future<void> setAutoDeleteDays(int days) => _box.put(kAutoDeleteDays, days);
-
-  // Secure mode (encrypt clipboard values)
-  bool isSecureModeEnabled() =>
-      _box.get(kSecureModeEnabled, defaultValue: false) as bool;
-  Future<void> setSecureModeEnabled(bool enabled) =>
-      _box.put(kSecureModeEnabled, enabled);
 
   // Advanced Smart Copy
   bool isAdvancedCopyEnabled() =>
@@ -60,11 +48,9 @@ class SettingsRepository {
     return {
       'pinEnabled': isPinEnabled(),
       'biometricEnabled': isBiometricEnabled(),
-      'screenshotPrevention': isScreenshotPreventionEnabled(),
       'autoLockTimeout': getAutoLockTimeout(),
       'themeMode': getThemeMode(),
       'autoDeleteDays': getAutoDeleteDays(),
-      'secureModeEnabled': isSecureModeEnabled(),
       'isAdvancedCopyEnabled': isAdvancedCopyEnabled(),
       'isFirstLaunch': isFirstLaunch(),
       'locale': getLocale(),

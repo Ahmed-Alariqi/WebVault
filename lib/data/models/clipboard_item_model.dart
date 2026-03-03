@@ -36,6 +36,7 @@ class ClipboardItemModel {
     DateTime? createdAt,
     DateTime? autoDeleteAt,
     String? groupId,
+    bool clearGroupId = false,
   }) {
     return ClipboardItemModel(
       id: id ?? this.id,
@@ -47,7 +48,7 @@ class ClipboardItemModel {
       isEncrypted: isEncrypted ?? this.isEncrypted,
       createdAt: createdAt ?? this.createdAt,
       autoDeleteAt: autoDeleteAt ?? this.autoDeleteAt,
-      groupId: groupId ?? this.groupId,
+      groupId: clearGroupId ? null : (groupId ?? this.groupId),
     );
   }
 

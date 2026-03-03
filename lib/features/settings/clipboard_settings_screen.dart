@@ -128,21 +128,26 @@ class _ClipboardSettingsScreenState
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                // ── Quick Access ──────────────────────────────────────
+                // ── How to Save Text ──────────────────────────────────────
                 _buildSectionHeader(
-                  'Quick Access',
-                  PhosphorIcons.lightning(),
+                  'How to Save',
+                  PhosphorIcons.shareNetwork(),
                   isDark,
                 ),
                 const SizedBox(height: 12),
                 _buildCard(
                   isDark: isDark,
                   children: [
-                    // How to add QS tile
-                    _buildInstructionsTile(isDark),
-                    _buildDivider(isDark),
-                    // Usage tips
-                    _buildUsageTipsTile(isDark),
+                    _buildInfoTile(
+                      isDark: isDark,
+                      icon: PhosphorIcons.info(),
+                      iconColor: const Color(0xFF009688),
+                      title: 'Saving text from other apps',
+                      content:
+                          '1. Share: Select text in any app, tap "Share", and choose WebVault.\n'
+                          '2. Text Selection: Select text and choose "WebVault" from the popup menu.\n'
+                          '3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.',
+                    ),
                   ],
                 ),
 
@@ -176,10 +181,9 @@ class _ClipboardSettingsScreenState
                       iconColor: const Color(0xFF3F51B5),
                       title: 'How Smart Copy works',
                       content:
-                          'When enabled, any text you copy on your device '
-                          '(outside of WebVault) is automatically detected and '
-                          'saved to your WebVault clipboard in the background. '
-                          'This requires the overlay permission to be granted.',
+                          'When enabled, any text you copy to your device clipboard '
+                          'is automatically saved to your WebVault in the background '
+                          '(Android 10+ requires background service to be running).',
                     ),
                   ],
                 ),
@@ -201,138 +205,6 @@ class _ClipboardSettingsScreenState
           ),
         ],
       ),
-    );
-  }
-
-  // ── How to add QS tile ─────────────────────────────────────────────
-  Widget _buildInstructionsTile(bool isDark) {
-    return ExpansionTile(
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFF009688).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(
-          Icons.widgets_rounded,
-          color: Color(0xFF009688),
-          size: 22,
-        ),
-      ),
-      title: Text(
-        'How to add the Quick Tile',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
-        ),
-      ),
-      subtitle: Text(
-        'Access clipboard from any screen',
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark
-              ? AppTheme.darkTextSecondary
-              : AppTheme.lightTextSecondary,
-        ),
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            children: [
-              _step(
-                '1',
-                'Swipe down twice to open Quick Settings panel',
-                isDark,
-              ),
-              _step(
-                '2',
-                'Tap the pencil / edit icon to enter edit mode',
-                isDark,
-              ),
-              _step(
-                '3',
-                'Find "WebVault Clipboard" and drag it into your tiles',
-                isDark,
-              ),
-              _step(
-                '4',
-                'Tap the tile anytime to instantly open your clipboard!',
-                isDark,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ── Usage tips tile ───────────────────────────────────────────────
-  Widget _buildUsageTipsTile(bool isDark) {
-    return ExpansionTile(
-      tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: Colors.amber.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          PhosphorIcons.lightbulb(PhosphorIconsStyle.fill),
-          color: Colors.amber.shade700,
-          size: 22,
-        ),
-      ),
-      title: Text(
-        'Tips for Quick Clipboard',
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
-        ),
-      ),
-      subtitle: Text(
-        'Get the most out of it',
-        style: TextStyle(
-          fontSize: 12,
-          color: isDark
-              ? AppTheme.darkTextSecondary
-              : AppTheme.lightTextSecondary,
-        ),
-      ),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: Column(
-            children: [
-              _tip(
-                PhosphorIcons.handTap(),
-                'Tap any item to instantly copy it to your clipboard',
-                isDark,
-              ),
-              _tip(
-                PhosphorIcons.plus(),
-                'Tap + to quickly add a new item',
-                isDark,
-              ),
-              _tip(
-                PhosphorIcons.tag(),
-                'Use categories to filter your items',
-                isDark,
-              ),
-              _tip(
-                PhosphorIcons.arrowClockwise(),
-                'Tap refresh to reload the latest saved items',
-                isDark,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -605,72 +477,6 @@ class _ClipboardSettingsScreenState
       child: Divider(
         height: 1,
         color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
-      ),
-    );
-  }
-
-  Widget _step(String num, String text, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: const Color(0xFF009688).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              num,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF009688),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.5,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _tip(IconData icon, String text, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 18, color: Colors.amber.shade600),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.5,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

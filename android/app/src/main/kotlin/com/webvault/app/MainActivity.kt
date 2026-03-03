@@ -2,61 +2,63 @@ package com.webvault.app
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.BroadcastReceiver
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import org.json.JSONArray
 
 class MainActivity: FlutterFragmentActivity() {
 
     private val OVERLAY_CHANNEL = "com.webvault.app/overlay"
-
-    // Broadcast receiver for text shared from other apps
-    private val shareReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val text = intent?.getStringExtra("text") ?: return
-            val label = intent.getStringExtra("label") ?: "Shared item"
-            Log.d("MainActivity", "Share received: label=$label, text=$text")
-            // Notify Flutter via MethodChannel
-            flutterEngine?.dartExecutor?.let {
-                MethodChannel(it.binaryMessenger, OVERLAY_CHANNEL)
-                    .invokeMethod("shareReceived", mapOf("label" to label, "text" to text))
-            }
-        }
-    }
+    private val TAG = "MainActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createNotificationChannel()
-        // Register broadcast receiver for text sharing
-        val filter = IntentFilter("com.webvault.app.SHARE_RECEIVED")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(shareReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(shareReceiver, filter)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(shareReceiver)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Overlay / share channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, OVERLAY_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "getPendingShares" -> {
+                        // Read the pending share queue from SharedPreferences
+                        val prefs = getSharedPreferences(
+                            ShareReceiverActivity.PREFS_NAME,
+                            Context.MODE_PRIVATE
+                        )
+                        val queueJson = prefs.getString(ShareReceiverActivity.KEY_PENDING_QUEUE, "[]")
+                        val queue = try { JSONArray(queueJson) } catch (e: Exception) { JSONArray() }
+
+                        if (queue.length() > 0) {
+                            Log.d(TAG, "Found ${queue.length()} pending shares")
+
+                            // Convert to a list of maps for Flutter
+                            val items = mutableListOf<Map<String, Any>>()
+                            for (i in 0 until queue.length()) {
+                                val obj = queue.getJSONObject(i)
+                                items.add(mapOf(
+                                    "text" to obj.getString("text"),
+                                    "label" to obj.getString("label")
+                                ))
+                            }
+
+                            // Clear the queue after reading
+                            prefs.edit()
+                                .putString(ShareReceiverActivity.KEY_PENDING_QUEUE, "[]")
+                                .apply()
+
+                            result.success(items)
+                        } else {
+                            result.success(null)
+                        }
+                    }
                     else -> result.notImplemented()
                 }
             }

@@ -73,9 +73,7 @@ class _SecuritySettingsScreenState
 
     final pinEnabled = settings['pinEnabled'] == true;
     final biometricEnabled = settings['biometricEnabled'] == true;
-    final screenshotPrevention = settings['screenshotPrevention'] == true;
     final autoLockTimeout = settings['autoLockTimeout'] as int? ?? 0;
-    final secureModeEnabled = settings['secureModeEnabled'] == true;
 
     return Scaffold(
       body: CustomScrollView(
@@ -321,42 +319,16 @@ class _SecuritySettingsScreenState
 
                 const SizedBox(height: 28),
 
-                // Advanced Protection
+                // App Lock Settings
                 _buildSectionHeader(
-                  'Advanced Protection',
-                  PhosphorIcons.shieldCheck(),
+                  'App Lock Settings',
+                  PhosphorIcons.timer(),
                   isDark,
                 ),
                 const SizedBox(height: 12),
                 _buildSettingCard(
                   isDark: isDark,
                   children: [
-                    _buildSwitchTile(
-                      icon: PhosphorIcons.screencast(),
-                      iconColor: const Color(0xFFE91E63),
-                      title: 'Screenshot Prevention',
-                      subtitle: screenshotPrevention
-                          ? 'Screenshots are blocked'
-                          : 'Screenshots allowed',
-                      value: screenshotPrevention,
-                      onChanged: (value) {
-                        settingsNotifier.setScreenshotPrevention(value);
-                      },
-                    ),
-                    _buildDivider(isDark),
-                    _buildSwitchTile(
-                      icon: PhosphorIcons.lockKey(PhosphorIconsStyle.fill),
-                      iconColor: const Color(0xFFFF6F00),
-                      title: 'Secure Mode',
-                      subtitle: secureModeEnabled
-                          ? 'Clipboard data encrypted'
-                          : 'Standard storage',
-                      value: secureModeEnabled,
-                      onChanged: (value) {
-                        settingsNotifier.setSecureMode(value);
-                      },
-                    ),
-                    _buildDivider(isDark),
                     _buildDropdownTile(
                       icon: PhosphorIcons.timer(),
                       iconColor: const Color(0xFF7C4DFF),

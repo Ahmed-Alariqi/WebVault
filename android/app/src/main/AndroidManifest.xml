@@ -80,6 +80,20 @@
             </intent-filter>
         </activity>
 
+        <!-- Text Selection Context Menu: appears when user selects text in any app -->
+        <activity
+            android:name=".ProcessTextActivity"
+            android:label="Save to WebVault"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:exported="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+        </activity>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

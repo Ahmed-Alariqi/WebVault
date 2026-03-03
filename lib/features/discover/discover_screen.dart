@@ -33,15 +33,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     super.dispose();
   }
 
-  // ── Content Type Tab definitions ──
-  static const _typeFilters = [
-    {'value': null, 'label': 'All', 'icon': 'all'},
-    {'value': 'website', 'label': 'Websites', 'icon': 'website'},
-    {'value': 'prompt', 'label': 'Prompts', 'icon': 'prompt'},
-    {'value': 'offer', 'label': 'Offers', 'icon': 'offer'},
-    {'value': 'announcement', 'label': 'News', 'icon': 'announcement'},
-  ];
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -49,7 +40,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final popular = ref.watch(popularWebsitesProvider);
     final featured = ref.watch(featuredWebsitesProvider);
     final discover = ref.watch(discoverWebsitesProvider);
-
     final selected = ref.watch(selectedCategoryProvider);
     final search = ref.watch(discoverSearchProvider);
 
@@ -108,14 +98,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ],
           ),
 
-          // Search Bar
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-              child: TextField(
-                onChanged: (v) {
+          // ── Sticky Search + Filter Bar ──
+          if (!ref.watch(showBookmarksOnlyProvider))
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _StickySearchFilterDelegate(
+                isDark: isDark,
+                ref: ref,
+                onSearchChanged: (v) {
                   ref.read(discoverSearchProvider.notifier).state = v;
-
                   if (_searchDebounce?.isActive ?? false) {
                     _searchDebounce!.cancel();
                   }
@@ -128,31 +119,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     },
                   );
                 },
-                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-                decoration: InputDecoration(
-                  hintText: 'Search discover...',
-                  prefixIcon: Icon(
-                    PhosphorIcons.magnifyingGlass(),
-                    size: 20,
-                    color: isDark ? Colors.white38 : Colors.black38,
+              ),
+            ),
+
+          if (ref.watch(showBookmarksOnlyProvider)) ...[
+            // Search bar (non-sticky in bookmarks mode)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: TextField(
+                  onChanged: (v) {
+                    ref.read(discoverSearchProvider.notifier).state = v;
+                  },
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
-                  filled: true,
-                  fillColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                  decoration: InputDecoration(
+                    hintText: 'Search bookmarks...',
+                    prefixIcon: Icon(
+                      PhosphorIcons.magnifyingGlass(),
+                      size: 20,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                    filled: true,
+                    fillColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
                 ),
               ),
-            ).animate().fadeIn(),
-          ),
-
-          // Bookmarks-only mode vs normal discover
-          if (ref.watch(showBookmarksOnlyProvider)) ...[
+            ),
             // Bookmarks View
             SliverToBoxAdapter(
               child: ref
@@ -208,12 +210,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   ),
             ),
           ] else ...[
-            // Content Type Filter Tabs
-            SliverToBoxAdapter(child: _buildContentTypeTabs(ref, isDark)),
-
-            // Category Chips
-            SliverToBoxAdapter(child: _buildCategoryChips(ref, isDark)),
-
             // Trending Section
             SliverToBoxAdapter(
               child: trending.when(
@@ -324,208 +320,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-    );
-  }
-
-  // ── Content Type Tabs ──
-  Widget _buildContentTypeTabs(WidgetRef ref, bool isDark) {
-    final selectedType = ref.watch(selectedContentTypeProvider);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
-      child: SizedBox(
-        height: 42,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: _typeFilters.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final filter = _typeFilters[index];
-            final value = filter['value'];
-            final label = filter['label'] as String;
-            final iconKey = filter['icon'] as String;
-            final isActive = selectedType == value;
-
-            // Pick icon per type
-            IconData icon;
-            Color activeColor;
-            switch (iconKey) {
-              case 'website':
-                icon = PhosphorIcons.globe(
-                  isActive
-                      ? PhosphorIconsStyle.fill
-                      : PhosphorIconsStyle.regular,
-                );
-                activeColor = const Color(0xFF6366F1);
-                break;
-              case 'prompt':
-                icon = PhosphorIcons.lightbulb(
-                  isActive
-                      ? PhosphorIconsStyle.fill
-                      : PhosphorIconsStyle.regular,
-                );
-                activeColor = const Color(0xFFEC4899);
-                break;
-              case 'offer':
-                icon = PhosphorIcons.tag(
-                  isActive
-                      ? PhosphorIconsStyle.fill
-                      : PhosphorIconsStyle.regular,
-                );
-                activeColor = const Color(0xFFF59E0B);
-                break;
-              case 'announcement':
-                icon = PhosphorIcons.megaphone(
-                  isActive
-                      ? PhosphorIconsStyle.fill
-                      : PhosphorIconsStyle.regular,
-                );
-                activeColor = const Color.fromARGB(255, 72, 157, 236);
-                break;
-              default: // 'all'
-                icon = PhosphorIcons.squaresFour(
-                  isActive
-                      ? PhosphorIconsStyle.fill
-                      : PhosphorIconsStyle.regular,
-                );
-                activeColor = AppTheme.primaryColor;
-            }
-
-            return GestureDetector(
-              onTap: () =>
-                  ref.read(selectedContentTypeProvider.notifier).state = value,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? activeColor.withValues(alpha: 0.15)
-                      : (isDark
-                            ? Colors.white.withValues(alpha: 0.04)
-                            : Colors.black.withValues(alpha: 0.03)),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isActive
-                        ? activeColor.withValues(alpha: 0.4)
-                        : (isDark
-                              ? Colors.white10
-                              : Colors.black.withValues(alpha: 0.06)),
-                    width: isActive ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      icon,
-                      size: 16,
-                      color: isActive
-                          ? activeColor
-                          : (isDark ? Colors.white38 : Colors.black38),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isActive
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: isActive
-                            ? activeColor
-                            : (isDark ? Colors.white54 : Colors.black45),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  // ── Category Chips ──
-  Widget _buildCategoryChips(WidgetRef ref, bool isDark) {
-    final categories = ref.watch(categoriesProvider);
-    final selected = ref.watch(selectedCategoryProvider);
-
-    return categories.when(
-      data: (cats) {
-        if (cats.isEmpty) return const SizedBox(height: 8);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: SizedBox(
-            height: 42,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: cats.length + 1, // +1 for "All"
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final isAll = index == 0;
-                final isActive = isAll
-                    ? selected == null
-                    : selected == cats[index - 1].id;
-                final label = isAll ? 'All' : cats[index - 1].name;
-                final onTap = isAll
-                    ? () => ref.read(selectedCategoryProvider.notifier).state =
-                          null
-                    : () => ref.read(selectedCategoryProvider.notifier).state =
-                          cats[index - 1].id;
-
-                return GestureDetector(
-                  onTap: onTap,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutCubic,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 0,
-                    ),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? AppTheme.primaryColor.withValues(alpha: 0.12)
-                          : (isDark
-                                ? Colors.white.withValues(alpha: 0.04)
-                                : Colors.black.withValues(alpha: 0.03)),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isActive
-                            ? AppTheme.primaryColor.withValues(alpha: 0.35)
-                            : (isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.06)),
-                        width: isActive ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isActive
-                            ? FontWeight.w700
-                            : FontWeight.w500,
-                        color: isActive
-                            ? AppTheme.primaryColor
-                            : (isDark ? Colors.white54 : Colors.black45),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-      loading: () => const SizedBox(height: 42),
-      error: (e, st) => const SizedBox(height: 8),
     );
   }
 
@@ -1377,5 +1171,284 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         mode: inApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
       );
     }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Sticky Search + Filter Header Delegate
+// ════════════════════════════════════════════════════════════════════════════
+
+class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
+  final bool isDark;
+  final WidgetRef ref;
+  final ValueChanged<String> onSearchChanged;
+
+  static const double _maxExtent = 148.0;
+  static const double _minExtent = 148.0;
+
+  // Type filter definitions (must match the ones in _DiscoverScreenState)
+  static const _typeFilters = [
+    {'value': null, 'label': 'All', 'icon': 'all'},
+    {'value': 'website', 'label': 'Websites', 'icon': 'website'},
+    {'value': 'prompt', 'label': 'Prompts', 'icon': 'prompt'},
+    {'value': 'offer', 'label': 'Offers', 'icon': 'offer'},
+    {'value': 'announcement', 'label': 'News', 'icon': 'announcement'},
+  ];
+
+  _StickySearchFilterDelegate({
+    required this.isDark,
+    required this.ref,
+    required this.onSearchChanged,
+  });
+
+  @override
+  double get maxExtent => _maxExtent;
+
+  @override
+  double get minExtent => _minExtent;
+
+  @override
+  bool shouldRebuild(covariant _StickySearchFilterDelegate oldDelegate) {
+    return isDark != oldDelegate.isDark;
+  }
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final bgColor = isDark ? AppTheme.darkBg : AppTheme.lightBg;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: bgColor,
+        border: Border(
+          bottom: BorderSide(
+            color: shrinkOffset > 0
+                ? (isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.06))
+                : Colors.transparent,
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: Column(
+        children: [
+          // ── Search Bar ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+            child: SizedBox(
+              height: 44,
+              child: TextField(
+                onChanged: onSearchChanged,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search discover...',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: Icon(
+                    PhosphorIcons.magnifyingGlass(),
+                    size: 20,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                  filled: true,
+                  fillColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // ── Content Type Tabs ──
+          SizedBox(height: 42, child: _buildTypeTabs(context)),
+
+          // ── Category Chips ──
+          SizedBox(height: 42, child: _buildCategoryChips()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeTabs(BuildContext context) {
+    final selectedType = ref.watch(selectedContentTypeProvider);
+
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: _typeFilters.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 6),
+      itemBuilder: (context, index) {
+        final filter = _typeFilters[index];
+        final value = filter['value'];
+        final label = filter['label'] as String;
+        final iconKey = filter['icon'] as String;
+        final isActive = selectedType == value;
+
+        IconData icon;
+        Color activeColor;
+        switch (iconKey) {
+          case 'website':
+            icon = PhosphorIcons.globe(
+              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
+            );
+            activeColor = const Color(0xFF6366F1);
+            break;
+          case 'prompt':
+            icon = PhosphorIcons.lightbulb(
+              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
+            );
+            activeColor = const Color(0xFFEC4899);
+            break;
+          case 'offer':
+            icon = PhosphorIcons.tag(
+              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
+            );
+            activeColor = const Color(0xFFF59E0B);
+            break;
+          case 'announcement':
+            icon = PhosphorIcons.megaphone(
+              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
+            );
+            activeColor = const Color.fromARGB(255, 72, 157, 236);
+            break;
+          default:
+            icon = PhosphorIcons.squaresFour(
+              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
+            );
+            activeColor = AppTheme.primaryColor;
+        }
+
+        return GestureDetector(
+          onTap: () =>
+              ref.read(selectedContentTypeProvider.notifier).state = value,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: isActive
+                  ? activeColor.withValues(alpha: 0.15)
+                  : (isDark
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : Colors.black.withValues(alpha: 0.03)),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isActive
+                    ? activeColor.withValues(alpha: 0.4)
+                    : (isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.06)),
+                width: isActive ? 1.5 : 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 14,
+                  color: isActive
+                      ? activeColor
+                      : (isDark ? Colors.white38 : Colors.black38),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive
+                        ? activeColor
+                        : (isDark ? Colors.white54 : Colors.black45),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryChips() {
+    final categories = ref.watch(categoriesProvider);
+    final selected = ref.watch(selectedCategoryProvider);
+
+    return categories.when(
+      data: (cats) {
+        if (cats.isEmpty) return const SizedBox();
+        return ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: cats.length + 1,
+          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          itemBuilder: (context, index) {
+            final isAll = index == 0;
+            final isActive = isAll
+                ? selected == null
+                : selected == cats[index - 1].id;
+            final label = isAll ? 'All' : cats[index - 1].name;
+            final onTap = isAll
+                ? () => ref.read(selectedCategoryProvider.notifier).state = null
+                : () => ref.read(selectedCategoryProvider.notifier).state =
+                      cats[index - 1].id;
+
+            return GestureDetector(
+              onTap: onTap,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 0,
+                ),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppTheme.primaryColor.withValues(alpha: 0.12)
+                      : (isDark
+                            ? Colors.white.withValues(alpha: 0.04)
+                            : Colors.black.withValues(alpha: 0.03)),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isActive
+                        ? AppTheme.primaryColor.withValues(alpha: 0.35)
+                        : (isDark
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.06)),
+                    width: isActive ? 1.5 : 1,
+                  ),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                    color: isActive
+                        ? AppTheme.primaryColor
+                        : (isDark ? Colors.white54 : Colors.black45),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+      loading: () => const SizedBox(),
+      error: (e, st) => const SizedBox(),
+    );
   }
 }
