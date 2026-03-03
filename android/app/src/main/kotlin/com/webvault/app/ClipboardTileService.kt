@@ -1,70 +1,59 @@
 package com.webvault.app
 
+import android.app.PendingIntent
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
+import android.util.Log
 
+/**
+ * Quick Settings tile that opens the main app directly to the Clipboard page
+ * using a standard deep link.
+ */
 class ClipboardTileService : TileService() {
-
-    companion object {
-        var isOverlayActive = false
-    }
 
     override fun onStartListening() {
         super.onStartListening()
-        updateTileState()
+        val tile = qsTile ?: return
+        tile.state = Tile.STATE_INACTIVE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            tile.subtitle = "Tap to open"
+        }
+        tile.updateTile()
     }
 
     override fun onClick() {
         super.onClick()
+        Log.d("ClipboardTile", "QS tile clicked — launching app to Clipboard")
 
-        if (isOverlayActive) {
-            // Send close intent to OverlayService
-            val stopIntent = Intent(this, Class.forName(
-                "flutter.overlay.window.flutter_overlay_window.OverlayService"
-            ))
-            stopIntent.putExtra("IsCloseWindow", true)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(stopIntent)
-            } else {
-                startService(stopIntent)
-            }
-            isOverlayActive = false
-        } else {
-            // Launch overlay as a small bubble in bottom-right corner
-            val startIntent = Intent(this, Class.forName(
-                "flutter.overlay.window.flutter_overlay_window.OverlayService"
-            ))
-            // Using dp values — OverlayService converts via dpToPx()
-            startIntent.putExtra("height", 58)
-            startIntent.putExtra("width", 58)
-            startIntent.putExtra("enableDrag", true)
-            startIntent.putExtra("overlayTitle", "WebVault Clipboard")
-            startIntent.putExtra("overlayContent", "Quick clipboard access")
-            // flagNotFocusable keeps the bubble non-blocking for other apps
-            startIntent.putExtra("flag", "flagNotFocusable")
-            // Snap to right edge after drag
-            startIntent.putExtra("positionGravity", "auto")
-            // Start at bottom-right
-            startIntent.putExtra("alignment", "bottomRight")
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(startIntent)
-            } else {
-                startService(startIntent)
-            }
-            isOverlayActive = true
+        // Create an intent to open the app via deep link
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("webvault://app/clipboard")).apply {
+            setClass(this@ClipboardTileService, MainActivity::class.java)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
-        updateTileState()
-    }
 
-    private fun updateTileState() {
-        val tile = qsTile ?: return
-        tile.state = if (isOverlayActive) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            tile.subtitle = if (isOverlayActive) "Active" else "Tap to open"
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // API 34+: startActivityAndCollapse requires PendingIntent
+                val pendingIntent = PendingIntent.getActivity(
+                    this, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                startActivityAndCollapse(pendingIntent)
+            } else {
+                // API < 34: use the Intent overload directly
+                @Suppress("DEPRECATION")
+                startActivityAndCollapse(intent)
+            }
+        } catch (e: Exception) {
+            Log.e("ClipboardTile", "Failed to launch app from tile: ${e.message}")
+            try {
+                startActivity(intent)
+            } catch (e2: Exception) {
+                Log.e("ClipboardTile", "Fallback also failed: ${e2.message}")
+            }
         }
-        tile.updateTile()
     }
 }

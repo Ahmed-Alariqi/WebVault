@@ -11,6 +11,7 @@ import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import 'community_new_post_sheet.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 void _showReactionPicker(BuildContext context, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
@@ -210,11 +211,7 @@ class CommunityScreen extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Text(
-                  'Failed to load community feed: $error\nCheck your connection.',
-                ),
-              ),
+              error: (error, _) => OfflineWarningWidget(error: error),
             ),
           ),
         ],

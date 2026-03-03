@@ -18,23 +18,6 @@ import 'presentation/providers/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'core/services/analytics_service.dart';
-import 'features/clipboard/overlay_clipboard.dart';
-
-// ============================================================
-// Overlay entry point — runs in its own isolate
-// ============================================================
-@pragma("vm:entry-point")
-void overlayMain() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
-
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: OverlayClipboard(),
-    ),
-  );
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

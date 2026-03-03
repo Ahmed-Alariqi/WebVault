@@ -412,7 +412,7 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
           ),
           if (widget.webViewController != null)
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 final jsCode =
                     '''
                   (function() {
@@ -435,34 +435,30 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                     return false;
                   })();
                   ''';
-                widget.webViewController!
-                    .runJavaScriptReturningResult(jsCode)
-                    .then((result) {
-                      if (result == true || result == 'true') {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Injected "${item.label}"'),
-                              backgroundColor: AppTheme.successColor,
-                              duration: const Duration(milliseconds: 800),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      } else {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Please select a text field first.',
-                              ),
-                              duration: Duration(milliseconds: 1500),
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                      }
-                    });
+
+                final result = await widget.webViewController!
+                    .runJavaScriptReturningResult(jsCode);
+
+                if (!context.mounted) return;
+
+                if (result == true || result == 'true') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Injected "${item.label}"'),
+                      backgroundColor: AppTheme.successColor,
+                      duration: const Duration(milliseconds: 800),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please select a text field first.'),
+                      duration: Duration(milliseconds: 1500),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
               },
               child: Container(
                 padding: const EdgeInsets.all(6),

@@ -3,7 +3,6 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <!-- Overlay permissions for system-wide floating clipboard -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
@@ -36,19 +35,26 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="io.supabase.webvault" android:host="login-callback" />
             </intent-filter>
+            <!-- Deep linking for QS Tile to open specific app routes (e.g. webvault://app/clipboard) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="webvault" android:host="app" />
+            </intent-filter>
         </activity>
 
-        <!-- flutter_overlay_window OverlayService -->
+        <!-- flutter_overlay_window OverlayService (kept for Smart Background Copy feature, NOT for floating UI) -->
         <service
             android:name="flutter.overlay.window.flutter_overlay_window.OverlayService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Display clipboard overlay on top of other apps for quick access to saved items"/>
+                android:value="Smart clipboard background copy monitor"/>
         </service>
 
-        <!-- Quick Settings Tile for clipboard -->
+        <!-- Quick Settings Tile for clipboard quick access -->
         <service
             android:name=".ClipboardTileService"
             android:label="WebVault Clipboard"
@@ -82,6 +88,10 @@
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="webvault"/>
         </intent>
     </queries>
 </manifest>

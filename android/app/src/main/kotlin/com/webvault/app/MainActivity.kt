@@ -3,6 +3,8 @@ package com.webvault.app
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -51,10 +53,10 @@ class MainActivity: FlutterFragmentActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        // Overlay / share channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, OVERLAY_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "isOverlayActive" -> result.success(ClipboardTileService.isOverlayActive)
                     else -> result.notImplemented()
                 }
             }

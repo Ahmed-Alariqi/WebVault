@@ -69,7 +69,11 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
               errStr.contains('failed host lookup') ||
               errStr.contains('connection refused') ||
               errStr.contains('clientexception') ||
-              errStr.contains('network is unreachable');
+              errStr.contains('network is unreachable') ||
+              errStr.contains('xmlhttprequest error') ||
+              errStr.contains('network error') ||
+              errStr.contains('fetch failed') ||
+              errStr.contains('offline');
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -389,7 +393,11 @@ class _UserDialogState extends State<_UserDialog> {
             errStr.contains('failed host lookup') ||
             errStr.contains('connection refused') ||
             errStr.contains('clientexception') ||
-            errStr.contains('network is unreachable');
+            errStr.contains('network is unreachable') ||
+            errStr.contains('xmlhttprequest error') ||
+            errStr.contains('network error') ||
+            errStr.contains('fetch failed') ||
+            errStr.contains('offline');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

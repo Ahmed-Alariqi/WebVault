@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class AdminCommunityScreen extends ConsumerStatefulWidget {
   const AdminCommunityScreen({super.key});
@@ -185,8 +186,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) =>
-                  Center(child: Text('Error loading posts: $err')),
+              error: (err, _) => OfflineWarningWidget(error: err),
             ),
           ),
         ],
