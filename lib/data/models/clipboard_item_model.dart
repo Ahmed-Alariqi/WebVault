@@ -89,6 +89,7 @@ class ClipboardGroupModel {
   final String id;
   final String name;
   final String colorHex;
+  final String iconStr;
   final int sortOrder;
   final DateTime createdAt;
 
@@ -96,6 +97,7 @@ class ClipboardGroupModel {
     required this.id,
     required this.name,
     this.colorHex = '#6366F1', // Default to Indigo
+    this.iconStr = 'folder', // Default icon
     this.sortOrder = 0,
     required this.createdAt,
   });
@@ -104,6 +106,7 @@ class ClipboardGroupModel {
     String? id,
     String? name,
     String? colorHex,
+    String? iconStr,
     int? sortOrder,
     DateTime? createdAt,
   }) {
@@ -111,6 +114,7 @@ class ClipboardGroupModel {
       id: id ?? this.id,
       name: name ?? this.name,
       colorHex: colorHex ?? this.colorHex,
+      iconStr: iconStr ?? this.iconStr,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -121,6 +125,7 @@ class ClipboardGroupModel {
       'id': id,
       'name': name,
       'colorHex': colorHex,
+      'iconStr': iconStr,
       'sortOrder': sortOrder,
       'createdAt': createdAt.toIso8601String(),
     };
@@ -131,6 +136,7 @@ class ClipboardGroupModel {
       id: json['id'] as String,
       name: json['name'] as String,
       colorHex: json['colorHex'] as String? ?? '#6366F1',
+      iconStr: json['iconStr'] as String? ?? 'folder',
       sortOrder: json['sortOrder'] as int? ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );

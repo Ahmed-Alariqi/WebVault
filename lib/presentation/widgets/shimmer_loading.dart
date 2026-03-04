@@ -98,7 +98,7 @@ class ShimmerCardRow extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         itemCount: count,
-        itemBuilder: (_, __) => const ShimmerCard(),
+        itemBuilder: (_, _) => const ShimmerCard(),
       ),
     );
   }

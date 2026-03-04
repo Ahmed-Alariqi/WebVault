@@ -3,11 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
+import '../../core/utils/text_utils.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../presentation/widgets/website_details_dialog.dart';
+import '../../presentation/widgets/modern_fab.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
   const ManageWebsitesScreen({super.key});
@@ -50,12 +54,6 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
       appBar: AppBar(
         title: const Text('Manage Items'),
         forceMaterialTransparency: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => context.push('/admin/websites/edit'),
-          ),
-        ],
       ),
       body: pState.isInitialLoad
           ? Padding(
@@ -89,9 +87,15 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 ],
               ),
             )
-          : ListView.builder(
+          : GridView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(20),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 300,
+                mainAxisExtent: 290, // Match discover card height roughly
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+              ),
               itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
               itemBuilder: (ctx, i) {
                 if (i >= pState.items.length) {
@@ -100,6 +104,12 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 return _websiteTile(context, ref, pState.items[i], isDark, i);
               },
             ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
+        onPressed: () => context.push('/admin/websites/edit'),
+        icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
+        label: const Text('New Item'),
+      ),
     );
   }
 
@@ -121,105 +131,300 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
       });
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.black.withValues(alpha: 0.02),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: _typeColor(site.contentType).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              _typeIcon(site.contentType),
-              color: _typeColor(site.contentType),
-              size: 24,
-            ),
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (ctx) => WebsiteDetailsDialog(site: site),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.06),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  site.title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : Colors.black87,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Image + Badges ──
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child: Stack(
+                children: [
+                  SizedBox(
+                    height: 120,
+                    width: double.infinity,
+                    child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: site.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (ctx, url) => Container(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                              child: Center(
+                                child: Icon(
+                                  _typeIcon(site.contentType),
+                                  color: isDark
+                                      ? Colors.white24
+                                      : Colors.black12,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (ctx, url, err) =>
+                                _placeholderImage(isDark, site.contentType),
+                          )
+                        : _placeholderImage(isDark, site.contentType),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  site.url,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white54 : Colors.black45,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 4,
-                  children: [
-                    if (site.contentType != 'website')
-                      _badge(
-                        _typeDisplayName(site.contentType),
-                        _typeColor(site.contentType),
-                        isDark,
+                  // Content type badge
+                  if (site.contentType != 'website')
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _typeColor(
+                            site.contentType,
+                          ).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _typeIcon(site.contentType),
+                              size: 11,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _typeDisplayName(site.contentType),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    if (catName != null)
-                      _badge(catName!, AppTheme.primaryColor, isDark),
-                    if (site.isTrending)
-                      _badge('Trending', const Color(0xFFFF6B6B), isDark),
-                    if (site.isPopular)
-                      _badge('Popular', const Color(0xFFFF9800), isDark),
-                    if (site.isFeatured)
-                      _badge('Featured', const Color(0xFF4CAF50), isDark),
-                    if (!site.isActive) _badge('Inactive', Colors.grey, isDark),
-                    if (site.isExpired) _badge('Expired', Colors.red, isDark),
+                    ),
+                  // Active/Inactive/Expired badge
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Wrap(
+                      direction: Axis.vertical,
+                      spacing: 4,
+                      children: [
+                        if (!site.isActive)
+                          _badge('Inactive', Colors.grey, isDark),
+                        if (site.isExpired)
+                          _badge('Expired', Colors.red, isDark),
+                        if (site.isTrending)
+                          _badge('Trending', const Color(0xFFFF6B6B), isDark),
+                        if (site.isPopular)
+                          _badge('Popular', const Color(0xFFFF9800), isDark),
+                        if (site.isFeatured)
+                          _badge('Featured', const Color(0xFF4CAF50), isDark),
+                        if (catName != null)
+                          _badge(catName!, AppTheme.primaryColor, isDark),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Content ──
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      site.title,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppTheme.darkTextPrimary
+                            : AppTheme.lightTextPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (site.hasCopyableValue) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.05)
+                                    : Colors.black.withValues(alpha: 0.03),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.black.withValues(alpha: 0.06),
+                                ),
+                              ),
+                              child: Text(
+                                site.actionValue,
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontFamily: 'monospace',
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black54,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ] else ...[
+                            Text(
+                              TextUtils.getPlainTextFromDescription(
+                                site.description,
+                              ),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark
+                                    ? AppTheme.darkTextSecondary
+                                    : AppTheme.lightTextSecondary,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // ── Admin Actions ──
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 32,
+                            child: ElevatedButton.icon(
+                              onPressed: () => context.push(
+                                '/admin/websites/edit',
+                                extra: site,
+                              ),
+                              icon: Icon(
+                                PhosphorIcons.pencilSimple(),
+                                size: 14,
+                              ),
+                              label: const Text(
+                                'Edit',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          height: 32,
+                          width: 32,
+                          child: IconButton(
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Confirm Deletion'),
+                                  content: Text('Delete "${site.title}"?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                await adminDeleteWebsite(site.id);
+                                ref
+                                    .read(
+                                      adminWebsitesPaginatedProvider.notifier,
+                                    )
+                                    .reset();
+                                ref.invalidate(adminWebsitesProvider);
+                                ref.invalidate(discoverWebsitesProvider);
+                                ref.invalidate(trendingWebsitesProvider);
+                                ref.invalidate(popularWebsitesProvider);
+                                ref.invalidate(featuredWebsitesProvider);
+                              }
+                            },
+                            icon: Icon(PhosphorIcons.trash(), size: 16),
+                            padding: EdgeInsets.zero,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.red.withValues(
+                                alpha: 0.1,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            color: Colors.red,
+                            tooltip: 'Delete',
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (v) async {
-              if (v == 'edit') {
-                context.push('/admin/websites/edit', extra: site);
-              } else if (v == 'delete') {
-                await adminDeleteWebsite(site.id);
-                ref.read(adminWebsitesPaginatedProvider.notifier).reset();
-                ref.invalidate(adminWebsitesProvider);
-                ref.invalidate(discoverWebsitesProvider);
-                ref.invalidate(trendingWebsitesProvider);
-                ref.invalidate(popularWebsitesProvider);
-                ref.invalidate(featuredWebsitesProvider);
-              }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
-    ).animate(delay: (index * 80).ms).fadeIn().slideX(begin: 0.04);
+    ).animate(delay: (index * 50).ms).fadeIn().slideY(begin: 0.05);
   }
 
   Widget _badge(String label, Color color, bool isDark) {
@@ -277,5 +482,33 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
       default:
         return 'Website';
     }
+  }
+
+  Widget _placeholderImage(bool isDark, String contentType) {
+    return Container(
+      height: 120,
+      color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _typeIcon(contentType),
+              size: 32,
+              color: _typeColor(contentType).withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _typeDisplayName(contentType),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white24 : Colors.black26,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

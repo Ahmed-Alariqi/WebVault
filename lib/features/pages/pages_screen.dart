@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
+import '../../presentation/widgets/modern_fab.dart';
 
 class PagesScreen extends ConsumerWidget {
   const PagesScreen({super.key});
@@ -58,9 +59,10 @@ class PagesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
         onPressed: () => context.push('/add-page'),
-        icon: Icon(PhosphorIcons.plus()),
+        icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
         label: const Text('Add Page'),
       ),
     );

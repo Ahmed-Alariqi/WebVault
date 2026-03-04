@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -11,6 +12,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
+import '../../data/models/clipboard_item_model.dart';
 import '../../l10n/app_localizations.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -32,6 +34,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final stats = ref.watch(dashboardStatsProvider);
     final totalPages = stats['totalPages'] as int;
     final favCount = stats['favoritesCount'] as int;
+    final foldersCount = stats['foldersCount'] as int;
+    final clipboardCount = stats['clipboardCount'] as int;
     final mostVisited = stats['mostVisited'] as PageModel?;
     final recentPages = stats['recentPages'] as List<PageModel>;
 
@@ -48,7 +52,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               delegate: SliverChildListDelegate([
                 // Quick Actions Grid
                 const _QuickActions(),
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
+
+                // Search Bar
+                _SearchBar(isDark: isDark),
+                const SizedBox(height: 24),
 
                 // Stats Section Header
                 _SectionHeader(
@@ -56,13 +64,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   icon: PhosphorIcons.chartBar(),
                   isDark: isDark,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
-                // Premium Stats Cards
+                // Premium Compact Stats Grid (2×2)
                 Row(
                   children: [
                     Expanded(
-                      child: _StatCard(
+                      child: _CompactStatCard(
                         icon: PhosphorIcons.browsers(
                           PhosphorIconsStyle.duotone,
                         ),
@@ -73,15 +81,45 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         index: 0,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 10),
                     Expanded(
-                      child: _StatCard(
+                      child: _CompactStatCard(
                         icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
                         label: AppLocalizations.of(context)!.favorites,
                         value: '$favCount',
-                        color: AppTheme.errorColor,
+                        color: const Color(0xFFEF4444),
                         isDark: isDark,
                         index: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _CompactStatCard(
+                        icon: PhosphorIcons.folderOpen(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        label: AppLocalizations.of(context)!.folders,
+                        value: '$foldersCount',
+                        color: const Color(0xFF10B981),
+                        isDark: isDark,
+                        index: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _CompactStatCard(
+                        icon: PhosphorIcons.clipboardText(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        label: AppLocalizations.of(context)!.clipboard,
+                        value: '$clipboardCount',
+                        color: const Color(0xFFF59E0B),
+                        isDark: isDark,
+                        index: 3,
                       ),
                     ),
                   ],
@@ -410,7 +448,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _CompactStatCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
@@ -418,7 +456,7 @@ class _StatCard extends StatelessWidget {
   final bool isDark;
   final int index;
 
-  const _StatCard({
+  const _CompactStatCard({
     required this.icon,
     required this.label,
     required this.value,
@@ -430,57 +468,539 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: isDark ? 0.05 : 0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: color.withValues(alpha: isDark ? 0.04 : 0.02),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: isDark
-                  ? AppTheme.darkTextPrimary
-                  : AppTheme.lightTextPrimary,
-              letterSpacing: -1,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                    letterSpacing: -0.5,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.lightTextSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+        ],
+      ),
+    ).animate().fadeIn(delay: (300 + (index * 80)).ms).slideY(begin: 0.1);
+  }
+}
+
+class _SearchBar extends ConsumerWidget {
+  final bool isDark;
+
+  const _SearchBar({required this.isDark});
+
+  void _openSearch(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _GlobalSearchSheet(isDark: isDark),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () => _openSearch(context, ref),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              PhosphorIcons.magnifyingGlass(),
+              size: 20,
               color: isDark
                   ? AppTheme.darkTextSecondary
                   : AppTheme.lightTextSecondary,
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Search pages, clipboard...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                PhosphorIcons.funnelSimple(),
+                size: 14,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1);
+  }
+}
+
+class _GlobalSearchSheet extends ConsumerStatefulWidget {
+  final bool isDark;
+
+  const _GlobalSearchSheet({required this.isDark});
+
+  @override
+  ConsumerState<_GlobalSearchSheet> createState() => _GlobalSearchSheetState();
+}
+
+class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
+  final _ctrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final pages = ref.watch(pagesProvider);
+    final clipboardItems = ref.watch(clipboardItemsProvider);
+
+    // Filter
+    final q = _query.toLowerCase();
+    final matchedPages = q.isEmpty
+        ? <PageModel>[]
+        : pages
+              .where(
+                (p) =>
+                    p.title.toLowerCase().contains(q) ||
+                    p.url.toLowerCase().contains(q) ||
+                    p.tags.any((t) => t.toLowerCase().contains(q)),
+              )
+              .toList();
+
+    final matchedClipboard = q.isEmpty
+        ? <ClipboardItemModel>[]
+        : clipboardItems
+              .where(
+                (c) =>
+                    c.label.toLowerCase().contains(q) ||
+                    c.value.toLowerCase().contains(q),
+              )
+              .toList();
+
+    final hasResults = matchedPages.isNotEmpty || matchedClipboard.isNotEmpty;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.9,
+      minChildSize: 0.5,
+      maxChildSize: 0.95,
+      builder: (ctx, scrollCtrl) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black12,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // Search field
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: TextField(
+                controller: _ctrl,
+                autofocus: true,
+                onChanged: (v) => setState(() => _query = v.trim()),
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontSize: 16,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Search your vault...',
+                  hintStyle: TextStyle(
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.lightTextSecondary,
+                  ),
+                  prefixIcon: Icon(
+                    PhosphorIcons.magnifyingGlass(),
+                    color: AppTheme.primaryColor,
+                  ),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(PhosphorIcons.x(), size: 18),
+                          onPressed: () {
+                            _ctrl.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.04),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ),
+            // Results
+            Expanded(
+              child: ListView(
+                controller: scrollCtrl,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  if (q.isEmpty) ...[
+                    const SizedBox(height: 32),
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            PhosphorIcons.magnifyingGlass(
+                              PhosphorIconsStyle.duotone,
+                            ),
+                            size: 48,
+                            color: isDark ? Colors.white24 : Colors.black12,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Search your saved pages & clipboard',
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppTheme.darkTextSecondary
+                                  : AppTheme.lightTextSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else if (!hasResults) ...[
+                    const SizedBox(height: 32),
+                    Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            PhosphorIcons.magnifyingGlass(),
+                            size: 40,
+                            color: isDark ? Colors.white24 : Colors.black12,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No results for "$_query"',
+                            style: TextStyle(
+                              color: isDark
+                                  ? AppTheme.darkTextSecondary
+                                  : AppTheme.lightTextSecondary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  // Pages results
+                  if (matchedPages.isNotEmpty) ...[
+                    _searchSectionHeader(
+                      'Pages',
+                      PhosphorIcons.browsers(),
+                      matchedPages.length,
+                      isDark,
+                    ),
+                    ...matchedPages
+                        .take(8)
+                        .map((p) => _pageResultTile(context, p, isDark)),
+                  ],
+                  // Clipboard results
+                  if (matchedClipboard.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    _searchSectionHeader(
+                      'Clipboard',
+                      PhosphorIcons.clipboardText(),
+                      matchedClipboard.length,
+                      isDark,
+                    ),
+                    ...matchedClipboard
+                        .take(8)
+                        .map((c) => _clipboardResultTile(context, c, isDark)),
+                  ],
+                  // Discover link
+                  if (q.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    ListTile(
+                      leading: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          PhosphorIcons.compass(),
+                          color: AppTheme.primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        'Browse Discover',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Search online content & websites',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? AppTheme.darkTextSecondary
+                              : AppTheme.lightTextSecondary,
+                        ),
+                      ),
+                      trailing: Icon(
+                        PhosphorIcons.arrowRight(),
+                        size: 18,
+                        color: AppTheme.primaryColor,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        context.go('/discover');
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 32),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _searchSectionHeader(
+    String title,
+    IconData icon,
+    int count,
+    bool isDark,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: isDark ? Colors.white54 : Colors.black45),
+          const SizedBox(width: 8),
+          Text(
+            '$title ($count)',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
           ),
         ],
       ),
-    ).animate().fadeIn(delay: (400 + (index * 100)).ms).slideY(begin: 0.1);
+    );
+  }
+
+  Widget _pageResultTile(BuildContext context, PageModel page, bool isDark) {
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+          color: AppTheme.primaryColor,
+          size: 18,
+        ),
+      ),
+      title: Text(
+        page.title,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        page.url,
+        style: TextStyle(
+          fontSize: 11,
+          color: isDark
+              ? AppTheme.darkTextSecondary
+              : AppTheme.lightTextSecondary,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: page.isFavorite
+          ? Icon(
+              PhosphorIcons.heart(PhosphorIconsStyle.fill),
+              size: 14,
+              color: AppTheme.errorColor,
+            )
+          : null,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onTap: () {
+        Navigator.pop(context);
+        context.push('/browser/${page.id}');
+      },
+    );
+  }
+
+  Widget _clipboardResultTile(
+    BuildContext context,
+    ClipboardItemModel item,
+    bool isDark,
+  ) {
+    return ListTile(
+      dense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      leading: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          PhosphorIcons.copySimple(),
+          color: const Color(0xFFF59E0B),
+          size: 18,
+        ),
+      ),
+      title: Text(
+        item.label,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+          color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        item.value,
+        style: TextStyle(
+          fontSize: 11,
+          color: isDark
+              ? AppTheme.darkTextSecondary
+              : AppTheme.lightTextSecondary,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Icon(
+        PhosphorIcons.copySimple(),
+        size: 14,
+        color: isDark ? Colors.white38 : Colors.black26,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: item.value));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Copied "${item.label}"'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppTheme.successColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+    );
   }
 }
 

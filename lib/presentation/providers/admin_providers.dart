@@ -19,9 +19,9 @@ final adminWebsitesProvider = FutureProvider<List<WebsiteModel>>((ref) async {
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
-// --------------- Paginated Admin Websites (15 items/page) ---------------
+// --------------- Paginated Admin Websites (8 items/page) ---------------
 
-const int kAdminPageSize = 15;
+const int kAdminPageSize = 8;
 
 class PaginatedAdminState<T> {
   final List<T> items;

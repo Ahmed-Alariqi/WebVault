@@ -10,8 +10,9 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
-import 'community_new_post_sheet.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../presentation/widgets/modern_fab.dart';
+import 'community_new_post_sheet.dart';
 
 void _showReactionPicker(BuildContext context, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
@@ -239,17 +240,11 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
         onPressed: () => _showNewPostSheet(context),
-        backgroundColor: AppTheme.primaryColor,
-        icon: Icon(
-          PhosphorIcons.pencilSimple(PhosphorIconsStyle.bold),
-          color: Colors.white,
-        ),
-        label: const Text(
-          'Post',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
+        label: const Text('Post'),
       ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack),
     );
   }

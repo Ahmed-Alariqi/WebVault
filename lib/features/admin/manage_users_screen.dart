@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/widgets/modern_fab.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
@@ -135,11 +136,11 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
         onPressed: () => _showUserDialog(),
-        icon: const Icon(Icons.add),
+        icon: Icon(PhosphorIcons.userPlus(PhosphorIconsStyle.fill)),
         label: Text(AppLocalizations.of(context)!.addUser),
-        backgroundColor: AppTheme.primaryColor,
       ),
       body: Column(
         children: [

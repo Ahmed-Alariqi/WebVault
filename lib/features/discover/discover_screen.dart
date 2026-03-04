@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -105,6 +106,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               delegate: _StickySearchFilterDelegate(
                 isDark: isDark,
                 ref: ref,
+                selectedType: ref.watch(selectedContentTypeProvider),
+                selectedCategory: ref.watch(selectedCategoryProvider),
+                searchQuery: ref.watch(discoverSearchProvider),
                 onSearchChanged: (v) {
                   ref.read(discoverSearchProvider.notifier).state = v;
                   if (_searchDebounce?.isActive ?? false) {
@@ -1237,9 +1241,12 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
   final bool isDark;
   final WidgetRef ref;
   final ValueChanged<String> onSearchChanged;
+  final String? selectedType;
+  final String? selectedCategory;
+  final String searchQuery;
 
-  static const double _maxExtent = 148.0;
-  static const double _minExtent = 148.0;
+  static const double _maxExtent = 146.0;
+  static const double _minExtent = 146.0;
 
   // Type filter definitions (must match the ones in _DiscoverScreenState)
   static const _typeFilters = [
@@ -1254,6 +1261,9 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
     required this.isDark,
     required this.ref,
     required this.onSearchChanged,
+    required this.selectedType,
+    required this.selectedCategory,
+    required this.searchQuery,
   });
 
   @override
@@ -1264,7 +1274,10 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _StickySearchFilterDelegate oldDelegate) {
-    return isDark != oldDelegate.isDark;
+    return isDark != oldDelegate.isDark ||
+        selectedType != oldDelegate.selectedType ||
+        selectedCategory != oldDelegate.selectedCategory ||
+        searchQuery != oldDelegate.searchQuery;
   }
 
   @override
@@ -1273,79 +1286,92 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    final bgColor = isDark ? AppTheme.darkBg : AppTheme.lightBg;
+    final bgColor = isDark
+        ? AppTheme.darkBg.withValues(alpha: shrinkOffset > 0 ? 0.85 : 1.0)
+        : AppTheme.lightBg.withValues(alpha: shrinkOffset > 0 ? 0.85 : 1.0);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: bgColor,
-        border: Border(
-          bottom: BorderSide(
-            color: shrinkOffset > 0
-                ? (isDark
-                      ? Colors.white10
-                      : Colors.black.withValues(alpha: 0.06))
-                : Colors.transparent,
-            width: 0.5,
-          ),
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(
+          sigmaX: shrinkOffset > 0 ? 12 : 0,
+          sigmaY: shrinkOffset > 0 ? 12 : 0,
         ),
-      ),
-      child: Column(
-        children: [
-          // ── Search Bar ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
-            child: SizedBox(
-              height: 44,
-              child: TextField(
-                onChanged: onSearchChanged,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontSize: 14,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Search discover...',
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white38 : Colors.black38,
-                    fontSize: 14,
-                  ),
-                  prefixIcon: Icon(
-                    PhosphorIcons.magnifyingGlass(),
-                    size: 20,
-                    color: isDark ? Colors.white38 : Colors.black38,
-                  ),
-                  filled: true,
-                  fillColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border(
+              bottom: BorderSide(
+                color: shrinkOffset > 0
+                    ? (isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.05))
+                    : Colors.transparent,
+                width: 1,
               ),
             ),
           ),
+          child: Column(
+            children: [
+              // ── Search Bar ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                child: SizedBox(
+                  height: 42,
+                  child: TextField(
+                    onChanged: onSearchChanged,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search discover...',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white38 : Colors.black38,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        PhosphorIcons.magnifyingGlass(),
+                        size: 20,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
+                      filled: true,
+                      fillColor: isDark
+                          ? AppTheme.darkCard
+                          : AppTheme.lightCard,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
 
-          // ── Content Type Tabs ──
-          SizedBox(height: 42, child: _buildTypeTabs(context)),
+              // ── Content Type Tabs ──
+              SizedBox(height: 38, child: _buildTypeTabs(context)),
 
-          // ── Category Chips ──
-          SizedBox(height: 42, child: _buildCategoryChips()),
-        ],
+              // ── Category Chips ──
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: SizedBox(height: 34, child: _buildCategoryChips()),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTypeTabs(BuildContext context) {
-    final selectedType = ref.watch(selectedContentTypeProvider);
-
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: _typeFilters.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 6),
+      separatorBuilder: (_, _) => const SizedBox(width: 8),
       itemBuilder: (context, index) {
         final filter = _typeFilters[index];
         final value = filter['value'];
@@ -1388,27 +1414,29 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
         }
 
         return GestureDetector(
-          onTap: () =>
-              ref.read(selectedContentTypeProvider.notifier).state = value,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            ref.read(selectedContentTypeProvider.notifier).state = value;
+          },
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: isActive
                   ? activeColor.withValues(alpha: 0.15)
                   : (isDark
-                        ? Colors.white.withValues(alpha: 0.04)
+                        ? Colors.white.withValues(alpha: 0.05)
                         : Colors.black.withValues(alpha: 0.04)),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isActive
-                    ? activeColor.withValues(alpha: 0.3)
+                    ? activeColor.withValues(alpha: 0.4)
                     : (isDark
-                          ? Colors.white10
+                          ? Colors.white.withValues(alpha: 0.1)
                           : Colors.black.withValues(alpha: 0.06)),
-                width: isActive ? 1.5 : 1,
+                width: 1,
               ),
             ),
             child: Row(
@@ -1416,20 +1444,20 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
               children: [
                 Icon(
                   icon,
-                  size: 14,
+                  size: 16,
                   color: isActive
                       ? activeColor
-                      : (isDark ? Colors.white38 : Colors.black38),
+                      : (isDark ? Colors.white54 : Colors.black54),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                     color: isActive
                         ? activeColor
-                        : (isDark ? Colors.white54 : Colors.black45),
+                        : (isDark ? Colors.white60 : Colors.black54),
                   ),
                 ),
               ],
@@ -1442,7 +1470,6 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
 
   Widget _buildCategoryChips() {
     final categories = ref.watch(categoriesProvider);
-    final selected = ref.watch(selectedCategoryProvider);
 
     return categories.when(
       data: (cats) {
@@ -1451,25 +1478,31 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 20),
           itemCount: cats.length + 1,
-          separatorBuilder: (_, _) => const SizedBox(width: 6),
+          separatorBuilder: (_, _) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
             final isAll = index == 0;
             final isActive = isAll
-                ? selected == null
-                : selected == cats[index - 1].id;
+                ? selectedCategory == null
+                : selectedCategory == cats[index - 1].id;
             final label = isAll ? 'All' : cats[index - 1].name;
             final onTap = isAll
-                ? () => ref.read(selectedCategoryProvider.notifier).state = null
-                : () => ref.read(selectedCategoryProvider.notifier).state =
-                      cats[index - 1].id;
+                ? () {
+                    HapticFeedback.lightImpact();
+                    ref.read(selectedCategoryProvider.notifier).state = null;
+                  }
+                : () {
+                    HapticFeedback.lightImpact();
+                    ref.read(selectedCategoryProvider.notifier).state =
+                        cats[index - 1].id;
+                  };
 
             return GestureDetector(
               onTap: onTap,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOutCubic,
+                duration: const Duration(milliseconds: 200),
+                curve: Curves.easeInOut,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
+                  horizontal: 14,
                   vertical: 0,
                 ),
                 alignment: Alignment.center,
@@ -1477,16 +1510,16 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
                   color: isActive
                       ? AppTheme.primaryColor.withValues(alpha: 0.15)
                       : (isDark
-                            ? Colors.white.withValues(alpha: 0.04)
+                            ? Colors.white.withValues(alpha: 0.05)
                             : Colors.black.withValues(alpha: 0.04)),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isActive
-                        ? AppTheme.primaryColor.withValues(alpha: 0.3)
+                        ? AppTheme.primaryColor.withValues(alpha: 0.4)
                         : (isDark
-                              ? Colors.white10
+                              ? Colors.white.withValues(alpha: 0.1)
                               : Colors.black.withValues(alpha: 0.06)),
-                    width: isActive ? 1.5 : 1,
+                    width: 1,
                   ),
                 ),
                 child: Text(
@@ -1496,7 +1529,7 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                     color: isActive
                         ? AppTheme.primaryColor
-                        : (isDark ? Colors.white54 : Colors.black45),
+                        : (isDark ? Colors.white60 : Colors.black54),
                   ),
                 ),
               ),

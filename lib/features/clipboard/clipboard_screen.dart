@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/clipboard_item_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
+import '../../presentation/widgets/modern_fab.dart';
 
 class ClipboardScreen extends ConsumerStatefulWidget {
   const ClipboardScreen({super.key});
@@ -20,6 +21,32 @@ class ClipboardScreen extends ConsumerStatefulWidget {
 class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
   final Set<String> _selectedIds = {};
   bool _isMultiSelectMode = false;
+
+  IconData _getIconData(String id) {
+    switch (id) {
+      case 'api':
+        return PhosphorIcons.plugs();
+      case 'code':
+        return PhosphorIcons.code();
+      case 'text':
+        return PhosphorIcons.textT();
+      case 'emails':
+        return PhosphorIcons.envelope();
+      case 'passwords':
+        return PhosphorIcons.password();
+      case 'keys':
+        return PhosphorIcons.key();
+      case 'urls':
+        return PhosphorIcons.link();
+      case 'apps':
+        return PhosphorIcons.appWindow();
+      case 'tools':
+        return PhosphorIcons.wrench();
+      case 'folder':
+      default:
+        return PhosphorIcons.folder();
+    }
+  }
 
   void _toggleSelection(String id) {
     setState(() {
@@ -176,12 +203,13 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
           ),
         ],
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _isMultiSelectMode
           ? null
-          : FloatingActionButton.extended(
+          : ModernFab.extended(
               onPressed: () =>
                   _showAddDialog(context, ref, isDark, activeGroupId),
-              icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold)),
+              icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
               label: const Text('Add Value'),
             ),
     );
@@ -268,7 +296,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               padding: const EdgeInsets.only(left: 8),
               child: _GroupChip(
                 label: g.name,
-                icon: PhosphorIcons.folder(),
+                icon: _getIconData(g.iconStr),
                 color: Color(int.parse(g.colorHex.replaceFirst('#', '0xFF'))),
                 isSelected: activeGroupId == g.id,
                 onTap: () =>
@@ -369,10 +397,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                 int.parse(g.colorHex.replaceFirst('#', '0xFF')),
               );
               return ListTile(
-                leading: Icon(
-                  PhosphorIcons.folder(PhosphorIconsStyle.fill),
-                  color: gColor,
-                ),
+                leading: Icon(_getIconData(g.iconStr), color: gColor, size: 28),
                 title: Text(g.name),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -1016,49 +1041,242 @@ void _showManageGroupDialog(
   ClipboardGroupModel? existingGroup,
   bool isDark,
 ) {
-  final nameCtrl = TextEditingController(text: existingGroup?.name ?? '');
-
   showDialog(
     context: context,
-    builder: (ctx) => AlertDialog(
+    builder: (ctx) => _ManageGroupDialogBody(
+      existingGroup: existingGroup,
+      isDark: isDark,
+      onSave: (name, iconStr, colorHex) {
+        final notifier = ref.read(clipboardGroupsProvider.notifier);
+        if (existingGroup == null) {
+          notifier.addGroup(
+            ClipboardGroupModel(
+              id: const Uuid().v4(),
+              name: name,
+              iconStr: iconStr,
+              colorHex: colorHex,
+              createdAt: DateTime.now(),
+            ),
+          );
+        } else {
+          notifier.updateGroup(
+            existingGroup.copyWith(
+              name: name,
+              iconStr: iconStr,
+              colorHex: colorHex,
+            ),
+          );
+        }
+      },
+    ),
+  );
+}
+
+class _ManageGroupDialogBody extends StatefulWidget {
+  final ClipboardGroupModel? existingGroup;
+  final bool isDark;
+  final void Function(String name, String iconStr, String colorHex) onSave;
+
+  const _ManageGroupDialogBody({
+    this.existingGroup,
+    required this.isDark,
+    required this.onSave,
+  });
+
+  @override
+  State<_ManageGroupDialogBody> createState() => _ManageGroupDialogBodyState();
+}
+
+class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
+  late TextEditingController _nameCtrl;
+  String _selectedIcon = 'folder';
+  String _selectedColor = '#6366F1';
+
+  final List<Map<String, dynamic>> _availableIcons = [
+    {'id': 'folder', 'icon': PhosphorIcons.folder(), 'label': 'Folder'},
+    {'id': 'api', 'icon': PhosphorIcons.plugs(), 'label': 'API'},
+    {'id': 'code', 'icon': PhosphorIcons.code(), 'label': 'Code'},
+    {'id': 'text', 'icon': PhosphorIcons.textT(), 'label': 'Text'},
+    {'id': 'emails', 'icon': PhosphorIcons.envelope(), 'label': 'Emails'},
+    {'id': 'passwords', 'icon': PhosphorIcons.password(), 'label': 'Passwords'},
+    {'id': 'keys', 'icon': PhosphorIcons.key(), 'label': 'Keys'},
+    {'id': 'urls', 'icon': PhosphorIcons.link(), 'label': 'URLs'},
+    {'id': 'apps', 'icon': PhosphorIcons.appWindow(), 'label': 'Apps'},
+    {'id': 'tools', 'icon': PhosphorIcons.wrench(), 'label': 'Tools'},
+  ];
+
+  final List<String> _availableColors = [
+    '#6366F1', // Indigo (Primary)
+    '#EF4444', // Red
+    '#F97316', // Orange
+    '#EAB308', // Yellow
+    '#22C55E', // Green
+    '#06B6D4', // Cyan
+    '#3B82F6', // Blue
+    '#A855F7', // Purple
+    '#EC4899', // Pink
+    '#64748B', // Slate
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _nameCtrl = TextEditingController(text: widget.existingGroup?.name ?? '');
+    if (widget.existingGroup != null) {
+      _selectedIcon = widget.existingGroup!.iconStr;
+      _selectedColor = widget.existingGroup!.colorHex;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  Color _colorFromHex(String hexColor) {
+    hexColor = hexColor.toUpperCase().replaceAll('#', '');
+    if (hexColor.length == 6) {
+      hexColor = 'FF$hexColor';
+    }
+    return Color(int.parse(hexColor, radix: 16));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    return AlertDialog(
       backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(existingGroup == null ? 'New Group' : 'Edit Group'),
-      content: TextFormField(
-        controller: nameCtrl,
-        autofocus: true,
-        style: TextStyle(color: isDark ? Colors.white : Colors.black),
-        decoration: ModernFormWidgets.inputDecoration(
-          context,
-          label: 'Group Name',
-          hint: 'e.g. Work, Social',
-          icon: PhosphorIcons.folder(),
-          isDark: isDark,
+      title: Text(widget.existingGroup == null ? 'New Group' : 'Edit Group'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _nameCtrl,
+              autofocus: true,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+              decoration: ModernFormWidgets.inputDecoration(
+                context,
+                label: 'Group Name',
+                hint: 'e.g. Work, Social',
+                icon:
+                    _availableIcons.firstWhere(
+                          (e) => e['id'] == _selectedIcon,
+                        )['icon']
+                        as IconData,
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Icon',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableIcons.map((item) {
+                final isSelected = _selectedIcon == item['id'];
+                return GestureDetector(
+                  onTap: () =>
+                      setState(() => _selectedIcon = item['id'] as String),
+                  child: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                          : isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppTheme.primaryColor
+                            : Colors.transparent,
+                      ),
+                    ),
+                    child: Icon(
+                      item['icon'] as IconData,
+                      size: 20,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : isDark
+                          ? Colors.white70
+                          : Colors.black87,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Color',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableColors.map((hex) {
+                final isSelected =
+                    _selectedColor.toUpperCase() == hex.toUpperCase();
+                final color = _colorFromHex(hex);
+                return GestureDetector(
+                  onTap: () => setState(() => _selectedColor = hex),
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: isSelected
+                          ? Border.all(
+                              color: isDark ? Colors.white : Colors.black,
+                              width: 3,
+                            )
+                          : null,
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: color.withValues(alpha: 0.5),
+                                blurRadius: 8,
+                                spreadRadius: 2,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 20)
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(ctx),
+          onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () {
-            if (nameCtrl.text.trim().isEmpty) return;
-            final notifier = ref.read(clipboardGroupsProvider.notifier);
-            if (existingGroup == null) {
-              notifier.addGroup(
-                ClipboardGroupModel(
-                  id: const Uuid().v4(),
-                  name: nameCtrl.text.trim(),
-                  createdAt: DateTime.now(),
-                ),
-              );
-            } else {
-              notifier.updateGroup(
-                existingGroup.copyWith(name: nameCtrl.text.trim()),
-              );
-            }
-            Navigator.pop(ctx);
+            if (_nameCtrl.text.trim().isEmpty) return;
+            widget.onSave(_nameCtrl.text.trim(), _selectedIcon, _selectedColor);
+            Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.primaryColor,
@@ -1070,6 +1288,6 @@ void _showManageGroupDialog(
           child: const Text('Save'),
         ),
       ],
-    ),
-  );
+    );
+  }
 }

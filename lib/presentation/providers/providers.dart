@@ -472,11 +472,15 @@ class ClipboardGroupsNotifier extends StateNotifier<List<ClipboardGroupModel>> {
 
 final dashboardStatsProvider = Provider<Map<String, dynamic>>((ref) {
   final pages = ref.watch(pagesProvider);
+  final folders = ref.watch(foldersProvider);
+  final clipboardItems = ref.watch(clipboardItemsProvider);
   final pageRepo = ref.read(pageRepositoryProvider);
 
   return {
     'totalPages': pages.length,
     'favoritesCount': pages.where((p) => p.isFavorite).length,
+    'foldersCount': folders.length,
+    'clipboardCount': clipboardItems.length,
     'mostVisited': pageRepo.getMostVisited(),
     'recentPages': pageRepo.getRecent(limit: 5),
   };

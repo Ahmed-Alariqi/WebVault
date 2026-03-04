@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/folder_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
+import '../../presentation/widgets/modern_fab.dart';
 
 class FoldersScreen extends ConsumerWidget {
   const FoldersScreen({super.key});
@@ -79,7 +80,8 @@ class FoldersScreen extends ConsumerWidget {
               itemBuilder: (context, i) =>
                   _buildFolderCard(context, ref, folders[i], isDark),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
         onPressed: () => _showAddFolderDialog(context, ref, isDark),
         icon: Icon(PhosphorIcons.folderPlus(PhosphorIconsStyle.fill)),
         label: const Text('New Folder'),

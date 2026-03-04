@@ -194,7 +194,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                     controller: _scrollController,
                     padding: const EdgeInsets.all(20),
                     itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
                     itemBuilder: (context, index) {
                       if (index >= pState.items.length) {
                         return const ShimmerListTile();
