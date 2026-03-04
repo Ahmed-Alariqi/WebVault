@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
-import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
@@ -17,11 +17,27 @@ class ManageUsersScreen extends ConsumerStatefulWidget {
 
 class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
   final _searchController = TextEditingController();
+  final _scrollController = ScrollController();
   String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(adminUsersPaginatedProvider.notifier).loadMore();
+    }
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -59,7 +75,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppLocalizations.of(context)!.userDeleted)),
           );
-          final _ = ref.refresh(adminUsersProvider);
+          ref.read(adminUsersPaginatedProvider.notifier).reset();
         }
       } catch (e) {
         if (mounted) {
@@ -92,8 +108,18 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final usersAsync = ref.watch(adminUsersProvider);
+    final pState = ref.watch(adminUsersPaginatedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Client-side search filtering
+    final allItems = pState.items;
+    final filtered = _searchQuery.isEmpty
+        ? allItems
+        : allItems.where((u) {
+            final email = (u['email'] as String? ?? '').toLowerCase();
+            final name = (u['full_name'] as String? ?? '').toLowerCase();
+            return email.contains(_searchQuery) || name.contains(_searchQuery);
+          }).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -103,7 +129,8 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.refresh(adminUsersProvider),
+            onPressed: () =>
+                ref.read(adminUsersPaginatedProvider.notifier).reset(),
             tooltip: AppLocalizations.of(context)!.refresh,
           ),
         ],
@@ -135,17 +162,18 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
             ),
           ),
           Expanded(
-            child: usersAsync.when(
-              data: (users) {
-                final filtered = users.where((u) {
-                  final email = (u['email'] as String? ?? '').toLowerCase();
-                  final name = (u['full_name'] as String? ?? '').toLowerCase();
-                  return email.contains(_searchQuery) ||
-                      name.contains(_searchQuery);
-                }).toList();
-
-                if (filtered.isEmpty) {
-                  return Center(
+            child: pState.isInitialLoad
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      children: List.generate(
+                        5,
+                        (_) => const ShimmerAdminTile(),
+                      ),
+                    ),
+                  )
+                : filtered.isEmpty
+                ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -156,7 +184,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          users.isEmpty
+                          allItems.isEmpty
                               ? AppLocalizations.of(context)!.noUsersFound
                               : AppLocalizations.of(context)!.noMatchesFound,
                           style: const TextStyle(
@@ -166,146 +194,149 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                         ),
                       ],
                     ),
-                  );
-                }
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: filtered.length + (pState.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= filtered.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: ShimmerAdminTile(),
+                        );
+                      }
+                      final user = filtered[index];
+                      final isAdmin = user['role'] == 'admin';
+                      final lastSignIn = user['last_sign_in_at'] != null
+                          ? DateTime.tryParse(user['last_sign_in_at'])
+                          : null;
 
-                return ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 80),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final user = filtered[index];
-                    final isAdmin = user['role'] == 'admin';
-                    final lastSignIn = user['last_sign_in_at'] != null
-                        ? DateTime.tryParse(user['last_sign_in_at'])
-                        : null;
-
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: user['avatar_url'] != null
-                              ? NetworkImage(user['avatar_url'])
-                              : null,
-                          child: user['avatar_url'] == null
-                              ? Text(
-                                  (user['full_name'] as String? ??
-                                          user['email'] ??
-                                          'U')[0]
-                                      .toUpperCase(),
-                                )
-                              : null,
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
-                        title: Row(
-                          children: [
-                            Text(
-                              user['full_name'] ?? 'No Name',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: user['avatar_url'] != null
+                                ? NetworkImage(user['avatar_url'])
+                                : null,
+                            child: user['avatar_url'] == null
+                                ? Text(
+                                    (user['full_name'] as String? ??
+                                            user['email'] ??
+                                            'U')[0]
+                                        .toUpperCase(),
+                                  )
+                                : null,
+                          ),
+                          title: Row(
+                            children: [
+                              Text(
+                                user['full_name'] ?? 'No Name',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            if (isAdmin) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                              if (isAdmin) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.admin.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
                                 ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.1,
+                              ],
+                            ],
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user['email'] ?? 'No Email'),
+                              if (lastSignIn != null)
+                                Text(
+                                  AppLocalizations.of(context)!.lastLogin(
+                                    DateFormat.yMMMd().add_jm().format(
+                                      lastSignIn,
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: AppTheme.primaryColor,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
                                   ),
                                 ),
-                                child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.admin.toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                  ),
+                            ],
+                          ),
+                          trailing: PopupMenuButton<String>(
+                            onSelected: (value) {
+                              if (value == 'edit') {
+                                _showUserDialog(user: user);
+                              }
+                              if (value == 'delete') {
+                                _deleteUser(user['id'], user['email']);
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.edit, size: 20),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.editChangeRole,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.delete,
+                                      size: 20,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.deleteUserTitle,
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
-                          ],
+                          ),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(user['email'] ?? 'No Email'),
-                            if (lastSignIn != null)
-                              Text(
-                                AppLocalizations.of(context)!.lastLogin(
-                                  DateFormat.yMMMd().add_jm().format(
-                                    lastSignIn,
-                                  ),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                          ],
-                        ),
-                        trailing: PopupMenuButton<String>(
-                          onSelected: (value) {
-                            if (value == 'edit') _showUserDialog(user: user);
-                            if (value == 'delete') {
-                              _deleteUser(user['id'], user['email']);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.editChangeRole,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.deleteUserTitle,
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ).animate().fadeIn(delay: (index * 50).ms).slideX();
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => OfflineWarningWidget(error: err),
-            ),
+                      ).animate().fadeIn(delay: (index * 50).ms).slideX();
+                    },
+                  ),
           ),
         ],
       ),

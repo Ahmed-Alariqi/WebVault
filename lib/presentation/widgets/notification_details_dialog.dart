@@ -7,7 +7,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/supabase_config.dart';
 import '../../data/models/notification_model.dart';
+import '../../data/models/website_model.dart';
+import 'website_details_dialog.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
   final NotificationModel notification;
@@ -36,6 +39,8 @@ class NotificationDetailsDialog extends ConsumerWidget {
         return Colors.blueAccent;
       case 'announcement':
         return Colors.orangeAccent;
+      case 'new_item':
+        return const Color(0xFF4CAF50);
       default:
         return AppTheme.primaryColor;
     }
@@ -49,6 +54,8 @@ class NotificationDetailsDialog extends ConsumerWidget {
         return PhosphorIcons.arrowsClockwise(PhosphorIconsStyle.fill);
       case 'announcement':
         return PhosphorIcons.megaphone(PhosphorIconsStyle.fill);
+      case 'new_item':
+        return PhosphorIcons.sparkle(PhosphorIconsStyle.fill);
       default:
         return PhosphorIcons.info(PhosphorIconsStyle.fill);
     }
@@ -234,111 +241,195 @@ class NotificationDetailsDialog extends ConsumerWidget {
                               ),
                               const SizedBox(height: 16),
 
-                              Text(
-                                'ATTACHED LINK',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black38,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
+                              // Check if this is a new_item notification
+                              if (notification.type == 'new_item' ||
+                                  notification.targetUrl!.contains(
+                                    'app://discover/item/',
+                                  )) ...[
+                                // "Explore Now" single button for new item notifications
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      // Capture the root navigator context BEFORE popping
+                                      final navContext = Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).context;
+                                      Navigator.of(context).pop();
 
-                              // Action Buttons
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () {
-                                        if (notification.targetUrl!.startsWith(
-                                          'app://',
-                                        )) {
-                                          final route = notification.targetUrl!
-                                              .replaceFirst('app:/', '');
-                                          Navigator.of(
-                                            context,
-                                          ).pop(); // Close dialog
-                                          context.go(route);
-                                        } else {
-                                          _openUrl(
-                                            context,
-                                            notification.targetUrl!,
-                                            inApp: true,
-                                          );
+                                      // Try to extract item ID and open its card
+                                      final itemId = _extractItemId(
+                                        notification.targetUrl!,
+                                      );
+                                      if (itemId != null) {
+                                        try {
+                                          final resp = await SupabaseConfig
+                                              .client
+                                              .from('websites')
+                                              .select()
+                                              .eq('id', itemId)
+                                              .maybeSingle();
+
+                                          if (resp != null &&
+                                              navContext.mounted) {
+                                            final site = WebsiteModel.fromJson(
+                                              resp,
+                                            );
+                                            GoRouter.of(
+                                              navContext,
+                                            ).go('/discover');
+                                            // Small delay to let route settle
+                                            await Future.delayed(
+                                              const Duration(milliseconds: 300),
+                                            );
+                                            if (navContext.mounted) {
+                                              showDialog(
+                                                context: navContext,
+                                                builder: (ctx) =>
+                                                    WebsiteDetailsDialog(
+                                                      site: site,
+                                                    ),
+                                              );
+                                            }
+                                            return;
+                                          }
+                                        } catch (_) {
+                                          // Fallback to just navigating
                                         }
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: color,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
+                                      }
+                                      if (navContext.mounted) {
+                                        GoRouter.of(navContext).go('/discover');
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: color,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    icon: Icon(
+                                      PhosphorIcons.compassTool(
+                                        PhosphorIconsStyle.fill,
+                                      ),
+                                      size: 20,
+                                    ),
+                                    label: const Text(
+                                      'Explore Now',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else ...[
+                                // Standard URL notification
+                                Text(
+                                  'ATTACHED LINK',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.2,
+                                    color: isDark
+                                        ? Colors.white38
+                                        : Colors.black38,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: () {
+                                          if (notification.targetUrl!
+                                              .startsWith('app://')) {
+                                            final route = notification
+                                                .targetUrl!
+                                                .replaceFirst('app:/', '');
+                                            Navigator.of(context).pop();
+                                            context.go(route);
+                                          } else {
+                                            _openUrl(
+                                              context,
+                                              notification.targetUrl!,
+                                              inApp: true,
+                                            );
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: color,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
+                                          ),
+                                          elevation: 0,
                                         ),
-                                        shape: RoundedRectangleBorder(
+                                        icon: Icon(
+                                          PhosphorIcons.rocketLaunch(
+                                            PhosphorIconsStyle.fill,
+                                          ),
+                                          size: 20,
+                                        ),
+                                        label: const Text(
+                                          'Open Link',
+                                          style: TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    if (!notification.targetUrl!.startsWith(
+                                      'app://',
+                                    )) ...[
+                                      const SizedBox(width: 12),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.05,
+                                                ),
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
                                         ),
-                                        elevation: 0,
-                                      ),
-                                      icon: Icon(
-                                        PhosphorIcons.rocketLaunch(
-                                          PhosphorIconsStyle.fill,
+                                        child: IconButton(
+                                          onPressed: () {
+                                            _openUrl(
+                                              context,
+                                              notification.targetUrl!,
+                                              inApp: false,
+                                            );
+                                          },
+                                          icon: Icon(
+                                            PhosphorIcons.browser(),
+                                            size: 22,
+                                          ),
+                                          color: isDark
+                                              ? AppTheme.darkTextPrimary
+                                              : AppTheme.lightTextPrimary,
+                                          tooltip: 'Open in Browser',
                                         ),
-                                        size: 20,
                                       ),
-                                      label: const Text(
-                                        'Open App',
-                                        style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: IconButton(
-                                      onPressed: () {
-                                        if (notification.targetUrl!.startsWith(
-                                          'app://',
-                                        )) {
-                                          final route = notification.targetUrl!
-                                              .replaceFirst('app:/', '');
-                                          Navigator.of(
-                                            context,
-                                          ).pop(); // Close dialog
-                                          context.go(route);
-                                        } else {
-                                          _openUrl(
-                                            context,
-                                            notification.targetUrl!,
-                                            inApp: false,
-                                          );
-                                        }
-                                      },
-                                      icon: Icon(
-                                        PhosphorIcons.browser(),
-                                        size: 22,
-                                      ),
-                                      color: isDark
-                                          ? AppTheme.darkTextPrimary
-                                          : AppTheme.lightTextPrimary,
-                                      tooltip: 'Open in Browser',
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                    ],
+                                  ],
+                                ),
+                              ],
                             ],
                           ],
                         ),
@@ -408,5 +499,14 @@ class NotificationDetailsDialog extends ConsumerWidget {
     } else {
       return 'Just now';
     }
+  }
+
+  /// Extract item ID from app://discover/item/[id] URL format
+  String? _extractItemId(String url) {
+    const prefix = 'app://discover/item/';
+    if (url.startsWith(prefix)) {
+      return url.substring(prefix.length);
+    }
+    return null;
   }
 }

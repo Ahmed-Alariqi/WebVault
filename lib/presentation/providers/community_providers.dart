@@ -6,7 +6,90 @@ import 'auth_providers.dart';
 final _client = SupabaseConfig.client;
 
 // -----------------------------------------------------------------------------
-// POSTS STREAM
+// PAGINATED POSTS (15 per page) — for user-facing screens
+// -----------------------------------------------------------------------------
+
+const int kCommunityPageSize = 15;
+
+class PaginatedPostsState {
+  final List<CommunityPost> items;
+  final bool isLoading;
+  final bool hasMore;
+  final bool isInitialLoad;
+
+  const PaginatedPostsState({
+    this.items = const [],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.isInitialLoad = true,
+  });
+
+  PaginatedPostsState copyWith({
+    List<CommunityPost>? items,
+    bool? isLoading,
+    bool? hasMore,
+    bool? isInitialLoad,
+  }) {
+    return PaginatedPostsState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+    );
+  }
+}
+
+class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
+  PaginatedPostsNotifier() : super(const PaginatedPostsState()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final from = state.items.length;
+      final to = from + kCommunityPageSize - 1;
+
+      final response = await _client
+          .from('community_posts')
+          .select()
+          .order('is_pinned', ascending: false)
+          .order('created_at', ascending: false)
+          .range(from, to);
+
+      final newItems = (response as List)
+          .map((item) => CommunityPost.fromJson(item))
+          .toList();
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        hasMore: newItems.length >= kCommunityPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, isInitialLoad: false);
+    }
+  }
+
+  void reset() {
+    state = const PaginatedPostsState();
+    loadMore();
+  }
+}
+
+final communityPostsPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedPostsNotifier,
+      PaginatedPostsState
+    >((ref) {
+      return PaginatedPostsNotifier();
+    });
+
+// -----------------------------------------------------------------------------
+// STREAM POSTS (kept for admin only — loads all)
 // -----------------------------------------------------------------------------
 
 final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
@@ -15,13 +98,8 @@ final communityPostsProvider = StreamProvider.autoDispose<List<CommunityPost>>((
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
 
-  // We want to fetch posts, and ideally join them with the profiles to get the authorName.
-  // Using a view is easiest, but we can do a standard select stream too.
-  // We'll use the eq filter if we want categories.
-
   return _client.from('community_posts').stream(primaryKey: ['id']).map((data) {
     final posts = data.map((item) => CommunityPost.fromJson(item)).toList();
-    // Client-side strict sorting because Postgres NULLs float unexpectedly
     posts.sort((a, b) {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;

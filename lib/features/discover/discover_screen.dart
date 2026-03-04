@@ -15,7 +15,7 @@ import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
-import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -36,10 +36,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final trending = ref.watch(trendingWebsitesProvider);
-    final popular = ref.watch(popularWebsitesProvider);
-    final featured = ref.watch(featuredWebsitesProvider);
-    final discover = ref.watch(discoverWebsitesProvider);
+    final trendingState = ref.watch(trendingPaginatedProvider);
+    final popularState = ref.watch(popularPaginatedProvider);
+    final featuredState = ref.watch(featuredPaginatedProvider);
+    final discoverState = ref.watch(discoverPaginatedProvider);
     final selected = ref.watch(selectedCategoryProvider);
     final search = ref.watch(discoverSearchProvider);
 
@@ -212,105 +212,84 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ] else ...[
             // Trending Section
             SliverToBoxAdapter(
-              child: trending.when(
-                data: (sites) => sites.isEmpty
-                    ? const SizedBox()
-                    : _buildSection(
-                        context,
-                        ref,
-                        'Trending',
-                        PhosphorIcons.trendUp(),
-                        sites,
-                        isDark,
-                        showBadge: true,
-                      ),
-                loading: () => _buildShimmerSection(isDark),
-                error: (e, st) => const SizedBox(),
-              ),
+              child: trendingState.isInitialLoad
+                  ? _buildShimmerSection(isDark)
+                  : trendingState.items.isEmpty
+                  ? const SizedBox()
+                  : _buildPaginatedSection(
+                      context,
+                      ref,
+                      'Trending',
+                      PhosphorIcons.trendUp(),
+                      trendingState,
+                      trendingPaginatedProvider,
+                      isDark,
+                      showBadge: true,
+                    ),
             ),
 
             // Popular Section
             SliverToBoxAdapter(
-              child: popular.when(
-                data: (sites) => sites.isEmpty
-                    ? const SizedBox()
-                    : _buildSection(
-                        context,
-                        ref,
-                        'Popular',
-                        PhosphorIcons.fire(),
-                        sites,
-                        isDark,
-                      ),
-                loading: () => _buildShimmerSection(isDark),
-                error: (e, st) => const SizedBox(),
-              ),
+              child: popularState.isInitialLoad
+                  ? _buildShimmerSection(isDark)
+                  : popularState.items.isEmpty
+                  ? const SizedBox()
+                  : _buildPaginatedSection(
+                      context,
+                      ref,
+                      'Popular',
+                      PhosphorIcons.fire(),
+                      popularState,
+                      popularPaginatedProvider,
+                      isDark,
+                    ),
             ),
 
             // Featured Section
             SliverToBoxAdapter(
-              child: featured.when(
-                data: (sites) => sites.isEmpty
-                    ? const SizedBox()
-                    : _buildSection(
-                        context,
-                        ref,
-                        'Featured',
-                        PhosphorIcons.star(),
-                        sites,
-                        isDark,
-                      ),
-                loading: () => _buildShimmerSection(isDark),
-                error: (e, st) => const SizedBox(),
-              ),
+              child: featuredState.isInitialLoad
+                  ? _buildShimmerSection(isDark)
+                  : featuredState.items.isEmpty
+                  ? const SizedBox()
+                  : _buildPaginatedSection(
+                      context,
+                      ref,
+                      'Featured',
+                      PhosphorIcons.star(),
+                      featuredState,
+                      featuredPaginatedProvider,
+                      isDark,
+                    ),
             ),
 
             // All / Filter Results Section
             SliverToBoxAdapter(
-              child: discover.when(
-                data: (sites) => sites.isEmpty
-                    ? const SizedBox()
-                    : _buildSection(
-                        context,
-                        ref,
-                        (selected != null || search.isNotEmpty)
-                            ? 'Results'
-                            : 'Newly Added',
-                        PhosphorIcons.stack(),
-                        sites,
-                        isDark,
-                      ),
-                loading: () => _buildShimmerSection(isDark),
-                error: (e, st) => const SizedBox(),
-              ),
+              child: discoverState.isInitialLoad
+                  ? _buildShimmerSection(isDark)
+                  : discoverState.items.isEmpty
+                  ? const SizedBox()
+                  : _buildPaginatedSection(
+                      context,
+                      ref,
+                      (selected != null || search.isNotEmpty)
+                          ? 'Results'
+                          : 'Newly Added',
+                      PhosphorIcons.stack(),
+                      discoverState,
+                      discoverPaginatedProvider,
+                      isDark,
+                    ),
             ),
 
-            // Offline Error State
-            if (trending.hasError &&
-                popular.hasError &&
-                featured.hasError &&
-                discover.hasError)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: OfflineWarningWidget(
-                  error:
-                      trending.error ??
-                      popular.error ??
-                      featured.error ??
-                      discover.error ??
-                      'Network error',
-                ),
-              ),
-
-            // Empty State
-            if (!trending.hasError &&
-                !popular.hasError &&
-                !featured.hasError &&
-                !discover.hasError &&
-                trending.valueOrNull?.isEmpty == true &&
-                popular.valueOrNull?.isEmpty == true &&
-                featured.valueOrNull?.isEmpty == true &&
-                discover.valueOrNull?.isEmpty == true)
+            // Offline Error State — show only when all sections are empty + initial load done
+            if (!trendingState.isInitialLoad &&
+                !popularState.isInitialLoad &&
+                !featuredState.isInitialLoad &&
+                !discoverState.isInitialLoad &&
+                trendingState.items.isEmpty &&
+                popularState.items.isEmpty &&
+                featuredState.items.isEmpty &&
+                discoverState.items.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: _buildEmptyState(isDark),
@@ -371,6 +350,82 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 isDark,
                 showBadge,
                 i,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Paginated version of _buildSection — detects horizontal scroll end to load more
+  Widget _buildPaginatedSection(
+    BuildContext context,
+    WidgetRef ref,
+    String title,
+    IconData icon,
+    PaginatedWebsitesState pState,
+    AutoDisposeStateNotifierProvider<
+      PaginatedWebsitesNotifier,
+      PaginatedWebsitesState
+    >
+    provider,
+    bool isDark, {
+    bool showBadge = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(icon, size: 20, color: AppTheme.primaryColor),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 290,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (scrollInfo) {
+                if (scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200) {
+                  ref.read(provider.notifier).loadMore();
+                }
+                return false;
+              },
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
+                itemBuilder: (ctx, i) {
+                  if (i >= pState.items.length) {
+                    // Shimmer trailing loader
+                    return const ShimmerCard();
+                  }
+                  return _buildDiscoverCard(
+                    context,
+                    ref,
+                    pState.items[i],
+                    isDark,
+                    showBadge,
+                    i,
+                  );
+                },
               ),
             ),
           ),
@@ -1323,7 +1378,7 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
             icon = PhosphorIcons.megaphone(
               isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
             );
-            activeColor = const Color.fromARGB(255, 72, 157, 236);
+            activeColor = const Color(0xFF489DFC);
             break;
           default:
             icon = PhosphorIcons.squaresFour(
@@ -1336,7 +1391,8 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
           onTap: () =>
               ref.read(selectedContentTypeProvider.notifier).state = value,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
             alignment: Alignment.center,
             decoration: BoxDecoration(
@@ -1344,11 +1400,11 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
                   ? activeColor.withValues(alpha: 0.15)
                   : (isDark
                         ? Colors.white.withValues(alpha: 0.04)
-                        : Colors.black.withValues(alpha: 0.03)),
+                        : Colors.black.withValues(alpha: 0.04)),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isActive
-                    ? activeColor.withValues(alpha: 0.4)
+                    ? activeColor.withValues(alpha: 0.3)
                     : (isDark
                           ? Colors.white10
                           : Colors.black.withValues(alpha: 0.06)),
@@ -1410,7 +1466,8 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
             return GestureDetector(
               onTap: onTap,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 0,
@@ -1418,14 +1475,14 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppTheme.primaryColor.withValues(alpha: 0.12)
+                      ? AppTheme.primaryColor.withValues(alpha: 0.15)
                       : (isDark
                             ? Colors.white.withValues(alpha: 0.04)
-                            : Colors.black.withValues(alpha: 0.03)),
+                            : Colors.black.withValues(alpha: 0.04)),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isActive
-                        ? AppTheme.primaryColor.withValues(alpha: 0.35)
+                        ? AppTheme.primaryColor.withValues(alpha: 0.3)
                         : (isDark
                               ? Colors.white10
                               : Colors.black.withValues(alpha: 0.06)),

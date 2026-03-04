@@ -102,6 +102,8 @@ class _NotificationCard extends StatelessWidget {
         return Colors.blueAccent;
       case 'announcement':
         return Colors.orangeAccent;
+      case 'new_item':
+        return const Color(0xFF4CAF50);
       default:
         return AppTheme.primaryColor;
     }
@@ -115,6 +117,8 @@ class _NotificationCard extends StatelessWidget {
         return PhosphorIcons.arrowsClockwise();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'new_item':
+        return PhosphorIcons.sparkle();
       default:
         return PhosphorIcons.info();
     }
@@ -267,13 +271,17 @@ class _NotificationCard extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    PhosphorIcons.link(),
+                                    notification.type == 'new_item'
+                                        ? PhosphorIcons.sparkle()
+                                        : PhosphorIcons.link(),
                                     size: 12,
                                     color: color,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Has Link',
+                                    notification.type == 'new_item'
+                                        ? 'New Item'
+                                        : 'Has Link',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,

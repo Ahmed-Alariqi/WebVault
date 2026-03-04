@@ -7,7 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
-import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
   const ManageWebsitesScreen({super.key});
@@ -18,10 +18,32 @@ class ManageWebsitesScreen extends ConsumerStatefulWidget {
 }
 
 class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(adminWebsitesPaginatedProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final websites = ref.watch(adminWebsitesProvider);
+    final pState = ref.watch(adminWebsitesPaginatedProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -35,10 +57,15 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
           ),
         ],
       ),
-      body: websites.when(
-        data: (list) {
-          if (list.isEmpty) {
-            return Center(
+      body: pState.isInitialLoad
+          ? Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: List.generate(5, (_) => const ShimmerAdminTile()),
+              ),
+            )
+          : pState.items.isEmpty
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -61,18 +88,18 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                   ),
                 ],
               ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: list.length,
-            itemBuilder: (ctx, i) =>
-                _websiteTile(context, ref, list[i], isDark, i),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => OfflineWarningWidget(error: e),
-      ),
+            )
+          : ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(20),
+              itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
+              itemBuilder: (ctx, i) {
+                if (i >= pState.items.length) {
+                  return const ShimmerAdminTile();
+                }
+                return _websiteTile(context, ref, pState.items[i], isDark, i);
+              },
+            ),
     );
   }
 
@@ -177,6 +204,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                 context.push('/admin/websites/edit', extra: site);
               } else if (v == 'delete') {
                 await adminDeleteWebsite(site.id);
+                ref.read(adminWebsitesPaginatedProvider.notifier).reset();
                 ref.invalidate(adminWebsitesProvider);
                 ref.invalidate(discoverWebsitesProvider);
                 ref.invalidate(trendingWebsitesProvider);

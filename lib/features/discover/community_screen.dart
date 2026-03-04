@@ -11,7 +11,7 @@ import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import 'community_new_post_sheet.dart';
-import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 
 void _showReactionPicker(BuildContext context, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
@@ -71,14 +71,46 @@ void _showReactionPicker(BuildContext context, String postId) {
 // State provider for the currently selected category filter
 final communityCategoryFilterProvider = StateProvider<String>((ref) => 'all');
 
-class CommunityScreen extends ConsumerWidget {
+class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CommunityScreen> createState() => _CommunityScreenState();
+}
+
+class _CommunityScreenState extends ConsumerState<CommunityScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(communityPostsPaginatedProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final postsAsync = ref.watch(communityPostsProvider);
+    final pState = ref.watch(communityPostsPaginatedProvider);
     final selectedCategory = ref.watch(communityCategoryFilterProvider);
+
+    // Client-side category filtering
+    final filteredPosts = selectedCategory == 'all'
+        ? pState.items
+        : pState.items.where((p) => p.category == selectedCategory).toList();
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -180,39 +212,30 @@ class CommunityScreen extends ConsumerWidget {
           ),
 
           Expanded(
-            child: postsAsync.when(
-              data: (posts) {
-                // Filter by category if not 'all'
-                final filteredPosts = selectedCategory == 'all'
-                    ? posts
-                    : posts
-                          .where((p) => p.category == selectedCategory)
-                          .toList();
-
-                if (filteredPosts.isEmpty) {
-                  return _EmptyCommunityState(
+            child: pState.isInitialLoad
+                ? const ShimmerListColumn(count: 4)
+                : filteredPosts.isEmpty
+                ? _EmptyCommunityState(
                     isDark: isDark,
                     onPostTap: () => _showNewPostSheet(context),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                  itemCount: filteredPosts.length,
-                  itemBuilder: (context, index) {
-                    final post = filteredPosts[index];
-                    return _CommunityPostCard(
-                      key: ValueKey(post.id),
-                      post: post,
-                      isDark: isDark,
-                      index: index,
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => OfflineWarningWidget(error: error),
-            ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                    itemCount: filteredPosts.length + (pState.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= filteredPosts.length) {
+                        return const ShimmerListTile();
+                      }
+                      final post = filteredPosts[index];
+                      return _CommunityPostCard(
+                        key: ValueKey(post.id),
+                        post: post,
+                        isDark: isDark,
+                        index: index,
+                      );
+                    },
+                  ),
           ),
         ],
       ),

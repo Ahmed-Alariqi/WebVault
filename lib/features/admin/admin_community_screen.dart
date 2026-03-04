@@ -8,7 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
-import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 
 class AdminCommunityScreen extends ConsumerStatefulWidget {
   const AdminCommunityScreen({super.key});
@@ -20,6 +20,27 @@ class AdminCommunityScreen extends ConsumerStatefulWidget {
 
 class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
   bool _isWiping = false;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(communityPostsPaginatedProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _wipeAllChat() async {
     final confirmed = await showDialog<bool>(
@@ -69,6 +90,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
       try {
         await SupabaseConfig.client.rpc('wipe_community_chat');
         if (mounted) {
+          ref.read(communityPostsPaginatedProvider.notifier).reset();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Chat successfully wiped.'),
@@ -80,7 +102,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to wipe chat: $e'),
+              content: Text('Failed to wipe chat: \$e'),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -97,11 +119,12 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
           .from('community_posts')
           .update({'is_pinned': !post.isPinned})
           .eq('id', post.id);
+      ref.read(communityPostsPaginatedProvider.notifier).reset();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pin post: $e'),
+            content: Text('Failed to pin post: \$e'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -112,7 +135,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final postsAsync = ref.watch(communityPostsProvider);
+    final pState = ref.watch(communityPostsPaginatedProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -163,31 +186,27 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
           ),
 
           Expanded(
-            child: postsAsync.when(
-              data: (posts) {
-                if (posts.isEmpty) {
-                  return const Center(
-                    child: Text('No posts in the community.'),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: posts.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final post = posts[index];
-                    return _AdminPostTile(
-                      post: post,
-                      onTogglePin: () => _togglePin(post),
-                      isDark: isDark,
-                    );
-                  },
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, _) => OfflineWarningWidget(error: err),
-            ),
+            child: pState.isInitialLoad
+                ? const ShimmerListColumn(count: 5)
+                : pState.items.isEmpty
+                ? const Center(child: Text('No posts in the community.'))
+                : ListView.separated(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(20),
+                    itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      if (index >= pState.items.length) {
+                        return const ShimmerListTile();
+                      }
+                      final post = pState.items[index];
+                      return _AdminPostTile(
+                        post: post,
+                        onTogglePin: () => _togglePin(post),
+                        isDark: isDark,
+                      );
+                    },
+                  ),
           ),
         ],
       ),

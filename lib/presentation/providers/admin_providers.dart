@@ -19,10 +19,153 @@ final adminWebsitesProvider = FutureProvider<List<WebsiteModel>>((ref) async {
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
-Future<void> adminAddWebsite(Map<String, dynamic> data) async {
+// --------------- Paginated Admin Websites (15 items/page) ---------------
+
+const int kAdminPageSize = 15;
+
+class PaginatedAdminState<T> {
+  final List<T> items;
+  final bool isLoading;
+  final bool hasMore;
+  final bool isInitialLoad;
+
+  const PaginatedAdminState({
+    this.items = const [],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.isInitialLoad = true,
+  });
+
+  PaginatedAdminState<T> copyWith({
+    List<T>? items,
+    bool? isLoading,
+    bool? hasMore,
+    bool? isInitialLoad,
+  }) {
+    return PaginatedAdminState<T>(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+    );
+  }
+}
+
+class AdminWebsitesPaginatedNotifier
+    extends StateNotifier<PaginatedAdminState<WebsiteModel>> {
+  AdminWebsitesPaginatedNotifier()
+    : super(const PaginatedAdminState<WebsiteModel>()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final from = state.items.length;
+      final to = from + kAdminPageSize - 1;
+
+      final response = await _client
+          .from('websites')
+          .select()
+          .order('created_at', ascending: false)
+          .range(from, to);
+
+      final newItems = (response as List)
+          .map((e) => WebsiteModel.fromJson(e))
+          .toList();
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        hasMore: newItems.length >= kAdminPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, isInitialLoad: false);
+    }
+  }
+
+  void reset() {
+    state = const PaginatedAdminState<WebsiteModel>();
+    loadMore();
+  }
+}
+
+final adminWebsitesPaginatedProvider =
+    StateNotifierProvider<
+      AdminWebsitesPaginatedNotifier,
+      PaginatedAdminState<WebsiteModel>
+    >((ref) {
+      return AdminWebsitesPaginatedNotifier();
+    });
+
+// --------------- Paginated Admin Users (client-side, 15/page) ---------------
+
+class AdminUsersPaginatedNotifier
+    extends StateNotifier<PaginatedAdminState<Map<String, dynamic>>> {
+  List<Map<String, dynamic>> _allUsers = [];
+
+  AdminUsersPaginatedNotifier()
+    : super(const PaginatedAdminState<Map<String, dynamic>>()) {
+    _fetchAll();
+  }
+
+  Future<void> _fetchAll() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final response = await _client.functions.invoke(
+        'admin-user-actions',
+        body: {'action': 'list_users'},
+      );
+      final data = response.data as List;
+      _allUsers = data.map((e) => e as Map<String, dynamic>).toList();
+
+      // Show first page
+      final firstPage = _allUsers.take(kAdminPageSize).toList();
+      state = PaginatedAdminState<Map<String, dynamic>>(
+        items: firstPage,
+        isLoading: false,
+        hasMore: _allUsers.length > kAdminPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      debugPrint('Error loading users: $e');
+      state = state.copyWith(isLoading: false, isInitialLoad: false);
+    }
+  }
+
+  void loadMore() {
+    if (state.isLoading || !state.hasMore) return;
+    final currentLen = state.items.length;
+    final nextBatch = _allUsers.skip(currentLen).take(kAdminPageSize).toList();
+
+    state = state.copyWith(
+      items: [...state.items, ...nextBatch],
+      hasMore: currentLen + nextBatch.length < _allUsers.length,
+    );
+  }
+
+  void reset() {
+    state = const PaginatedAdminState<Map<String, dynamic>>();
+    _fetchAll();
+  }
+}
+
+final adminUsersPaginatedProvider =
+    StateNotifierProvider<
+      AdminUsersPaginatedNotifier,
+      PaginatedAdminState<Map<String, dynamic>>
+    >((ref) {
+      return AdminUsersPaginatedNotifier();
+    });
+
+Future<String?> adminAddWebsite(Map<String, dynamic> data) async {
   final user = _client.auth.currentUser;
   data['created_by'] = user?.id;
-  await _client.from('websites').insert(data);
+  final res = await _client.from('websites').insert(data).select('id').single();
+  return res['id'] as String?;
 }
 
 Future<void> adminUpdateWebsite(String id, Map<String, dynamic> data) async {

@@ -136,6 +136,150 @@ final featuredWebsitesProvider = FutureProvider<List<WebsiteModel>>((
   return _filterActive(items);
 });
 
+// --------------- Paginated Discover (10 items/page) ---------------
+
+const int kDiscoverPageSize = 10;
+
+class PaginatedWebsitesState {
+  final List<WebsiteModel> items;
+  final bool isLoading;
+  final bool hasMore;
+  final bool isInitialLoad;
+
+  const PaginatedWebsitesState({
+    this.items = const [],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.isInitialLoad = true,
+  });
+
+  PaginatedWebsitesState copyWith({
+    List<WebsiteModel>? items,
+    bool? isLoading,
+    bool? hasMore,
+    bool? isInitialLoad,
+  }) {
+    return PaginatedWebsitesState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+    );
+  }
+}
+
+class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
+  final String?
+  _filterField; // e.g. 'is_trending', 'is_popular', 'is_featured', or null for all
+  final Ref _ref;
+
+  PaginatedWebsitesNotifier(this._ref, this._filterField)
+    : super(const PaginatedWebsitesState()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final categoryId = _ref.read(selectedCategoryProvider);
+      final search = _ref.read(discoverSearchProvider);
+      final contentType = _ref.read(selectedContentTypeProvider);
+
+      var query = _client.from('websites').select().eq('is_active', true);
+
+      if (_filterField != null) {
+        query = query.eq(_filterField, true);
+      }
+      if (categoryId != null) {
+        query = query.eq('category_id', categoryId);
+      }
+      if (contentType != null) {
+        query = query.eq('content_type', contentType);
+      }
+      if (search.isNotEmpty) {
+        query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+      }
+
+      final from = state.items.length;
+      final to = from + kDiscoverPageSize - 1;
+
+      final response = await query
+          .order('created_at', ascending: false)
+          .range(from, to);
+
+      final newItems = (response as List)
+          .map((e) => WebsiteModel.fromJson(e))
+          .toList();
+      final filtered = _filterActive(newItems);
+
+      state = state.copyWith(
+        items: [...state.items, ...filtered],
+        isLoading: false,
+        hasMore: newItems.length >= kDiscoverPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, isInitialLoad: false);
+    }
+  }
+
+  void reset() {
+    state = const PaginatedWebsitesState();
+    loadMore();
+  }
+}
+
+// Provider for "All / Newly Added" section
+final discoverPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedWebsitesNotifier,
+      PaginatedWebsitesState
+    >((ref) {
+      // Watch filters so the provider rebuilds when they change
+      ref.watch(selectedCategoryProvider);
+      ref.watch(discoverSearchProvider);
+      ref.watch(selectedContentTypeProvider);
+      return PaginatedWebsitesNotifier(ref, null);
+    });
+
+// Provider for "Trending" section
+final trendingPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedWebsitesNotifier,
+      PaginatedWebsitesState
+    >((ref) {
+      ref.watch(selectedCategoryProvider);
+      ref.watch(discoverSearchProvider);
+      ref.watch(selectedContentTypeProvider);
+      return PaginatedWebsitesNotifier(ref, 'is_trending');
+    });
+
+// Provider for "Popular" section
+final popularPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedWebsitesNotifier,
+      PaginatedWebsitesState
+    >((ref) {
+      ref.watch(selectedCategoryProvider);
+      ref.watch(discoverSearchProvider);
+      ref.watch(selectedContentTypeProvider);
+      return PaginatedWebsitesNotifier(ref, 'is_popular');
+    });
+
+// Provider for "Featured" section
+final featuredPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedWebsitesNotifier,
+      PaginatedWebsitesState
+    >((ref) {
+      ref.watch(selectedCategoryProvider);
+      ref.watch(discoverSearchProvider);
+      ref.watch(selectedContentTypeProvider);
+      return PaginatedWebsitesNotifier(ref, 'is_featured');
+    });
+
 // --------------- Tools ---------------
 
 final discoverToolsProvider = FutureProvider<List<ToolModel>>((ref) async {

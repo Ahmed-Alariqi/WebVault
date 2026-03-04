@@ -158,8 +158,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
             : _videoUrlCtrl.text.trim(),
       };
 
+      String? newItemId;
       if (widget.existing == null) {
-        await adminAddWebsite(data);
+        newItemId = await adminAddWebsite(data);
       } else {
         await adminUpdateWebsite(widget.existing!.id, data);
       }
@@ -176,8 +177,13 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                 : _contentType == 'announcement'
                 ? '📢 New announcement! Tap to read.'
                 : '🌐 New content just added! Tap to discover.',
-            'type': 'announcement',
-            'target_url': 'app://discover',
+            'type': 'new_item',
+            'target_url': newItemId != null
+                ? 'app://discover/item/$newItemId'
+                : 'app://discover',
+            'image_url': _imgCtrl.text.trim().isEmpty
+                ? null
+                : _imgCtrl.text.trim(),
           });
         } catch (_) {
           // Notification failure shouldn't block save
