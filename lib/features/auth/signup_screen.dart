@@ -168,7 +168,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                const SizedBox(height: 20),
                 // Back button
                 Align(
                   alignment: Alignment.centerLeft,
@@ -448,10 +447,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
               validator: (v) {
-              if (v != _passwordCtrl.text) {
-                return AppLocalizations.of(context)!.passwordsDoNotMatch;
-              }
-              return null;
+                if (v != _passwordCtrl.text) {
+                  return AppLocalizations.of(context)!.passwordsDoNotMatch;
+                }
+                return null;
               },
             ),
 

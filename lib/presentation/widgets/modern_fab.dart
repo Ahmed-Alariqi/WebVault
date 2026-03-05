@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ModernFab extends StatelessWidget {
   final VoidCallback onPressed;
@@ -64,7 +65,12 @@ class ModernFab extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: onPressed,
-              highlightColor: const Color.fromARGB(255, 255, 255, 255).withValues(alpha: 0.1),
+              highlightColor: const Color.fromARGB(
+                255,
+                255,
+                255,
+                255,
+              ).withValues(alpha: 0.1),
               splashColor: Colors.white.withValues(alpha: 0.2),
               child: Padding(
                 padding: EdgeInsets.symmetric(
@@ -81,12 +87,17 @@ class ModernFab extends StatelessWidget {
                     if (isExtended) ...[
                       const SizedBox(width: 8),
                       DefaultTextStyle(
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          letterSpacing: 0.3,
-                        ),
+                        style:
+                            (Localizations.localeOf(context).languageCode ==
+                                        'ar'
+                                    ? GoogleFonts.tajawal()
+                                    : GoogleFonts.inter())
+                                .copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                  letterSpacing: 0.3,
+                                ),
                         child: label!,
                       ),
                       const SizedBox(width: 4), // extra breathing room

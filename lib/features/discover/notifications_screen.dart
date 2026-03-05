@@ -9,6 +9,8 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/notification_model.dart';
 import '../../presentation/widgets/notification_details_dialog.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 import '../../l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -20,18 +22,34 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  final _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
-    // Mark all notifications as read when user opens this screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       markNotificationsRead(ref);
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+      ref.read(notificationsPaginatedProvider.notifier).loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final notificationsAsync = ref.watch(notificationsProvider);
+    final pState = ref.watch(notificationsPaginatedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -40,53 +58,72 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         title: Text(AppLocalizations.of(context)!.notifications),
         forceMaterialTransparency: true,
       ),
-      body: notificationsAsync.when(
-        data: (notifications) {
-          if (notifications.isEmpty) {
-            return Center(
+      body: pState.isInitialLoad
+          ? Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    PhosphorIcons.bellSlash(),
-                    size: 64,
-                    color: isDark ? Colors.white24 : Colors.black12,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppLocalizations.of(context)!.noNotifications,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? Colors.white54 : Colors.black45,
-                    ),
-                  ),
-                ],
+                children: List.generate(5, (_) => const ShimmerListTile()),
               ),
-            ).animate().fadeIn();
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async => ref.refresh(notificationsProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: notifications.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final notification = notifications[index];
-                return _NotificationCard(
-                  notification: notification,
-                  isDark: isDark,
-                ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
-              },
+            )
+          : pState.items.isEmpty && !pState.isLoading
+          ? _buildEmptyState(context, isDark)
+          : RefreshIndicator(
+              onRefresh: () async =>
+                  ref.read(notificationsPaginatedProvider.notifier).reset(),
+              child: ListView.separated(
+                controller: _scrollController,
+                padding: const EdgeInsets.all(16),
+                itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  if (index >= pState.items.length) {
+                    return const ShimmerListTile();
+                  }
+                  final notification = pState.items[index];
+                  return _NotificationCard(
+                    notification: notification,
+                    isDark: isDark,
+                  ).animate().fadeIn(delay: (50 * index).ms).slideX(begin: 0.1);
+                },
+              ),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
-          child: Text(AppLocalizations.of(context)!.errorLoadingNotifications),
-        ),
-      ),
     );
+  }
+
+  Widget _buildEmptyState(BuildContext context, bool isDark) {
+    // If we have an error and items list is empty, we show offline/error warning
+    final pState = ref.watch(notificationsPaginatedProvider);
+    if (pState.error != null) {
+      return Center(
+        child: GestureDetector(
+          onTap: () =>
+              ref.read(notificationsPaginatedProvider.notifier).reset(),
+          child: OfflineWarningWidget(error: pState.error!),
+        ),
+      );
+    }
+
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            PhosphorIcons.bellSlash(),
+            size: 64,
+            color: isDark ? Colors.white24 : Colors.black12,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context)!.noNotifications,
+            style: TextStyle(
+              fontSize: 16,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn();
   }
 }
 

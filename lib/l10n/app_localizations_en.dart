@@ -297,6 +297,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noUsersFound => 'No users found';
 
   @override
+  String get howItWorks => 'How it works?';
+
+  @override
+  String get discoverTitle => 'Discover';
+
+  @override
+  String get openButton => 'Open';
+
+  @override
+  String get communityTitle => 'Community';
+
+  @override
+  String get dismissButton => 'Dismiss';
+
+  @override
+  String get emptySearchTitle => 'No results found';
+
+  @override
   String get noMatchesFound => 'No matches found';
 
   @override
@@ -470,9 +488,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewAccounts => 'View Accounts';
-
-  @override
-  String get communityTitle => 'Community';
 
   @override
   String get managePosts => 'Manage Posts';
@@ -2027,4 +2042,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifBodyDefault => '🌐 New content just added! Tap to discover.';
+
+  @override
+  String get beTheFirstToPost => 'Be the first to post!';
+
+  @override
+  String get createAPost => 'Create a post';
+
+  @override
+  String get shareAResourceAskAQuestion =>
+      'Share a resource, ask a question,\nor give a tip to the community.';
+
+  @override
+  String get beTheFirstToReply =>
+      'No replies yet.\nBe the first to join the conversation!';
 }

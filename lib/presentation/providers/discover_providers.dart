@@ -307,15 +307,102 @@ final categoriesProvider = FutureProvider<List<CategoryModel>>((ref) async {
 
 // --------------- Notifications ---------------
 
+const int kNotificationsPageSize = 10;
+
+class PaginatedNotificationsState {
+  final List<NotificationModel> items;
+  final bool isLoading;
+  final bool hasMore;
+  final bool isInitialLoad;
+  final String? error;
+
+  const PaginatedNotificationsState({
+    this.items = const [],
+    this.isLoading = false,
+    this.hasMore = true,
+    this.isInitialLoad = true,
+    this.error,
+  });
+
+  PaginatedNotificationsState copyWith({
+    List<NotificationModel>? items,
+    bool? isLoading,
+    bool? hasMore,
+    bool? isInitialLoad,
+    String? error,
+    bool clearError = false,
+  }) {
+    return PaginatedNotificationsState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      hasMore: hasMore ?? this.hasMore,
+      isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
+}
+
+class PaginatedNotificationsNotifier
+    extends StateNotifier<PaginatedNotificationsState> {
+  PaginatedNotificationsNotifier()
+    : super(const PaginatedNotificationsState()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final from = state.items.length;
+      final to = from + kNotificationsPageSize - 1;
+
+      final response = await _client
+          .from('notifications')
+          .select()
+          .order('created_at', ascending: false)
+          .range(from, to);
+
+      final newItems = (response as List)
+          .map((e) => NotificationModel.fromJson(e))
+          .toList();
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        hasMore: newItems.length >= kNotificationsPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        isInitialLoad: false,
+        error: e.toString(),
+      );
+    }
+  }
+
+  void reset() {
+    state = const PaginatedNotificationsState();
+    loadMore();
+  }
+}
+
+final notificationsPaginatedProvider =
+    StateNotifierProvider.autoDispose<
+      PaginatedNotificationsNotifier,
+      PaginatedNotificationsState
+    >((ref) {
+      return PaginatedNotificationsNotifier();
+    });
+
+// A legacy provider for places that still expect the old future, if any.
+// Though we should migrate UI to use notificationsPaginatedProvider instead.
 final notificationsProvider = FutureProvider<List<NotificationModel>>((
   ref,
 ) async {
-  final response = await _client
-      .from('notifications')
-      .select()
-      .order('created_at', ascending: false)
-      .limit(50);
-  return (response as List).map((e) => NotificationModel.fromJson(e)).toList();
+  final state = ref.watch(notificationsPaginatedProvider);
+  return state.items;
 });
 
 // --------------- Search / Filter ---------------

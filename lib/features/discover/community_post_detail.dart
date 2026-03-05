@@ -123,7 +123,9 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No replies yet.\nBe the first to join the conversation!',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.beTheFirstToReply,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: isDark

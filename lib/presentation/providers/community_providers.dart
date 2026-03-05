@@ -16,12 +16,14 @@ class PaginatedPostsState {
   final bool isLoading;
   final bool hasMore;
   final bool isInitialLoad;
+  final String? error;
 
   const PaginatedPostsState({
     this.items = const [],
     this.isLoading = false,
     this.hasMore = true,
     this.isInitialLoad = true,
+    this.error,
   });
 
   PaginatedPostsState copyWith({
@@ -29,12 +31,15 @@ class PaginatedPostsState {
     bool? isLoading,
     bool? hasMore,
     bool? isInitialLoad,
+    String? error,
+    bool clearError = false,
   }) {
     return PaginatedPostsState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -46,7 +51,7 @@ class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final from = state.items.length;
@@ -70,7 +75,11 @@ class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
         isInitialLoad: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, isInitialLoad: false);
+      state = state.copyWith(
+        isLoading: false,
+        isInitialLoad: false,
+        error: e.toString(),
+      );
     }
   }
 

@@ -641,8 +641,12 @@
   "share": "مشاركة",
   "copyLink": "نسخ الرابط",
   "openUrl": "فتح",
-  "type": "النوع",
-  "noResultsFound": "لا توجد نتائج",
+  "howItWorks": "كيف تعمل؟",
+  "discoverTitle": "المستكشف",
+  "openButton": "فتح",
+  "communityTitle": "المجتمع",
+  "dismissButton": "تجاهل",
+  "emptySearchTitle": "لا توجد نتائج",
   "somethingWentWrong": "حدث خطأ ما",
 
   "analyticsLabel": "التحليلات",
@@ -704,5 +708,12 @@
   "notifBodyOffer": "🔥 عرض جديد متاح! تحقق منه الآن.",
   "notifBodyPrompt": "💡 تمت إضافة prompt جديد! اضغط للاستكشاف.",
   "notifBodyAnnouncement": "📢 إعلان جديد! اضغط للقراءة.",
-  "notifBodyDefault": "🌐 محتوى جديد أُضيف للتو! اضغط للاكتشاف."
+  "notifBodyDefault": "🌐 محتوى جديد أُضيف للتو! اضغط للاكتشاف.",
+  "notifAlert": "تنبيه",
+  "type": "النوع",
+  "noResultsFound": "لم يتم العثور على نتائج",
+  "beTheFirstToPost": "كن أول من ينشر!",
+  "createAPost": "إنشاء منشور",
+  "shareAResourceAskAQuestion": "شارك مصدراً، أو اطرح سؤالاً،\nأو قدّم نصيحة للمجتمع.",
+  "beTheFirstToReply": "لا توجد ردود بعد.\nكن أول من ينضم إلى المحادثة!"
 }

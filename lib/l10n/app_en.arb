@@ -106,6 +106,12 @@
   "addUser": "Add User",
   "editUser": "Edit User",
   "noUsersFound": "No users found",
+  "howItWorks": "How it works?",
+  "discoverTitle": "Discover",
+  "openButton": "Open",
+  "communityTitle": "Community",
+  "dismissButton": "Dismiss",
+  "emptySearchTitle": "No results found",
   "noMatchesFound": "No matches found",
   "deleteUserTitle": "Delete User?",
   "deleteUserConfirm": "Are you sure you want to delete {email}? This action cannot be undone.",
@@ -952,5 +958,9 @@
   "notifBodyOffer": "🔥 New offer available! Check it out now.",
   "notifBodyPrompt": "💡 New prompt added! Tap to explore.",
   "notifBodyAnnouncement": "📢 New announcement! Tap to read.",
-  "notifBodyDefault": "🌐 New content just added! Tap to discover."
+  "notifBodyDefault": "🌐 New content just added! Tap to discover.",
+  "beTheFirstToPost": "Be the first to post!",
+  "createAPost": "Create a post",
+  "shareAResourceAskAQuestion": "Share a resource, ask a question,\nor give a tip to the community.",
+  "beTheFirstToReply": "No replies yet.\nBe the first to join the conversation!"
 }

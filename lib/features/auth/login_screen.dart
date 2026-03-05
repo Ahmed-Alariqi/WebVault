@@ -56,11 +56,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Future<void> _biometricLogin() async {
     final localAuth = LocalAuthentication();
+    final localizedReason = AppLocalizations.of(context)!.authToSignIn;
+
     final canCheck = await localAuth.canCheckBiometrics;
     if (!canCheck) return;
 
     final didAuth = await localAuth.authenticate(
-      localizedReason: AppLocalizations.of(context)!.authToSignIn,
+      localizedReason: localizedReason,
     );
     if (didAuth && mounted) {
       // Biometric just unlocks if session already exists
@@ -132,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                SizedBox(height: size.height * 0.08),
+                SizedBox(height: size.height * 0.03),
 
                 // Logo / Branding
                 _buildLogo(isDark),

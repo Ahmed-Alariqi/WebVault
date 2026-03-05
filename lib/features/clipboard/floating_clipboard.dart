@@ -345,7 +345,7 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.4),
+                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -420,6 +420,13 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
           if (widget.webViewController != null)
             GestureDetector(
               onTap: () async {
+                final injectedMsg = AppLocalizations.of(
+                  context,
+                )!.injectedItem(item.label);
+                final selectFieldMsg = AppLocalizations.of(
+                  context,
+                )!.selectTextFieldFirst;
+
                 final jsCode =
                     '''
                   (function() {
@@ -446,14 +453,12 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                 final result = await widget.webViewController!
                     .runJavaScriptReturningResult(jsCode);
 
-                if (!context.mounted) return;
+                if (!mounted) return;
 
                 if (result == true || result == 'true') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.injectedItem(item.label),
-                      ),
+                      content: Text(injectedMsg),
                       backgroundColor: AppTheme.successColor,
                       duration: const Duration(milliseconds: 800),
                       behavior: SnackBarBehavior.floating,
@@ -462,9 +467,7 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.selectTextFieldFirst,
-                      ),
+                      content: Text(selectFieldMsg),
                       duration: Duration(milliseconds: 1500),
                       behavior: SnackBarBehavior.floating,
                     ),

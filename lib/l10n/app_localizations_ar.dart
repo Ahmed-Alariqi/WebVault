@@ -300,6 +300,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noUsersFound => 'لا يوجد مستخدمين';
 
   @override
+  String get howItWorks => 'كيف تعمل؟';
+
+  @override
+  String get discoverTitle => 'المستكشف';
+
+  @override
+  String get openButton => 'فتح';
+
+  @override
+  String get communityTitle => 'المجتمع';
+
+  @override
+  String get dismissButton => 'تجاهل';
+
+  @override
+  String get emptySearchTitle => 'لا توجد نتائج';
+
+  @override
   String get noMatchesFound => 'لا توجد نتائج';
 
   @override
@@ -473,9 +491,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get viewAccounts => 'عرض الحسابات';
-
-  @override
-  String get communityTitle => 'المجتمع';
 
   @override
   String get managePosts => 'إدارة المنشورات';
@@ -1475,7 +1490,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifTypeUpdate => 'تحديث';
 
   @override
-  String get notifAlert => 'Alert';
+  String get notifAlert => 'تنبيه';
 
   @override
   String notifFailed(String error) {
@@ -1833,7 +1848,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get type => 'النوع';
 
   @override
-  String get noResultsFound => 'لا توجد نتائج';
+  String get noResultsFound => 'لم يتم العثور على نتائج';
 
   @override
   String get somethingWentWrong => 'حدث خطأ ما';
@@ -2025,4 +2040,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifBodyDefault => '🌐 محتوى جديد أُضيف للتو! اضغط للاكتشاف.';
+
+  @override
+  String get beTheFirstToPost => 'كن أول من ينشر!';
+
+  @override
+  String get createAPost => 'إنشاء منشور';
+
+  @override
+  String get shareAResourceAskAQuestion =>
+      'شارك مصدراً، أو اطرح سؤالاً،\nأو قدّم نصيحة للمجتمع.';
+
+  @override
+  String get beTheFirstToReply =>
+      'لا توجد ردود بعد.\nكن أول من ينضم إلى المحادثة!';
 }

@@ -161,6 +161,14 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
             : _videoUrlCtrl.text.trim(),
       };
 
+      // Notification translation strings
+      final notifOffer = AppLocalizations.of(context)!.notifBodyOffer;
+      final notifPrompt = AppLocalizations.of(context)!.notifBodyPrompt;
+      final notifAnnouncement = AppLocalizations.of(
+        context,
+      )!.notifBodyAnnouncement;
+      final notifDefault = AppLocalizations.of(context)!.notifBodyDefault;
+
       String? newItemId;
       if (widget.existing == null) {
         newItemId = await adminAddWebsite(data);
@@ -174,12 +182,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           await adminSendNotification({
             'title': '✨ ${_titleCtrl.text.trim()}',
             'body': _contentType == 'offer'
-                ? AppLocalizations.of(context)!.notifBodyOffer
+                ? notifOffer
                 : _contentType == 'prompt'
-                ? AppLocalizations.of(context)!.notifBodyPrompt
+                ? notifPrompt
                 : _contentType == 'announcement'
-                ? AppLocalizations.of(context)!.notifBodyAnnouncement
-                : AppLocalizations.of(context)!.notifBodyDefault,
+                ? notifAnnouncement
+                : notifDefault,
             'type': 'new_item',
             'target_url': newItemId != null
                 ? 'app://discover/item/$newItemId'

@@ -650,6 +650,42 @@ abstract class AppLocalizations {
   /// **'No users found'**
   String get noUsersFound;
 
+  /// No description provided for @howItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works?'**
+  String get howItWorks;
+
+  /// No description provided for @discoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get discoverTitle;
+
+  /// No description provided for @openButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openButton;
+
+  /// No description provided for @communityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get communityTitle;
+
+  /// No description provided for @dismissButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismissButton;
+
+  /// No description provided for @emptySearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get emptySearchTitle;
+
   /// No description provided for @noMatchesFound.
   ///
   /// In en, this message translates to:
@@ -985,12 +1021,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Accounts'**
   String get viewAccounts;
-
-  /// No description provided for @communityTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Community'**
-  String get communityTitle;
 
   /// No description provided for @managePosts.
   ///
@@ -3865,6 +3895,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'🌐 New content just added! Tap to discover.'**
   String get notifBodyDefault;
+
+  /// No description provided for @beTheFirstToPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Be the first to post!'**
+  String get beTheFirstToPost;
+
+  /// No description provided for @createAPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a post'**
+  String get createAPost;
+
+  /// No description provided for @shareAResourceAskAQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a resource, ask a question,\nor give a tip to the community.'**
+  String get shareAResourceAskAQuestion;
+
+  /// No description provided for @beTheFirstToReply.
+  ///
+  /// In en, this message translates to:
+  /// **'No replies yet.\nBe the first to join the conversation!'**
+  String get beTheFirstToReply;
 }
 
 class _AppLocalizationsDelegate

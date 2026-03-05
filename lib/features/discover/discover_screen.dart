@@ -17,6 +17,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -51,13 +52,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         slivers: [
           // App Bar
           SliverAppBar(
-            floating: true,
-            snap: true,
-            title: const Text(
-              'Discover',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 26),
+            pinned: true,
+            title: Text(
+              AppLocalizations.of(context)!.discoverTitle,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 26),
             ),
-            forceMaterialTransparency: true,
+            backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
             actions: [
               // Community Button
               IconButton(
@@ -211,7 +211,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       );
                     },
                     loading: () => _buildShimmerSection(isDark),
-                    error: (e, st) => const SizedBox(),
+                    error: (e, st) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: OfflineWarningWidget(error: e),
+                    ),
                   ),
             ),
           ] else ...[
@@ -966,8 +969,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text(
-                    'Open',
+                  child: Text(
+                    AppLocalizations.of(context)!.openButton,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

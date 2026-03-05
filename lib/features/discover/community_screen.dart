@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
@@ -137,7 +138,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Community',
+              AppLocalizations.of(context)!.communityTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -214,7 +215,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           ),
 
           Expanded(
-            child: pState.isInitialLoad
+            child: pState.error != null
+                ? Center(
+                    child: GestureDetector(
+                      onTap: () => ref
+                          .read(communityPostsPaginatedProvider.notifier)
+                          .reset(),
+                      child: OfflineWarningWidget(error: pState.error!),
+                    ),
+                  )
+                : pState.isInitialLoad
                 ? const ShimmerListColumn(count: 4)
                 : filteredPosts.isEmpty
                 ? _EmptyCommunityState(
@@ -709,7 +719,7 @@ class _EmptyCommunityState extends StatelessWidget {
         ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
         const SizedBox(height: 24),
         Text(
-          'Be the first to post!',
+          AppLocalizations.of(context)!.beTheFirstToPost,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.w800,
@@ -720,7 +730,7 @@ class _EmptyCommunityState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Share a resource, ask a question,\nor give a tip to the community.',
+          AppLocalizations.of(context)!.shareAResourceAskAQuestion,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -741,10 +751,10 @@ class _EmptyCommunityState extends StatelessWidget {
             ),
             elevation: 0,
           ),
-          icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold), size: 18),
-          label: const Text(
-            'Create Post',
-            style: TextStyle(fontWeight: FontWeight.w700),
+          icon: Icon(PhosphorIcons.plus(PhosphorIconsStyle.bold)),
+          label: Text(
+            AppLocalizations.of(context)!.createAPost,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
       ],

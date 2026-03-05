@@ -191,15 +191,6 @@ class _ClipboardSettingsScreenState
 
                 const SizedBox(height: 28),
 
-                // ── Usage Tips ─────────────────────────────────────────
-                _buildSectionHeader(
-                  AppLocalizations.of(context)!.howToUse,
-                  PhosphorIcons.lightbulb(),
-                  isDark,
-                ),
-                const SizedBox(height: 12),
-                _buildTipsCard(isDark, context),
-
                 const SizedBox(height: 40),
               ]),
             ),
@@ -251,119 +242,6 @@ class _ClipboardSettingsScreenState
           ),
         ),
       ],
-    );
-  }
-
-  // ── Full tips card ────────────────────────────────────────────────
-  Widget _buildTipsCard(bool isDark, BuildContext context) {
-    final tips = [
-      (
-        PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
-        AppLocalizations.of(context)!.tapToCopyItem,
-        AppLocalizations.of(context)!.tapToCopyItemDesc,
-      ),
-      (
-        PhosphorIcons.pushPin(PhosphorIconsStyle.fill),
-        AppLocalizations.of(context)!.pinImportantItems,
-        AppLocalizations.of(context)!.pinImportantItemsDesc,
-      ),
-      (
-        PhosphorIcons.folders(),
-        AppLocalizations.of(context)!.organiseWithGroups,
-        AppLocalizations.of(context)!.organiseWithGroupsDesc,
-      ),
-      (
-        PhosphorIcons.shareNetwork(),
-        AppLocalizations.of(context)!.shareDirectlyToVault,
-        AppLocalizations.of(context)!.shareDirectlyToVaultDesc,
-      ),
-      (
-        PhosphorIcons.arrowsCounterClockwise(),
-        AppLocalizations.of(context)!.pullToRefresh,
-        AppLocalizations.of(context)!.pullToRefreshDesc,
-      ),
-    ];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark
-              ? AppTheme.darkDivider.withValues(alpha: 0.5)
-              : AppTheme.lightDivider.withValues(alpha: 0.5),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: tips.asMap().entries.map((entry) {
-          final i = entry.key;
-          final (icon, title, subtitle) = entry.value;
-          return Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(icon, color: AppTheme.accentColor, size: 22),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? AppTheme.darkTextPrimary
-                                  : AppTheme.lightTextPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontSize: 12,
-                              height: 1.4,
-                              color: isDark
-                                  ? AppTheme.darkTextSecondary
-                                  : AppTheme.lightTextSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ).animate().fadeIn(
-                delay: Duration(milliseconds: 60 * i),
-                duration: 300.ms,
-              ),
-              if (i < tips.length - 1) _buildDivider(isDark),
-            ],
-          );
-        }).toList(),
-      ),
     );
   }
 
