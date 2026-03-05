@@ -276,7 +276,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get suggestedBy => 'اقترحه';
 
   @override
-  String get approve => 'قبول';
+  String get approve => 'موافقة';
 
   @override
   String get reject => 'رفض';
@@ -371,4 +371,1658 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invalidBackupFile => 'ملف نسخة احتياطية غير صالح';
+
+  @override
+  String get personalInfo => 'المعلومات الشخصية';
+
+  @override
+  String get username => 'اسم المستخدم';
+
+  @override
+  String get profileSaved => 'تم حفظ الملف الشخصي';
+
+  @override
+  String get saveProfile => 'حفظ الملف الشخصي';
+
+  @override
+  String get contactSupport => 'الاتصال بالدعم';
+
+  @override
+  String get signOutLabel => 'تسجيل الخروج';
+
+  @override
+  String get getHelpFromAdmin => 'الحصول على مساعدة من مسؤول';
+
+  @override
+  String get clipboardSettings => 'إعدادات الحافظة';
+
+  @override
+  String get clipboardSettingsSubtitle =>
+      'الحافظة العائمة، إذن التراكب، النسخ الذكي والنصائح';
+
+  @override
+  String get support => 'الدعم';
+
+  @override
+  String get addValue => 'إضافة قيمة';
+
+  @override
+  String get folderNotFound => 'لم يتم العثور على المجلد';
+
+  @override
+  String createdOn(String date) {
+    return 'تم الإنشاء في $date';
+  }
+
+  @override
+  String get createFoldersToOrganize => 'أنشئ مجلدات لتنظيم صفحاتك';
+
+  @override
+  String get egFinance => 'مثل: المالية';
+
+  @override
+  String get adminBadge => 'المدير الثقني';
+
+  @override
+  String get controlCenter => 'مركز التحكم';
+
+  @override
+  String get manageVaultEcosystem => 'إدارة نظام القبو الخاص بك';
+
+  @override
+  String get management => 'الإدارة';
+
+  @override
+  String get appActivities => 'أنشطة التطبيق';
+
+  @override
+  String get analyticsTracking => 'التحليلات والتتبع';
+
+  @override
+  String get suggestionsTitle => 'الاقتراحات';
+
+  @override
+  String get reviewRequests => 'مراجعة الطلبات';
+
+  @override
+  String get websitesTitle => 'مواقع الويب';
+
+  @override
+  String get addEditSites => 'إضافة/تعديل المواقع';
+
+  @override
+  String get categoriesTitle => 'التصنيفات';
+
+  @override
+  String get organizeContent => 'تنظيم المحتوى';
+
+  @override
+  String get pushNotificationsTitle => 'الإشعارات المباشرة';
+
+  @override
+  String get sendOutsideAlerts => 'إرسال تنبيهات خارجية';
+
+  @override
+  String get inAppMessagesTitle => 'رسائل داخل التطبيق';
+
+  @override
+  String get popupCampaigns => 'حملات منبثقة';
+
+  @override
+  String get usersTitle => 'المستخدمين';
+
+  @override
+  String get viewAccounts => 'عرض الحسابات';
+
+  @override
+  String get communityTitle => 'المجتمع';
+
+  @override
+  String get managePosts => 'إدارة المنشورات';
+
+  @override
+  String get userMessagesTitle => 'رسائل المستخدمين';
+
+  @override
+  String get supportChats => 'محادثات الدعم';
+
+  @override
+  String get totalUsers => 'إجمالي المستخدمين';
+
+  @override
+  String get accessRestricted => 'الوصول مقيد';
+
+  @override
+  String get adminPrivilegesRequired => 'مطلوب صلاحيات مسؤول.';
+
+  @override
+  String get returnHome => 'العودة للرئيسية';
+
+  @override
+  String get quickClipboard => 'الحافظة السريعة';
+
+  @override
+  String get all => 'الكل';
+
+  @override
+  String get noClipboardItems => 'لا توجد عناصر بعد';
+
+  @override
+  String injectedItem(String label) {
+    return 'تم إدراج \"$label\"';
+  }
+
+  @override
+  String get selectTextFieldFirst => 'الرجاء تحديد حقل نصي أولاً.';
+
+  @override
+  String copiedItem(String label) {
+    return 'تم نسخ \"$label\"';
+  }
+
+  @override
+  String get copied => 'تم النسخ';
+
+  @override
+  String get savedToVault => 'تم الحفظ في القبو';
+
+  @override
+  String get savedExplicitlyToClipboard =>
+      'تم الحفظ بشكل صريح في حافظة WebVault!';
+
+  @override
+  String get savedToClipboard => 'تم الحفظ في حافظة WebVault!';
+
+  @override
+  String get saveToVaultBtn => 'حفظ في القبو';
+
+  @override
+  String get promptSaveToVault =>
+      'هل ترغب في حفظ هذا النص في حافظة WebVault لاستخدامه لاحقًا؟';
+
+  @override
+  String get copiedText => 'نص منسوخ';
+
+  @override
+  String get quickAddToClipboard => 'إضافة سريعة للحافظة';
+
+  @override
+  String get pasteOrTypeText => 'الصق أو اكتب النص هنا...';
+
+  @override
+  String get manualEntry => 'إدخال يدوي';
+
+  @override
+  String get approvePublish => 'موافقة ونشر';
+
+  @override
+  String get titleLabel => 'العنوان';
+
+  @override
+  String get urlLabel => 'الرابط';
+
+  @override
+  String get descriptionLabel => 'الوصف';
+
+  @override
+  String get trending => 'الرائج';
+
+  @override
+  String get popular => 'شائع';
+
+  @override
+  String get featured => 'المميز';
+
+  @override
+  String get suggestionApprovedPublished => 'تمت الموافقة على الاقتراح ونشره!';
+
+  @override
+  String errorMessage(String message) {
+    return 'خطأ: $message';
+  }
+
+  @override
+  String get noPendingSuggestions => 'لا توجد اقتراحات معلقة';
+
+  @override
+  String suggestedDate(String date) {
+    return 'مقترح: $date';
+  }
+
+  @override
+  String get manageCategoriesTitle => 'إدارة التصنيفات';
+
+  @override
+  String get seedDefaultCategories => 'زرع التصنيفات الافتراضية';
+
+  @override
+  String get noCategories => 'لا توجد تصنيفات';
+
+  @override
+  String get defaultCategoriesInjected => 'تم زرع التصنيفات الافتراضية بنجاح!';
+
+  @override
+  String failedToSeedCategories(String message) {
+    return 'فشل زرع التصنيفات: $message';
+  }
+
+  @override
+  String get addCategory => 'إضافة تصنيف';
+
+  @override
+  String get editCategory => 'تعديل التصنيف';
+
+  @override
+  String get categoryName => 'اسم التصنيف';
+
+  @override
+  String get addBtn => 'إضافة';
+
+  @override
+  String get manageItemsTitle => 'إدارة العناصر';
+
+  @override
+  String get noItemsYet => 'لا توجد عناصر بعد';
+
+  @override
+  String get tapPlusToAddOne => 'اضغط على + لإضافة عنصر';
+
+  @override
+  String get newItem => 'عنصر جديد';
+
+  @override
+  String get promptBadge => 'موجّه';
+
+  @override
+  String get offerBadge => 'عرض';
+
+  @override
+  String get newsBadge => 'أخبار';
+
+  @override
+  String get websiteBadge => 'موقع';
+
+  @override
+  String get expiredBadge => 'منتهي الصلاحية';
+
+  @override
+  String daysLeft(String days) {
+    return '$daysي متبقي';
+  }
+
+  @override
+  String hoursLeft(String hours) {
+    return '$hoursس متبقية';
+  }
+
+  @override
+  String minsLeft(String mins) {
+    return '$minsد متبقية';
+  }
+
+  @override
+  String get promptText => 'نص الموجّه';
+
+  @override
+  String get codeOrKey => 'الرمز / المفتاح';
+
+  @override
+  String get copiedTooltip => 'تم النسخ!';
+
+  @override
+  String get copy => 'نسخ';
+
+  @override
+  String get promptCopiedTooltip => 'تم نسخ الموجّه!';
+
+  @override
+  String get copyPrompt => 'نسخ الموجّه';
+
+  @override
+  String get tryIt => 'جرّبها';
+
+  @override
+  String get offerCopiedTooltip => 'تم نسخ الرمز!';
+
+  @override
+  String get copyCode => 'نسخ الرمز';
+
+  @override
+  String get visit => 'زيارة';
+
+  @override
+  String get visitLink => 'زيارة الرابط';
+
+  @override
+  String get openApp => 'فتح التطبيق';
+
+  @override
+  String get videoPlaybackError => 'خطأ في تشغيل الفيديو';
+
+  @override
+  String get openExternally => 'فتح خارجياً';
+
+  @override
+  String get watchTutorial => 'مشاهدة الشرح';
+
+  @override
+  String get watchVideo => 'مشاهدة الفيديو';
+
+  @override
+  String get opensOnYoutube => 'يفتح في يوتيوب';
+
+  @override
+  String get opensOnVimeo => 'يفتح في فيميو';
+
+  @override
+  String get opensInBrowser => 'يفتح في المتصفح';
+
+  @override
+  String get couldNotLoadVideo => 'تعذر تحميل الفيديو';
+
+  @override
+  String get titleMessageRequired => 'العنوان والرسالة مطلوبان';
+
+  @override
+  String get campaignUpdated => 'تم تحديث الحملة';
+
+  @override
+  String get campaignCreated => 'تم إنشاء الحملة';
+
+  @override
+  String get offlineWarningDetails =>
+      'أنت غير متصل بالإنترنت. يرجى التحقق من اتصالك.';
+
+  @override
+  String failedWarning(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get previewBadge => 'معاينة';
+
+  @override
+  String get invalidUrl => 'رابط غير صالح';
+
+  @override
+  String get closePreview => 'إغلاق المعاينة';
+
+  @override
+  String failedToUpdateStatus(String error) {
+    return 'فشل في تحديث الحالة: $error';
+  }
+
+  @override
+  String get deleteMessageTitle => 'حذف الرسالة؟';
+
+  @override
+  String get deleteMessageContent => 'لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get cancelLabel => 'إلغاء';
+
+  @override
+  String get deleteLabel => 'حذف';
+
+  @override
+  String deleteFailedWarning(String error) {
+    return 'فشل الحذف: $error';
+  }
+
+  @override
+  String get editCampaign => 'تعديل الحملة';
+
+  @override
+  String get newCampaign => 'حملة جديدة';
+
+  @override
+  String get cancelEdit => 'إلغاء التعديل';
+
+  @override
+  String get messageLabel => 'الرسالة';
+
+  @override
+  String get campaignImageOptional => 'صورة الحملة (اختياري)';
+
+  @override
+  String get imageUploadedSuccessfully => 'تم رفع الصورة بنجاح!';
+
+  @override
+  String get uploadFailed => 'فشل الرفع. حاول مرة أخرى.';
+
+  @override
+  String get uploading => 'جاري الرفع...';
+
+  @override
+  String get uploadFromDevice => 'رفع من الجهاز';
+
+  @override
+  String get orPasteUrl => 'أو الصق الرابط';
+
+  @override
+  String get imageUrlLabel => 'رابط الصورة';
+
+  @override
+  String get buttonUrlOptional => 'رابط الزر (اختياري)';
+
+  @override
+  String get buttonTextOptional => 'نص الزر (اختياري)';
+
+  @override
+  String get campaignModeLabel => 'وضع الحملة';
+
+  @override
+  String get modeStandard => 'قياسي';
+
+  @override
+  String get modeRecurring => 'متكرر';
+
+  @override
+  String get modeHardBlock => 'توقف إجباري';
+
+  @override
+  String get modeStandardDesc => 'تظهر مرة واحدة للمستخدم. يمكنهم رفضها للأبد.';
+
+  @override
+  String get modeRecurringDesc =>
+      'تظهر في كل مرة يفتح فيها المستخدم التطبيق، ولكن يمكن رفضها.';
+
+  @override
+  String get modeHardBlockDesc =>
+      'تظهر دائماً، ولا يمكن رفضها. توقف التطبيق بالكامل.';
+
+  @override
+  String get targetVersionOptional =>
+      'يتطلب إصدار معين (مثال: 1.0.5) (اختياري)';
+
+  @override
+  String get saveChanges => 'حفظ التغييرات';
+
+  @override
+  String get updateCampaign => 'تحديث الحملة';
+
+  @override
+  String get createCampaign => 'إنشاء الحملة';
+
+  @override
+  String get existingCampaigns => 'الحملات الحالية';
+
+  @override
+  String get noCampaignsYet => 'لا توجد حملات بعد.';
+
+  @override
+  String get activeBadge => 'نشط';
+
+  @override
+  String updateBadge(String version) {
+    return 'تحديث: $version';
+  }
+
+  @override
+  String get hardBlockBadge => 'توقف إجباري';
+
+  @override
+  String get recurringBadge => 'متكرر';
+
+  @override
+  String get editTooltip => 'تعديل';
+
+  @override
+  String get deleteTooltip => 'حذف';
+
+  @override
+  String get noName => 'بلا اسم';
+
+  @override
+  String get noEmail => 'بلا بريد إلكتروني';
+
+  @override
+  String get emailPasswordChangeNote =>
+      'ملاحظة: لتغيير البريد الإلكتروني/كلمة المرور، يرجى استخدام لوحة تحكم المصادقة أو إضافة المنطق إلى الواجهة الخلفية.';
+
+  @override
+  String get wipeChatTitle => 'مسح كل الدردشة؟';
+
+  @override
+  String get wipeChatContent =>
+      'سيؤدي هذا إلى حذف جميع المنشورات والردود والتفاعلات في المجتمع بشكل دائم لتحرير مساحة تخزين قاعدة البيانات. لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
+  String get wipeChatAction => 'مسح الدردشة';
+
+  @override
+  String get chatWipedSuccess => 'تم مسح الدردشة بنجاح.';
+
+  @override
+  String chatWipedFailed(String error) {
+    return 'فشل في مسح الدردشة: $error';
+  }
+
+  @override
+  String pinPostFailed(String error) {
+    return 'فشل في تثبيت المنشور: $error';
+  }
+
+  @override
+  String get communityManagement => 'إدارة المجتمع';
+
+  @override
+  String get wipeAllChatTooltip => 'مسح كل الدردشة';
+
+  @override
+  String get wipeChatInfo =>
+      'استخدم أيقونة سلة المهملات في أعلى اليمين لمسح جميع منشورات المجتمع بشكل دائم وتحرير مساحة تخزين Supabase.';
+
+  @override
+  String get noCommunityPosts => 'لا توجد منشورات في المجتمع.';
+
+  @override
+  String get unpinPostTooltip => 'إلغاء تثبيت المنشور';
+
+  @override
+  String get pinPostTooltip => 'تثبيت المنشور';
+
+  @override
+  String get deletePostTitle => 'حذف المنشور؟';
+
+  @override
+  String get deletePostContent => 'هل أنت متأكد أنك تريد حذف هذا المنشور؟';
+
+  @override
+  String get deletePostAction => 'حذف المنشور';
+
+  @override
+  String get youAreOfflineTitle => 'أنت غير متصل';
+
+  @override
+  String get youAreOfflineDesc => 'يرجى التحقق من اتصال الإنترنت الخاص بك.';
+
+  @override
+  String get authToSignIn => 'المصادقة لتسجيل الدخول';
+
+  @override
+  String get invalidEmailOrPassword =>
+      'البريد الإلكتروني أو كلمة المرور غير صالحة';
+
+  @override
+  String get verifyEmailFirst => 'يرجى التحقق من بريدك الإلكتروني أولاً';
+
+  @override
+  String get networkErrorCheckConnection => 'خطأ في الشبكة. تحقق من اتصالك';
+
+  @override
+  String get loginFailedTryAgain => 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى';
+
+  @override
+  String get secureWebManager => 'مدير صفحات الويب الآمن الخاص بك';
+
+  @override
+  String get emailHint => 'your@email.com';
+
+  @override
+  String get passwordHint => '••••••••';
+
+  @override
+  String get rememberMe => 'تذكرني';
+
+  @override
+  String get forgotPassword => 'هل نسيت كلمة المرور؟';
+
+  @override
+  String get useBiometrics => 'استخدام البصمة';
+
+  @override
+  String get continueWithGoogle => 'المتابعة باستخدام Google';
+
+  @override
+  String get dontHaveAccount => 'ليس لديك حساب؟';
+
+  @override
+  String get passwordStrengthWeak => 'ضعيفة';
+
+  @override
+  String get passwordStrengthFair => 'مقبولة';
+
+  @override
+  String get passwordStrengthGood => 'جيدة';
+
+  @override
+  String get passwordStrengthStrong => 'قوية';
+
+  @override
+  String get emailAlreadyRegistered =>
+      'هذا البريد الإلكتروني مسجل بالفعل. جرب تسجيل الدخول.';
+
+  @override
+  String get invalidEmailAddress =>
+      'عنوان البريد الإلكتروني غير صالح. يرجى استخدام بريد إلكتروني حقيقي.';
+
+  @override
+  String get tooManyAttempts => 'محاولات كثيرة جدًا. يرجى الانتظار بضع دقائق.';
+
+  @override
+  String get passwordTooWeak =>
+      'كلمة المرور ضعيفة جدًا. استخدم 6 أحرف على الأقل.';
+
+  @override
+  String signUpFailed(String error) {
+    return 'فشل التسجيل: $error';
+  }
+
+  @override
+  String get accountCreated => 'تم إنشاء الحساب!';
+
+  @override
+  String verifyEmailDesc(String email) {
+    return 'لقد أرسلنا بريدًا إلكترونيًا للتحقق إلى\n$email\n\nيرجى التحقق من بريدك الإلكتروني، ثم تسجيل الدخول.';
+  }
+
+  @override
+  String get goToSignIn => 'الذهاب لتسجيل الدخول';
+
+  @override
+  String get createAccount => 'إنشاء حساب';
+
+  @override
+  String get nameHint => 'فلان الفلاني';
+
+  @override
+  String get nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get usernameOptional => 'اسم المستخدم (اختياري)';
+
+  @override
+  String get usernameHint => 'اسم_مستخدم';
+
+  @override
+  String get emailRequired => 'البريد الإلكتروني مطلوب';
+
+  @override
+  String get enterValidEmail => 'أدخل بريد إلكتروني صالح';
+
+  @override
+  String get passwordMinLength =>
+      'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل';
+
+  @override
+  String get confirmPasswordLabel => 'تأكيد كلمة المرور';
+
+  @override
+  String get passwordsDoNotMatch => 'كلمات المرور غير متطابقة';
+
+  @override
+  String get creatingAccount => 'جاري إنشاء الحساب...';
+
+  @override
+  String get signUpWithGoogle => 'التسجيل باستخدام Google';
+
+  @override
+  String get alreadyHaveAccount => 'لديك حساب بالفعل؟';
+
+  @override
+  String get faceId => 'التعرف على الوجه';
+
+  @override
+  String get fingerprint => 'بصمة الإصبع';
+
+  @override
+  String get iris => 'بصمة العين';
+
+  @override
+  String get biometrics => 'المقاييس الحيوية';
+
+  @override
+  String get immediately => 'فوراً';
+
+  @override
+  String timeoutSeconds(int seconds) {
+    return '$seconds ثانية';
+  }
+
+  @override
+  String timeoutMinutes(int minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String get maximumProtection => 'حماية قصوى';
+
+  @override
+  String get goodProtection => 'حماية جيدة';
+
+  @override
+  String get basicProtection => 'حماية أساسية';
+
+  @override
+  String get pinProtection => 'حماية رمز المرور';
+
+  @override
+  String get pinLock => 'قفل برمز المرور';
+
+  @override
+  String get enabledStr => 'مُفعل';
+
+  @override
+  String get off => 'متوقف';
+
+  @override
+  String get changePin => 'تغيير رمز المرور';
+
+  @override
+  String get updateSecurityPin => 'تحديث رمز المرور الأمني الخاص بك';
+
+  @override
+  String get biometricAuth => 'المصادقة الحيوية';
+
+  @override
+  String get enabledQuickUnlock => 'مُفعل — فتح سريع';
+
+  @override
+  String get tapToEnable => 'انقر للتفعيل';
+
+  @override
+  String get notAvailableOnDevice => 'غير متوفر على هذا الجهاز';
+
+  @override
+  String get verifyToEnableBiometric => 'تحقق لتفعيل الفتح الحيوي';
+
+  @override
+  String biometricSetupFailed(String error) {
+    return 'فشل إعداد المقاييس الحيوية: $error';
+  }
+
+  @override
+  String get setupPinFirstForBiometric =>
+      'قم بإعداد رمز مرور أولاً لتفعيل المصادقة الحيوية';
+
+  @override
+  String get appLockSettings => 'إعدادات قفل التطبيق';
+
+  @override
+  String get autoLockTimeout => 'مهلة القفل التلقائي';
+
+  @override
+  String get removePinQ => 'إزالة رمز المرور؟';
+
+  @override
+  String get removePinWarning =>
+      'سيؤدي هذا إلى تعطيل قفل رمز المرور والمصادقة الحيوية. لن يكون تطبيقك محمياً بعد الآن.';
+
+  @override
+  String get remove => 'إزالة';
+
+  @override
+  String get securityTip => 'نصيحة أمنية';
+
+  @override
+  String get securityTipDesc =>
+      'قم بتفعيل كلاً من رمز المرور والمقاييس الحيوية للحصول على حماية قصوى لصفحاتك المحفوظة وبيانات الحافظة.';
+
+  @override
+  String get verifyCurrentPin => 'التحقق من رمز المرور الحالي';
+
+  @override
+  String get incorrectPin => 'رمز مرور غير صحيح';
+
+  @override
+  String get enterCurrentPin => 'أدخل رمز المرور الحالي';
+
+  @override
+  String get howToSave => 'كيفية الحفظ';
+
+  @override
+  String get savingTextFromOtherApps => 'حفظ النص من التطبيقات الأخرى';
+
+  @override
+  String get savingTextInstructions =>
+      '1. المشاركة: حدد نصًا في أي تطبيق، وانقر على \"مشاركة\"، واختر WebVault.\n2. تحديد النص: حدد نصًا واختر \"WebVault\" من القائمة المنبثقة.\n3. لوحة الإعدادات السريعة: أضف WebVault إلى الإعدادات السريعة للوصول إلى الحافظة من أي مكان.';
+
+  @override
+  String get smartClipboard => 'الحافظة الذكية';
+
+  @override
+  String get smartBackgroundCopy => 'النسخ الذكي في الخلفية';
+
+  @override
+  String get enabledSavesEverything => 'مُفعل — يحفظ كل ما تنسخه';
+
+  @override
+  String get offManualSaveOnly => 'متوقف — الحفظ اليدوي فقط';
+
+  @override
+  String get howSmartCopyWorks => 'كيف يعمل النسخ الذكي';
+
+  @override
+  String get smartCopyDescription =>
+      'عند تفعيله، يتم حفظ أي نص تنسخه في حافظة جهازك تلقائيًا في WebVault في الخلفية (يتطلب Android 10+ تشغيل الخدمة في الخلفية).';
+
+  @override
+  String get howToUse => 'كيفية الاستخدام';
+
+  @override
+  String get tapToCopyItem => 'انقر على أي عنصر لنسخه فوراً';
+
+  @override
+  String get tapToCopyItemDesc => 'يعمل فوراً داخل شاشة الحافظة';
+
+  @override
+  String get pinImportantItems => 'تثبيت العناصر المهمة في الأعلى';
+
+  @override
+  String get pinImportantItemsDesc => 'اضغط مطولاً على أي عنصر لتثبيته';
+
+  @override
+  String get organiseWithGroups => 'التنظيم باستخدام المجموعات';
+
+  @override
+  String get organiseWithGroupsDesc =>
+      'قم بإنشاء مجموعات لترتيب الحافظة وتسهيل تصفيتها';
+
+  @override
+  String get shareDirectlyToVault => 'المشاركة مباشرة إلى WebVault';
+
+  @override
+  String get shareDirectlyToVaultDesc =>
+      'في أي تطبيق: حدد النص → مشاركة → WebVault Clipboard للحفظ';
+
+  @override
+  String get pullToRefresh => 'السحب للتحديث';
+
+  @override
+  String get pullToRefreshDesc =>
+      'اسحب لأسفل في القائمة لإعادة تحميل العناصر من التخزين';
+
+  @override
+  String get identitySection => 'الهوية';
+
+  @override
+  String get organizationSection => 'التنظيم';
+
+  @override
+  String get detailsSection => 'التفاصيل';
+
+  @override
+  String get cardButtonEdit => 'تعديل';
+
+  @override
+  String get cardButtonDelete => 'حذف';
+
+  @override
+  String get confirmDeletionTitle => 'تأكيد الحذف';
+
+  @override
+  String confirmDeletionMessage(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get badgeInactive => 'غير نشط';
+
+  @override
+  String get badgeExpired => 'منتهي';
+
+  @override
+  String get badgeTrending => 'رائج';
+
+  @override
+  String get badgePopular => 'شائع';
+
+  @override
+  String get badgeFeatured => 'مميز';
+
+  @override
+  String get badgePrompt => 'تلميح';
+
+  @override
+  String get badgeOffer => 'عرض';
+
+  @override
+  String get badgeAnnounce => 'إعلان';
+
+  @override
+  String get badgeWebsite => 'موقع';
+
+  @override
+  String get readMoreText => 'إقرأ المزيد...';
+
+  @override
+  String get copyButton => 'نسخ';
+
+  @override
+  String formPublishItem(String type) {
+    return 'نشر $type';
+  }
+
+  @override
+  String get formSaveChanges => 'حفظ التغييرات';
+
+  @override
+  String formNewItem(String type) {
+    return '$type جديد';
+  }
+
+  @override
+  String formEditItem(String type) {
+    return 'تعديل $type';
+  }
+
+  @override
+  String get formContentType => 'نوع المحتوى';
+
+  @override
+  String get formBasicInfo => 'المعلومات الأساسية';
+
+  @override
+  String formTypeTitle(String type) {
+    return 'عنوان الـ $type';
+  }
+
+  @override
+  String get formUrlRequiredWeb => 'الرابط (https://...)';
+
+  @override
+  String get formUrlOptional => 'الرابط (اختياري)';
+
+  @override
+  String get formUrlOptionalHelper => 'اختياري: أضف رابط للمستخدمين لزيارته';
+
+  @override
+  String get formCoverImage => 'صورة الغلاف';
+
+  @override
+  String get formUploading => 'جاري الرفع...';
+
+  @override
+  String get formUploadDevice => 'رفع من الجهاز';
+
+  @override
+  String get formOrPasteUrl => 'أو الصق الرابط';
+
+  @override
+  String get formImageUrl => 'رابط الصورة';
+
+  @override
+  String get formPromptImgHelper => 'أضف صورة توضح نتيجة التلميح';
+
+  @override
+  String get formInvalidUrl => 'رابط غير صالح';
+
+  @override
+  String get formTutorialVideo => 'فيديو توضيحي';
+
+  @override
+  String get formVideoHelper =>
+      'أضف فيديو تعليمي أو توضيحي (الحد الأقصى ٥٠ ميجابايت)';
+
+  @override
+  String get formUploadingVideo => 'جاري رفع الفيديو...';
+
+  @override
+  String get formUploadVideoDevice => 'رفع فيديو من الجهاز';
+
+  @override
+  String get formVideoUrlLabel => 'رابط الفيديو (أو الصق الرابط)';
+
+  @override
+  String get formPromptText => 'نص التلميح';
+
+  @override
+  String get formOfferCode => 'رمز العرض / المفتاح';
+
+  @override
+  String get formAnnounceText => 'نص الإعلان';
+
+  @override
+  String get formPromptInput => 'أدخل نص التلميح (ليقوم المستخدمون بنسخه)';
+
+  @override
+  String get formOfferInput => 'أدخل الرمز أو المفتاح أو تفاصيل العرض';
+
+  @override
+  String get formAnnounceInput => 'تفاصيل الإعلان (اختياري)';
+
+  @override
+  String get formCopyHelper => 'سيرى المستخدمون زر نسخ لهذا المحتوى';
+
+  @override
+  String formExpires(String date) {
+    return 'ينتهي في: $date';
+  }
+
+  @override
+  String get formSetExpiry => 'تحديد تاريخ الانتهاء (اختياري)';
+
+  @override
+  String get formCategorization => 'التصنيف';
+
+  @override
+  String get formSelectCategory => 'اختر التصنيف';
+
+  @override
+  String get formTitleRequired => 'العنوان مطلوب.';
+
+  @override
+  String get formUrlRequired => 'الرابط مطلوب للمواقع.';
+
+  @override
+  String get formPublishedSuccess => 'تم النشر بنجاح!';
+
+  @override
+  String get formUpdatedSuccess => 'تم التحديث بنجاح!';
+
+  @override
+  String get formOfflineError =>
+      'أنت غير متصل بالإنترنت. يرجى التحقق من اتصالك.';
+
+  @override
+  String formSaveError(String error) {
+    return 'خطأ في الحفظ: $error';
+  }
+
+  @override
+  String get notifSend => 'إرسال إشعار';
+
+  @override
+  String get notifSent => 'تم إرسال الإشعار!';
+
+  @override
+  String get notifNew => 'إشعار جديد';
+
+  @override
+  String get notifDesc => 'إرسال إشعار للجميع';
+
+  @override
+  String get notifTitle => 'العنوان';
+
+  @override
+  String get notifBody => 'النص';
+
+  @override
+  String get notifUrl => 'رابط الوجهة (اختياري)';
+
+  @override
+  String get notifImage => 'صورة الإشعار (اختياري)';
+
+  @override
+  String get notifImgUploadSuccess => 'تم رفع الصورة بنجاح!';
+
+  @override
+  String get notifImgUploadFail => 'فشل الرفع. حاول مرة أخرى.';
+
+  @override
+  String get notifUploading => 'جاري الرفع...';
+
+  @override
+  String get notifUploadImg => 'رفع صورة';
+
+  @override
+  String get notifOrImgUrl => 'أو رابط الصورة';
+
+  @override
+  String get notifInvalidImg => 'رابط صورة غير صالح';
+
+  @override
+  String get notifType => 'النوع';
+
+  @override
+  String get notifTypeGeneral => 'عام';
+
+  @override
+  String get notifTypeAnnouncement => 'إعلان';
+
+  @override
+  String get notifTypeUpdate => 'تحديث';
+
+  @override
+  String get notifAlert => 'Alert';
+
+  @override
+  String notifFailed(String error) {
+    return 'فشل: $error';
+  }
+
+  @override
+  String get chatFailedUpload => 'فشل رفع الصورة';
+
+  @override
+  String chatError(String error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String get chatSupport => 'الدعم';
+
+  @override
+  String get chatSupportSub => 'عادة يتم الرد خلال ساعات معدودة';
+
+  @override
+  String get chatInitError => 'تعذر تهيئة المحادثة.';
+
+  @override
+  String get chatSendMsg => 'أرسل لنا رسالة';
+
+  @override
+  String get chatHereToHelp => 'نحن هنا لمساعدتك!';
+
+  @override
+  String get chatUploadingImg => 'جاري رفع الصورة...';
+
+  @override
+  String get chatTypeMsg => 'اكتب رسالة...';
+
+  @override
+  String get chatTitle => 'المحادثة';
+
+  @override
+  String get chatUser => 'المستخدم';
+
+  @override
+  String get chatLoading => 'جاري التحميل...';
+
+  @override
+  String get chatNoMsgs => 'لا توجد رسائل بعد.';
+
+  @override
+  String get chatMessageUser => 'مراسلة المستخدم...';
+
+  @override
+  String get chatUserMessages => 'رسائل المستخدمين';
+
+  @override
+  String get chatNoActive => 'لا توجد محادثات نشطة.';
+
+  @override
+  String get chatConfirm => 'تأكيد';
+
+  @override
+  String get chatDeleteConfirm => 'هل أنت متأكد أنك تريد حذف هذه المحادثة؟';
+
+  @override
+  String get chatCancel => 'إلغاء';
+
+  @override
+  String get chatDelete => 'حذف';
+
+  @override
+  String get chatDeleted => 'تم حذف المحادثة';
+
+  @override
+  String chatDeleteFailed(String error) {
+    return 'فشل الحذف: $error';
+  }
+
+  @override
+  String get chatUnknownUser => 'مستخدم غير معروف';
+
+  @override
+  String get chatStartedConv => 'بدأ محادثة';
+
+  @override
+  String chatNew(int count) {
+    return '$count جديد';
+  }
+
+  @override
+  String get searchBookmarks => 'بحث في المفضلة...';
+
+  @override
+  String get searchDiscover => 'بحث في الاستكشاف...';
+
+  @override
+  String get searchVault => 'البحث في خزنتك...';
+
+  @override
+  String get communityAddReply => 'إضافة رد...';
+
+  @override
+  String get communityAddUrl => 'إضافة رابط (اختياري)';
+
+  @override
+  String get emailPlaceholder => 'you@email.com';
+
+  @override
+  String get formDescContent => 'الوصف والمحتوى';
+
+  @override
+  String get formDescPlaceholder => 'اكتب وصفاً تفصيلياً...';
+
+  @override
+  String get formDisplayVis => 'العرض والظهور';
+
+  @override
+  String get formActive => 'نشط';
+
+  @override
+  String get formActiveSub => 'إظهار هذا العنصر في قائمة الاستكشاف';
+
+  @override
+  String get formTrending => 'إظهار في الرائج';
+
+  @override
+  String get formTrendingSub => 'تمييزه في شريط العناصر الرائجة';
+
+  @override
+  String get formPopular => 'تحديد كشائع';
+
+  @override
+  String get formPopularSub => 'إظهاره في قسم الشائع';
+
+  @override
+  String get formFeaturedStatus => 'حالة التميز';
+
+  @override
+  String get formFeaturedSub => 'تحديده كعنصر مميز';
+
+  @override
+  String get formNotification => 'الإشعارات';
+
+  @override
+  String get formSendNotif => 'إرسال إشعار عند النشر';
+
+  @override
+  String get formSendNotifSub => 'إشعار جميع المستخدمين عن هذا العنصر الجديد';
+
+  @override
+  String get allItems => 'جميع العناصر';
+
+  @override
+  String get uncategorized => 'غير مصنف';
+
+  @override
+  String get label => 'التسمية';
+
+  @override
+  String get value => 'القيمة';
+
+  @override
+  String get contentToCopy => 'المحتوى للنسخ';
+
+  @override
+  String get saveToClipboard => 'حفظ في الحافظة';
+
+  @override
+  String get moveToGroup => 'نقل إلى مجموعة';
+
+  @override
+  String get selectMultiple => 'تحديد متعدد';
+
+  @override
+  String get editGroup => 'تعديل المجموعة';
+
+  @override
+  String get addGroup => 'إضافة مجموعة';
+
+  @override
+  String get groupName => 'اسم المجموعة';
+
+  @override
+  String movedTo(String group) {
+    return 'تم النقل إلى \"$group\"';
+  }
+
+  @override
+  String get pinToTop => 'تثبيت في الأعلى';
+
+  @override
+  String get unpin => 'إلغاء التثبيت';
+
+  @override
+  String get deleteItem => 'حذف العنصر';
+
+  @override
+  String get notifications => 'الإشعارات';
+
+  @override
+  String get errorLoadingNotifications => 'خطأ في تحميل الإشعارات';
+
+  @override
+  String get noNotifications => 'لا توجد إشعارات';
+
+  @override
+  String get markAllRead => 'تحديد الكل كمقروء';
+
+  @override
+  String get copiedToClipboard => 'تم النسخ!';
+
+  @override
+  String get bookmarks => 'المفضلة';
+
+  @override
+  String get viewAll => 'عرض الكل';
+
+  @override
+  String get community => 'المجتمع';
+
+  @override
+  String get post => 'نشر';
+
+  @override
+  String get postPublished => 'تم نشر المنشور!';
+
+  @override
+  String get addReply => 'أضف رداً...';
+
+  @override
+  String get deleteReply => 'حذف الرد؟';
+
+  @override
+  String get whatToShare => 'ماذا تريد أن تشارك مع المجتمع؟';
+
+  @override
+  String get categoryAll => 'الكل';
+
+  @override
+  String get categoryGeneral => 'عام';
+
+  @override
+  String get categoryQuestions => 'أسئلة';
+
+  @override
+  String get categoryTips => 'نصائح';
+
+  @override
+  String get categoryResources => 'موارد';
+
+  @override
+  String get categoryQuestion => 'سؤال';
+
+  @override
+  String get categoryTip => 'نصيحة';
+
+  @override
+  String get categoryResource => 'مورد';
+
+  @override
+  String get signIn => 'تسجيل الدخول';
+
+  @override
+  String get signUp => 'إنشاء حساب';
+
+  @override
+  String get signOut => 'تسجيل الخروج';
+
+  @override
+  String get loginTitle => 'مرحباً بعودتك';
+
+  @override
+  String get registerTitle => 'إنشاء حساب جديد';
+
+  @override
+  String get resetPassword => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get resetPasswordSent => 'تم إرسال الرابط! تحقق من بريدك الإلكتروني.';
+
+  @override
+  String get pages => 'الصفحات';
+
+  @override
+  String get addPage => 'إضافة صفحة';
+
+  @override
+  String get searchPages => 'بحث في الصفحات...';
+
+  @override
+  String get pageTitle => 'العنوان';
+
+  @override
+  String get pageUrl => 'الرابط';
+
+  @override
+  String get pageTitleHint => 'صفحتي المميزة';
+
+  @override
+  String get folder => 'المجلد';
+
+  @override
+  String get selectFolder => 'اختر مجلداً';
+
+  @override
+  String get tags => 'الوسوم';
+
+  @override
+  String get notes => 'الملاحظات';
+
+  @override
+  String get notesHint => 'ما هذه الصفحة؟';
+
+  @override
+  String get noPagesYet => 'لا توجد صفحات بعد';
+
+  @override
+  String get editPage => 'تعديل الصفحة';
+
+  @override
+  String get search => 'بحث';
+
+  @override
+  String get loading => 'جاري التحميل...';
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get confirm => 'تأكيد';
+
+  @override
+  String get yes => 'نعم';
+
+  @override
+  String get no => 'لا';
+
+  @override
+  String get done => 'تم';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get share => 'مشاركة';
+
+  @override
+  String get copyLink => 'نسخ الرابط';
+
+  @override
+  String get openUrl => 'فتح';
+
+  @override
+  String get type => 'النوع';
+
+  @override
+  String get noResultsFound => 'لا توجد نتائج';
+
+  @override
+  String get somethingWentWrong => 'حدث خطأ ما';
+
+  @override
+  String get analyticsLabel => 'التحليلات';
+
+  @override
+  String get analyticsTitle => 'أنشطة التطبيق';
+
+  @override
+  String get analyticsSubtitle => 'مراقبة تفاعل المستخدمين وأداء المحتوى';
+
+  @override
+  String get analyticsNotEnoughData => 'بيانات غير كافية لإنشاء الرسم البياني';
+
+  @override
+  String get analyticsTotalUsers => 'إجمالي المستخدمين';
+
+  @override
+  String analyticsActiveThisWeek(int count) {
+    return '$count نشط هذا الأسبوع';
+  }
+
+  @override
+  String get analyticsActiveToday => 'نشط اليوم';
+
+  @override
+  String get analyticsUniqueLogins => 'تسجيلات دخول / فتح فريدة';
+
+  @override
+  String get analyticsItemViews => 'مشاهدات العناصر';
+
+  @override
+  String get analyticsTotalAcrossItems => 'الإجمالي عبر جميع العناصر';
+
+  @override
+  String get analyticsBookmarks => 'المفضلة';
+
+  @override
+  String get analyticsSavedByUsers => 'محفوظة من قبل المستخدمين';
+
+  @override
+  String get analyticsDau => 'المستخدمون النشطون يومياً (15 يوم)';
+
+  @override
+  String get analyticsTopViewed => 'الأكثر مشاهدة';
+
+  @override
+  String get analyticsNoViewData => 'لا توجد بيانات مشاهدة بعد.';
+
+  @override
+  String get analyticsMostBookmarked => 'الأكثر تفضيلاً';
+
+  @override
+  String get analyticsNoBookmarkData => 'لا توجد بيانات مفضلة بعد.';
+
+  @override
+  String get analyticsTopSearches => 'أبرز عمليات البحث (15 يوم)';
+
+  @override
+  String get analyticsNoSearchData => 'لا توجد بيانات بحث بعد.';
+
+  @override
+  String analyticsViews(int count) {
+    return '$count مشاهدة';
+  }
+
+  @override
+  String analyticsSaves(int count) {
+    return '$count حفظ';
+  }
+
+  @override
+  String analyticsSearches(int count) {
+    return '$count بحث';
+  }
+
+  @override
+  String get analyticsShowLess => 'عرض أقل';
+
+  @override
+  String analyticsViewAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get timeJustNow => 'الآن';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return 'منذ $count د';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return 'منذ $count س';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return 'منذ $count ي';
+  }
+
+  @override
+  String timeMinutesAgoFull(int count) {
+    return 'منذ $count دقيقة';
+  }
+
+  @override
+  String timeHoursAgoFull(int count) {
+    return 'منذ $count ساعة';
+  }
+
+  @override
+  String timeDaysAgoFull(int count) {
+    return 'منذ $count يوم';
+  }
+
+  @override
+  String get discoverOpenButton => 'فتح';
+
+  @override
+  String get exploreNow => 'استكشف الآن';
+
+  @override
+  String get openLink => 'فتح الرابط';
+
+  @override
+  String get attachedLink => 'الرابط المرفق';
+
+  @override
+  String get searchPagesAndClipboard => 'البحث في الصفحات، الحافظة...';
+
+  @override
+  String get searchSavedPagesAndClipboard => 'ابحث في صفحاتك والحافظة';
+
+  @override
+  String noResultsForQuery(String query) {
+    return 'لا توجد نتائج لـ \"$query\"';
+  }
+
+  @override
+  String get searchResultPages => 'الصفحات';
+
+  @override
+  String get searchResultClipboard => 'الحافظة';
+
+  @override
+  String get browseDiscover => 'تصفح الاكتشاف';
+
+  @override
+  String get searchOnlineContent => 'البحث في المحتوى الإلكتروني والمواقع';
+
+  @override
+  String get forgotPasswordTitle => 'إعادة تعيين كلمة المرور';
+
+  @override
+  String get forgotPasswordEmailSent => 'تم إرسال البريد!';
+
+  @override
+  String get forgotPasswordInstructions =>
+      'أدخل عنوان بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة مرورك.';
+
+  @override
+  String get forgotPasswordCheckEmail =>
+      'تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.';
+
+  @override
+  String get forgotPasswordSendButton => 'إرسال الرابط';
+
+  @override
+  String get forgotPasswordBackToSignIn => 'العودة لتسجيل الدخول';
+
+  @override
+  String get forgotPasswordEmptyEmail => 'الرجاء إدخال البريد الإلكتروني';
+
+  @override
+  String get forgotPasswordFailed => 'فشل إرسال بريد إعادة التعيين';
+
+  @override
+  String get notifBodyOffer => '🔥 عرض جديد متاح! تحقق منه الآن.';
+
+  @override
+  String get notifBodyPrompt => '💡 تمت إضافة prompt جديد! اضغط للاستكشاف.';
+
+  @override
+  String get notifBodyAnnouncement => '📢 إعلان جديد! اضغط للقراءة.';
+
+  @override
+  String get notifBodyDefault => '🌐 محتوى جديد أُضيف للتو! اضغط للاكتشاف.';
 }

@@ -20,7 +20,7 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = settings['themeMode'] as String? ?? 'system';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -94,14 +94,16 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                               ),
                               title: Text(
-                                'Admin Dashboard',
+                                AppLocalizations.of(context)!.adminDashboard,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   color: isDark ? Colors.white : Colors.black87,
                                 ),
                               ),
                               subtitle: Text(
-                                'Manage content and users',
+                                AppLocalizations.of(
+                                  context,
+                                )!.manageContentAndUsers,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark
@@ -264,7 +266,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // Clipboard & Copy section
           _buildSectionHeader(
-            'Clipboard & Copy',
+            AppLocalizations.of(context)!.clipboardSettings,
             PhosphorIcons.clipboardText(),
             isDark,
           ),
@@ -285,7 +287,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               title: Text(
-                'Clipboard Settings',
+                AppLocalizations.of(context)!.clipboardSettings,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: isDark
@@ -294,7 +296,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               subtitle: Text(
-                'Floating clipboard, overlay permission, smart copy & tips',
+                AppLocalizations.of(context)!.clipboardSettingsSubtitle,
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark
@@ -494,7 +496,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 28),
 
           // Support section
-          _buildSectionHeader('Support', PhosphorIcons.headset(), isDark),
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.support,
+            PhosphorIcons.headset(),
+            isDark,
+          ),
           const SizedBox(height: 12),
           Consumer(
             builder: (ctx, ref, _) {
@@ -548,7 +554,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   title: Text(
-                    'Contact Support',
+                    AppLocalizations.of(context)!.contactSupport,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       color: isDark
@@ -557,7 +563,7 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                   subtitle: Text(
-                    'Get help from an administrator',
+                    AppLocalizations.of(context)!.getHelpFromAdmin,
                     style: TextStyle(
                       fontSize: 12,
                       color: isDark

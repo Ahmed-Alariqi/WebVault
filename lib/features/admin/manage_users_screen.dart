@@ -236,7 +236,8 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                           title: Row(
                             children: [
                               Text(
-                                user['full_name'] ?? 'No Name',
+                                user['full_name'] ??
+                                    AppLocalizations.of(context)!.noName,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -274,7 +275,10 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(user['email'] ?? 'No Email'),
+                              Text(
+                                user['email'] ??
+                                    AppLocalizations.of(context)!.noEmail,
+                              ),
                               if (lastSignIn != null)
                                 Text(
                                   AppLocalizations.of(context)!.lastLogin(
@@ -510,11 +514,11 @@ class _UserDialogState extends State<_UserDialog> {
                 onChanged: (v) => setState(() => _role = v!),
               ),
               if (_isEditing)
-                const Padding(
-                  padding: EdgeInsets.only(top: 16),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
                   child: Text(
-                    'Note: To change email/password, please use the Auth dashboard or add logic to backend.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    AppLocalizations.of(context)!.emailPasswordChangeNote,
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
             ],

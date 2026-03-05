@@ -13,6 +13,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import 'community_new_post_sheet.dart';
+import '../../l10n/app_localizations.dart';
 
 void _showReactionPicker(BuildContext context, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
@@ -184,27 +185,27 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             child: Row(
               children: [
                 _FilterChip(
-                  label: 'All',
+                  label: AppLocalizations.of(context)!.categoryAll,
                   value: 'all',
                   selectedValue: selectedCategory,
                 ),
                 _FilterChip(
-                  label: 'General',
+                  label: AppLocalizations.of(context)!.categoryGeneral,
                   value: 'general',
                   selectedValue: selectedCategory,
                 ),
                 _FilterChip(
-                  label: 'Questions',
+                  label: AppLocalizations.of(context)!.categoryQuestions,
                   value: 'question',
                   selectedValue: selectedCategory,
                 ),
                 _FilterChip(
-                  label: 'Tips',
+                  label: AppLocalizations.of(context)!.categoryTips,
                   value: 'tip',
                   selectedValue: selectedCategory,
                 ),
                 _FilterChip(
-                  label: 'Resources',
+                  label: AppLocalizations.of(context)!.categoryResources,
                   value: 'resource',
                   selectedValue: selectedCategory,
                 ),
@@ -244,7 +245,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       floatingActionButton: ModernFab.extended(
         onPressed: () => _showNewPostSheet(context),
         icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-        label: const Text('Post'),
+        label: Text(AppLocalizations.of(context)!.post),
       ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack),
     );
   }

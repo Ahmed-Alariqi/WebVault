@@ -11,6 +11,7 @@ import '../../core/supabase_config.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/website_model.dart';
 import 'website_details_dialog.dart';
+import '../../l10n/app_localizations.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
   final NotificationModel notification;
@@ -65,7 +66,8 @@ class NotificationDetailsDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = _getTypeColor(notification.type);
-    final timeAgo = _formatTimeAgo(notification.createdAt);
+    final l10n = AppLocalizations.of(context)!;
+    final timeAgo = _formatTimeAgo(context, notification.createdAt);
 
     return Dialog(
           backgroundColor: Colors.transparent,
@@ -319,9 +321,9 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                       ),
                                       size: 20,
                                     ),
-                                    label: const Text(
-                                      'Explore Now',
-                                      style: TextStyle(
+                                    label: Text(
+                                      l10n.exploreNow,
+                                      style: const TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -331,7 +333,7 @@ class NotificationDetailsDialog extends ConsumerWidget {
                               ] else ...[
                                 // Standard URL notification
                                 Text(
-                                  'ATTACHED LINK',
+                                  l10n.attachedLink,
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -382,9 +384,9 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                           ),
                                           size: 20,
                                         ),
-                                        label: const Text(
-                                          'Open Link',
-                                          style: TextStyle(
+                                        label: Text(
+                                          l10n.openLink,
+                                          style: const TextStyle(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -423,7 +425,7 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                           color: isDark
                                               ? AppTheme.darkTextPrimary
                                               : AppTheme.lightTextPrimary,
-                                          tooltip: 'Open in Browser',
+                                          tooltip: l10n.openInBrowser,
                                         ),
                                       ),
                                     ],
@@ -486,18 +488,19 @@ class NotificationDetailsDialog extends ConsumerWidget {
     );
   }
 
-  String _formatTimeAgo(DateTime dateTime) {
+  String _formatTimeAgo(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context)!;
     final diff = DateTime.now().difference(dateTime);
     if (diff.inDays > 7) {
       return DateFormat('MMM d, yyyy').format(dateTime);
     } else if (diff.inDays >= 1) {
-      return '${diff.inDays} days ago';
+      return l10n.timeDaysAgoFull(diff.inDays);
     } else if (diff.inHours >= 1) {
-      return '${diff.inHours} hours ago';
+      return l10n.timeHoursAgoFull(diff.inHours);
     } else if (diff.inMinutes >= 1) {
-      return '${diff.inMinutes} minutes ago';
+      return l10n.timeMinutesAgoFull(diff.inMinutes);
     } else {
-      return 'Just now';
+      return l10n.timeJustNow;
     }
   }
 

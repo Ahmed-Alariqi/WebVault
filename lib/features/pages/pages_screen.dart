@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../l10n/app_localizations.dart';
 
 class PagesScreen extends ConsumerWidget {
   const PagesScreen({super.key});
@@ -19,7 +20,7 @@ class PagesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pages'),
+        title: Text(AppLocalizations.of(context)!.pages),
         actions: [
           IconButton(
             icon: Icon(PhosphorIcons.folder()),
@@ -35,7 +36,7 @@ class PagesScreen extends ConsumerWidget {
             child: TextField(
               onChanged: (v) => ref.read(pageSearchProvider.notifier).state = v,
               decoration: InputDecoration(
-                hintText: 'Search pages...',
+                hintText: AppLocalizations.of(context)!.searchPages,
                 prefixIcon: Icon(PhosphorIcons.magnifyingGlass(), size: 20),
                 suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(
@@ -49,7 +50,7 @@ class PagesScreen extends ConsumerWidget {
           ),
           Expanded(
             child: pages.isEmpty
-                ? _buildEmpty(isDark, searchQuery.isNotEmpty)
+                ? _buildEmpty(isDark, searchQuery.isNotEmpty, context)
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: pages.length,
@@ -63,7 +64,7 @@ class PagesScreen extends ConsumerWidget {
       floatingActionButton: ModernFab.extended(
         onPressed: () => context.push('/add-page'),
         icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-        label: const Text('Add Page'),
+        label: Text(AppLocalizations.of(context)!.addPage),
       ),
     );
   }
@@ -211,7 +212,8 @@ class PagesScreen extends ConsumerWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildEmpty(bool isDark, bool isSearch) {
+  Widget _buildEmpty(bool isDark, bool isSearch, BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -233,7 +235,7 @@ class PagesScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            isSearch ? 'No results found' : 'No pages saved',
+            isSearch ? l.noResultsFound : l.noPagesYet,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -244,9 +246,7 @@ class PagesScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            isSearch
-                ? 'Try a different search term'
-                : 'Tap + to add your first page',
+            isSearch ? l.noResultsFound : l.addFirstPage,
             style: TextStyle(
               fontSize: 14,
               color: isDark

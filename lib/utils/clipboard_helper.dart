@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../data/models/clipboard_item_model.dart';
 import '../presentation/providers/providers.dart';
+import '../l10n/app_localizations.dart';
 
 class ClipboardHelper {
   static Future<void> copyAndPrompt(
@@ -20,18 +21,16 @@ class ClipboardHelper {
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Copied'),
-        content: const Text(
-          'Would you like to save this text into your WebVault clipboard for later use?',
-        ),
+        title: Text(AppLocalizations.of(context)!.copied),
+        content: Text(AppLocalizations.of(context)!.promptSaveToVault),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
+            child: Text(AppLocalizations.of(context)!.save),
           ),
         ],
       ),
@@ -41,7 +40,7 @@ class ClipboardHelper {
       // Create new clipboard item
       final newItem = ClipboardItemModel(
         id: const Uuid().v4(),
-        label: 'Copied Text',
+        label: AppLocalizations.of(context)!.copiedText,
         value: content,
         createdAt: DateTime.now(),
         isPinned: false,
@@ -52,8 +51,10 @@ class ClipboardHelper {
 
       // Show success
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Saved explicitly to WebVault Clipboard!'),
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context)!.savedExplicitlyToClipboard,
+          ),
           duration: Duration(seconds: 2),
         ),
       );
@@ -91,9 +92,12 @@ class ClipboardHelper {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Quick Add to Clipboard',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  AppLocalizations.of(context)!.quickAddToClipboard,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -103,7 +107,7 @@ class ClipboardHelper {
                   minLines: 1,
                   autofocus: true,
                   decoration: InputDecoration(
-                    hintText: 'Paste or type text here...',
+                    hintText: AppLocalizations.of(context)!.pasteOrTypeText,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -116,7 +120,7 @@ class ClipboardHelper {
                     if (content.isNotEmpty) {
                       final newItem = ClipboardItemModel(
                         id: const Uuid().v4(),
-                        label: 'Manual Entry',
+                        label: AppLocalizations.of(context)!.manualEntry,
                         value: content,
                         createdAt: DateTime.now(),
                         isPinned: false,
@@ -126,14 +130,16 @@ class ClipboardHelper {
                           .addItem(newItem);
                       Navigator.pop(ctx);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Saved to WebVault Clipboard!'),
+                        SnackBar(
+                          content: Text(
+                            AppLocalizations.of(context)!.savedToClipboard,
+                          ),
                           duration: Duration(seconds: 2),
                         ),
                       );
                     }
                   },
-                  child: const Text('Save to Vault'),
+                  child: Text(AppLocalizations.of(context)!.saveToVaultBtn),
                 ),
               ],
             ),

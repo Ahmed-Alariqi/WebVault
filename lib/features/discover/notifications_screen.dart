@@ -9,6 +9,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/notification_model.dart';
 import '../../presentation/widgets/notification_details_dialog.dart';
+import '../../l10n/app_localizations.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -36,7 +37,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(AppLocalizations.of(context)!.notifications),
         forceMaterialTransparency: true,
       ),
       body: notificationsAsync.when(
@@ -53,7 +54,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No notifications yet',
+                    AppLocalizations.of(context)!.noNotifications,
                     style: TextStyle(
                       fontSize: 16,
                       color: isDark ? Colors.white54 : Colors.black45,
@@ -81,8 +82,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) =>
-            Center(child: Text('Error loading notifications')),
+        error: (err, stack) => Center(
+          child: Text(AppLocalizations.of(context)!.errorLoadingNotifications),
+        ),
       ),
     );
   }
@@ -126,7 +128,7 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeAgo = _formatTimeAgo(notification.createdAt);
+    final timeAgo = _formatTimeAgo(context, notification.createdAt);
     final color = _getTypeColor(notification.type);
 
     return Container(
@@ -280,8 +282,8 @@ class _NotificationCard extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     notification.type == 'new_item'
-                                        ? 'New Item'
-                                        : 'Has Link',
+                                        ? AppLocalizations.of(context)!.trending
+                                        : AppLocalizations.of(context)!.openUrl,
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -305,18 +307,19 @@ class _NotificationCard extends StatelessWidget {
     );
   }
 
-  String _formatTimeAgo(DateTime dateTime) {
+  String _formatTimeAgo(BuildContext context, DateTime dateTime) {
+    final l10n = AppLocalizations.of(context)!;
     final diff = DateTime.now().difference(dateTime);
     if (diff.inDays > 7) {
       return DateFormat('MMM d').format(dateTime);
     } else if (diff.inDays >= 1) {
-      return '${diff.inDays}d ago';
+      return l10n.timeDaysAgo(diff.inDays);
     } else if (diff.inHours >= 1) {
-      return '${diff.inHours}h ago';
+      return l10n.timeHoursAgo(diff.inHours);
     } else if (diff.inMinutes >= 1) {
-      return '${diff.inMinutes}m ago';
+      return l10n.timeMinutesAgo(diff.inMinutes);
     } else {
-      return 'Just now';
+      return l10n.timeJustNow;
     }
   }
 }

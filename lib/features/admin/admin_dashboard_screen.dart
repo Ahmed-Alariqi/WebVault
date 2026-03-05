@@ -8,6 +8,7 @@ import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -75,8 +76,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                                   color: Colors.white.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Text(
-                                  'ADMINISTRATOR',
+                                child: Text(
+                                  AppLocalizations.of(context)!.adminBadge,
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -86,16 +87,18 @@ class AdminDashboardScreen extends ConsumerWidget {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              const Text(
-                                'Control Center',
+                              Text(
+                                AppLocalizations.of(context)!.controlCenter,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Text(
-                                'Manage your vault ecosystem',
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.manageVaultEcosystem,
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
@@ -135,7 +138,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverToBoxAdapter(
                   child: Text(
-                    'MANAGEMENT',
+                    AppLocalizations.of(context)!.management,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -156,8 +159,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                   childAspectRatio: 1.1,
                   children: [
                     _ActionCard(
-                      title: 'App Activities',
-                      subtitle: 'Analytics & Tracking',
+                      title: AppLocalizations.of(context)!.appActivities,
+                      subtitle: AppLocalizations.of(context)!.analyticsTracking,
                       icon: PhosphorIcons.chartLineUp(
                         PhosphorIconsStyle.duotone,
                       ),
@@ -167,8 +170,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 0,
                     ),
                     _ActionCard(
-                      title: 'Suggestions',
-                      subtitle: 'Review Requests',
+                      title: AppLocalizations.of(context)!.suggestionsTitle,
+                      subtitle: AppLocalizations.of(context)!.reviewRequests,
                       icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.duotone),
                       color: const Color(0xFF8B5CF6), // Violet
                       isDark: isDark,
@@ -176,8 +179,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 0,
                     ),
                     _ActionCard(
-                      title: 'Websites',
-                      subtitle: 'Add/Edit Sites',
+                      title: AppLocalizations.of(context)!.websitesTitle,
+                      subtitle: AppLocalizations.of(context)!.addEditSites,
                       icon: PhosphorIcons.globe(PhosphorIconsStyle.duotone),
                       color: const Color(0xFF3B82F6), // Blue
                       isDark: isDark,
@@ -185,8 +188,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 50,
                     ),
                     _ActionCard(
-                      title: 'Categories',
-                      subtitle: 'Organize Content',
+                      title: AppLocalizations.of(context)!.categoriesTitle,
+                      subtitle: AppLocalizations.of(context)!.organizeContent,
                       icon: PhosphorIcons.tag(PhosphorIconsStyle.duotone),
                       color: const Color(0xFF10B981), // Emerald
                       isDark: isDark,
@@ -194,8 +197,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 100,
                     ),
                     _ActionCard(
-                      title: 'Push Notifications',
-                      subtitle: 'Send outside alerts',
+                      title: AppLocalizations.of(
+                        context,
+                      )!.pushNotificationsTitle,
+                      subtitle: AppLocalizations.of(context)!.sendOutsideAlerts,
                       icon: PhosphorIcons.bellRinging(
                         PhosphorIconsStyle.duotone,
                       ),
@@ -205,8 +210,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 200,
                     ),
                     _ActionCard(
-                      title: 'In-App Messages',
-                      subtitle: 'Popup campaigns',
+                      title: AppLocalizations.of(context)!.inAppMessagesTitle,
+                      subtitle: AppLocalizations.of(context)!.popupCampaigns,
                       icon: PhosphorIcons.megaphone(PhosphorIconsStyle.duotone),
                       color: const Color(0xFF14B8A6), // Teal
                       isDark: isDark,
@@ -214,8 +219,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 250,
                     ),
                     _ActionCard(
-                      title: 'Users',
-                      subtitle: 'View Accounts',
+                      title: AppLocalizations.of(context)!.usersTitle,
+                      subtitle: AppLocalizations.of(context)!.viewAccounts,
                       icon: PhosphorIcons.users(PhosphorIconsStyle.duotone),
                       color: const Color(0xFFEC4899), // Pink
                       isDark: isDark,
@@ -223,8 +228,8 @@ class AdminDashboardScreen extends ConsumerWidget {
                       delay: 300,
                     ),
                     _ActionCard(
-                      title: 'Community',
-                      subtitle: 'Manage Posts',
+                      title: AppLocalizations.of(context)!.communityTitle,
+                      subtitle: AppLocalizations.of(context)!.managePosts,
                       icon: PhosphorIcons.globeHemisphereWest(
                         PhosphorIconsStyle.duotone,
                       ),
@@ -239,8 +244,10 @@ class AdminDashboardScreen extends ConsumerWidget {
                         final count = ref.watch(adminTotalUnreadCountProvider);
 
                         return _ActionCard(
-                          title: 'User Messages',
-                          subtitle: 'Support chats',
+                          title: AppLocalizations.of(
+                            context,
+                          )!.userMessagesTitle,
+                          subtitle: AppLocalizations.of(context)!.supportChats,
                           icon: PhosphorIcons.chatCircleDots(
                             PhosphorIconsStyle.duotone,
                           ),
@@ -295,7 +302,7 @@ class _StatsGrid extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _StatItem(
-            label: 'Total Users',
+            label: AppLocalizations.of(context)!.totalUsers,
             value: stats['users']?.toString() ?? '0',
             icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
             color: const Color(0xFF6366F1),
@@ -307,7 +314,7 @@ class _StatsGrid extends StatelessWidget {
             color: isDark ? Colors.white12 : Colors.black12,
           ),
           _StatItem(
-            label: 'Websites',
+            label: AppLocalizations.of(context)!.websitesTitle,
             value: stats['websites']?.toString() ?? '0',
             icon: PhosphorIcons.globe(PhosphorIconsStyle.fill),
             color: const Color(0xFF10B981),
@@ -319,7 +326,7 @@ class _StatsGrid extends StatelessWidget {
             color: isDark ? Colors.white12 : Colors.black12,
           ),
           _StatItem(
-            label: 'Categories',
+            label: AppLocalizations.of(context)!.categoriesTitle,
             value: stats['categories']?.toString() ?? '0',
             icon: PhosphorIcons.tag(PhosphorIconsStyle.fill),
             color: const Color(0xFFF59E0B),
@@ -516,7 +523,7 @@ class _AccessDeniedView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Access Resticted',
+            AppLocalizations.of(context)!.accessRestricted,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -525,13 +532,13 @@ class _AccessDeniedView extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Administrator privileges required.',
+            AppLocalizations.of(context)!.adminPrivilegesRequired,
             style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
           ),
           const SizedBox(height: 32),
           TextButton(
             onPressed: () => context.pop(),
-            child: const Text('Return Home'),
+            child: Text(AppLocalizations.of(context)!.returnHome),
           ),
         ],
       ).animate().fadeIn().slideY(begin: 0.2),

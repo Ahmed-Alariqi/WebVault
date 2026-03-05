@@ -24,7 +24,9 @@ Future<void> showSuggestionDialog(
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.titleLabel,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
@@ -79,7 +81,12 @@ Future<void> showSuggestionDialog(
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.errorMessage(e.toString()),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

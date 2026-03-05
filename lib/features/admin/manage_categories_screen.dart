@@ -6,6 +6,7 @@ import '../../data/models/category_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageCategoriesScreen extends ConsumerWidget {
   const ManageCategoriesScreen({super.key});
@@ -18,12 +19,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Manage Categories'),
+        title: Text(AppLocalizations.of(context)!.manageCategoriesTitle),
         forceMaterialTransparency: true,
         actions: [
           IconButton(
             icon: Icon(PhosphorIcons.magicWand()),
-            tooltip: 'Seed Default Categories',
+            tooltip: AppLocalizations.of(context)!.seedDefaultCategories,
             onPressed: () => _seedDefaultCategories(ref, context),
           ),
           IconButton(
@@ -45,9 +46,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
                     color: AppTheme.primaryColor.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'No categories',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  Text(
+                    AppLocalizations.of(context)!.noCategories,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -207,7 +211,9 @@ class ManageCategoriesScreen extends ConsumerWidget {
         Navigator.pop(context); // close loading
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Default categories injected successfully!'),
+            content: Text(
+              AppLocalizations.of(context)!.defaultCategoriesInjected,
+            ),
             backgroundColor: AppTheme.primaryColor,
             behavior: SnackBarBehavior.floating,
           ),
@@ -218,7 +224,11 @@ class ManageCategoriesScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to seed categories: $e'),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              )!.failedToSeedCategories(e.toString()),
+            ),
             backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
           ),
@@ -240,12 +250,16 @@ class ManageCategoriesScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(existing == null ? 'Add Category' : 'Edit Category'),
+        title: Text(
+          existing == null
+              ? AppLocalizations.of(context)!.addCategory
+              : AppLocalizations.of(context)!.editCategory,
+        ),
         content: TextField(
           controller: nameCtrl,
           style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           decoration: InputDecoration(
-            labelText: 'Category Name',
+            labelText: AppLocalizations.of(context)!.categoryName,
             filled: true,
             fillColor: isDark
                 ? Colors.white.withValues(alpha: 0.06)
@@ -259,7 +273,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -292,7 +306,9 @@ class ManageCategoriesScreen extends ConsumerWidget {
               ),
             ),
             child: Text(
-              existing == null ? 'Add' : 'Save',
+              existing == null
+                  ? AppLocalizations.of(context)!.addBtn
+                  : AppLocalizations.of(context)!.save,
               style: const TextStyle(color: Colors.white),
             ),
           ),

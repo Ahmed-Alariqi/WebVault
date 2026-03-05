@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/constants.dart';
 import '../../presentation/providers/providers.dart';
+import '../../l10n/app_localizations.dart';
 import 'pin_lock_screen.dart';
 
 class SecuritySettingsScreen extends ConsumerStatefulWidget {
@@ -41,15 +42,15 @@ class _SecuritySettingsScreenState
     if (mounted) setState(() {});
   }
 
-  String _getBiometricName() {
+  String _getBiometricName(BuildContext context) {
     if (_availableBiometrics.contains(BiometricType.face)) {
-      return 'Face ID';
+      return AppLocalizations.of(context)!.faceId;
     } else if (_availableBiometrics.contains(BiometricType.fingerprint)) {
-      return 'Fingerprint';
+      return AppLocalizations.of(context)!.fingerprint;
     } else if (_availableBiometrics.contains(BiometricType.iris)) {
-      return 'Iris';
+      return AppLocalizations.of(context)!.iris;
     }
-    return 'Biometrics';
+    return AppLocalizations.of(context)!.biometrics;
   }
 
   IconData _getBiometricIcon() {
@@ -59,10 +60,12 @@ class _SecuritySettingsScreenState
     return PhosphorIcons.fingerprint();
   }
 
-  String _formatTimeout(int seconds) {
-    if (seconds == 0) return 'Immediately';
-    if (seconds < 60) return '$seconds seconds';
-    return '${seconds ~/ 60} minutes';
+  String _formatTimeout(int seconds, BuildContext context) {
+    if (seconds == 0) return AppLocalizations.of(context)!.immediately;
+    if (seconds < 60) {
+      return AppLocalizations.of(context)!.timeoutSeconds(seconds);
+    }
+    return AppLocalizations.of(context)!.timeoutMinutes(seconds ~/ 60);
   }
 
   @override
@@ -100,9 +103,9 @@ class _SecuritySettingsScreenState
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Security & Privacy',
-                style: TextStyle(
+              title: Text(
+                AppLocalizations.of(context)!.securityAndPrivacy,
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
                   color: Colors.white,
@@ -181,12 +184,17 @@ class _SecuritySettingsScreenState
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Security Status Card
-                _buildSecurityStatusCard(isDark, pinEnabled, biometricEnabled),
+                _buildSecurityStatusCard(
+                  isDark,
+                  pinEnabled,
+                  biometricEnabled,
+                  context,
+                ),
                 const SizedBox(height: 28),
 
                 // PIN Section
                 _buildSectionHeader(
-                  'PIN Protection',
+                  AppLocalizations.of(context)!.pinProtection,
                   PhosphorIcons.numpad(),
                   isDark,
                 ),
@@ -197,14 +205,16 @@ class _SecuritySettingsScreenState
                     _buildSwitchTile(
                       icon: PhosphorIcons.lockKey(),
                       iconColor: AppTheme.primaryColor,
-                      title: 'PIN Lock',
-                      subtitle: pinEnabled ? 'Enabled' : 'Off',
+                      title: AppLocalizations.of(context)!.pinLock,
+                      subtitle: pinEnabled
+                          ? AppLocalizations.of(context)!.enabledStr
+                          : AppLocalizations.of(context)!.off,
                       value: pinEnabled,
                       onChanged: (value) {
                         if (value) {
                           context.push('/pin-setup');
                         } else {
-                          _showRemovePinDialog(settingsNotifier);
+                          _showRemovePinDialog(settingsNotifier, context);
                         }
                       },
                     ),
@@ -213,8 +223,10 @@ class _SecuritySettingsScreenState
                       _buildActionTile(
                         icon: PhosphorIcons.pencilSimple(),
                         iconColor: AppTheme.accentColor,
-                        title: 'Change PIN',
-                        subtitle: 'Update your security PIN',
+                        title: AppLocalizations.of(context)!.changePin,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.updateSecurityPin,
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
@@ -233,7 +245,7 @@ class _SecuritySettingsScreenState
 
                 // Biometric Section
                 _buildSectionHeader(
-                  'Biometric Authentication',
+                  AppLocalizations.of(context)!.biometricAuth,
                   _getBiometricIcon(),
                   isDark,
                 ),
@@ -244,12 +256,14 @@ class _SecuritySettingsScreenState
                     _buildSwitchTile(
                       icon: _getBiometricIcon(),
                       iconColor: AppTheme.accentColor,
-                      title: _getBiometricName(),
+                      title: _getBiometricName(context),
                       subtitle: _canCheckBiometrics
                           ? (biometricEnabled
-                                ? 'Enabled — Quick unlock'
-                                : 'Tap to enable')
-                          : 'Not available on this device',
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.enabledQuickUnlock
+                                : AppLocalizations.of(context)!.tapToEnable)
+                          : AppLocalizations.of(context)!.notAvailableOnDevice,
                       value: biometricEnabled,
                       onChanged: _canCheckBiometrics && pinEnabled
                           ? (value) async {
@@ -321,7 +335,7 @@ class _SecuritySettingsScreenState
 
                 // App Lock Settings
                 _buildSectionHeader(
-                  'App Lock Settings',
+                  AppLocalizations.of(context)!.appLockSettings,
                   PhosphorIcons.timer(),
                   isDark,
                 ),
@@ -332,8 +346,8 @@ class _SecuritySettingsScreenState
                     _buildDropdownTile(
                       icon: PhosphorIcons.timer(),
                       iconColor: const Color(0xFF7C4DFF),
-                      title: 'Auto-Lock Timeout',
-                      subtitle: _formatTimeout(autoLockTimeout),
+                      title: AppLocalizations.of(context)!.autoLockTimeout,
+                      subtitle: _formatTimeout(autoLockTimeout, context),
                       isDark: isDark,
                       value: autoLockTimeout,
                       items: kAutoLockOptions,
@@ -351,7 +365,7 @@ class _SecuritySettingsScreenState
                 const SizedBox(height: 40),
 
                 // Security tip
-                _buildSecurityTip(isDark),
+                _buildSecurityTip(isDark, context),
 
                 const SizedBox(height: 40),
               ]),
@@ -366,6 +380,7 @@ class _SecuritySettingsScreenState
     bool isDark,
     bool pinEnabled,
     bool biometricEnabled,
+    BuildContext context,
   ) {
     final int securityLevel;
     final String securityText;
@@ -373,15 +388,15 @@ class _SecuritySettingsScreenState
 
     if (pinEnabled && biometricEnabled) {
       securityLevel = 3;
-      securityText = 'Maximum Protection';
+      securityText = AppLocalizations.of(context)!.maximumProtection;
       statusColor = AppTheme.successColor;
     } else if (pinEnabled) {
       securityLevel = 2;
-      securityText = 'Good Protection';
+      securityText = AppLocalizations.of(context)!.goodProtection;
       statusColor = AppTheme.warningColor;
     } else {
       securityLevel = 1;
-      securityText = 'Basic Protection';
+      securityText = AppLocalizations.of(context)!.basicProtection;
       statusColor = AppTheme.errorColor;
     }
 
@@ -698,7 +713,7 @@ class _SecuritySettingsScreenState
                 return DropdownMenuItem(
                   value: s,
                   child: Text(
-                    _formatTimeout(s),
+                    _formatTimeout(s, context),
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark
@@ -726,7 +741,10 @@ class _SecuritySettingsScreenState
     );
   }
 
-  void _showRemovePinDialog(SettingsNotifier settingsNotifier) {
+  void _showRemovePinDialog(
+    SettingsNotifier settingsNotifier,
+    BuildContext context,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -739,16 +757,14 @@ class _SecuritySettingsScreenState
               size: 24,
             ),
             const SizedBox(width: 8),
-            const Text('Remove PIN?'),
+            Text(AppLocalizations.of(context)!.removePinQ),
           ],
         ),
-        content: const Text(
-          'This will disable PIN lock and biometric authentication. Your app will no longer be protected.',
-        ),
+        content: Text(AppLocalizations.of(context)!.removePinWarning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -759,14 +775,14 @@ class _SecuritySettingsScreenState
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text('Remove'),
+            child: Text(AppLocalizations.of(context)!.remove),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSecurityTip(bool isDark) {
+  Widget _buildSecurityTip(bool isDark, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -797,8 +813,8 @@ class _SecuritySettingsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Security Tip',
-                  style: TextStyle(
+                  AppLocalizations.of(context)!.securityTip,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppTheme.accentColor,
@@ -806,7 +822,7 @@ class _SecuritySettingsScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Enable both PIN and biometrics for maximum protection of your saved pages and clipboard data.',
+                  AppLocalizations.of(context)!.securityTipDesc,
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark
@@ -891,7 +907,7 @@ class _PinVerifyScreenState extends ConsumerState<_PinVerifyScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Verify Current PIN'),
+        title: Text(AppLocalizations.of(context)!.verifyCurrentPin),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.close_rounded),
@@ -902,7 +918,9 @@ class _PinVerifyScreenState extends ConsumerState<_PinVerifyScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _hasError ? 'Incorrect PIN' : 'Enter current PIN',
+              _hasError
+                  ? AppLocalizations.of(context)!.incorrectPin
+                  : AppLocalizations.of(context)!.enterCurrentPin,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,

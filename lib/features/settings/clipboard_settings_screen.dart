@@ -6,6 +6,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class ClipboardSettingsScreen extends ConsumerStatefulWidget {
   const ClipboardSettingsScreen({super.key});
@@ -48,9 +49,9 @@ class _ClipboardSettingsScreenState
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Clipboard & Copy',
-                style: TextStyle(
+              title: Text(
+                AppLocalizations.of(context)!.clipboardSettings,
+                style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
                   color: Colors.white,
@@ -130,7 +131,7 @@ class _ClipboardSettingsScreenState
               delegate: SliverChildListDelegate([
                 // ── How to Save Text ──────────────────────────────────────
                 _buildSectionHeader(
-                  'How to Save',
+                  AppLocalizations.of(context)!.howToSave,
                   PhosphorIcons.shareNetwork(),
                   isDark,
                 ),
@@ -142,11 +143,12 @@ class _ClipboardSettingsScreenState
                       isDark: isDark,
                       icon: PhosphorIcons.info(),
                       iconColor: const Color(0xFF009688),
-                      title: 'Saving text from other apps',
-                      content:
-                          '1. Share: Select text in any app, tap "Share", and choose WebVault.\n'
-                          '2. Text Selection: Select text and choose "WebVault" from the popup menu.\n'
-                          '3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.',
+                      title: AppLocalizations.of(
+                        context,
+                      )!.savingTextFromOtherApps,
+                      content: AppLocalizations.of(
+                        context,
+                      )!.savingTextInstructions,
                     ),
                   ],
                 ),
@@ -155,7 +157,7 @@ class _ClipboardSettingsScreenState
 
                 // ── Smart Clipboard ────────────────────────────────────
                 _buildSectionHeader(
-                  'Smart Clipboard',
+                  AppLocalizations.of(context)!.smartClipboard,
                   PhosphorIcons.brain(),
                   isDark,
                 ),
@@ -166,10 +168,10 @@ class _ClipboardSettingsScreenState
                     _buildSwitchTile(
                       icon: PhosphorIcons.clipboard(PhosphorIconsStyle.fill),
                       iconColor: const Color(0xFF3F51B5),
-                      title: 'Smart Background Copy',
+                      title: AppLocalizations.of(context)!.smartBackgroundCopy,
                       subtitle: isAdvancedCopyEnabled
-                          ? 'Enabled — Saves everything you copy'
-                          : 'Off — Manual save only',
+                          ? AppLocalizations.of(context)!.enabledSavesEverything
+                          : AppLocalizations.of(context)!.offManualSaveOnly,
                       value: isAdvancedCopyEnabled,
                       onChanged: (val) =>
                           settingsNotifier.setAdvancedCopyEnabled(val),
@@ -179,11 +181,10 @@ class _ClipboardSettingsScreenState
                       isDark: isDark,
                       icon: PhosphorIcons.info(),
                       iconColor: const Color(0xFF3F51B5),
-                      title: 'How Smart Copy works',
-                      content:
-                          'When enabled, any text you copy to your device clipboard '
-                          'is automatically saved to your WebVault in the background '
-                          '(Android 10+ requires background service to be running).',
+                      title: AppLocalizations.of(context)!.howSmartCopyWorks,
+                      content: AppLocalizations.of(
+                        context,
+                      )!.smartCopyDescription,
                     ),
                   ],
                 ),
@@ -192,12 +193,12 @@ class _ClipboardSettingsScreenState
 
                 // ── Usage Tips ─────────────────────────────────────────
                 _buildSectionHeader(
-                  'How to Use',
+                  AppLocalizations.of(context)!.howToUse,
                   PhosphorIcons.lightbulb(),
                   isDark,
                 ),
                 const SizedBox(height: 12),
-                _buildTipsCard(isDark),
+                _buildTipsCard(isDark, context),
 
                 const SizedBox(height: 40),
               ]),
@@ -254,32 +255,32 @@ class _ClipboardSettingsScreenState
   }
 
   // ── Full tips card ────────────────────────────────────────────────
-  Widget _buildTipsCard(bool isDark) {
+  Widget _buildTipsCard(bool isDark, BuildContext context) {
     final tips = [
       (
         PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
-        'Tap any clipboard item to instantly copy it',
-        'Works instantly within the clipboard screen',
+        AppLocalizations.of(context)!.tapToCopyItem,
+        AppLocalizations.of(context)!.tapToCopyItemDesc,
       ),
       (
         PhosphorIcons.pushPin(PhosphorIconsStyle.fill),
-        'Pin important items to the top',
-        'Long press any item in the clipboard screen to pin it',
+        AppLocalizations.of(context)!.pinImportantItems,
+        AppLocalizations.of(context)!.pinImportantItemsDesc,
       ),
       (
         PhosphorIcons.folders(),
-        'Organise with Groups',
-        'Create groups/categories to keep your clipboard tidy and filterable',
+        AppLocalizations.of(context)!.organiseWithGroups,
+        AppLocalizations.of(context)!.organiseWithGroupsDesc,
       ),
       (
         PhosphorIcons.shareNetwork(),
-        'Share directly to WebVault',
-        'In any app, select text → Share → WebVault Clipboard to save it',
+        AppLocalizations.of(context)!.shareDirectlyToVault,
+        AppLocalizations.of(context)!.shareDirectlyToVaultDesc,
       ),
       (
         PhosphorIcons.arrowsCounterClockwise(),
-        'Pull-to-refresh',
-        'Swipe down in the clipboard list to reload items from storage',
+        AppLocalizations.of(context)!.pullToRefresh,
+        AppLocalizations.of(context)!.pullToRefreshDesc,
       ),
     ];
 

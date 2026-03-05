@@ -16,6 +16,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../utils/clipboard_helper.dart';
 import '../../utils/text_utils.dart';
 import '../../core/services/analytics_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
@@ -181,7 +182,10 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                               children: [
                                 if (widget.site.contentType != 'website')
                                   _badge(
-                                    _typeLabel(widget.site.contentType),
+                                    _typeLabel(
+                                      context,
+                                      widget.site.contentType,
+                                    ),
                                     _typeColor(widget.site.contentType),
                                     isDark,
                                   ),
@@ -193,25 +197,28 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                   ),
                                 if (widget.site.isTrending)
                                   _badge(
-                                    'Trending',
+                                    AppLocalizations.of(context)!.trending,
                                     const Color(0xFFFF6B6B),
                                     isDark,
                                   ),
                                 if (widget.site.isPopular)
                                   _badge(
-                                    'Popular',
+                                    AppLocalizations.of(context)!.popular,
                                     const Color(0xFFFF9800),
                                     isDark,
                                   ),
                                 if (widget.site.isFeatured)
                                   _badge(
-                                    'Featured',
+                                    AppLocalizations.of(context)!.featured,
                                     const Color(0xFF4CAF50),
                                     isDark,
                                   ),
                                 if (widget.site.expiresAt != null)
                                   _badge(
-                                    _formatTimeLeft(widget.site.expiresAt!),
+                                    _formatTimeLeft(
+                                      context,
+                                      widget.site.expiresAt!,
+                                    ),
                                     Colors.orange,
                                     isDark,
                                   ),
@@ -223,7 +230,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                             Divider(
                               color: isDark
                                   ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
+                                  : Colors.black.withOpacity(0.05),
                             ),
                             const SizedBox(height: 16),
 
@@ -313,8 +320,8 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
                                   color: isDark
-                                      ? Colors.white.withValues(alpha: 0.04)
-                                      : Colors.black.withValues(alpha: 0.03),
+                                      ? Colors.white.withOpacity(0.04)
+                                      : Colors.black.withOpacity(0.03),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: isDark
@@ -337,8 +344,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                         const SizedBox(width: 6),
                                         Text(
                                           widget.site.contentType == 'prompt'
-                                              ? 'Prompt Text'
-                                              : 'Code / Key',
+                                              ? AppLocalizations.of(
+                                                  context,
+                                                )!.promptText
+                                              : AppLocalizations.of(
+                                                  context,
+                                                )!.codeOrKey,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w700,
@@ -359,15 +370,19 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                               context,
                                             ).showSnackBar(
                                               SnackBar(
-                                                content: const Row(
+                                                content: Row(
                                                   children: [
-                                                    Icon(
+                                                    const Icon(
                                                       Icons.check_circle,
                                                       color: Colors.white,
                                                       size: 18,
                                                     ),
-                                                    SizedBox(width: 8),
-                                                    Text('Copied!'),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      AppLocalizations.of(
+                                                        context,
+                                                      )!.copiedTooltip,
+                                                    ),
                                                   ],
                                                 ),
                                                 backgroundColor:
@@ -393,18 +408,20 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                             ),
-                                            child: const Row(
+                                            child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(
+                                                const Icon(
                                                   Icons.copy,
                                                   size: 12,
                                                   color: Colors.white,
                                                 ),
-                                                SizedBox(width: 4),
+                                                const SizedBox(width: 4),
                                                 Text(
-                                                  'Copy',
-                                                  style: TextStyle(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.copy,
+                                                  style: const TextStyle(
                                                     fontSize: 11,
                                                     fontWeight: FontWeight.w700,
                                                     color: Colors.white,
@@ -524,15 +541,17 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Row(
+                      content: Row(
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.check_circle,
                             color: Colors.white,
                             size: 18,
                           ),
-                          SizedBox(width: 8),
-                          Text('Prompt copied!'),
+                          const SizedBox(width: 8),
+                          Text(
+                            AppLocalizations.of(context)!.promptCopiedTooltip,
+                          ),
                         ],
                       ),
                       backgroundColor: Colors.green.shade600,
@@ -553,9 +572,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   elevation: 0,
                 ),
                 icon: Icon(PhosphorIcons.copy(), size: 20),
-                label: const Text(
-                  'Copy Prompt',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                label: Text(
+                  AppLocalizations.of(context)!.copyPrompt,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -577,7 +599,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   color: isDark
                       ? AppTheme.darkTextPrimary
                       : AppTheme.lightTextPrimary,
-                  tooltip: 'Try It',
+                  tooltip: AppLocalizations.of(context)!.tryIt,
                 ),
               ),
             ],
@@ -597,15 +619,17 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Row(
+                        content: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.check_circle,
                               color: Colors.white,
                               size: 18,
                             ),
-                            SizedBox(width: 8),
-                            Text('Code copied!'),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppLocalizations.of(context)!.offerCopiedTooltip,
+                            ),
                           ],
                         ),
                         backgroundColor: Colors.green.shade600,
@@ -626,9 +650,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     elevation: 0,
                   ),
                   icon: Icon(PhosphorIcons.key(), size: 20),
-                  label: const Text(
-                    'Copy Code',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                  label: Text(
+                    AppLocalizations.of(context)!.copyCode,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -650,7 +677,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   color: isDark
                       ? AppTheme.darkTextPrimary
                       : AppTheme.lightTextPrimary,
-                  tooltip: 'Visit',
+                  tooltip: AppLocalizations.of(context)!.visit,
                 ),
               ),
             ],
@@ -676,9 +703,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                 elevation: 0,
               ),
               icon: Icon(PhosphorIcons.globe(), size: 20),
-              label: const Text(
-                'Visit Link',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+              label: Text(
+                AppLocalizations.of(context)!.visitLink,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           );
@@ -707,9 +737,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
                   size: 20,
                 ),
-                label: const Text(
-                  'Open App',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                label: Text(
+                  AppLocalizations.of(context)!.openApp,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
@@ -727,7 +760,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                 color: isDark
                     ? AppTheme.darkTextPrimary
                     : AppTheme.lightTextPrimary,
-                tooltip: 'Open in Browser',
+                tooltip: AppLocalizations.of(context)!.openInBrowser,
               ),
             ),
           ],
@@ -735,16 +768,16 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
     }
   }
 
-  String _typeLabel(String type) {
+  String _typeLabel(BuildContext context, String type) {
     switch (type) {
       case 'prompt':
-        return 'Prompt';
+        return AppLocalizations.of(context)!.promptBadge;
       case 'offer':
-        return 'Offer';
+        return AppLocalizations.of(context)!.offerBadge;
       case 'announcement':
-        return 'News';
+        return AppLocalizations.of(context)!.newsBadge;
       default:
-        return 'Website';
+        return AppLocalizations.of(context)!.websiteBadge;
     }
   }
 
@@ -761,12 +794,16 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
     }
   }
 
-  String _formatTimeLeft(DateTime expiresAt) {
+  String _formatTimeLeft(BuildContext context, DateTime expiresAt) {
     final diff = expiresAt.difference(DateTime.now());
-    if (diff.isNegative) return 'Expired';
-    if (diff.inDays > 0) return '${diff.inDays}d left';
-    if (diff.inHours > 0) return '${diff.inHours}h left';
-    return '${diff.inMinutes}m left';
+    if (diff.isNegative) return AppLocalizations.of(context)!.expiredBadge;
+    if (diff.inDays > 0) {
+      return AppLocalizations.of(context)!.daysLeft(diff.inDays.toString());
+    }
+    if (diff.inHours > 0) {
+      return AppLocalizations.of(context)!.hoursLeft(diff.inHours.toString());
+    }
+    return AppLocalizations.of(context)!.minsLeft(diff.inMinutes.toString());
   }
 }
 
@@ -851,7 +888,7 @@ class _VideoSectionState extends State<_VideoSection> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Video playback error',
+                    AppLocalizations.of(context)!.videoPlaybackError,
                     style: const TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                   const SizedBox(height: 8),
@@ -862,9 +899,12 @@ class _VideoSectionState extends State<_VideoSection> {
                       size: 14,
                       color: Colors.white70,
                     ),
-                    label: const Text(
-                      'Open Externally',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    label: Text(
+                      AppLocalizations.of(context)!.openExternally,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -920,11 +960,11 @@ class _VideoSectionState extends State<_VideoSection> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Watch Tutorial',
-              style: TextStyle(
+              AppLocalizations.of(context)!.watchTutorial,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF7C3AED),
+                color: Color(0xFF7C3AED),
               ),
             ),
           ],
@@ -961,9 +1001,9 @@ class _VideoSectionState extends State<_VideoSection> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
-                    'Watch Video',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.watchVideo,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -971,7 +1011,7 @@ class _VideoSectionState extends State<_VideoSection> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getExternalLabel(),
+                    _getExternalLabel(context),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 11,
@@ -1005,9 +1045,9 @@ class _VideoSectionState extends State<_VideoSection> {
                               size: 28,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Could not load video',
-                              style: TextStyle(
+                            Text(
+                              AppLocalizations.of(context)!.couldNotLoadVideo,
+                              style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 12,
                               ),
@@ -1020,9 +1060,9 @@ class _VideoSectionState extends State<_VideoSection> {
                                 size: 14,
                                 color: Color(0xFF7C3AED),
                               ),
-                              label: const Text(
-                                'Open in Browser',
-                                style: TextStyle(
+                              label: Text(
+                                AppLocalizations.of(context)!.openInBrowser,
+                                style: const TextStyle(
                                   color: Color(0xFF7C3AED),
                                   fontSize: 12,
                                 ),
@@ -1049,13 +1089,13 @@ class _VideoSectionState extends State<_VideoSection> {
     );
   }
 
-  String _getExternalLabel() {
+  String _getExternalLabel(BuildContext context) {
     final url = widget.videoUrl.toLowerCase();
     if (url.contains('youtube') || url.contains('youtu.be')) {
-      return 'Opens on YouTube';
+      return AppLocalizations.of(context)!.opensOnYoutube;
     } else if (url.contains('vimeo')) {
-      return 'Opens on Vimeo';
+      return AppLocalizations.of(context)!.opensOnVimeo;
     }
-    return 'Opens in browser';
+    return AppLocalizations.of(context)!.opensInBrowser;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class AdminChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -74,15 +76,21 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to upload image')),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.chatFailedUpload),
+              ),
             );
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.chatError(e.toString()),
+              ),
+            ),
+          );
         }
       } finally {
         if (mounted) {
@@ -111,7 +119,9 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
         titleSpacing: 0,
         title: convAsync.when(
           data: (conv) {
-            if (conv == null) return const Text('Chat');
+            if (conv == null) {
+              return Text(AppLocalizations.of(context)!.chatTitle);
+            }
             final profileAsync = ref.watch(
               conversationProfileProvider(conv.userId),
             );
@@ -119,7 +129,9 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
 
             return profileAsync.when(
               data: (profile) {
-                final name = profile?['full_name'] as String? ?? 'User';
+                final name =
+                    profile?['full_name'] as String? ??
+                    AppLocalizations.of(context)!.chatUser;
                 final avatarUrl = profile?['avatar_url'] as String?;
 
                 String? email;
@@ -183,12 +195,13 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                   ],
                 );
               },
-              loading: () => const Text('Loading...'),
-              error: (e, trace) => const Text('User'),
+              loading: () => Text(AppLocalizations.of(context)!.chatLoading),
+              error: (e, trace) => Text(AppLocalizations.of(context)!.chatUser),
             );
           },
-          loading: () => const Text('Loading...'),
-          error: (e, trace) => const Text('Error'),
+          loading: () => Text(AppLocalizations.of(context)!.chatLoading),
+          error: (e, trace) =>
+              Text(AppLocalizations.of(context)!.chatError(e.toString())),
         ),
         backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
         elevation: 0.5,
@@ -226,7 +239,7 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No messages yet.',
+                                AppLocalizations.of(context)!.chatNoMsgs,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: isDark
@@ -254,129 +267,154 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                           final msg = messages[index];
                           final isMe = msg.isAdmin; // Admin sent it
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Row(
-                              mainAxisAlignment: isMe
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (!isMe) ...[
-                                  // Can optionally hide avatar if we want it cleaner, but let's keep it minimal
-                                  CircleAvatar(
-                                    radius: 12,
-                                    backgroundColor: AppTheme.primaryColor
-                                        .withValues(alpha: 0.2),
-                                    child: Icon(
-                                      PhosphorIcons.user(
-                                        PhosphorIconsStyle.fill,
+                          return Directionality(
+                            textDirection: ui.TextDirection.ltr,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                mainAxisAlignment: isMe
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (!isMe) ...[
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: AppTheme.primaryColor
+                                          .withValues(alpha: 0.12),
+                                      child: Icon(
+                                        PhosphorIcons.user(
+                                          PhosphorIconsStyle.fill,
+                                        ),
+                                        size: 16,
+                                        color: AppTheme.primaryColor,
                                       ),
-                                      size: 14,
-                                      color: AppTheme.primaryColor,
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                                Flexible(
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                      maxWidth:
-                                          MediaQuery.of(context).size.width *
-                                          0.75,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 18,
-                                      vertical: 14,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isMe
-                                          ? AppTheme.primaryColor
-                                          : (isDark
-                                                ? const Color(0xFF2C2C2E)
-                                                : Colors.white),
-                                      boxShadow: isMe || isDark
-                                          ? null
-                                          : [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.04,
-                                                ),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                      borderRadius: BorderRadius.circular(24)
-                                          .copyWith(
-                                            bottomRight: isMe
-                                                ? const Radius.circular(4)
-                                                : const Radius.circular(24),
-                                            bottomLeft: !isMe
-                                                ? const Radius.circular(4)
-                                                : const Radius.circular(24),
-                                          ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: isMe
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
-                                      children: [
-                                        if (msg.content.startsWith('[IMAGE] '))
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            child: Image.network(
-                                              msg.content.replaceFirst(
-                                                '[IMAGE] ',
-                                                '',
-                                              ),
-                                              width: 200,
-                                              fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) => const Icon(
-                                                    Icons.broken_image,
-                                                    color: Colors.white54,
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Flexible(
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width *
+                                            0.75,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: isMe
+                                            ? const LinearGradient(
+                                                colors: [
+                                                  AppTheme.primaryColor,
+                                                  Color(0xFF7C4DFF),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              )
+                                            : null,
+                                        color: isMe
+                                            ? null
+                                            : (isDark
+                                                  ? const Color(0xFF2C2C3E)
+                                                  : Colors.white),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: isMe
+                                                ? AppTheme.primaryColor
+                                                      .withValues(alpha: 0.25)
+                                                : Colors.black.withValues(
+                                                    alpha: isDark ? 0.2 : 0.07,
                                                   ),
+                                            blurRadius: isMe ? 12 : 6,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: const Radius.circular(20),
+                                          topRight: const Radius.circular(20),
+                                          bottomLeft: isMe
+                                              ? const Radius.circular(20)
+                                              : const Radius.circular(4),
+                                          bottomRight: isMe
+                                              ? const Radius.circular(4)
+                                              : const Radius.circular(20),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          if (msg.content.startsWith(
+                                            '[IMAGE] ',
+                                          ))
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              child: Image.network(
+                                                msg.content.replaceFirst(
+                                                  '[IMAGE] ',
+                                                  '',
+                                                ),
+                                                width: 200,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) => const Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.white54,
+                                                    ),
+                                              ),
+                                            )
+                                          else
+                                            Directionality(
+                                              textDirection:
+                                                  ui.TextDirection.rtl,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  msg.content,
+                                                  textAlign: TextAlign.start,
+                                                  style: TextStyle(
+                                                    color: isMe
+                                                        ? Colors.white
+                                                        : (isDark
+                                                              ? Colors.white
+                                                              : Colors.black87),
+                                                    fontSize: 15,
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          )
-                                        else
+                                          const SizedBox(height: 4),
                                           Text(
-                                            msg.content,
+                                            DateFormat.jm().format(
+                                              msg.createdAt,
+                                            ),
                                             style: TextStyle(
                                               color: isMe
-                                                  ? Colors.white
+                                                  ? Colors.white.withValues(
+                                                      alpha: 0.65,
+                                                    )
                                                   : (isDark
-                                                        ? Colors.white
-                                                        : Colors.black87),
-                                              fontSize: 16,
-                                              height: 1.3,
+                                                        ? Colors.white38
+                                                        : Colors.black38),
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          DateFormat.jm().format(msg.createdAt),
-                                          style: TextStyle(
-                                            color: isMe
-                                                ? Colors.white.withValues(
-                                                    alpha: 0.7,
-                                                  )
-                                                : (isDark
-                                                      ? Colors.white54
-                                                      : Colors.black54),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  if (isMe) const SizedBox(width: 4),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -384,7 +422,11 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Error: $e')),
+                    error: (e, _) => Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.chatError(e.toString()),
+                      ),
+                    ),
                   ),
                 ),
 
@@ -417,7 +459,7 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Uploading image...',
+                                AppLocalizations.of(context)!.chatUploadingImg,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.white54
@@ -448,7 +490,9 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                               minLines: 1,
                               maxLines: 4,
                               decoration: InputDecoration(
-                                hintText: 'Message User...',
+                                hintText: AppLocalizations.of(
+                                  context,
+                                )!.chatMessageUser,
                                 hintStyle: TextStyle(
                                   color: isDark
                                       ? Colors.white38

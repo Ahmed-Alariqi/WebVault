@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class CommunityPostDetail extends ConsumerStatefulWidget {
   final CommunityPost post;
@@ -197,7 +198,7 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Add a reply...',
+                      hintText: AppLocalizations.of(context)!.communityAddReply,
                       hintStyle: TextStyle(
                         color: isDark ? Colors.white54 : Colors.black54,
                       ),
@@ -552,7 +553,9 @@ class _ReplyTile extends ConsumerWidget {
                             final confirm = await showDialog<bool>(
                               context: context,
                               builder: (c) => AlertDialog(
-                                title: const Text('Delete Reply?'),
+                                title: Text(
+                                  AppLocalizations.of(context)!.deleteReply,
+                                ),
                                 content: const Text(
                                   'This action cannot be undone.',
                                 ),

@@ -231,7 +231,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get refresh => 'Refresh';
 
   @override
-  String get openInBrowser => 'Open in browser';
+  String get openInBrowser => 'Open in Browser';
 
   @override
   String get suggestToAdmin => 'Suggest to Admin';
@@ -368,4 +368,1663 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invalidBackupFile => 'Invalid backup file';
+
+  @override
+  String get personalInfo => 'Personal Info';
+
+  @override
+  String get username => 'Username';
+
+  @override
+  String get profileSaved => 'Profile saved';
+
+  @override
+  String get saveProfile => 'Save Profile';
+
+  @override
+  String get contactSupport => 'Contact Support';
+
+  @override
+  String get signOutLabel => 'Sign Out';
+
+  @override
+  String get getHelpFromAdmin => 'Get help from an administrator';
+
+  @override
+  String get clipboardSettings => 'Clipboard Settings';
+
+  @override
+  String get clipboardSettingsSubtitle =>
+      'Floating clipboard, overlay permission, smart copy & tips';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get addValue => 'Add Value';
+
+  @override
+  String get folderNotFound => 'Folder not found';
+
+  @override
+  String createdOn(String date) {
+    return 'Created on $date';
+  }
+
+  @override
+  String get createFoldersToOrganize => 'Create folders to organize your pages';
+
+  @override
+  String get egFinance => 'e.g. Finance';
+
+  @override
+  String get adminBadge => 'ADMINISTRATOR';
+
+  @override
+  String get controlCenter => 'Control Center';
+
+  @override
+  String get manageVaultEcosystem => 'Manage your vault ecosystem';
+
+  @override
+  String get management => 'MANAGEMENT';
+
+  @override
+  String get appActivities => 'App Activities';
+
+  @override
+  String get analyticsTracking => 'Analytics & Tracking';
+
+  @override
+  String get suggestionsTitle => 'Suggestions';
+
+  @override
+  String get reviewRequests => 'Review Requests';
+
+  @override
+  String get websitesTitle => 'Websites';
+
+  @override
+  String get addEditSites => 'Add/Edit Sites';
+
+  @override
+  String get categoriesTitle => 'Categories';
+
+  @override
+  String get organizeContent => 'Organize Content';
+
+  @override
+  String get pushNotificationsTitle => 'Push Notifications';
+
+  @override
+  String get sendOutsideAlerts => 'Send outside alerts';
+
+  @override
+  String get inAppMessagesTitle => 'In-App Messages';
+
+  @override
+  String get popupCampaigns => 'Popup campaigns';
+
+  @override
+  String get usersTitle => 'Users';
+
+  @override
+  String get viewAccounts => 'View Accounts';
+
+  @override
+  String get communityTitle => 'Community';
+
+  @override
+  String get managePosts => 'Manage Posts';
+
+  @override
+  String get userMessagesTitle => 'User Messages';
+
+  @override
+  String get supportChats => 'Support chats';
+
+  @override
+  String get totalUsers => 'Total Users';
+
+  @override
+  String get accessRestricted => 'Access Restricted';
+
+  @override
+  String get adminPrivilegesRequired => 'Administrator privileges required.';
+
+  @override
+  String get returnHome => 'Return Home';
+
+  @override
+  String get quickClipboard => 'Quick Clipboard';
+
+  @override
+  String get all => 'All';
+
+  @override
+  String get noClipboardItems => 'No items yet';
+
+  @override
+  String injectedItem(String label) {
+    return 'Injected \"$label\"';
+  }
+
+  @override
+  String get selectTextFieldFirst => 'Please select a text field first.';
+
+  @override
+  String copiedItem(String label) {
+    return 'Copied \"$label\"';
+  }
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get savedToVault => 'Saved to Vault';
+
+  @override
+  String get savedExplicitlyToClipboard =>
+      'Saved explicitly to WebVault Clipboard!';
+
+  @override
+  String get savedToClipboard => 'Saved to WebVault Clipboard!';
+
+  @override
+  String get saveToVaultBtn => 'Save to Vault';
+
+  @override
+  String get promptSaveToVault =>
+      'Would you like to save this text into your WebVault clipboard for later use?';
+
+  @override
+  String get copiedText => 'Copied Text';
+
+  @override
+  String get quickAddToClipboard => 'Quick Add to Clipboard';
+
+  @override
+  String get pasteOrTypeText => 'Paste or type text here...';
+
+  @override
+  String get manualEntry => 'Manual Entry';
+
+  @override
+  String get approvePublish => 'Approve & Publish';
+
+  @override
+  String get titleLabel => 'Title';
+
+  @override
+  String get urlLabel => 'URL';
+
+  @override
+  String get descriptionLabel => 'Description';
+
+  @override
+  String get trending => 'Trending';
+
+  @override
+  String get popular => 'Popular';
+
+  @override
+  String get featured => 'Featured';
+
+  @override
+  String get suggestionApprovedPublished =>
+      'Suggestion approved and published!';
+
+  @override
+  String errorMessage(String message) {
+    return 'Error: $message';
+  }
+
+  @override
+  String get noPendingSuggestions => 'No pending suggestions';
+
+  @override
+  String suggestedDate(String date) {
+    return 'Suggested: $date';
+  }
+
+  @override
+  String get manageCategoriesTitle => 'Manage Categories';
+
+  @override
+  String get seedDefaultCategories => 'Seed Default Categories';
+
+  @override
+  String get noCategories => 'No categories';
+
+  @override
+  String get defaultCategoriesInjected =>
+      'Default categories injected successfully!';
+
+  @override
+  String failedToSeedCategories(String message) {
+    return 'Failed to seed categories: $message';
+  }
+
+  @override
+  String get addCategory => 'Add Category';
+
+  @override
+  String get editCategory => 'Edit Category';
+
+  @override
+  String get categoryName => 'Category Name';
+
+  @override
+  String get addBtn => 'Add';
+
+  @override
+  String get manageItemsTitle => 'Manage Items';
+
+  @override
+  String get noItemsYet => 'No items yet';
+
+  @override
+  String get tapPlusToAddOne => 'Tap + to add one';
+
+  @override
+  String get newItem => 'New Item';
+
+  @override
+  String get promptBadge => 'Prompt';
+
+  @override
+  String get offerBadge => 'Offer';
+
+  @override
+  String get newsBadge => 'News';
+
+  @override
+  String get websiteBadge => 'Website';
+
+  @override
+  String get expiredBadge => 'Expired';
+
+  @override
+  String daysLeft(String days) {
+    return '${days}d left';
+  }
+
+  @override
+  String hoursLeft(String hours) {
+    return '${hours}h left';
+  }
+
+  @override
+  String minsLeft(String mins) {
+    return '${mins}m left';
+  }
+
+  @override
+  String get promptText => 'Prompt Text';
+
+  @override
+  String get codeOrKey => 'Code / Key';
+
+  @override
+  String get copiedTooltip => 'Copied!';
+
+  @override
+  String get copy => 'Copy';
+
+  @override
+  String get promptCopiedTooltip => 'Prompt copied!';
+
+  @override
+  String get copyPrompt => 'Copy Prompt';
+
+  @override
+  String get tryIt => 'Try It';
+
+  @override
+  String get offerCopiedTooltip => 'Code copied!';
+
+  @override
+  String get copyCode => 'Copy Code';
+
+  @override
+  String get visit => 'Visit';
+
+  @override
+  String get visitLink => 'Visit Link';
+
+  @override
+  String get openApp => 'Open App';
+
+  @override
+  String get videoPlaybackError => 'Video playback error';
+
+  @override
+  String get openExternally => 'Open Externally';
+
+  @override
+  String get watchTutorial => 'Watch Tutorial';
+
+  @override
+  String get watchVideo => 'Watch Video';
+
+  @override
+  String get opensOnYoutube => 'Opens on YouTube';
+
+  @override
+  String get opensOnVimeo => 'Opens on Vimeo';
+
+  @override
+  String get opensInBrowser => 'Opens in browser';
+
+  @override
+  String get couldNotLoadVideo => 'Could not load video';
+
+  @override
+  String get titleMessageRequired => 'Title and Message are required';
+
+  @override
+  String get campaignUpdated => 'Campaign Updated';
+
+  @override
+  String get campaignCreated => 'Campaign Created';
+
+  @override
+  String get offlineWarningDetails =>
+      'You are offline. Please check your internet connection.';
+
+  @override
+  String failedWarning(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get previewBadge => 'PREVIEW';
+
+  @override
+  String get invalidUrl => 'Invalid URL';
+
+  @override
+  String get closePreview => 'Close Preview';
+
+  @override
+  String failedToUpdateStatus(String error) {
+    return 'Failed to update status: $error';
+  }
+
+  @override
+  String get deleteMessageTitle => 'Delete Message?';
+
+  @override
+  String get deleteMessageContent => 'This cannot be undone.';
+
+  @override
+  String get cancelLabel => 'Cancel';
+
+  @override
+  String get deleteLabel => 'Delete';
+
+  @override
+  String deleteFailedWarning(String error) {
+    return 'Delete failed: $error';
+  }
+
+  @override
+  String get editCampaign => 'Edit Campaign';
+
+  @override
+  String get newCampaign => 'New Campaign';
+
+  @override
+  String get cancelEdit => 'Cancel Edit';
+
+  @override
+  String get messageLabel => 'Message';
+
+  @override
+  String get campaignImageOptional => 'Campaign Image (Optional)';
+
+  @override
+  String get imageUploadedSuccessfully => 'Image uploaded successfully!';
+
+  @override
+  String get uploadFailed => 'Upload failed. Try again.';
+
+  @override
+  String get uploading => 'Uploading...';
+
+  @override
+  String get uploadFromDevice => 'Upload from Device';
+
+  @override
+  String get orPasteUrl => 'or paste URL';
+
+  @override
+  String get imageUrlLabel => 'Image URL';
+
+  @override
+  String get buttonUrlOptional => 'Button URL (optional)';
+
+  @override
+  String get buttonTextOptional => 'Button Text (optional)';
+
+  @override
+  String get campaignModeLabel => 'Campaign Mode';
+
+  @override
+  String get modeStandard => 'Standard';
+
+  @override
+  String get modeRecurring => 'Recurring';
+
+  @override
+  String get modeHardBlock => 'Hard Block';
+
+  @override
+  String get modeStandardDesc =>
+      'Shows once per user. They can dismiss it forever.';
+
+  @override
+  String get modeRecurringDesc =>
+      'Shows every time the user opens the app, but they can dismiss it.';
+
+  @override
+  String get modeHardBlockDesc =>
+      'Shows every time, CANNOT be dismissed. Blocks the app completely.';
+
+  @override
+  String get targetVersionOptional =>
+      'Target Version Required (e.g. 1.0.5) (optional)';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get updateCampaign => 'Update Campaign';
+
+  @override
+  String get createCampaign => 'Create Campaign';
+
+  @override
+  String get existingCampaigns => 'EXISTING CAMPAIGNS';
+
+  @override
+  String get noCampaignsYet => 'No campaigns yet.';
+
+  @override
+  String get activeBadge => 'ACTIVE';
+
+  @override
+  String updateBadge(String version) {
+    return 'UPDATE: $version';
+  }
+
+  @override
+  String get hardBlockBadge => 'HARD BLOCK';
+
+  @override
+  String get recurringBadge => 'RECURRING';
+
+  @override
+  String get editTooltip => 'Edit';
+
+  @override
+  String get deleteTooltip => 'Delete';
+
+  @override
+  String get noName => 'No Name';
+
+  @override
+  String get noEmail => 'No Email';
+
+  @override
+  String get emailPasswordChangeNote =>
+      'Note: To change email/password, please use the Auth dashboard or add logic to backend.';
+
+  @override
+  String get wipeChatTitle => 'WIPE ALL CHAT?';
+
+  @override
+  String get wipeChatContent =>
+      'This will permanently delete ALL posts, replies, and reactions in the Community to free up database storage. This action CANNOT be undone.';
+
+  @override
+  String get wipeChatAction => 'WIPE CHAT';
+
+  @override
+  String get chatWipedSuccess => 'Chat successfully wiped.';
+
+  @override
+  String chatWipedFailed(String error) {
+    return 'Failed to wipe chat: $error';
+  }
+
+  @override
+  String pinPostFailed(String error) {
+    return 'Failed to pin post: $error';
+  }
+
+  @override
+  String get communityManagement => 'Community Management';
+
+  @override
+  String get wipeAllChatTooltip => 'WIPE ALL CHAT';
+
+  @override
+  String get wipeChatInfo =>
+      'Use the Trash icon in the top right to permanently wipe all community posts and free up Supabase storage space.';
+
+  @override
+  String get noCommunityPosts => 'No posts in the community.';
+
+  @override
+  String get unpinPostTooltip => 'Unpin Post';
+
+  @override
+  String get pinPostTooltip => 'Pin Post';
+
+  @override
+  String get deletePostTitle => 'Delete Post?';
+
+  @override
+  String get deletePostContent => 'Are you sure you want to delete this post?';
+
+  @override
+  String get deletePostAction => 'Delete Post';
+
+  @override
+  String get youAreOfflineTitle => 'You are offline';
+
+  @override
+  String get youAreOfflineDesc => 'Please check your internet connection.';
+
+  @override
+  String get authToSignIn => 'Authenticate to sign in';
+
+  @override
+  String get invalidEmailOrPassword => 'Invalid email or password';
+
+  @override
+  String get verifyEmailFirst => 'Please verify your email first';
+
+  @override
+  String get networkErrorCheckConnection =>
+      'Network error. Check your connection';
+
+  @override
+  String get loginFailedTryAgain => 'Login failed. Please try again';
+
+  @override
+  String get secureWebManager => 'Your secure web page manager';
+
+  @override
+  String get emailHint => 'you@email.com';
+
+  @override
+  String get passwordHint => '••••••••';
+
+  @override
+  String get rememberMe => 'Remember me';
+
+  @override
+  String get forgotPassword => 'Forgot Password?';
+
+  @override
+  String get useBiometrics => 'Use Biometrics';
+
+  @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get passwordStrengthWeak => 'Weak';
+
+  @override
+  String get passwordStrengthFair => 'Fair';
+
+  @override
+  String get passwordStrengthGood => 'Good';
+
+  @override
+  String get passwordStrengthStrong => 'Strong';
+
+  @override
+  String get emailAlreadyRegistered =>
+      'This email is already registered. Try signing in.';
+
+  @override
+  String get invalidEmailAddress =>
+      'Email address is invalid. Please use a real email.';
+
+  @override
+  String get tooManyAttempts => 'Too many attempts. Please wait a few minutes.';
+
+  @override
+  String get passwordTooWeak =>
+      'Password is too weak. Use at least 6 characters.';
+
+  @override
+  String signUpFailed(String error) {
+    return 'Sign up failed: $error';
+  }
+
+  @override
+  String get accountCreated => 'Account Created!';
+
+  @override
+  String verifyEmailDesc(String email) {
+    return 'We sent a verification email to\n$email\n\nPlease verify your email, then sign in.';
+  }
+
+  @override
+  String get goToSignIn => 'Go to Sign In';
+
+  @override
+  String get createAccount => 'Create Account';
+
+  @override
+  String get nameHint => 'John Doe';
+
+  @override
+  String get nameRequired => 'Name is required';
+
+  @override
+  String get usernameOptional => 'Username (optional)';
+
+  @override
+  String get usernameHint => 'johndoe';
+
+  @override
+  String get emailRequired => 'Email is required';
+
+  @override
+  String get enterValidEmail => 'Enter a valid email';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters';
+
+  @override
+  String get confirmPasswordLabel => 'Confirm Password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get creatingAccount => 'Creating account...';
+
+  @override
+  String get signUpWithGoogle => 'Sign up with Google';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get faceId => 'Face ID';
+
+  @override
+  String get fingerprint => 'Fingerprint';
+
+  @override
+  String get iris => 'Iris';
+
+  @override
+  String get biometrics => 'Biometrics';
+
+  @override
+  String get immediately => 'Immediately';
+
+  @override
+  String timeoutSeconds(int seconds) {
+    return '$seconds seconds';
+  }
+
+  @override
+  String timeoutMinutes(int minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String get maximumProtection => 'Maximum Protection';
+
+  @override
+  String get goodProtection => 'Good Protection';
+
+  @override
+  String get basicProtection => 'Basic Protection';
+
+  @override
+  String get pinProtection => 'PIN Protection';
+
+  @override
+  String get pinLock => 'PIN Lock';
+
+  @override
+  String get enabledStr => 'Enabled';
+
+  @override
+  String get off => 'Off';
+
+  @override
+  String get changePin => 'Change PIN';
+
+  @override
+  String get updateSecurityPin => 'Update your security PIN';
+
+  @override
+  String get biometricAuth => 'Biometric Authentication';
+
+  @override
+  String get enabledQuickUnlock => 'Enabled — Quick unlock';
+
+  @override
+  String get tapToEnable => 'Tap to enable';
+
+  @override
+  String get notAvailableOnDevice => 'Not available on this device';
+
+  @override
+  String get verifyToEnableBiometric => 'Verify to enable biometric unlock';
+
+  @override
+  String biometricSetupFailed(String error) {
+    return 'Biometric setup failed: $error';
+  }
+
+  @override
+  String get setupPinFirstForBiometric =>
+      'Set up a PIN first to enable biometric authentication';
+
+  @override
+  String get appLockSettings => 'App Lock Settings';
+
+  @override
+  String get autoLockTimeout => 'Auto-Lock Timeout';
+
+  @override
+  String get removePinQ => 'Remove PIN?';
+
+  @override
+  String get removePinWarning =>
+      'This will disable PIN lock and biometric authentication. Your app will no longer be protected.';
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String get securityTip => 'Security Tip';
+
+  @override
+  String get securityTipDesc =>
+      'Enable both PIN and biometrics for maximum protection of your saved pages and clipboard data.';
+
+  @override
+  String get verifyCurrentPin => 'Verify Current PIN';
+
+  @override
+  String get incorrectPin => 'Incorrect PIN';
+
+  @override
+  String get enterCurrentPin => 'Enter current PIN';
+
+  @override
+  String get howToSave => 'How to Save';
+
+  @override
+  String get savingTextFromOtherApps => 'Saving text from other apps';
+
+  @override
+  String get savingTextInstructions =>
+      '1. Share: Select text in any app, tap \"Share\", and choose WebVault.\n2. Text Selection: Select text and choose \"WebVault\" from the popup menu.\n3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.';
+
+  @override
+  String get smartClipboard => 'Smart Clipboard';
+
+  @override
+  String get smartBackgroundCopy => 'Smart Background Copy';
+
+  @override
+  String get enabledSavesEverything => 'Enabled — Saves everything you copy';
+
+  @override
+  String get offManualSaveOnly => 'Off — Manual save only';
+
+  @override
+  String get howSmartCopyWorks => 'How Smart Copy works';
+
+  @override
+  String get smartCopyDescription =>
+      'When enabled, any text you copy to your device clipboard is automatically saved to your WebVault in the background (Android 10+ requires background service to be running).';
+
+  @override
+  String get howToUse => 'How to Use';
+
+  @override
+  String get tapToCopyItem => 'Tap any clipboard item to instantly copy it';
+
+  @override
+  String get tapToCopyItemDesc => 'Works instantly within the clipboard screen';
+
+  @override
+  String get pinImportantItems => 'Pin important items to the top';
+
+  @override
+  String get pinImportantItemsDesc =>
+      'Long press any item in the clipboard screen to pin it';
+
+  @override
+  String get organiseWithGroups => 'Organise with Groups';
+
+  @override
+  String get organiseWithGroupsDesc =>
+      'Create groups/categories to keep your clipboard tidy and filterable';
+
+  @override
+  String get shareDirectlyToVault => 'Share directly to WebVault';
+
+  @override
+  String get shareDirectlyToVaultDesc =>
+      'In any app, select text → Share → WebVault Clipboard to save it';
+
+  @override
+  String get pullToRefresh => 'Pull-to-refresh';
+
+  @override
+  String get pullToRefreshDesc =>
+      'Swipe down in the clipboard list to reload items from storage';
+
+  @override
+  String get identitySection => 'Identity';
+
+  @override
+  String get organizationSection => 'Organization';
+
+  @override
+  String get detailsSection => 'Details';
+
+  @override
+  String get cardButtonEdit => 'Edit';
+
+  @override
+  String get cardButtonDelete => 'Delete';
+
+  @override
+  String get confirmDeletionTitle => 'Confirm Deletion';
+
+  @override
+  String confirmDeletionMessage(String name) {
+    return 'Delete \"$name\"?';
+  }
+
+  @override
+  String get badgeInactive => 'Inactive';
+
+  @override
+  String get badgeExpired => 'Expired';
+
+  @override
+  String get badgeTrending => 'Trending';
+
+  @override
+  String get badgePopular => 'Popular';
+
+  @override
+  String get badgeFeatured => 'Featured';
+
+  @override
+  String get badgePrompt => 'Prompt';
+
+  @override
+  String get badgeOffer => 'Offer';
+
+  @override
+  String get badgeAnnounce => 'Announce';
+
+  @override
+  String get badgeWebsite => 'Website';
+
+  @override
+  String get readMoreText => 'Read more...';
+
+  @override
+  String get copyButton => 'Copy';
+
+  @override
+  String formPublishItem(String type) {
+    return 'Publish $type';
+  }
+
+  @override
+  String get formSaveChanges => 'Save Changes';
+
+  @override
+  String formNewItem(String type) {
+    return 'New $type';
+  }
+
+  @override
+  String formEditItem(String type) {
+    return 'Edit $type';
+  }
+
+  @override
+  String get formContentType => 'Content Type';
+
+  @override
+  String get formBasicInfo => 'Basic Information';
+
+  @override
+  String formTypeTitle(String type) {
+    return '$type Title';
+  }
+
+  @override
+  String get formUrlRequiredWeb => 'URL (https://...)';
+
+  @override
+  String get formUrlOptional => 'Link URL (Optional)';
+
+  @override
+  String get formUrlOptionalHelper => 'Optional: add a link for users to visit';
+
+  @override
+  String get formCoverImage => 'Cover Image';
+
+  @override
+  String get formUploading => 'Uploading...';
+
+  @override
+  String get formUploadDevice => 'Upload from Device';
+
+  @override
+  String get formOrPasteUrl => 'or paste URL';
+
+  @override
+  String get formImageUrl => 'Image URL';
+
+  @override
+  String get formPromptImgHelper => 'Add an image showing the prompt result';
+
+  @override
+  String get formInvalidUrl => 'Invalid URL';
+
+  @override
+  String get formTutorialVideo => 'Tutorial Video';
+
+  @override
+  String get formVideoHelper => 'Add a tutorial or explainer video (max 50MB)';
+
+  @override
+  String get formUploadingVideo => 'Uploading Video...';
+
+  @override
+  String get formUploadVideoDevice => 'Upload Video from Device';
+
+  @override
+  String get formVideoUrlLabel => 'Video URL (or paste link)';
+
+  @override
+  String get formPromptText => 'Prompt Text';
+
+  @override
+  String get formOfferCode => 'Offer Code / Key';
+
+  @override
+  String get formAnnounceText => 'Announcement Text';
+
+  @override
+  String get formPromptInput => 'Enter the prompt text (users can copy this)';
+
+  @override
+  String get formOfferInput => 'Enter code, key, or offer details';
+
+  @override
+  String get formAnnounceInput => 'Announcement details (optional)';
+
+  @override
+  String get formCopyHelper => 'Users will see a Copy button for this content';
+
+  @override
+  String formExpires(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get formSetExpiry => 'Set Expiry Date (Optional)';
+
+  @override
+  String get formCategorization => 'Categorization';
+
+  @override
+  String get formSelectCategory => 'Select Category';
+
+  @override
+  String get formTitleRequired => 'Title is required.';
+
+  @override
+  String get formUrlRequired => 'URL is required for websites.';
+
+  @override
+  String get formPublishedSuccess => 'Published successfully!';
+
+  @override
+  String get formUpdatedSuccess => 'Updated successfully!';
+
+  @override
+  String get formOfflineError =>
+      'You are offline. Please check your internet connection.';
+
+  @override
+  String formSaveError(String error) {
+    return 'Error saving: $error';
+  }
+
+  @override
+  String get notifSend => 'Send Notification';
+
+  @override
+  String get notifSent => 'Notification sent!';
+
+  @override
+  String get notifNew => 'New Notification';
+
+  @override
+  String get notifDesc => 'Send a push notification to all users';
+
+  @override
+  String get notifTitle => 'Title';
+
+  @override
+  String get notifBody => 'Body';
+
+  @override
+  String get notifUrl => 'Target URL (optional)';
+
+  @override
+  String get notifImage => 'Notification Image (Optional)';
+
+  @override
+  String get notifImgUploadSuccess => 'Image uploaded successfully!';
+
+  @override
+  String get notifImgUploadFail => 'Upload failed. Try again.';
+
+  @override
+  String get notifUploading => 'Uploading...';
+
+  @override
+  String get notifUploadImg => 'Upload Image';
+
+  @override
+  String get notifOrImgUrl => 'Or Image URL';
+
+  @override
+  String get notifInvalidImg => 'Invalid image URL';
+
+  @override
+  String get notifType => 'Type';
+
+  @override
+  String get notifTypeGeneral => 'General';
+
+  @override
+  String get notifTypeAnnouncement => 'Announcement';
+
+  @override
+  String get notifTypeUpdate => 'Update';
+
+  @override
+  String get notifAlert => 'Alert';
+
+  @override
+  String notifFailed(String error) {
+    return 'Failed: $error';
+  }
+
+  @override
+  String get chatFailedUpload => 'Failed to upload image';
+
+  @override
+  String chatError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get chatSupport => 'Support';
+
+  @override
+  String get chatSupportSub => 'Typically replies in a few hours';
+
+  @override
+  String get chatInitError => 'Could not initialize chat.';
+
+  @override
+  String get chatSendMsg => 'Send us a message';
+
+  @override
+  String get chatHereToHelp => 'We are here to help you!';
+
+  @override
+  String get chatUploadingImg => 'Uploading image...';
+
+  @override
+  String get chatTypeMsg => 'Type a message...';
+
+  @override
+  String get chatTitle => 'Chat';
+
+  @override
+  String get chatUser => 'User';
+
+  @override
+  String get chatLoading => 'Loading...';
+
+  @override
+  String get chatNoMsgs => 'No messages yet.';
+
+  @override
+  String get chatMessageUser => 'Message User...';
+
+  @override
+  String get chatUserMessages => 'User Messages';
+
+  @override
+  String get chatNoActive => 'No active conversations found.';
+
+  @override
+  String get chatConfirm => 'Confirm';
+
+  @override
+  String get chatDeleteConfirm =>
+      'Are you sure you wish to delete this conversation?';
+
+  @override
+  String get chatCancel => 'CANCEL';
+
+  @override
+  String get chatDelete => 'DELETE';
+
+  @override
+  String get chatDeleted => 'Conversation deleted';
+
+  @override
+  String chatDeleteFailed(String error) {
+    return 'Failed to delete: $error';
+  }
+
+  @override
+  String get chatUnknownUser => 'Unknown User';
+
+  @override
+  String get chatStartedConv => 'Started a conversation';
+
+  @override
+  String chatNew(int count) {
+    return '$count NEW';
+  }
+
+  @override
+  String get searchBookmarks => 'Search bookmarks...';
+
+  @override
+  String get searchDiscover => 'Search discover...';
+
+  @override
+  String get searchVault => 'Search your vault...';
+
+  @override
+  String get communityAddReply => 'Add a reply...';
+
+  @override
+  String get communityAddUrl => 'Add a URL (optional)';
+
+  @override
+  String get emailPlaceholder => 'you@email.com';
+
+  @override
+  String get formDescContent => 'Description & Content';
+
+  @override
+  String get formDescPlaceholder => 'Write a detailed description...';
+
+  @override
+  String get formDisplayVis => 'Display & Visibility';
+
+  @override
+  String get formActive => 'Active';
+
+  @override
+  String get formActiveSub => 'Show this item in Discover';
+
+  @override
+  String get formTrending => 'Show in Trending';
+
+  @override
+  String get formTrendingSub => 'Highlight in the trending slider';
+
+  @override
+  String get formPopular => 'Mark as Popular';
+
+  @override
+  String get formPopularSub => 'Show in the popular section';
+
+  @override
+  String get formFeaturedStatus => 'Feature Status';
+
+  @override
+  String get formFeaturedSub => 'Flag as a featured discovery';
+
+  @override
+  String get formNotification => 'Notification';
+
+  @override
+  String get formSendNotif => 'Send Notification on Publish';
+
+  @override
+  String get formSendNotifSub => 'Notify all users about this new item';
+
+  @override
+  String get allItems => 'All Items';
+
+  @override
+  String get uncategorized => 'Uncategorized';
+
+  @override
+  String get label => 'Label';
+
+  @override
+  String get value => 'Value';
+
+  @override
+  String get contentToCopy => 'Content to copy';
+
+  @override
+  String get saveToClipboard => 'Save to Clipboard';
+
+  @override
+  String get moveToGroup => 'Move to Group';
+
+  @override
+  String get selectMultiple => 'Select Multiple';
+
+  @override
+  String get editGroup => 'Edit Group';
+
+  @override
+  String get addGroup => 'Add Group';
+
+  @override
+  String get groupName => 'Group Name';
+
+  @override
+  String movedTo(String group) {
+    return 'Moved to \"$group\"';
+  }
+
+  @override
+  String get pinToTop => 'Pin to Top';
+
+  @override
+  String get unpin => 'Unpin';
+
+  @override
+  String get deleteItem => 'Delete Item';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get errorLoadingNotifications => 'Error loading notifications';
+
+  @override
+  String get noNotifications => 'No notifications';
+
+  @override
+  String get markAllRead => 'Mark all as read';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard!';
+
+  @override
+  String get bookmarks => 'Bookmarks';
+
+  @override
+  String get viewAll => 'View All';
+
+  @override
+  String get community => 'Community';
+
+  @override
+  String get post => 'Post';
+
+  @override
+  String get postPublished => 'Post published!';
+
+  @override
+  String get addReply => 'Add a reply...';
+
+  @override
+  String get deleteReply => 'Delete Reply?';
+
+  @override
+  String get whatToShare => 'What do you want to share with the community?';
+
+  @override
+  String get categoryAll => 'All';
+
+  @override
+  String get categoryGeneral => 'General';
+
+  @override
+  String get categoryQuestions => 'Questions';
+
+  @override
+  String get categoryTips => 'Tips';
+
+  @override
+  String get categoryResources => 'Resources';
+
+  @override
+  String get categoryQuestion => 'Question';
+
+  @override
+  String get categoryTip => 'Tip';
+
+  @override
+  String get categoryResource => 'Resource';
+
+  @override
+  String get signIn => 'Sign In';
+
+  @override
+  String get signUp => 'Sign Up';
+
+  @override
+  String get signOut => 'Sign Out';
+
+  @override
+  String get loginTitle => 'Welcome Back';
+
+  @override
+  String get registerTitle => 'Create Account';
+
+  @override
+  String get resetPassword => 'Reset Password';
+
+  @override
+  String get resetPasswordSent => 'Reset link sent! Check your email.';
+
+  @override
+  String get pages => 'Pages';
+
+  @override
+  String get addPage => 'Add Page';
+
+  @override
+  String get searchPages => 'Search pages...';
+
+  @override
+  String get pageTitle => 'Title';
+
+  @override
+  String get pageUrl => 'URL';
+
+  @override
+  String get pageTitleHint => 'My Awesome Page';
+
+  @override
+  String get folder => 'Folder';
+
+  @override
+  String get selectFolder => 'Select a folder';
+
+  @override
+  String get tags => 'Tags';
+
+  @override
+  String get notes => 'Notes';
+
+  @override
+  String get notesHint => 'What is this page about?';
+
+  @override
+  String get noPagesYet => 'No pages yet';
+
+  @override
+  String get editPage => 'Edit Page';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get copyLink => 'Copy Link';
+
+  @override
+  String get openUrl => 'Open';
+
+  @override
+  String get type => 'Type';
+
+  @override
+  String get noResultsFound => 'No results found';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong';
+
+  @override
+  String get analyticsLabel => 'ANALYTICS';
+
+  @override
+  String get analyticsTitle => 'App Activities';
+
+  @override
+  String get analyticsSubtitle =>
+      'Monitor user engagement and content performance';
+
+  @override
+  String get analyticsNotEnoughData => 'Not enough data to generate chart';
+
+  @override
+  String get analyticsTotalUsers => 'Total Users';
+
+  @override
+  String analyticsActiveThisWeek(int count) {
+    return '$count active this week';
+  }
+
+  @override
+  String get analyticsActiveToday => 'Active Today';
+
+  @override
+  String get analyticsUniqueLogins => 'Unique logins / opens';
+
+  @override
+  String get analyticsItemViews => 'Item Views';
+
+  @override
+  String get analyticsTotalAcrossItems => 'Total across all items';
+
+  @override
+  String get analyticsBookmarks => 'Bookmarks';
+
+  @override
+  String get analyticsSavedByUsers => 'Saved by users';
+
+  @override
+  String get analyticsDau => 'Daily Active Users (15 Days)';
+
+  @override
+  String get analyticsTopViewed => 'Top Viewed Items';
+
+  @override
+  String get analyticsNoViewData => 'No view data available yet.';
+
+  @override
+  String get analyticsMostBookmarked => 'Most Bookmarked';
+
+  @override
+  String get analyticsNoBookmarkData => 'No bookmark data available yet.';
+
+  @override
+  String get analyticsTopSearches => 'Top Searches (15 Days)';
+
+  @override
+  String get analyticsNoSearchData => 'No search data available yet.';
+
+  @override
+  String analyticsViews(int count) {
+    return '$count views';
+  }
+
+  @override
+  String analyticsSaves(int count) {
+    return '$count saves';
+  }
+
+  @override
+  String analyticsSearches(int count) {
+    return '$count searches';
+  }
+
+  @override
+  String get analyticsShowLess => 'Show Less';
+
+  @override
+  String analyticsViewAll(int count) {
+    return 'View All ($count)';
+  }
+
+  @override
+  String get timeJustNow => 'Just now';
+
+  @override
+  String timeMinutesAgo(int count) {
+    return '${count}m ago';
+  }
+
+  @override
+  String timeHoursAgo(int count) {
+    return '${count}h ago';
+  }
+
+  @override
+  String timeDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String timeMinutesAgoFull(int count) {
+    return '$count minutes ago';
+  }
+
+  @override
+  String timeHoursAgoFull(int count) {
+    return '$count hours ago';
+  }
+
+  @override
+  String timeDaysAgoFull(int count) {
+    return '$count days ago';
+  }
+
+  @override
+  String get discoverOpenButton => 'Open';
+
+  @override
+  String get exploreNow => 'Explore Now';
+
+  @override
+  String get openLink => 'Open Link';
+
+  @override
+  String get attachedLink => 'ATTACHED LINK';
+
+  @override
+  String get searchPagesAndClipboard => 'Search pages, clipboard...';
+
+  @override
+  String get searchSavedPagesAndClipboard =>
+      'Search your saved pages & clipboard';
+
+  @override
+  String noResultsForQuery(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get searchResultPages => 'Pages';
+
+  @override
+  String get searchResultClipboard => 'Clipboard';
+
+  @override
+  String get browseDiscover => 'Browse Discover';
+
+  @override
+  String get searchOnlineContent => 'Search online content & websites';
+
+  @override
+  String get forgotPasswordTitle => 'Reset Password';
+
+  @override
+  String get forgotPasswordEmailSent => 'Email Sent!';
+
+  @override
+  String get forgotPasswordInstructions =>
+      'Enter your email address and we\'ll send you a link to reset your password.';
+
+  @override
+  String get forgotPasswordCheckEmail =>
+      'Check your email for a password reset link.';
+
+  @override
+  String get forgotPasswordSendButton => 'Send Reset Link';
+
+  @override
+  String get forgotPasswordBackToSignIn => 'Back to Sign In';
+
+  @override
+  String get forgotPasswordEmptyEmail => 'Please enter your email';
+
+  @override
+  String get forgotPasswordFailed => 'Failed to send reset email';
+
+  @override
+  String get notifBodyOffer => '🔥 New offer available! Check it out now.';
+
+  @override
+  String get notifBodyPrompt => '💡 New prompt added! Tap to explore.';
+
+  @override
+  String get notifBodyAnnouncement => '📢 New announcement! Tap to read.';
+
+  @override
+  String get notifBodyDefault => '🌐 New content just added! Tap to discover.';
 }

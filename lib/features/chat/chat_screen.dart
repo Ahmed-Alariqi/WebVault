@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -74,15 +76,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to upload image')),
+              SnackBar(
+                content: Text(AppLocalizations.of(context)!.chatFailedUpload),
+              ),
             );
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.chatError(e.toString()),
+              ),
+            ),
+          );
         }
       } finally {
         if (mounted) {
@@ -104,12 +112,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       appBar: AppBar(
         title: Column(
           children: [
-            const Text(
-              'Support',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Text(
+              AppLocalizations.of(context)!.chatSupport,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             Text(
-              'Typically replies in a few hours',
+              AppLocalizations.of(context)!.chatSupportSub,
               style: TextStyle(
                 fontSize: 12,
                 color: isDark ? Colors.white54 : Colors.black54,
@@ -130,7 +138,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: conversationAsync.when(
           data: (conversation) {
             if (conversation == null) {
-              return const Center(child: Text('Could not initialize chat.'));
+              return Center(
+                child: Text(AppLocalizations.of(context)!.chatInitError),
+              );
             }
 
             _conversationId = conversation.id;
@@ -165,7 +175,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Send us a message',
+                                AppLocalizations.of(context)!.chatSendMsg,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -176,7 +186,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'We are here to help you!',
+                                AppLocalizations.of(context)!.chatHereToHelp,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.white54
@@ -204,126 +214,154 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           final msg = messages[index];
                           final isMe = !msg.isAdmin; // user sent it
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Row(
-                              mainAxisAlignment: isMe
-                                  ? MainAxisAlignment.end
-                                  : MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                if (!isMe) ...[
-                                  CircleAvatar(
-                                    radius: 14,
-                                    backgroundColor: AppTheme.primaryColor
-                                        .withValues(alpha: 0.1),
-                                    child: const Icon(
-                                      Icons.support_agent_rounded,
-                                      size: 16,
-                                      color: AppTheme.primaryColor,
+                          return Directionality(
+                            // Force LTR so bubble positions are never mirrored
+                            textDirection: ui.TextDirection.ltr,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: Row(
+                                mainAxisAlignment: isMe
+                                    ? MainAxisAlignment.end
+                                    : MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (!isMe) ...[
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: AppTheme.primaryColor
+                                          .withValues(alpha: 0.12),
+                                      child: const Icon(
+                                        Icons.support_agent_rounded,
+                                        size: 18,
+                                        color: AppTheme.primaryColor,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                ],
-                                Flexible(
-                                  child: Container(
-                                    constraints: BoxConstraints(
-                                      maxWidth:
-                                          MediaQuery.of(context).size.width *
-                                          0.75,
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 18,
-                                      vertical: 14,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isMe
-                                          ? AppTheme.primaryColor
-                                          : (isDark
-                                                ? const Color(0xFF2C2C2E)
-                                                : Colors.white),
-                                      boxShadow: isMe || isDark
-                                          ? null
-                                          : [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.04,
-                                                ),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                      borderRadius: BorderRadius.circular(24)
-                                          .copyWith(
-                                            bottomRight: isMe
-                                                ? const Radius.circular(4)
-                                                : const Radius.circular(24),
-                                            bottomLeft: !isMe
-                                                ? const Radius.circular(4)
-                                                : const Radius.circular(24),
-                                          ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: isMe
-                                          ? CrossAxisAlignment.end
-                                          : CrossAxisAlignment.start,
-                                      children: [
-                                        if (msg.content.startsWith('[IMAGE] '))
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
-                                            child: Image.network(
-                                              msg.content.replaceFirst(
-                                                '[IMAGE] ',
-                                                '',
-                                              ),
-                                              width: 200,
-                                              fit: BoxFit.cover,
-                                              errorBuilder:
-                                                  (
-                                                    context,
-                                                    error,
-                                                    stackTrace,
-                                                  ) => const Icon(
-                                                    Icons.broken_image,
-                                                    color: Colors.white54,
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Flexible(
+                                    child: Container(
+                                      constraints: BoxConstraints(
+                                        maxWidth:
+                                            MediaQuery.of(context).size.width *
+                                            0.75,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: isMe
+                                            ? const LinearGradient(
+                                                colors: [
+                                                  AppTheme.primaryColor,
+                                                  Color(0xFF7C4DFF),
+                                                ],
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                              )
+                                            : null,
+                                        color: isMe
+                                            ? null
+                                            : (isDark
+                                                  ? const Color(0xFF2C2C3E)
+                                                  : Colors.white),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: isMe
+                                                ? AppTheme.primaryColor
+                                                      .withValues(alpha: 0.25)
+                                                : Colors.black.withValues(
+                                                    alpha: isDark ? 0.2 : 0.07,
                                                   ),
+                                            blurRadius: isMe ? 12 : 6,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: const Radius.circular(20),
+                                          topRight: const Radius.circular(20),
+                                          bottomLeft: isMe
+                                              ? const Radius.circular(20)
+                                              : const Radius.circular(4),
+                                          bottomRight: isMe
+                                              ? const Radius.circular(4)
+                                              : const Radius.circular(20),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          if (msg.content.startsWith(
+                                            '[IMAGE] ',
+                                          ))
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              child: Image.network(
+                                                msg.content.replaceFirst(
+                                                  '[IMAGE] ',
+                                                  '',
+                                                ),
+                                                width: 200,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (
+                                                      context,
+                                                      error,
+                                                      stackTrace,
+                                                    ) => const Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.white54,
+                                                    ),
+                                              ),
+                                            )
+                                          else
+                                            Directionality(
+                                              // Let text content use natural text direction
+                                              textDirection:
+                                                  ui.TextDirection.rtl,
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  msg.content,
+                                                  textAlign: TextAlign.start,
+                                                  style: TextStyle(
+                                                    color: isMe
+                                                        ? Colors.white
+                                                        : (isDark
+                                                              ? Colors.white
+                                                              : Colors.black87),
+                                                    fontSize: 15,
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          )
-                                        else
+                                          const SizedBox(height: 4),
                                           Text(
-                                            msg.content,
+                                            DateFormat.jm().format(
+                                              msg.createdAt,
+                                            ),
                                             style: TextStyle(
                                               color: isMe
-                                                  ? Colors.white
+                                                  ? Colors.white.withValues(
+                                                      alpha: 0.65,
+                                                    )
                                                   : (isDark
-                                                        ? Colors.white
-                                                        : Colors.black87),
-                                              fontSize: 16,
-                                              height: 1.3,
+                                                        ? Colors.white38
+                                                        : Colors.black38),
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          DateFormat.jm().format(msg.createdAt),
-                                          style: TextStyle(
-                                            color: isMe
-                                                ? Colors.white.withValues(
-                                                    alpha: 0.7,
-                                                  )
-                                                : (isDark
-                                                      ? Colors.white54
-                                                      : Colors.black54),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  if (isMe) const SizedBox(width: 4),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -331,7 +369,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Error: $e')),
+                    error: (e, _) => Center(
+                      child: Text(
+                        AppLocalizations.of(context)!.chatError(e.toString()),
+                      ),
+                    ),
                   ),
                 ),
 
@@ -364,7 +406,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Uploading image...',
+                                AppLocalizations.of(context)!.chatUploadingImg,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.white54
@@ -395,7 +437,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               minLines: 1,
                               maxLines: 4,
                               decoration: InputDecoration(
-                                hintText: 'Type a message...',
+                                hintText: AppLocalizations.of(
+                                  context,
+                                )!.chatTypeMsg,
                                 hintStyle: TextStyle(
                                   color: isDark
                                       ? Colors.white38
@@ -453,7 +497,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')),
+          error: (e, _) => Center(
+            child: Text(AppLocalizations.of(context)!.chatError(e.toString())),
+          ),
         ),
       ),
     );

@@ -12,6 +12,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
   const ManageWebsitesScreen({super.key});
@@ -52,7 +53,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Manage Items'),
+        title: Text(AppLocalizations.of(context)!.manageItemsTitle),
         forceMaterialTransparency: true,
       ),
       body: pState.isInitialLoad
@@ -73,13 +74,16 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                     color: AppTheme.primaryColor.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'No items yet',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  Text(
+                    AppLocalizations.of(context)!.noItemsYet,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap + to add one',
+                    AppLocalizations.of(context)!.tapPlusToAddOne,
                     style: TextStyle(
                       color: isDark ? Colors.white54 : Colors.black45,
                     ),
@@ -108,7 +112,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
       floatingActionButton: ModernFab.extended(
         onPressed: () => context.push('/admin/websites/edit'),
         icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-        label: const Text('New Item'),
+        label: Text(AppLocalizations.of(context)!.newItem),
       ),
     );
   }
@@ -185,10 +189,13 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                                 ),
                               ),
                             ),
-                            errorWidget: (ctx, url, err) =>
-                                _placeholderImage(isDark, site.contentType),
+                            errorWidget: (ctx, url, err) => _placeholderImage(
+                              context,
+                              isDark,
+                              site.contentType,
+                            ),
                           )
-                        : _placeholderImage(isDark, site.contentType),
+                        : _placeholderImage(context, isDark, site.contentType),
                   ),
                   // Content type badge
                   if (site.contentType != 'website')
@@ -216,7 +223,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              _typeDisplayName(site.contentType),
+                              _typeDisplayName(context, site.contentType),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -236,15 +243,35 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                       spacing: 4,
                       children: [
                         if (!site.isActive)
-                          _badge('Inactive', Colors.grey, isDark),
+                          _badge(
+                            AppLocalizations.of(context)!.badgeInactive,
+                            Colors.grey,
+                            isDark,
+                          ),
                         if (site.isExpired)
-                          _badge('Expired', Colors.red, isDark),
+                          _badge(
+                            AppLocalizations.of(context)!.badgeExpired,
+                            Colors.red,
+                            isDark,
+                          ),
                         if (site.isTrending)
-                          _badge('Trending', const Color(0xFFFF6B6B), isDark),
+                          _badge(
+                            AppLocalizations.of(context)!.badgeTrending,
+                            const Color(0xFFFF6B6B),
+                            isDark,
+                          ),
                         if (site.isPopular)
-                          _badge('Popular', const Color(0xFFFF9800), isDark),
+                          _badge(
+                            AppLocalizations.of(context)!.badgePopular,
+                            const Color(0xFFFF9800),
+                            isDark,
+                          ),
                         if (site.isFeatured)
-                          _badge('Featured', const Color(0xFF4CAF50), isDark),
+                          _badge(
+                            AppLocalizations.of(context)!.badgeFeatured,
+                            const Color(0xFF4CAF50),
+                            isDark,
+                          ),
                         if (catName != null)
                           _badge(catName!, AppTheme.primaryColor, isDark),
                       ],
@@ -342,9 +369,9 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                                 PhosphorIcons.pencilSimple(),
                                 size: 14,
                               ),
-                              label: const Text(
-                                'Edit',
-                                style: TextStyle(
+                              label: Text(
+                                AppLocalizations.of(context)!.cardButtonEdit,
+                                style: const TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -369,19 +396,33 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                               final confirm = await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                  title: const Text('Confirm Deletion'),
-                                  content: Text('Delete "${site.title}"?'),
+                                  title: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.confirmDeletionTitle,
+                                  ),
+                                  content: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.confirmDeletionMessage(site.title),
+                                  ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.pop(ctx, false),
-                                      child: const Text('Cancel'),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.cancel,
+                                      ),
                                     ),
                                     TextButton(
                                       onPressed: () => Navigator.pop(ctx, true),
-                                      child: const Text(
-                                        'Delete',
-                                        style: TextStyle(color: Colors.red),
+                                      child: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.cardButtonDelete,
+                                        style: const TextStyle(
+                                          color: Colors.red,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -471,20 +512,24 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     }
   }
 
-  String _typeDisplayName(String type) {
+  String _typeDisplayName(BuildContext context, String type) {
     switch (type) {
       case 'prompt':
-        return 'Prompt';
+        return AppLocalizations.of(context)!.badgePrompt;
       case 'offer':
-        return 'Offer';
+        return AppLocalizations.of(context)!.badgeOffer;
       case 'announcement':
-        return 'Announce';
+        return AppLocalizations.of(context)!.badgeAnnounce;
       default:
-        return 'Website';
+        return AppLocalizations.of(context)!.badgeWebsite;
     }
   }
 
-  Widget _placeholderImage(bool isDark, String contentType) {
+  Widget _placeholderImage(
+    BuildContext context,
+    bool isDark,
+    String contentType,
+  ) {
     return Container(
       height: 120,
       color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
@@ -499,7 +544,7 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _typeDisplayName(contentType),
+              _typeDisplayName(context, contentType),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,

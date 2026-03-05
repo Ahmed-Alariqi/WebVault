@@ -10,6 +10,7 @@ import '../../presentation/providers/providers.dart';
 import '../../data/models/clipboard_item_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../l10n/app_localizations.dart';
 
 class ClipboardScreen extends ConsumerStatefulWidget {
   const ClipboardScreen({super.key});
@@ -92,7 +93,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
       appBar: AppBar(
         title: _isMultiSelectMode
             ? Text('${_selectedIds.length} selected')
-            : const Text('Clipboard'),
+            : Text(AppLocalizations.of(context)!.clipboard),
         forceMaterialTransparency: true,
         leading: _isMultiSelectMode
             ? IconButton(
@@ -210,7 +211,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               onPressed: () =>
                   _showAddDialog(context, ref, isDark, activeGroupId),
               icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-              label: const Text('Add Value'),
+              label: Text(AppLocalizations.of(context)!.addValue),
             ),
     );
   }
@@ -274,7 +275,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
           _GroupChip(
-            label: 'All Items',
+            label: AppLocalizations.of(context)!.allItems,
             icon: PhosphorIcons.infinity(),
             isSelected: activeGroupId == null,
             onTap: () =>
@@ -283,7 +284,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
           ),
           const SizedBox(width: 8),
           _GroupChip(
-            label: 'Uncategorized',
+            label: AppLocalizations.of(context)!.uncategorized,
             icon: PhosphorIcons.tray(),
             isSelected: activeGroupId == 'uncategorized',
             onTap: () =>
@@ -378,7 +379,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
             // Uncategorized option
             ListTile(
               leading: Icon(PhosphorIcons.tray(), color: Colors.grey),
-              title: const Text('Uncategorized'),
+              title: Text(AppLocalizations.of(context)!.uncategorized),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -429,7 +430,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Text('Moved to "$groupName"'),
+            Text(AppLocalizations.of(context)!.movedTo(groupName)),
           ],
         ),
         behavior: SnackBarBehavior.floating,
@@ -568,7 +569,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                     ),
                     decoration: ModernFormWidgets.inputDecoration(
                       context,
-                      label: 'Label',
+                      label: AppLocalizations.of(context)!.label,
                       hint: 'e.g. My OTP code',
                       icon: PhosphorIcons.tag(),
                       isDark: isDark,
@@ -589,8 +590,8 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                         : 1,
                     decoration: ModernFormWidgets.inputDecoration(
                       context,
-                      label: 'Value',
-                      hint: 'Content to copy',
+                      label: AppLocalizations.of(context)!.value,
+                      hint: AppLocalizations.of(context)!.contentToCopy,
                       icon: PhosphorIcons.textT(),
                       isDark: isDark,
                     ),
@@ -599,7 +600,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                   const SizedBox(height: 32),
 
                   ModernFormWidgets.gradientButton(
-                    label: 'Save to Clipboard',
+                    label: AppLocalizations.of(context)!.saveToClipboard,
                     icon: PhosphorIcons.floppyDisk(),
                     onPressed: () {
                       if (valueCtrl.text.trim().isEmpty) return;
@@ -681,7 +682,7 @@ class _ClipboardTile extends ConsumerWidget {
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text('Copied "${item.label}"'),
+                Text(AppLocalizations.of(context)!.copiedItem(item.label)),
               ],
             ),
             behavior: SnackBarBehavior.floating,
@@ -870,7 +871,7 @@ class _ClipboardTile extends ConsumerWidget {
                 PhosphorIcons.arrowBendUpRight(),
                 color: AppTheme.primaryColor,
               ),
-              title: const Text('Move to Group'),
+              title: Text(AppLocalizations.of(context)!.moveToGroup),
               onTap: () {
                 Navigator.pop(ctx);
                 onMoveToGroup();
@@ -878,7 +879,7 @@ class _ClipboardTile extends ConsumerWidget {
             ),
             ListTile(
               leading: Icon(PhosphorIcons.checks(), color: Colors.teal),
-              title: const Text('Select Multiple'),
+              title: Text(AppLocalizations.of(context)!.selectMultiple),
               onTap: () {
                 Navigator.pop(ctx);
                 onLongPress();
@@ -1009,7 +1010,7 @@ void _showGroupOptions(
               PhosphorIcons.pencilSimple(),
               color: AppTheme.primaryColor,
             ),
-            title: const Text('Edit Group'),
+            title: Text(AppLocalizations.of(context)!.editGroup),
             onTap: () {
               Navigator.pop(ctx);
               _showManageGroupDialog(context, ref, group, isDark);
@@ -1160,7 +1161,7 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
               style: TextStyle(color: isDark ? Colors.white : Colors.black),
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'Group Name',
+                label: AppLocalizations.of(context)!.groupName,
                 hint: 'e.g. Work, Social',
                 icon:
                     _availableIcons.firstWhere(
@@ -1270,7 +1271,7 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(AppLocalizations.of(context)!.cancel),
         ),
         ElevatedButton(
           onPressed: () {
@@ -1285,7 +1286,7 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text('Save'),
+          child: Text(AppLocalizations.of(context)!.save),
         ),
       ],
     );

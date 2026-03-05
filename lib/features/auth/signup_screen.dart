@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -58,13 +59,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     return Colors.green;
   }
 
-  String _strengthLabel() {
+  String _strengthLabel(BuildContext context) {
     final s = _passwordStrength();
     if (s == 0) return '';
-    if (s < 0.3) return 'Weak';
-    if (s < 0.6) return 'Fair';
-    if (s < 0.8) return 'Good';
-    return 'Strong';
+    if (s < 0.3) return AppLocalizations.of(context)!.passwordStrengthWeak;
+    if (s < 0.6) return AppLocalizations.of(context)!.passwordStrengthFair;
+    if (s < 0.8) return AppLocalizations.of(context)!.passwordStrengthGood;
+    return AppLocalizations.of(context)!.passwordStrengthStrong;
   }
 
   Future<void> _signUp() async {
@@ -86,11 +87,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       );
       if (mounted) setState(() => _success = true);
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = _parseSignUpError(e.toString());
-        });
-      }
+      setState(() {
+        _error = _parseSignUpError(e.toString(), context);
+      });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -109,7 +108,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = _parseSignUpError(e.toString());
+          _error = _parseSignUpError(e.toString(), context);
         });
       }
     } finally {
@@ -117,24 +116,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
   }
 
-  String _parseSignUpError(String error) {
+  String _parseSignUpError(String error, BuildContext context) {
     if (error.contains('already registered')) {
-      return 'This email is already registered. Try signing in.';
+      return AppLocalizations.of(context)!.emailAlreadyRegistered;
     }
     if (error.contains('email_address_invalid') ||
         error.contains('is invalid')) {
-      return 'Email address is invalid. Please use a real email.';
+      return AppLocalizations.of(context)!.invalidEmailAddress;
     }
     if (error.contains('rate limit') || error.contains('429')) {
-      return 'Too many attempts. Please wait a few minutes.';
+      return AppLocalizations.of(context)!.tooManyAttempts;
     }
     if (error.contains('weak_password') || error.contains('too short')) {
-      return 'Password is too weak. Use at least 6 characters.';
+      return AppLocalizations.of(context)!.passwordTooWeak;
     }
     if (error.contains('network') || error.contains('SocketException')) {
-      return 'Network error. Check your connection.';
+      return AppLocalizations.of(context)!.networkErrorCheckConnection;
     }
-    return 'Sign up failed: ${error.replaceAll('AuthException(message: ', '').replaceAll(')', '')}';
+    return AppLocalizations.of(context)!.signUpFailed(
+      error.replaceAll('AuthException(message: ', '').replaceAll(')', ''),
+    );
   }
 
   @override
@@ -227,7 +228,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ).animate().scale(curve: Curves.elasticOut, duration: 800.ms),
           const SizedBox(height: 24),
           Text(
-            'Account Created!',
+            AppLocalizations.of(context)!.accountCreated,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w700,
@@ -236,7 +237,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'We sent a verification email to\n${_emailCtrl.text.trim()}\n\nPlease verify your email, then sign in.',
+            AppLocalizations.of(
+              context,
+            )!.verifyEmailDesc(_emailCtrl.text.trim()),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -256,9 +259,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                'Go to Sign In',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)!.goToSignIn,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -281,7 +284,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ).animate().fadeIn().scale(begin: const Offset(0.5, 0.5)),
         const SizedBox(height: 16),
         Text(
-          'Create Account',
+          AppLocalizations.of(context)!.createAccount,
           style: TextStyle(
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -336,40 +339,45 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
             _buildField(
               _nameCtrl,
-              'Full Name',
-              'John Doe',
+              AppLocalizations.of(context)!.fullName,
+              AppLocalizations.of(context)!.nameHint,
               PhosphorIcons.user(),
               isDark,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Name is required' : null,
+              validator: (v) => v == null || v.isEmpty
+                  ? AppLocalizations.of(context)!.nameRequired
+                  : null,
             ),
             const SizedBox(height: 14),
             _buildField(
               _usernameCtrl,
-              'Username (optional)',
-              'johndoe',
+              AppLocalizations.of(context)!.usernameOptional,
+              AppLocalizations.of(context)!.usernameHint,
               PhosphorIcons.at(),
               isDark,
             ),
             const SizedBox(height: 14),
             _buildField(
               _emailCtrl,
-              'Email',
-              'you@email.com',
+              AppLocalizations.of(context)!.email,
+              AppLocalizations.of(context)!.emailHint,
               PhosphorIcons.envelope(),
               isDark,
               keyboardType: TextInputType.emailAddress,
               validator: (v) {
-                if (v == null || v.isEmpty) return 'Email is required';
-                if (!v.contains('@')) return 'Enter a valid email';
+                if (v == null || v.isEmpty) {
+                  return AppLocalizations.of(context)!.emailRequired;
+                }
+                if (!v.contains('@')) {
+                  return AppLocalizations.of(context)!.enterValidEmail;
+                }
                 return null;
               },
             ),
             const SizedBox(height: 14),
             _buildField(
               _passwordCtrl,
-              'Password',
-              '••••••••',
+              AppLocalizations.of(context)!.password,
+              AppLocalizations.of(context)!.passwordHint,
               PhosphorIcons.lock(),
               isDark,
               obscure: _obscure,
@@ -383,7 +391,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ),
               validator: (v) {
                 if (v == null || v.length < 6) {
-                  return 'Password must be at least 6 characters';
+                  return AppLocalizations.of(context)!.passwordMinLength;
                 }
                 return null;
               },
@@ -409,7 +417,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _strengthLabel(),
+                    _strengthLabel(context),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -423,8 +431,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             const SizedBox(height: 14),
             _buildField(
               _confirmCtrl,
-              'Confirm Password',
-              '••••••••',
+              AppLocalizations.of(context)!.confirmPasswordLabel,
+              AppLocalizations.of(context)!.passwordHint,
               PhosphorIcons.lockKey(),
               isDark,
               obscure: _obscureConfirm,
@@ -440,15 +448,19 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     setState(() => _obscureConfirm = !_obscureConfirm),
               ),
               validator: (v) {
-                if (v != _passwordCtrl.text) return 'Passwords do not match';
-                return null;
+              if (v != _passwordCtrl.text) {
+                return AppLocalizations.of(context)!.passwordsDoNotMatch;
+              }
+              return null;
               },
             ),
 
             const SizedBox(height: 28),
 
             _buildGradientButton(
-              label: _loading ? 'Creating account...' : 'Create Account',
+              label: _loading
+                  ? AppLocalizations.of(context)!.creatingAccount
+                  : AppLocalizations.of(context)!.createAccount,
               icon: _loading ? null : PhosphorIcons.userPlus(),
               onPressed: _loading ? null : _signUp,
               loading: _loading,
@@ -459,9 +471,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             OutlinedButton.icon(
               onPressed: _loading ? null : _signUpWithGoogle,
               icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
-              label: const Text(
-                'Sign up with Google',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              label: Text(
+                AppLocalizations.of(context)!.signUpWithGoogle,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -485,7 +500,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Already have an account? ',
+          AppLocalizations.of(context)!.alreadyHaveAccount,
           style: TextStyle(
             color: isDark ? Colors.white54 : Colors.black45,
             fontSize: 14,
@@ -493,9 +508,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ),
         GestureDetector(
           onTap: () => context.pop(),
-          child: const Text(
-            'Sign In',
-            style: TextStyle(
+          child: Text(
+            AppLocalizations.of(context)!.signIn,
+            style: const TextStyle(
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w700,
               fontSize: 14,

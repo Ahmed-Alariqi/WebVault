@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 // Note: Fallback to Flutter's native TextField and InputDecoration to avoid missing CustomTextField
 import '../../presentation/providers/community_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class CommunityNewPostSheet extends ConsumerStatefulWidget {
   const CommunityNewPostSheet({super.key});
@@ -100,8 +101,8 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
       if (mounted) {
         context.pop(); // close sheet
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Post published!'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.postPublished),
             backgroundColor: AppTheme.primaryColor,
           ),
         );
@@ -185,14 +186,14 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
             child: Row(
               children: [
                 _CategoryChip(
-                  label: 'General',
+                  label: AppLocalizations.of(context)!.categoryGeneral,
                   category: 'general',
                   selected: _category == 'general',
                   icon: PhosphorIcons.chatTeardrop(PhosphorIconsStyle.fill),
                   onSelect: () => setState(() => _category = 'general'),
                 ),
                 _CategoryChip(
-                  label: 'Question',
+                  label: AppLocalizations.of(context)!.categoryQuestion,
                   category: 'question',
                   selected: _category == 'question',
                   icon: PhosphorIcons.question(PhosphorIconsStyle.fill),
@@ -200,7 +201,7 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
                   onSelect: () => setState(() => _category = 'question'),
                 ),
                 _CategoryChip(
-                  label: 'Tip',
+                  label: AppLocalizations.of(context)!.categoryTip,
                   category: 'tip',
                   selected: _category == 'tip',
                   icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.fill),
@@ -208,7 +209,7 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
                   onSelect: () => setState(() => _category = 'tip'),
                 ),
                 _CategoryChip(
-                  label: 'Resource',
+                  label: AppLocalizations.of(context)!.categoryResource,
                   category: 'resource',
                   selected: _category == 'resource',
                   icon: PhosphorIcons.folderStar(PhosphorIconsStyle.fill),
@@ -316,7 +317,7 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
                       : AppTheme.lightTextPrimary,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'What do you want to share with the community?',
+                  hintText: AppLocalizations.of(context)!.whatToShare,
                   hintStyle: TextStyle(
                     color: isDark
                         ? AppTheme.darkTextSecondary.withValues(alpha: 0.4)
@@ -424,8 +425,8 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'Post',
+                    : Text(
+                        AppLocalizations.of(context)!.post,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,

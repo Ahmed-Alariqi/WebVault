@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../l10n/app_localizations.dart';
 
 class OfflineWarningWidget extends StatelessWidget {
   final Object error;
@@ -32,13 +33,13 @@ class OfflineWarningWidget extends StatelessWidget {
               color: AppTheme.errorColor,
             ),
             const SizedBox(height: 16),
-            const Text(
-              'You are offline',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              AppLocalizations.of(context)!.youAreOfflineTitle,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'Please check your internet connection.',
+              AppLocalizations.of(context)!.youAreOfflineDesc,
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context).brightness == Brightness.dark
@@ -56,7 +57,7 @@ class OfflineWarningWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-          'Error: $error',
+          AppLocalizations.of(context)!.errorMessage(error.toString()),
           style: const TextStyle(color: AppTheme.errorColor),
           textAlign: TextAlign.center,
         ),

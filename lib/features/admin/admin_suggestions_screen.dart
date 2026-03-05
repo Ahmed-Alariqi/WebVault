@@ -10,6 +10,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class AdminSuggestionsScreen extends ConsumerWidget {
   const AdminSuggestionsScreen({super.key});
@@ -33,43 +34,58 @@ class AdminSuggestionsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Approve & Publish'),
+          title: Text(AppLocalizations.of(context)!.approvePublish),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: titleController,
-                  decoration: const InputDecoration(labelText: 'Title'),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.titleLabel,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: urlController,
-                  decoration: const InputDecoration(labelText: 'URL'),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.urlLabel,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: descController,
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.descriptionLabel,
+                  ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 12),
                 CheckboxListTile(
-                  title: const Text('Trending', style: TextStyle(fontSize: 14)),
+                  title: Text(
+                    AppLocalizations.of(context)!.trending,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   value: isTrending,
                   onChanged: (v) =>
                       setDialogState(() => isTrending = v ?? false),
                   contentPadding: EdgeInsets.zero,
                 ),
                 CheckboxListTile(
-                  title: const Text('Popular', style: TextStyle(fontSize: 14)),
+                  title: Text(
+                    AppLocalizations.of(context)!.popular,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   value: isPopular,
                   onChanged: (v) =>
                       setDialogState(() => isPopular = v ?? false),
                   contentPadding: EdgeInsets.zero,
                 ),
                 CheckboxListTile(
-                  title: const Text('Featured', style: TextStyle(fontSize: 14)),
+                  title: Text(
+                    AppLocalizations.of(context)!.featured,
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   value: isFeatured,
                   onChanged: (v) =>
                       setDialogState(() => isFeatured = v ?? false),
@@ -81,11 +97,11 @@ class AdminSuggestionsScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Publish'),
+              child: Text(AppLocalizations.of(context)!.publish),
             ),
           ],
         ),
@@ -119,7 +135,11 @@ class AdminSuggestionsScreen extends ConsumerWidget {
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Suggestion approved and published!')),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.suggestionApprovedPublished,
+              ),
+            ),
           );
           // Refresh the list
           final _ = ref.refresh(adminSuggestionsProvider);
@@ -131,9 +151,13 @@ class AdminSuggestionsScreen extends ConsumerWidget {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.errorMessage(e.toString()),
+              ),
+            ),
+          );
         }
       }
     }
@@ -145,7 +169,7 @@ class AdminSuggestionsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Suggestions'),
+        title: Text(AppLocalizations.of(context)!.userSuggestions),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -158,7 +182,9 @@ class AdminSuggestionsScreen extends ConsumerWidget {
       body: suggestionsAsync.when(
         data: (suggestions) {
           if (suggestions.isEmpty) {
-            return const Center(child: Text('No pending suggestions'));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.noPendingSuggestions),
+            );
           }
           return ListView.builder(
             itemCount: suggestions.length,
@@ -225,7 +251,9 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                       ],
                       const SizedBox(height: 8),
                       Text(
-                        'Suggested: ${DateFormat.yMMMd().format(item.createdAt)}',
+                        AppLocalizations.of(context)!.suggestedDate(
+                          DateFormat.yMMMd().format(item.createdAt),
+                        ),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -243,8 +271,12 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                                     .rejectSuggestion(item.id);
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Suggestion rejected'),
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.suggestionRejected,
+                                      ),
                                     ),
                                   );
                                   final _ = ref.refresh(
@@ -254,7 +286,13 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                               } catch (e) {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error: $e')),
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.errorMessage(e.toString()),
+                                      ),
+                                    ),
                                   );
                                 }
                               }
@@ -262,13 +300,13 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.red,
                             ),
-                            child: const Text('Reject'),
+                            child: Text(AppLocalizations.of(context)!.reject),
                           ),
                           const SizedBox(width: 8),
                           FilledButton(
                             onPressed: () =>
                                 _approveSuggestion(context, ref, item),
-                            child: const Text('Approve'),
+                            child: Text(AppLocalizations.of(context)!.approve),
                           ),
                         ],
                       ),

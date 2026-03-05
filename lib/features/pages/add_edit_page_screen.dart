@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddEditPageScreen extends ConsumerStatefulWidget {
   final String? pageId;
@@ -146,7 +147,9 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
           children: [
             // Title
             Text(
-              _isEditing ? 'Edit Page' : 'New Page',
+              _isEditing
+                  ? AppLocalizations.of(context)!.editPage
+                  : AppLocalizations.of(context)!.newPage,
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.w800,
@@ -160,7 +163,10 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             const SizedBox(height: 32),
 
             // Identity Section
-            ModernFormWidgets.sectionHeader('Identity', isDark: isDark),
+            ModernFormWidgets.sectionHeader(
+              AppLocalizations.of(context)!.identitySection,
+              isDark: isDark,
+            ),
             TextFormField(
               controller: _urlController,
               keyboardType: TextInputType.url,
@@ -173,13 +179,15 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'URL',
+                label: AppLocalizations.of(context)!.pageUrl,
                 hint: 'https://example.com',
                 icon: PhosphorIcons.link(),
                 isDark: isDark,
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'URL is required';
+                if (v == null || v.trim().isEmpty) {
+                  return AppLocalizations.of(context)!.required;
+                }
                 return null;
               },
             ).animate().fadeIn(delay: 100.ms),
@@ -197,8 +205,8 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'Title',
-                hint: 'My Awesome Page',
+                label: AppLocalizations.of(context)!.pageTitle,
+                hint: AppLocalizations.of(context)!.pageTitleHint,
                 icon: PhosphorIcons.textT(),
                 isDark: isDark,
               ),
@@ -207,15 +215,18 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             const SizedBox(height: 24),
 
             // Organization Section
-            ModernFormWidgets.sectionHeader('Organization', isDark: isDark),
+            ModernFormWidgets.sectionHeader(
+              AppLocalizations.of(context)!.organizationSection,
+              isDark: isDark,
+            ),
 
             // Folder Dropdown
             DropdownButtonFormField<String?>(
               value: _selectedFolderId, // ignore: deprecated_member_use
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'Folder',
-                hint: 'Select a folder',
+                label: AppLocalizations.of(context)!.folder,
+                hint: AppLocalizations.of(context)!.selectFolder,
                 icon: PhosphorIcons.folder(),
                 isDark: isDark,
               ),
@@ -237,7 +248,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
                 DropdownMenuItem<String?>(
                   value: null,
                   child: Text(
-                    'None',
+                    AppLocalizations.of(context)!.cancel,
                     style: TextStyle(
                       color: isDark
                           ? AppTheme.darkTextSecondary
@@ -282,7 +293,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'Tags',
+                label: AppLocalizations.of(context)!.tags,
                 hint: 'work, research, social',
                 icon: PhosphorIcons.tag(),
                 isDark: isDark,
@@ -292,7 +303,10 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             const SizedBox(height: 24),
 
             // Details Section
-            ModernFormWidgets.sectionHeader('Details', isDark: isDark),
+            ModernFormWidgets.sectionHeader(
+              AppLocalizations.of(context)!.detailsSection,
+              isDark: isDark,
+            ),
             TextFormField(
               controller: _notesController,
               maxLines: 3,
@@ -305,8 +319,8 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
               decoration: ModernFormWidgets.inputDecoration(
                 context,
-                label: 'Notes',
-                hint: 'What is this page about?',
+                label: AppLocalizations.of(context)!.notes,
+                hint: AppLocalizations.of(context)!.notesHint,
                 icon: PhosphorIcons.note(),
                 isDark: isDark,
               ),
@@ -316,7 +330,9 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
 
             // Action Button
             ModernFormWidgets.gradientButton(
-              label: _isEditing ? 'Update Page' : 'Save Page',
+              label: _isEditing
+                  ? AppLocalizations.of(context)!.save
+                  : AppLocalizations.of(context)!.save,
               icon: _isEditing
                   ? PhosphorIcons.checkCircle()
                   : PhosphorIcons.floppyDisk(),

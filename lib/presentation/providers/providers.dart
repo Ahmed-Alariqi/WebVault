@@ -492,7 +492,7 @@ final dashboardStatsProvider = Provider<Map<String, dynamic>>((ref) {
 
 final localeProvider = Provider<Locale>((ref) {
   final settings = ref.watch(settingsProvider);
-  return Locale(settings['locale'] as String? ?? 'en');
+  return Locale(settings['locale'] as String? ?? 'ar');
 });
 
 // ============================================================

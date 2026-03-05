@@ -9,6 +9,7 @@ import '../../core/supabase_config.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../l10n/app_localizations.dart';
 
 class AdminCommunityScreen extends ConsumerStatefulWidget {
   const AdminCommunityScreen({super.key});
@@ -56,13 +57,10 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
               color: AppTheme.errorColor,
             ),
             const SizedBox(width: 8),
-            const Text('WIPE ALL CHAT?'),
+            Text(AppLocalizations.of(context)!.wipeChatTitle),
           ],
         ),
-        content: const Text(
-          'This will permanently delete ALL posts, replies, and reactions in the Community '
-          'to free up database storage. This action CANNOT be undone.',
-        ),
+        content: Text(AppLocalizations.of(context)!.wipeChatContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
@@ -73,9 +71,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.errorColor,
             ),
-            child: const Text(
-              'WIPE CHAT',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context)!.wipeChatAction,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -92,8 +90,8 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
         if (mounted) {
           ref.read(communityPostsPaginatedProvider.notifier).reset();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Chat successfully wiped.'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context)!.chatWipedSuccess),
               backgroundColor: AppTheme.primaryColor,
             ),
           );
@@ -102,7 +100,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to wipe chat: \$e'),
+              content: Text(
+                AppLocalizations.of(context)!.chatWipedFailed(e.toString()),
+              ),
               backgroundColor: AppTheme.errorColor,
             ),
           );
@@ -124,7 +124,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pin post: \$e'),
+            content: Text(
+              AppLocalizations.of(context)!.pinPostFailed(e.toString()),
+            ),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -140,7 +142,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Community Management'),
+        title: Text(AppLocalizations.of(context)!.communityManagement),
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
@@ -157,7 +159,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                     PhosphorIcons.trash(PhosphorIconsStyle.fill),
                     color: AppTheme.errorColor,
                   ),
-            tooltip: 'WIPE ALL CHAT',
+            tooltip: AppLocalizations.of(context)!.wipeAllChatTooltip,
           ).animate().fadeIn(),
         ],
       ),
@@ -174,11 +176,13 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Use the Trash icon in the top right to permanently wipe all '
-                    'community posts and free up Supabase storage space.',
-                    style: TextStyle(fontSize: 13, color: AppTheme.errorColor),
+                    AppLocalizations.of(context)!.wipeChatInfo,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppTheme.errorColor,
+                    ),
                   ),
                 ),
               ],
@@ -189,7 +193,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
             child: pState.isInitialLoad
                 ? const ShimmerListColumn(count: 5)
                 : pState.items.isEmpty
-                ? const Center(child: Text('No posts in the community.'))
+                ? Center(
+                    child: Text(AppLocalizations.of(context)!.noCommunityPosts),
+                  )
                 : ListView.separated(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(20),
@@ -276,7 +282,9 @@ class _AdminPostTile extends ConsumerWidget {
                   size: 20,
                 ),
                 onPressed: onTogglePin,
-                tooltip: post.isPinned ? 'Unpin Post' : 'Pin Post',
+                tooltip: post.isPinned
+                    ? AppLocalizations.of(context)!.unpinPostTooltip
+                    : AppLocalizations.of(context)!.pinPostTooltip,
                 constraints: const BoxConstraints(),
                 padding: const EdgeInsets.all(4),
               ),
@@ -291,20 +299,22 @@ class _AdminPostTile extends ConsumerWidget {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (c) => AlertDialog(
-                      title: const Text('Delete Post?'),
-                      content: const Text(
-                        'Are you sure you want to delete this post?',
+                      title: Text(
+                        AppLocalizations.of(context)!.deletePostTitle,
+                      ),
+                      content: Text(
+                        AppLocalizations.of(context)!.deletePostContent,
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(c, false),
-                          child: const Text('Cancel'),
+                          child: Text(AppLocalizations.of(context)!.cancel),
                         ),
                         TextButton(
                           onPressed: () => Navigator.pop(c, true),
-                          child: const Text(
-                            'Delete',
-                            style: TextStyle(color: AppTheme.errorColor),
+                          child: Text(
+                            AppLocalizations.of(context)!.deletePostAction,
+                            style: const TextStyle(color: AppTheme.errorColor),
                           ),
                         ),
                       ],
@@ -314,7 +324,7 @@ class _AdminPostTile extends ConsumerWidget {
                     CommunityActions.deletePost(post.id);
                   }
                 },
-                tooltip: 'Delete Post',
+                tooltip: AppLocalizations.of(context)!.deletePostAction,
                 constraints: const BoxConstraints(),
                 padding: const EdgeInsets.all(4),
               ),

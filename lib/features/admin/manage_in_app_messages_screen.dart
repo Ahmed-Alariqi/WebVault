@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageInAppMessagesScreen extends ConsumerStatefulWidget {
   const ManageInAppMessagesScreen({super.key});
@@ -45,7 +46,9 @@ class _ManageInAppMessagesScreenState
   Future<void> _saveMessage() async {
     if (_titleCtrl.text.trim().isEmpty || _messageCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title and Message are required')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.titleMessageRequired),
+        ),
       );
       return;
     }
@@ -89,7 +92,9 @@ class _ManageInAppMessagesScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _editingId != null ? 'Campaign Updated' : 'Campaign Created',
+              _editingId != null
+                  ? AppLocalizations.of(context)!.campaignUpdated
+                  : AppLocalizations.of(context)!.campaignCreated,
             ),
           ),
         );
@@ -108,8 +113,8 @@ class _ManageInAppMessagesScreenState
           SnackBar(
             content: Text(
               isOffline
-                  ? 'You are offline. Please check your internet connection.'
-                  : 'Failed: $e',
+                  ? AppLocalizations.of(context)!.offlineWarningDetails
+                  : AppLocalizations.of(context)!.failedWarning(e.toString()),
             ),
             backgroundColor: isOffline ? Colors.orange : Colors.red,
           ),
@@ -198,14 +203,18 @@ class _ManageInAppMessagesScreenState
                     top: Radius.circular(28),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.visibility, size: 16, color: Colors.orange),
-                    SizedBox(width: 6),
+                    const Icon(
+                      Icons.visibility,
+                      size: 16,
+                      color: Colors.orange,
+                    ),
+                    const SizedBox(width: 6),
                     Text(
-                      'PREVIEW',
-                      style: TextStyle(
+                      AppLocalizations.of(context)!.previewBadge,
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         color: Colors.orange,
@@ -326,9 +335,9 @@ class _ManageInAppMessagesScreenState
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
-                          'Close Preview',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context)!.closePreview,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -363,8 +372,10 @@ class _ManageInAppMessagesScreenState
           SnackBar(
             content: Text(
               isOffline
-                  ? 'You are offline. Please check your internet connection.'
-                  : 'Failed to update status: $e',
+                  ? AppLocalizations.of(context)!.offlineWarningDetails
+                  : AppLocalizations.of(
+                      context,
+                    )!.failedToUpdateStatus(e.toString()),
             ),
             backgroundColor: isOffline ? Colors.orange : Colors.red,
           ),
@@ -377,17 +388,17 @@ class _ManageInAppMessagesScreenState
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Message?'),
-        content: const Text('This cannot be undone.'),
+        title: Text(AppLocalizations.of(context)!.deleteMessageTitle),
+        content: Text(AppLocalizations.of(context)!.deleteMessageContent),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancelLabel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(context)!.deleteLabel),
           ),
         ],
       ),
@@ -411,8 +422,10 @@ class _ManageInAppMessagesScreenState
             SnackBar(
               content: Text(
                 isOffline
-                    ? 'You are offline. Please check your internet connection.'
-                    : 'Delete failed: $e',
+                    ? AppLocalizations.of(context)!.offlineWarningDetails
+                    : AppLocalizations.of(
+                        context,
+                      )!.deleteFailedWarning(e.toString()),
               ),
               backgroundColor: isOffline ? Colors.orange : Colors.red,
             ),
@@ -430,7 +443,7 @@ class _ManageInAppMessagesScreenState
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('In-App Messages'),
+        title: Text(AppLocalizations.of(context)!.inAppMessagesTitle),
         forceMaterialTransparency: true,
       ),
       body: CustomScrollView(
@@ -459,7 +472,9 @@ class _ManageInAppMessagesScreenState
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          _editingId != null ? 'Edit Campaign' : 'New Campaign',
+                          _editingId != null
+                              ? AppLocalizations.of(context)!.editCampaign
+                              : AppLocalizations.of(context)!.newCampaign,
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -469,22 +484,28 @@ class _ManageInAppMessagesScreenState
                         if (_editingId != null)
                           TextButton(
                             onPressed: _clearForm,
-                            child: const Text('Cancel Edit'),
+                            child: Text(
+                              AppLocalizations.of(context)!.cancelEdit,
+                            ),
                           ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _buildTextField(_titleCtrl, 'Title', isDark),
+                    _buildTextField(
+                      _titleCtrl,
+                      AppLocalizations.of(context)!.titleLabel,
+                      isDark,
+                    ),
                     const SizedBox(height: 12),
                     _buildTextField(
                       _messageCtrl,
-                      'Message',
+                      AppLocalizations.of(context)!.messageLabel,
                       isDark,
                       maxLines: 3,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Campaign Image (Optional)',
+                      AppLocalizations.of(context)!.campaignImageOptional,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -524,9 +545,11 @@ class _ManageInAppMessagesScreenState
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
-                                            const SnackBar(
+                                            SnackBar(
                                               content: Text(
-                                                'Image uploaded successfully!',
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.imageUploadedSuccessfully,
                                               ),
                                               backgroundColor: Colors.green,
                                             ),
@@ -536,9 +559,11 @@ class _ManageInAppMessagesScreenState
                                           ScaffoldMessenger.of(
                                             context,
                                           ).showSnackBar(
-                                            const SnackBar(
+                                            SnackBar(
                                               content: Text(
-                                                'Upload failed. Try again.',
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.uploadFailed,
                                               ),
                                               backgroundColor: Colors.red,
                                             ),
@@ -571,8 +596,10 @@ class _ManageInAppMessagesScreenState
                                     ),
                               label: Text(
                                 _isUploading
-                                    ? 'Uploading...'
-                                    : 'Upload from Device',
+                                    ? AppLocalizations.of(context)!.uploading
+                                    : AppLocalizations.of(
+                                        context,
+                                      )!.uploadFromDevice,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -609,7 +636,7 @@ class _ManageInAppMessagesScreenState
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'or paste URL',
+                                AppLocalizations.of(context)!.orPasteUrl,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark
@@ -623,7 +650,11 @@ class _ManageInAppMessagesScreenState
                       ],
                     ),
                     const SizedBox(height: 10),
-                    _buildTextField(_imageUrlCtrl, 'Image URL', isDark),
+                    _buildTextField(
+                      _imageUrlCtrl,
+                      AppLocalizations.of(context)!.imageUrlLabel,
+                      isDark,
+                    ),
                     ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _imageUrlCtrl,
                       builder: (context, value, child) {
@@ -665,7 +696,9 @@ class _ManageInAppMessagesScreenState
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'Invalid URL',
+                                            AppLocalizations.of(
+                                              context,
+                                            )!.invalidUrl,
                                             style: TextStyle(
                                               fontSize: 11,
                                               color: Colors.red.withValues(
@@ -706,18 +739,18 @@ class _ManageInAppMessagesScreenState
                     const SizedBox(height: 12),
                     _buildTextField(
                       _actionUrlCtrl,
-                      'Button URL (optional)',
+                      AppLocalizations.of(context)!.buttonUrlOptional,
                       isDark,
                     ),
                     const SizedBox(height: 12),
                     _buildTextField(
                       _actionTextCtrl,
-                      'Button Text (optional)',
+                      AppLocalizations.of(context)!.buttonTextOptional,
                       isDark,
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Campaign Mode',
+                      AppLocalizations.of(context)!.campaignModeLabel,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -726,21 +759,27 @@ class _ManageInAppMessagesScreenState
                     ),
                     const SizedBox(height: 12),
                     SegmentedButton<int>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: 0,
-                          icon: Icon(Icons.looks_one_outlined),
-                          label: Text('Standard'),
+                          icon: const Icon(Icons.looks_one_outlined),
+                          label: Text(
+                            AppLocalizations.of(context)!.modeStandard,
+                          ),
                         ),
                         ButtonSegment(
                           value: 1,
-                          icon: Icon(Icons.repeat),
-                          label: Text('Recurring'),
+                          icon: const Icon(Icons.repeat),
+                          label: Text(
+                            AppLocalizations.of(context)!.modeRecurring,
+                          ),
                         ),
                         ButtonSegment(
                           value: 2,
-                          icon: Icon(Icons.block),
-                          label: Text('Hard Block'),
+                          icon: const Icon(Icons.block),
+                          label: Text(
+                            AppLocalizations.of(context)!.modeHardBlock,
+                          ),
                         ),
                       ],
                       selected: {_campaignMode},
@@ -765,10 +804,10 @@ class _ManageInAppMessagesScreenState
                     const SizedBox(height: 8),
                     Text(
                       _campaignMode == 0
-                          ? 'Shows once per user. They can dismiss it forever.'
+                          ? AppLocalizations.of(context)!.modeStandardDesc
                           : _campaignMode == 1
-                          ? 'Shows every time the user opens the app, but they can dismiss it.'
-                          : 'Shows every time, CANNOT be dismissed. Blocks the app completely.',
+                          ? AppLocalizations.of(context)!.modeRecurringDesc
+                          : AppLocalizations.of(context)!.modeHardBlockDesc,
                       style: TextStyle(
                         fontSize: 12,
                         color: isDark ? Colors.white54 : Colors.black54,
@@ -779,7 +818,7 @@ class _ManageInAppMessagesScreenState
                       const SizedBox(height: 16),
                       _buildTextField(
                         _targetVersionCtrl,
-                        'Target Version Required (e.g. 1.0.5) (optional)',
+                        AppLocalizations.of(context)!.targetVersionOptional,
                         isDark,
                       ),
                     ],
@@ -805,9 +844,11 @@ class _ManageInAppMessagesScreenState
                             )
                           : Text(
                               _editingId != null
-                                  ? 'Update Campaign'
-                                  : 'Create Campaign',
-                              style: TextStyle(
+                                  ? AppLocalizations.of(context)!.updateCampaign
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.createCampaign,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -823,9 +864,9 @@ class _ManageInAppMessagesScreenState
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-              child: const Text(
-                'EXISTING CAMPAIGNS',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context)!.existingCampaigns,
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                   letterSpacing: 1.2,
@@ -844,7 +885,7 @@ class _ManageInAppMessagesScreenState
                     padding: const EdgeInsets.all(40),
                     child: Center(
                       child: Text(
-                        'No campaigns yet.',
+                        AppLocalizations.of(context)!.noCampaignsYet,
                         style: TextStyle(
                           color: isDark ? Colors.white54 : Colors.black54,
                         ),
@@ -897,9 +938,11 @@ class _ManageInAppMessagesScreenState
                                             10,
                                           ),
                                         ),
-                                        child: const Text(
-                                          'ACTIVE',
-                                          style: TextStyle(
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.activeBadge,
+                                          style: const TextStyle(
                                             color: Colors.green,
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -923,8 +966,15 @@ class _ManageInAppMessagesScreenState
                                         ),
                                         child: Text(
                                           msg['target_version'] != null
-                                              ? 'UPDATE: ${msg['target_version']}'
-                                              : 'HARD BLOCK',
+                                              ? AppLocalizations.of(
+                                                  context,
+                                                )!.updateBadge(
+                                                  msg['target_version']
+                                                      .toString(),
+                                                )
+                                              : AppLocalizations.of(
+                                                  context,
+                                                )!.hardBlockBadge,
                                           style: const TextStyle(
                                             color: Colors.red,
                                             fontSize: 10,
@@ -947,9 +997,11 @@ class _ManageInAppMessagesScreenState
                                             10,
                                           ),
                                         ),
-                                        child: const Text(
-                                          'RECURRING',
-                                          style: TextStyle(
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.recurringBadge,
+                                          style: const TextStyle(
                                             color: Colors.purple,
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -1003,7 +1055,9 @@ class _ManageInAppMessagesScreenState
                                       size: 18,
                                     ),
                                     onPressed: () => _loadMessageForEdit(msg),
-                                    tooltip: 'Edit',
+                                    tooltip: AppLocalizations.of(
+                                      context,
+                                    )!.editTooltip,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(
                                       minWidth: 36,
@@ -1017,7 +1071,9 @@ class _ManageInAppMessagesScreenState
                                       size: 18,
                                     ),
                                     onPressed: () => _deleteMessage(msg['id']),
-                                    tooltip: 'Delete',
+                                    tooltip: AppLocalizations.of(
+                                      context,
+                                    )!.deleteTooltip,
                                     padding: EdgeInsets.zero,
                                     constraints: const BoxConstraints(
                                       minWidth: 36,

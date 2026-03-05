@@ -12,6 +12,7 @@ import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../l10n/app_localizations.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
@@ -120,15 +121,17 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
   Future<void> _save() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Title is required.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.formTitleRequired),
+        ),
+      );
       return;
     }
 
     if (_contentType == 'website' && _urlCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('URL is required for websites.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.formUrlRequired)),
       );
       return;
     }
@@ -171,12 +174,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           await adminSendNotification({
             'title': '✨ ${_titleCtrl.text.trim()}',
             'body': _contentType == 'offer'
-                ? '🔥 New offer available! Check it out now.'
+                ? AppLocalizations.of(context)!.notifBodyOffer
                 : _contentType == 'prompt'
-                ? '💡 New prompt added! Tap to explore.'
+                ? AppLocalizations.of(context)!.notifBodyPrompt
                 : _contentType == 'announcement'
-                ? '📢 New announcement! Tap to read.'
-                : '🌐 New content just added! Tap to discover.',
+                ? AppLocalizations.of(context)!.notifBodyAnnouncement
+                : AppLocalizations.of(context)!.notifBodyDefault,
             'type': 'new_item',
             'target_url': newItemId != null
                 ? 'app://discover/item/$newItemId'
@@ -202,8 +205,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           SnackBar(
             content: Text(
               widget.existing == null
-                  ? 'Published successfully!'
-                  : 'Updated successfully!',
+                  ? AppLocalizations.of(context)!.formPublishedSuccess
+                  : AppLocalizations.of(context)!.formUpdatedSuccess,
             ),
             backgroundColor: Colors.green.shade600,
           ),
@@ -223,8 +226,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           SnackBar(
             content: Text(
               isOffline
-                  ? 'You are offline. Please check your internet connection.'
-                  : 'Error saving: $e',
+                  ? AppLocalizations.of(context)!.formOfflineError
+                  : AppLocalizations.of(context)!.formSaveError(e.toString()),
             ),
             backgroundColor: isOffline ? Colors.orange : Colors.red.shade600,
           ),
@@ -261,16 +264,16 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   }
 
   // ── Helper label for content type ──
-  String get _typeLabel {
+  String _typeLabel(BuildContext context) {
     switch (_contentType) {
       case 'prompt':
-        return 'Prompt';
+        return AppLocalizations.of(context)!.promptBadge;
       case 'offer':
-        return 'Offer';
+        return AppLocalizations.of(context)!.offerBadge;
       case 'announcement':
-        return 'Announcement';
+        return AppLocalizations.of(context)!.newsBadge;
       default:
-        return 'Website';
+        return AppLocalizations.of(context)!.websiteBadge;
     }
   }
 
@@ -387,7 +390,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: Text(
-          widget.existing == null ? 'New $_typeLabel' : 'Edit $_typeLabel',
+          widget.existing == null
+              ? AppLocalizations.of(context)!.formNewItem(_typeLabel(context))
+              : AppLocalizations.of(context)!.formEditItem(_typeLabel(context)),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -416,7 +421,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            'Content Type',
+                            AppLocalizations.of(context)!.formContentType,
                             PhosphorIcons.squaresFour(),
                             isDark,
                           ),
@@ -512,13 +517,15 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildSectionHeader(
-                            'Basic Information',
+                            AppLocalizations.of(context)!.formBasicInfo,
                             PhosphorIcons.info(),
                             isDark,
                           ),
                           _buildTextField(
                             controller: _titleCtrl,
-                            label: '$_typeLabel Title',
+                            label: AppLocalizations.of(
+                              context,
+                            )!.formTypeTitle(_typeLabel(context)),
                             prefixIcon: PhosphorIcons.textT(),
                             isDark: isDark,
                           ),
@@ -527,18 +534,22 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           _buildTextField(
                             controller: _urlCtrl,
                             label: _contentType == 'website'
-                                ? 'URL (https://...)'
-                                : 'Link URL (Optional)',
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.formUrlRequiredWeb
+                                : AppLocalizations.of(context)!.formUrlOptional,
                             prefixIcon: PhosphorIcons.link(),
                             isDark: isDark,
                             helperText: _contentType != 'website'
-                                ? 'Optional: add a link for users to visit'
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.formUrlOptionalHelper
                                 : null,
                           ),
                           const SizedBox(height: 16),
                           // ── Cover Image Section ──
                           _buildSectionHeader(
-                            'Cover Image',
+                            AppLocalizations.of(context)!.formCoverImage,
                             PhosphorIcons.image(),
                             isDark,
                           ),
@@ -627,8 +638,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                           ),
                                     label: Text(
                                       _isUploading
-                                          ? 'Uploading...'
-                                          : 'Upload from Device',
+                                          ? AppLocalizations.of(
+                                              context,
+                                            )!.formUploading
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.formUploadDevice,
                                       style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
@@ -672,7 +687,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'or paste URL',
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.formOrPasteUrl,
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: isDark
@@ -688,11 +705,13 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           const SizedBox(height: 10),
                           _buildTextField(
                             controller: _imgCtrl,
-                            label: 'Image URL',
+                            label: AppLocalizations.of(context)!.formImageUrl,
                             prefixIcon: PhosphorIcons.link(),
                             isDark: isDark,
                             helperText: _contentType == 'prompt'
-                                ? 'Add an image showing the prompt result'
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.formPromptImgHelper
                                 : null,
                           ),
                           // ── Image Preview ──
@@ -738,7 +757,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                'Invalid URL',
+                                                AppLocalizations.of(
+                                                  context,
+                                                )!.formInvalidUrl,
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: Colors.red.withValues(
@@ -798,7 +819,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  'Tutorial Video',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.formTutorialVideo,
                                   style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
@@ -823,7 +846,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           if (_showVideoSection) ...[
                             const SizedBox(height: 8),
                             Text(
-                              'Add a tutorial or explainer video (max 50MB)',
+                              AppLocalizations.of(context)!.formVideoHelper,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white38 : Colors.black38,
@@ -910,8 +933,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                       ),
                                 label: Text(
                                   _isUploadingVideo
-                                      ? 'Uploading Video...'
-                                      : 'Upload Video from Device',
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.formUploadingVideo
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.formUploadVideoDevice,
                                   style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
@@ -945,7 +972,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             const SizedBox(height: 10),
                             _buildTextField(
                               controller: _videoUrlCtrl,
-                              label: 'Video URL (or paste link)',
+                              label: AppLocalizations.of(
+                                context,
+                              )!.formVideoUrlLabel,
                               prefixIcon: PhosphorIcons.link(),
                               isDark: isDark,
                             ),
@@ -1015,108 +1044,137 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                     // ── Copyable Content (Prompt / Offer / Announcement) ──
                     if (_contentType != 'website')
                       _buildCard(
-                        isDark: isDark,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSectionHeader(
-                              _contentType == 'prompt'
-                                  ? 'Prompt Text'
-                                  : _contentType == 'offer'
-                                  ? 'Offer Code / Key'
-                                  : 'Announcement Text',
-                              _contentType == 'prompt'
-                                  ? PhosphorIcons.sparkle()
-                                  : _contentType == 'offer'
-                                  ? PhosphorIcons.key()
-                                  : PhosphorIcons.megaphone(),
-                              isDark,
-                            ),
-                            _buildTextField(
-                              controller: _actionValueCtrl,
-                              label: _contentType == 'prompt'
-                                  ? 'Enter the prompt text (users can copy this)'
-                                  : _contentType == 'offer'
-                                  ? 'Enter code, key, or offer details'
-                                  : 'Announcement details (optional)',
-                              prefixIcon: PhosphorIcons.clipboardText(),
-                              isDark: isDark,
-                              maxLines: _contentType == 'prompt' ? 6 : 3,
-                              helperText:
-                                  'Users will see a Copy button for this content',
-                            ),
-                            // Expiry date for offers
-                            if (_contentType == 'offer') ...[
-                              const SizedBox(height: 16),
-                              GestureDetector(
-                                onTap: _pickExpiryDate,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.04)
-                                        : Colors.black.withValues(alpha: 0.02),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        PhosphorIcons.clock(),
-                                        color: _expiresAt != null
-                                            ? AppTheme.primaryColor
-                                            : (isDark
-                                                  ? Colors.white54
-                                                  : Colors.black54),
-                                        size: 20,
+                            isDark: isDark,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildSectionHeader(
+                                  _contentType == 'prompt'
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.formPromptText
+                                      : _contentType == 'offer'
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.formOfferCode
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.formAnnounceText,
+                                  _contentType == 'prompt'
+                                      ? PhosphorIcons.sparkle()
+                                      : _contentType == 'offer'
+                                      ? PhosphorIcons.key()
+                                      : PhosphorIcons.megaphone(),
+                                  isDark,
+                                ),
+                                _buildTextField(
+                                  controller: _actionValueCtrl,
+                                  label: _contentType == 'prompt'
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.formPromptInput
+                                      : _contentType == 'offer'
+                                      ? AppLocalizations.of(
+                                          context,
+                                        )!.formOfferInput
+                                      : AppLocalizations.of(
+                                          context,
+                                        )!.formAnnounceInput,
+                                  prefixIcon: PhosphorIcons.clipboardText(),
+                                  isDark: isDark,
+                                  maxLines: _contentType == 'prompt' ? 6 : 3,
+                                  helperText: AppLocalizations.of(
+                                    context,
+                                  )!.formCopyHelper,
+                                ),
+                                // Expiry date for offers
+                                if (_contentType == 'offer') ...[
+                                  const SizedBox(height: 16),
+                                  GestureDetector(
+                                    onTap: _pickExpiryDate,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 16,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          _expiresAt != null
-                                              ? 'Expires: ${_expiresAt!.day}/${_expiresAt!.month}/${_expiresAt!.year} ${_expiresAt!.hour.toString().padLeft(2, '0')}:${_expiresAt!.minute.toString().padLeft(2, '0')}'
-                                              : 'Set Expiry Date (Optional)',
-                                          style: TextStyle(
-                                            fontSize: 14,
+                                      decoration: BoxDecoration(
+                                        color: isDark
+                                            ? Colors.white.withValues(
+                                                alpha: 0.04,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.02,
+                                              ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.05,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.05,
+                                                ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            PhosphorIcons.clock(),
                                             color: _expiresAt != null
-                                                ? (isDark
-                                                      ? Colors.white
-                                                      : Colors.black87)
+                                                ? AppTheme.primaryColor
                                                 : (isDark
                                                       ? Colors.white54
                                                       : Colors.black54),
+                                            size: 20,
                                           ),
-                                        ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              _expiresAt != null
+                                                  ? AppLocalizations.of(
+                                                      context,
+                                                    )!.formExpires(
+                                                      '${_expiresAt!.day}/${_expiresAt!.month}/${_expiresAt!.year} ${_expiresAt!.hour.toString().padLeft(2, '0')}:${_expiresAt!.minute.toString().padLeft(2, '0')}',
+                                                    )
+                                                  : AppLocalizations.of(
+                                                      context,
+                                                    )!.formSetExpiry,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: _expiresAt != null
+                                                    ? (isDark
+                                                          ? Colors.white
+                                                          : Colors.black87)
+                                                    : (isDark
+                                                          ? Colors.white54
+                                                          : Colors.black54),
+                                              ),
+                                            ),
+                                          ),
+                                          if (_expiresAt != null)
+                                            GestureDetector(
+                                              onTap: () => setState(
+                                                () => _expiresAt = null,
+                                              ),
+                                              child: Icon(
+                                                PhosphorIcons.x(),
+                                                size: 18,
+                                                color: isDark
+                                                    ? Colors.white54
+                                                    : Colors.black54,
+                                              ),
+                                            ),
+                                        ],
                                       ),
-                                      if (_expiresAt != null)
-                                        GestureDetector(
-                                          onTap: () =>
-                                              setState(() => _expiresAt = null),
-                                          child: Icon(
-                                            PhosphorIcons.x(),
-                                            size: 18,
-                                            color: isDark
-                                                ? Colors.white54
-                                                : Colors.black54,
-                                          ),
-                                        ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
+                                ],
+                              ],
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: 150.ms, duration: 400.ms)
+                          .slideY(begin: 0.1),
 
                     // ── Categorization Section ──
                     _buildCard(
@@ -1125,7 +1183,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionHeader(
-                                'Categorization',
+                                AppLocalizations.of(
+                                  context,
+                                )!.formCategorization,
                                 PhosphorIcons.folder(),
                                 isDark,
                               ),
@@ -1176,7 +1236,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                   : Colors.black54,
                                             ),
                                             hint: Text(
-                                              'Select Category',
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.formSelectCategory,
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white54
@@ -1185,9 +1247,13 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                               ),
                                             ),
                                             items: [
-                                              const DropdownMenuItem<String?>(
+                                              DropdownMenuItem<String?>(
                                                 value: null,
-                                                child: Text('Uncategorized'),
+                                                child: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.uncategorized,
+                                                ),
                                               ),
                                               ...cats.map(
                                                 (c) => DropdownMenuItem(
@@ -1234,7 +1300,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               _buildSectionHeader(
-                                'Description & Content',
+                                AppLocalizations.of(context)!.formDescContent,
                                 PhosphorIcons.article(),
                                 isDark,
                               ),
@@ -1308,10 +1374,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 ),
                                 child: QuillEditor.basic(
                                   controller: _quillController,
-                                  config: const QuillEditorConfig(
+                                  config: QuillEditorConfig(
                                     padding: EdgeInsets.zero,
-                                    placeholder:
-                                        'Write a detailed description...',
+                                    placeholder: AppLocalizations.of(
+                                      context,
+                                    )!.formDescPlaceholder,
                                     scrollable: true,
                                     expands: true,
                                   ),
@@ -1331,17 +1398,19 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionHeader(
-                                'Display & Visibility',
+                                AppLocalizations.of(context)!.formDisplayVis,
                                 PhosphorIcons.tag(),
                                 isDark,
                               ),
                               SwitchListTile(
-                                title: const Text(
-                                  'Active',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                title: Text(
+                                  AppLocalizations.of(context)!.formActive,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 subtitle: Text(
-                                  'Show this item in Discover',
+                                  AppLocalizations.of(context)!.formActiveSub,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -1359,12 +1428,14 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                               ),
                               const Divider(height: 8),
                               SwitchListTile(
-                                title: const Text(
-                                  'Show in Trending',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                title: Text(
+                                  AppLocalizations.of(context)!.formTrending,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 subtitle: Text(
-                                  'Highlight in the trending slider',
+                                  AppLocalizations.of(context)!.formTrendingSub,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -1381,12 +1452,14 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 contentPadding: EdgeInsets.zero,
                               ),
                               SwitchListTile(
-                                title: const Text(
-                                  'Mark as Popular',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                title: Text(
+                                  AppLocalizations.of(context)!.formPopular,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 subtitle: Text(
-                                  'Show in the popular section',
+                                  AppLocalizations.of(context)!.formPopularSub,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -1403,12 +1476,16 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 contentPadding: EdgeInsets.zero,
                               ),
                               SwitchListTile(
-                                title: const Text(
-                                  'Feature Status',
-                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                title: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.formFeaturedStatus,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 subtitle: Text(
-                                  'Flag as a featured discovery',
+                                  AppLocalizations.of(context)!.formFeaturedSub,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white54
@@ -1439,19 +1516,23 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionHeader(
-                                  'Notification',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.formNotification,
                                   PhosphorIcons.bellRinging(),
                                   isDark,
                                 ),
                                 SwitchListTile(
-                                  title: const Text(
-                                    'Send Notification on Publish',
-                                    style: TextStyle(
+                                  title: Text(
+                                    AppLocalizations.of(context)!.formSendNotif,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                   subtitle: Text(
-                                    'Notify all users about this new item',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.formSendNotifSub,
                                     style: TextStyle(
                                       color: isDark
                                           ? Colors.white54
@@ -1509,7 +1590,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         ),
                       ),
                       child: Text(
-                        'Cancel',
+                        AppLocalizations.of(context)!.cancel,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -1542,8 +1623,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             )
                           : Text(
                               widget.existing == null
-                                  ? 'Publish $_typeLabel'
-                                  : 'Save Changes',
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.formPublishItem(_typeLabel(context))
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.formSaveChanges,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

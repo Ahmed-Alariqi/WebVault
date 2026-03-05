@@ -343,7 +343,7 @@ class _QuickActions extends ConsumerWidget {
         ),
         _QuickActionBtn(
           icon: PhosphorIcons.bookmarkSimple(),
-          label: 'Bookmarks',
+          label: AppLocalizations.of(context)!.bookmarks,
           color: const Color(0xFFEC4899),
           onTap: () {
             ref.read(showBookmarksOnlyProvider.notifier).state = true;
@@ -574,7 +574,7 @@ class _SearchBar extends ConsumerWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Search pages, clipboard...',
+                AppLocalizations.of(context)!.searchPagesAndClipboard,
                 style: TextStyle(
                   fontSize: 14,
                   color: isDark
@@ -688,7 +688,7 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Search your vault...',
+                  hintText: AppLocalizations.of(context)!.searchVault,
                   hintStyle: TextStyle(
                     color: isDark
                         ? AppTheme.darkTextSecondary
@@ -742,7 +742,9 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'Search your saved pages & clipboard',
+                            AppLocalizations.of(
+                              context,
+                            )!.searchSavedPagesAndClipboard,
                             style: TextStyle(
                               color: isDark
                                   ? AppTheme.darkTextSecondary
@@ -764,7 +766,9 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            'No results for "$_query"',
+                            AppLocalizations.of(
+                              context,
+                            )!.noResultsForQuery(_query),
                             style: TextStyle(
                               color: isDark
                                   ? AppTheme.darkTextSecondary
@@ -779,7 +783,7 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                   // Pages results
                   if (matchedPages.isNotEmpty) ...[
                     _searchSectionHeader(
-                      'Pages',
+                      AppLocalizations.of(context)!.searchResultPages,
                       PhosphorIcons.browsers(),
                       matchedPages.length,
                       isDark,
@@ -792,7 +796,7 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                   if (matchedClipboard.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     _searchSectionHeader(
-                      'Clipboard',
+                      AppLocalizations.of(context)!.searchResultClipboard,
                       PhosphorIcons.clipboardText(),
                       matchedClipboard.length,
                       isDark,
@@ -818,7 +822,7 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                         ),
                       ),
                       title: Text(
-                        'Browse Discover',
+                        AppLocalizations.of(context)!.browseDiscover,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: isDark
@@ -827,7 +831,7 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
                         ),
                       ),
                       subtitle: Text(
-                        'Search online content & websites',
+                        AppLocalizations.of(context)!.searchOnlineContent,
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark

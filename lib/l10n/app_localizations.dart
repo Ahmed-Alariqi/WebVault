@@ -521,7 +521,7 @@ abstract class AppLocalizations {
   /// No description provided for @openInBrowser.
   ///
   /// In en, this message translates to:
-  /// **'Open in browser'**
+  /// **'Open in Browser'**
   String get openInBrowser;
 
   /// No description provided for @suggestToAdmin.
@@ -787,6 +787,3084 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invalid backup file'**
   String get invalidBackupFile;
+
+  /// No description provided for @personalInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Info'**
+  String get personalInfo;
+
+  /// No description provided for @username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get username;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSaved;
+
+  /// No description provided for @saveProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get saveProfile;
+
+  /// No description provided for @contactSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Support'**
+  String get contactSupport;
+
+  /// No description provided for @signOutLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOutLabel;
+
+  /// No description provided for @getHelpFromAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help from an administrator'**
+  String get getHelpFromAdmin;
+
+  /// No description provided for @clipboardSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard Settings'**
+  String get clipboardSettings;
+
+  /// No description provided for @clipboardSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating clipboard, overlay permission, smart copy & tips'**
+  String get clipboardSettingsSubtitle;
+
+  /// No description provided for @support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get support;
+
+  /// No description provided for @addValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Value'**
+  String get addValue;
+
+  /// No description provided for @folderNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder not found'**
+  String get folderNotFound;
+
+  /// No description provided for @createdOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Created on {date}'**
+  String createdOn(String date);
+
+  /// No description provided for @createFoldersToOrganize.
+  ///
+  /// In en, this message translates to:
+  /// **'Create folders to organize your pages'**
+  String get createFoldersToOrganize;
+
+  /// No description provided for @egFinance.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Finance'**
+  String get egFinance;
+
+  /// No description provided for @adminBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ADMINISTRATOR'**
+  String get adminBadge;
+
+  /// No description provided for @controlCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Control Center'**
+  String get controlCenter;
+
+  /// No description provided for @manageVaultEcosystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your vault ecosystem'**
+  String get manageVaultEcosystem;
+
+  /// No description provided for @management.
+  ///
+  /// In en, this message translates to:
+  /// **'MANAGEMENT'**
+  String get management;
+
+  /// No description provided for @appActivities.
+  ///
+  /// In en, this message translates to:
+  /// **'App Activities'**
+  String get appActivities;
+
+  /// No description provided for @analyticsTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics & Tracking'**
+  String get analyticsTracking;
+
+  /// No description provided for @suggestionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions'**
+  String get suggestionsTitle;
+
+  /// No description provided for @reviewRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Requests'**
+  String get reviewRequests;
+
+  /// No description provided for @websitesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Websites'**
+  String get websitesTitle;
+
+  /// No description provided for @addEditSites.
+  ///
+  /// In en, this message translates to:
+  /// **'Add/Edit Sites'**
+  String get addEditSites;
+
+  /// No description provided for @categoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categoriesTitle;
+
+  /// No description provided for @organizeContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize Content'**
+  String get organizeContent;
+
+  /// No description provided for @pushNotificationsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push Notifications'**
+  String get pushNotificationsTitle;
+
+  /// No description provided for @sendOutsideAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Send outside alerts'**
+  String get sendOutsideAlerts;
+
+  /// No description provided for @inAppMessagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'In-App Messages'**
+  String get inAppMessagesTitle;
+
+  /// No description provided for @popupCampaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'Popup campaigns'**
+  String get popupCampaigns;
+
+  /// No description provided for @usersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get usersTitle;
+
+  /// No description provided for @viewAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'View Accounts'**
+  String get viewAccounts;
+
+  /// No description provided for @communityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get communityTitle;
+
+  /// No description provided for @managePosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Posts'**
+  String get managePosts;
+
+  /// No description provided for @userMessagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User Messages'**
+  String get userMessagesTitle;
+
+  /// No description provided for @supportChats.
+  ///
+  /// In en, this message translates to:
+  /// **'Support chats'**
+  String get supportChats;
+
+  /// No description provided for @totalUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get totalUsers;
+
+  /// No description provided for @accessRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Restricted'**
+  String get accessRestricted;
+
+  /// No description provided for @adminPrivilegesRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator privileges required.'**
+  String get adminPrivilegesRequired;
+
+  /// No description provided for @returnHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Home'**
+  String get returnHome;
+
+  /// No description provided for @quickClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Clipboard'**
+  String get quickClipboard;
+
+  /// No description provided for @all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get all;
+
+  /// No description provided for @noClipboardItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet'**
+  String get noClipboardItems;
+
+  /// No description provided for @injectedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Injected \"{label}\"'**
+  String injectedItem(String label);
+
+  /// No description provided for @selectTextFieldFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a text field first.'**
+  String get selectTextFieldFirst;
+
+  /// No description provided for @copiedItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied \"{label}\"'**
+  String copiedItem(String label);
+
+  /// No description provided for @copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get copied;
+
+  /// No description provided for @savedToVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to Vault'**
+  String get savedToVault;
+
+  /// No description provided for @savedExplicitlyToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved explicitly to WebVault Clipboard!'**
+  String get savedExplicitlyToClipboard;
+
+  /// No description provided for @savedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to WebVault Clipboard!'**
+  String get savedToClipboard;
+
+  /// No description provided for @saveToVaultBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Vault'**
+  String get saveToVaultBtn;
+
+  /// No description provided for @promptSaveToVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to save this text into your WebVault clipboard for later use?'**
+  String get promptSaveToVault;
+
+  /// No description provided for @copiedText.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied Text'**
+  String get copiedText;
+
+  /// No description provided for @quickAddToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add to Clipboard'**
+  String get quickAddToClipboard;
+
+  /// No description provided for @pasteOrTypeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste or type text here...'**
+  String get pasteOrTypeText;
+
+  /// No description provided for @manualEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Entry'**
+  String get manualEntry;
+
+  /// No description provided for @approvePublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve & Publish'**
+  String get approvePublish;
+
+  /// No description provided for @titleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get titleLabel;
+
+  /// No description provided for @urlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get urlLabel;
+
+  /// No description provided for @descriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get descriptionLabel;
+
+  /// No description provided for @trending.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending'**
+  String get trending;
+
+  /// No description provided for @popular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get popular;
+
+  /// No description provided for @featured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get featured;
+
+  /// No description provided for @suggestionApprovedPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestion approved and published!'**
+  String get suggestionApprovedPublished;
+
+  /// No description provided for @errorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {message}'**
+  String errorMessage(String message);
+
+  /// No description provided for @noPendingSuggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending suggestions'**
+  String get noPendingSuggestions;
+
+  /// No description provided for @suggestedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {date}'**
+  String suggestedDate(String date);
+
+  /// No description provided for @manageCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Categories'**
+  String get manageCategoriesTitle;
+
+  /// No description provided for @seedDefaultCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Default Categories'**
+  String get seedDefaultCategories;
+
+  /// No description provided for @noCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories'**
+  String get noCategories;
+
+  /// No description provided for @defaultCategoriesInjected.
+  ///
+  /// In en, this message translates to:
+  /// **'Default categories injected successfully!'**
+  String get defaultCategoriesInjected;
+
+  /// No description provided for @failedToSeedCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to seed categories: {message}'**
+  String failedToSeedCategories(String message);
+
+  /// No description provided for @addCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Category'**
+  String get addCategory;
+
+  /// No description provided for @editCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Category'**
+  String get editCategory;
+
+  /// No description provided for @categoryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Category Name'**
+  String get categoryName;
+
+  /// No description provided for @addBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addBtn;
+
+  /// No description provided for @manageItemsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Items'**
+  String get manageItemsTitle;
+
+  /// No description provided for @noItemsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No items yet'**
+  String get noItemsYet;
+
+  /// No description provided for @tapPlusToAddOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add one'**
+  String get tapPlusToAddOne;
+
+  /// No description provided for @newItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New Item'**
+  String get newItem;
+
+  /// No description provided for @promptBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt'**
+  String get promptBadge;
+
+  /// No description provided for @offerBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get offerBadge;
+
+  /// No description provided for @newsBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get newsBadge;
+
+  /// No description provided for @websiteBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get websiteBadge;
+
+  /// No description provided for @expiredBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get expiredBadge;
+
+  /// No description provided for @daysLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d left'**
+  String daysLeft(String days);
+
+  /// No description provided for @hoursLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h left'**
+  String hoursLeft(String hours);
+
+  /// No description provided for @minsLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{mins}m left'**
+  String minsLeft(String mins);
+
+  /// No description provided for @promptText.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt Text'**
+  String get promptText;
+
+  /// No description provided for @codeOrKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Code / Key'**
+  String get codeOrKey;
+
+  /// No description provided for @copiedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied!'**
+  String get copiedTooltip;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @promptCopiedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt copied!'**
+  String get promptCopiedTooltip;
+
+  /// No description provided for @copyPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Prompt'**
+  String get copyPrompt;
+
+  /// No description provided for @tryIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Try It'**
+  String get tryIt;
+
+  /// No description provided for @offerCopiedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied!'**
+  String get offerCopiedTooltip;
+
+  /// No description provided for @copyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Code'**
+  String get copyCode;
+
+  /// No description provided for @visit.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit'**
+  String get visit;
+
+  /// No description provided for @visitLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Link'**
+  String get visitLink;
+
+  /// No description provided for @openApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open App'**
+  String get openApp;
+
+  /// No description provided for @videoPlaybackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Video playback error'**
+  String get videoPlaybackError;
+
+  /// No description provided for @openExternally.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Externally'**
+  String get openExternally;
+
+  /// No description provided for @watchTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Tutorial'**
+  String get watchTutorial;
+
+  /// No description provided for @watchVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Video'**
+  String get watchVideo;
+
+  /// No description provided for @opensOnYoutube.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens on YouTube'**
+  String get opensOnYoutube;
+
+  /// No description provided for @opensOnVimeo.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens on Vimeo'**
+  String get opensOnVimeo;
+
+  /// No description provided for @opensInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens in browser'**
+  String get opensInBrowser;
+
+  /// No description provided for @couldNotLoadVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load video'**
+  String get couldNotLoadVideo;
+
+  /// No description provided for @titleMessageRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Title and Message are required'**
+  String get titleMessageRequired;
+
+  /// No description provided for @campaignUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Updated'**
+  String get campaignUpdated;
+
+  /// No description provided for @campaignCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Created'**
+  String get campaignCreated;
+
+  /// No description provided for @offlineWarningDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Please check your internet connection.'**
+  String get offlineWarningDetails;
+
+  /// No description provided for @failedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String failedWarning(String error);
+
+  /// No description provided for @previewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'PREVIEW'**
+  String get previewBadge;
+
+  /// No description provided for @invalidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid URL'**
+  String get invalidUrl;
+
+  /// No description provided for @closePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Preview'**
+  String get closePreview;
+
+  /// No description provided for @failedToUpdateStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update status: {error}'**
+  String failedToUpdateStatus(String error);
+
+  /// No description provided for @deleteMessageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Message?'**
+  String get deleteMessageTitle;
+
+  /// No description provided for @deleteMessageContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This cannot be undone.'**
+  String get deleteMessageContent;
+
+  /// No description provided for @cancelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelLabel;
+
+  /// No description provided for @deleteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteLabel;
+
+  /// No description provided for @deleteFailedWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete failed: {error}'**
+  String deleteFailedWarning(String error);
+
+  /// No description provided for @editCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Campaign'**
+  String get editCampaign;
+
+  /// No description provided for @newCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'New Campaign'**
+  String get newCampaign;
+
+  /// No description provided for @cancelEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Edit'**
+  String get cancelEdit;
+
+  /// No description provided for @messageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Message'**
+  String get messageLabel;
+
+  /// No description provided for @campaignImageOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Image (Optional)'**
+  String get campaignImageOptional;
+
+  /// No description provided for @imageUploadedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Image uploaded successfully!'**
+  String get imageUploadedSuccessfully;
+
+  /// No description provided for @uploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed. Try again.'**
+  String get uploadFailed;
+
+  /// No description provided for @uploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get uploading;
+
+  /// No description provided for @uploadFromDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload from Device'**
+  String get uploadFromDevice;
+
+  /// No description provided for @orPasteUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'or paste URL'**
+  String get orPasteUrl;
+
+  /// No description provided for @imageUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get imageUrlLabel;
+
+  /// No description provided for @buttonUrlOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Button URL (optional)'**
+  String get buttonUrlOptional;
+
+  /// No description provided for @buttonTextOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Button Text (optional)'**
+  String get buttonTextOptional;
+
+  /// No description provided for @campaignModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Mode'**
+  String get campaignModeLabel;
+
+  /// No description provided for @modeStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get modeStandard;
+
+  /// No description provided for @modeRecurring.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get modeRecurring;
+
+  /// No description provided for @modeHardBlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard Block'**
+  String get modeHardBlock;
+
+  /// No description provided for @modeStandardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows once per user. They can dismiss it forever.'**
+  String get modeStandardDesc;
+
+  /// No description provided for @modeRecurringDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows every time the user opens the app, but they can dismiss it.'**
+  String get modeRecurringDesc;
+
+  /// No description provided for @modeHardBlockDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows every time, CANNOT be dismissed. Blocks the app completely.'**
+  String get modeHardBlockDesc;
+
+  /// No description provided for @targetVersionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Version Required (e.g. 1.0.5) (optional)'**
+  String get targetVersionOptional;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @updateCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Campaign'**
+  String get updateCampaign;
+
+  /// No description provided for @createCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Campaign'**
+  String get createCampaign;
+
+  /// No description provided for @existingCampaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'EXISTING CAMPAIGNS'**
+  String get existingCampaigns;
+
+  /// No description provided for @noCampaignsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No campaigns yet.'**
+  String get noCampaignsYet;
+
+  /// No description provided for @activeBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'ACTIVE'**
+  String get activeBadge;
+
+  /// No description provided for @updateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'UPDATE: {version}'**
+  String updateBadge(String version);
+
+  /// No description provided for @hardBlockBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'HARD BLOCK'**
+  String get hardBlockBadge;
+
+  /// No description provided for @recurringBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'RECURRING'**
+  String get recurringBadge;
+
+  /// No description provided for @editTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editTooltip;
+
+  /// No description provided for @deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteTooltip;
+
+  /// No description provided for @noName.
+  ///
+  /// In en, this message translates to:
+  /// **'No Name'**
+  String get noName;
+
+  /// No description provided for @noEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'No Email'**
+  String get noEmail;
+
+  /// No description provided for @emailPasswordChangeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: To change email/password, please use the Auth dashboard or add logic to backend.'**
+  String get emailPasswordChangeNote;
+
+  /// No description provided for @wipeChatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'WIPE ALL CHAT?'**
+  String get wipeChatTitle;
+
+  /// No description provided for @wipeChatContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete ALL posts, replies, and reactions in the Community to free up database storage. This action CANNOT be undone.'**
+  String get wipeChatContent;
+
+  /// No description provided for @wipeChatAction.
+  ///
+  /// In en, this message translates to:
+  /// **'WIPE CHAT'**
+  String get wipeChatAction;
+
+  /// No description provided for @chatWipedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat successfully wiped.'**
+  String get chatWipedSuccess;
+
+  /// No description provided for @chatWipedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to wipe chat: {error}'**
+  String chatWipedFailed(String error);
+
+  /// No description provided for @pinPostFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to pin post: {error}'**
+  String pinPostFailed(String error);
+
+  /// No description provided for @communityManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Management'**
+  String get communityManagement;
+
+  /// No description provided for @wipeAllChatTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'WIPE ALL CHAT'**
+  String get wipeAllChatTooltip;
+
+  /// No description provided for @wipeChatInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the Trash icon in the top right to permanently wipe all community posts and free up Supabase storage space.'**
+  String get wipeChatInfo;
+
+  /// No description provided for @noCommunityPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts in the community.'**
+  String get noCommunityPosts;
+
+  /// No description provided for @unpinPostTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin Post'**
+  String get unpinPostTooltip;
+
+  /// No description provided for @pinPostTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin Post'**
+  String get pinPostTooltip;
+
+  /// No description provided for @deletePostTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Post?'**
+  String get deletePostTitle;
+
+  /// No description provided for @deletePostContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this post?'**
+  String get deletePostContent;
+
+  /// No description provided for @deletePostAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Post'**
+  String get deletePostAction;
+
+  /// No description provided for @youAreOfflineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline'**
+  String get youAreOfflineTitle;
+
+  /// No description provided for @youAreOfflineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check your internet connection.'**
+  String get youAreOfflineDesc;
+
+  /// No description provided for @authToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Authenticate to sign in'**
+  String get authToSignIn;
+
+  /// No description provided for @invalidEmailOrPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email or password'**
+  String get invalidEmailOrPassword;
+
+  /// No description provided for @verifyEmailFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify your email first'**
+  String get verifyEmailFirst;
+
+  /// No description provided for @networkErrorCheckConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Network error. Check your connection'**
+  String get networkErrorCheckConnection;
+
+  /// No description provided for @loginFailedTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed. Please try again'**
+  String get loginFailedTryAgain;
+
+  /// No description provided for @secureWebManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Your secure web page manager'**
+  String get secureWebManager;
+
+  /// No description provided for @emailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@email.com'**
+  String get emailHint;
+
+  /// No description provided for @passwordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'••••••••'**
+  String get passwordHint;
+
+  /// No description provided for @rememberMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Remember me'**
+  String get rememberMe;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot Password?'**
+  String get forgotPassword;
+
+  /// No description provided for @useBiometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Biometrics'**
+  String get useBiometrics;
+
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// No description provided for @dontHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t have an account?'**
+  String get dontHaveAccount;
+
+  /// No description provided for @passwordStrengthWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get passwordStrengthWeak;
+
+  /// No description provided for @passwordStrengthFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get passwordStrengthFair;
+
+  /// No description provided for @passwordStrengthGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get passwordStrengthGood;
+
+  /// No description provided for @passwordStrengthStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get passwordStrengthStrong;
+
+  /// No description provided for @emailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered. Try signing in.'**
+  String get emailAlreadyRegistered;
+
+  /// No description provided for @invalidEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address is invalid. Please use a real email.'**
+  String get invalidEmailAddress;
+
+  /// No description provided for @tooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait a few minutes.'**
+  String get tooManyAttempts;
+
+  /// No description provided for @passwordTooWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is too weak. Use at least 6 characters.'**
+  String get passwordTooWeak;
+
+  /// No description provided for @signUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up failed: {error}'**
+  String signUpFailed(String error);
+
+  /// No description provided for @accountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Created!'**
+  String get accountCreated;
+
+  /// No description provided for @verifyEmailDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a verification email to\n{email}\n\nPlease verify your email, then sign in.'**
+  String verifyEmailDesc(String email);
+
+  /// No description provided for @goToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Sign In'**
+  String get goToSignIn;
+
+  /// No description provided for @createAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get createAccount;
+
+  /// No description provided for @nameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'John Doe'**
+  String get nameHint;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get nameRequired;
+
+  /// No description provided for @usernameOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Username (optional)'**
+  String get usernameOptional;
+
+  /// No description provided for @usernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'johndoe'**
+  String get usernameHint;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get emailRequired;
+
+  /// No description provided for @enterValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email'**
+  String get enterValidEmail;
+
+  /// No description provided for @passwordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordMinLength;
+
+  /// No description provided for @confirmPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Password'**
+  String get confirmPasswordLabel;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @creatingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating account...'**
+  String get creatingAccount;
+
+  /// No description provided for @signUpWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up with Google'**
+  String get signUpWithGoogle;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @faceId.
+  ///
+  /// In en, this message translates to:
+  /// **'Face ID'**
+  String get faceId;
+
+  /// No description provided for @fingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint'**
+  String get fingerprint;
+
+  /// No description provided for @iris.
+  ///
+  /// In en, this message translates to:
+  /// **'Iris'**
+  String get iris;
+
+  /// No description provided for @biometrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometrics'**
+  String get biometrics;
+
+  /// No description provided for @immediately.
+  ///
+  /// In en, this message translates to:
+  /// **'Immediately'**
+  String get immediately;
+
+  /// No description provided for @timeoutSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds} seconds'**
+  String timeoutSeconds(int seconds);
+
+  /// No description provided for @timeoutMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} minutes'**
+  String timeoutMinutes(int minutes);
+
+  /// No description provided for @maximumProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum Protection'**
+  String get maximumProtection;
+
+  /// No description provided for @goodProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Protection'**
+  String get goodProtection;
+
+  /// No description provided for @basicProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Protection'**
+  String get basicProtection;
+
+  /// No description provided for @pinProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Protection'**
+  String get pinProtection;
+
+  /// No description provided for @pinLock.
+  ///
+  /// In en, this message translates to:
+  /// **'PIN Lock'**
+  String get pinLock;
+
+  /// No description provided for @enabledStr.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabledStr;
+
+  /// No description provided for @off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get off;
+
+  /// No description provided for @changePin.
+  ///
+  /// In en, this message translates to:
+  /// **'Change PIN'**
+  String get changePin;
+
+  /// No description provided for @updateSecurityPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your security PIN'**
+  String get updateSecurityPin;
+
+  /// No description provided for @biometricAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric Authentication'**
+  String get biometricAuth;
+
+  /// No description provided for @enabledQuickUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled — Quick unlock'**
+  String get enabledQuickUnlock;
+
+  /// No description provided for @tapToEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to enable'**
+  String get tapToEnable;
+
+  /// No description provided for @notAvailableOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available on this device'**
+  String get notAvailableOnDevice;
+
+  /// No description provided for @verifyToEnableBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to enable biometric unlock'**
+  String get verifyToEnableBiometric;
+
+  /// No description provided for @biometricSetupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric setup failed: {error}'**
+  String biometricSetupFailed(String error);
+
+  /// No description provided for @setupPinFirstForBiometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a PIN first to enable biometric authentication'**
+  String get setupPinFirstForBiometric;
+
+  /// No description provided for @appLockSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App Lock Settings'**
+  String get appLockSettings;
+
+  /// No description provided for @autoLockTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock Timeout'**
+  String get autoLockTimeout;
+
+  /// No description provided for @removePinQ.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove PIN?'**
+  String get removePinQ;
+
+  /// No description provided for @removePinWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This will disable PIN lock and biometric authentication. Your app will no longer be protected.'**
+  String get removePinWarning;
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @securityTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Tip'**
+  String get securityTip;
+
+  /// No description provided for @securityTipDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable both PIN and biometrics for maximum protection of your saved pages and clipboard data.'**
+  String get securityTipDesc;
+
+  /// No description provided for @verifyCurrentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Current PIN'**
+  String get verifyCurrentPin;
+
+  /// No description provided for @incorrectPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN'**
+  String get incorrectPin;
+
+  /// No description provided for @enterCurrentPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter current PIN'**
+  String get enterCurrentPin;
+
+  /// No description provided for @howToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Save'**
+  String get howToSave;
+
+  /// No description provided for @savingTextFromOtherApps.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving text from other apps'**
+  String get savingTextFromOtherApps;
+
+  /// No description provided for @savingTextInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Share: Select text in any app, tap \"Share\", and choose WebVault.\n2. Text Selection: Select text and choose \"WebVault\" from the popup menu.\n3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.'**
+  String get savingTextInstructions;
+
+  /// No description provided for @smartClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Clipboard'**
+  String get smartClipboard;
+
+  /// No description provided for @smartBackgroundCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Background Copy'**
+  String get smartBackgroundCopy;
+
+  /// No description provided for @enabledSavesEverything.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled — Saves everything you copy'**
+  String get enabledSavesEverything;
+
+  /// No description provided for @offManualSaveOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — Manual save only'**
+  String get offManualSaveOnly;
+
+  /// No description provided for @howSmartCopyWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How Smart Copy works'**
+  String get howSmartCopyWorks;
+
+  /// No description provided for @smartCopyDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, any text you copy to your device clipboard is automatically saved to your WebVault in the background (Android 10+ requires background service to be running).'**
+  String get smartCopyDescription;
+
+  /// No description provided for @howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Use'**
+  String get howToUse;
+
+  /// No description provided for @tapToCopyItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any clipboard item to instantly copy it'**
+  String get tapToCopyItem;
+
+  /// No description provided for @tapToCopyItemDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Works instantly within the clipboard screen'**
+  String get tapToCopyItemDesc;
+
+  /// No description provided for @pinImportantItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin important items to the top'**
+  String get pinImportantItems;
+
+  /// No description provided for @pinImportantItemsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Long press any item in the clipboard screen to pin it'**
+  String get pinImportantItemsDesc;
+
+  /// No description provided for @organiseWithGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Organise with Groups'**
+  String get organiseWithGroups;
+
+  /// No description provided for @organiseWithGroupsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create groups/categories to keep your clipboard tidy and filterable'**
+  String get organiseWithGroupsDesc;
+
+  /// No description provided for @shareDirectlyToVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Share directly to WebVault'**
+  String get shareDirectlyToVault;
+
+  /// No description provided for @shareDirectlyToVaultDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'In any app, select text → Share → WebVault Clipboard to save it'**
+  String get shareDirectlyToVaultDesc;
+
+  /// No description provided for @pullToRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull-to-refresh'**
+  String get pullToRefresh;
+
+  /// No description provided for @pullToRefreshDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe down in the clipboard list to reload items from storage'**
+  String get pullToRefreshDesc;
+
+  /// No description provided for @identitySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get identitySection;
+
+  /// No description provided for @organizationSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get organizationSection;
+
+  /// No description provided for @detailsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsSection;
+
+  /// No description provided for @cardButtonEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get cardButtonEdit;
+
+  /// No description provided for @cardButtonDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get cardButtonDelete;
+
+  /// No description provided for @confirmDeletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Deletion'**
+  String get confirmDeletionTitle;
+
+  /// No description provided for @confirmDeletionMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"?'**
+  String confirmDeletionMessage(String name);
+
+  /// No description provided for @badgeInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get badgeInactive;
+
+  /// No description provided for @badgeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get badgeExpired;
+
+  /// No description provided for @badgeTrending.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending'**
+  String get badgeTrending;
+
+  /// No description provided for @badgePopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get badgePopular;
+
+  /// No description provided for @badgeFeatured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get badgeFeatured;
+
+  /// No description provided for @badgePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt'**
+  String get badgePrompt;
+
+  /// No description provided for @badgeOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get badgeOffer;
+
+  /// No description provided for @badgeAnnounce.
+  ///
+  /// In en, this message translates to:
+  /// **'Announce'**
+  String get badgeAnnounce;
+
+  /// No description provided for @badgeWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get badgeWebsite;
+
+  /// No description provided for @readMoreText.
+  ///
+  /// In en, this message translates to:
+  /// **'Read more...'**
+  String get readMoreText;
+
+  /// No description provided for @copyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyButton;
+
+  /// No description provided for @formPublishItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish {type}'**
+  String formPublishItem(String type);
+
+  /// No description provided for @formSaveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get formSaveChanges;
+
+  /// No description provided for @formNewItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New {type}'**
+  String formNewItem(String type);
+
+  /// No description provided for @formEditItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {type}'**
+  String formEditItem(String type);
+
+  /// No description provided for @formContentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get formContentType;
+
+  /// No description provided for @formBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Information'**
+  String get formBasicInfo;
+
+  /// No description provided for @formTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{type} Title'**
+  String formTypeTitle(String type);
+
+  /// No description provided for @formUrlRequiredWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'URL (https://...)'**
+  String get formUrlRequiredWeb;
+
+  /// No description provided for @formUrlOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Link URL (Optional)'**
+  String get formUrlOptional;
+
+  /// No description provided for @formUrlOptionalHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: add a link for users to visit'**
+  String get formUrlOptionalHelper;
+
+  /// No description provided for @formCoverImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover Image'**
+  String get formCoverImage;
+
+  /// No description provided for @formUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get formUploading;
+
+  /// No description provided for @formUploadDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload from Device'**
+  String get formUploadDevice;
+
+  /// No description provided for @formOrPasteUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'or paste URL'**
+  String get formOrPasteUrl;
+
+  /// No description provided for @formImageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get formImageUrl;
+
+  /// No description provided for @formPromptImgHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an image showing the prompt result'**
+  String get formPromptImgHelper;
+
+  /// No description provided for @formInvalidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid URL'**
+  String get formInvalidUrl;
+
+  /// No description provided for @formTutorialVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial Video'**
+  String get formTutorialVideo;
+
+  /// No description provided for @formVideoHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tutorial or explainer video (max 50MB)'**
+  String get formVideoHelper;
+
+  /// No description provided for @formUploadingVideo.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading Video...'**
+  String get formUploadingVideo;
+
+  /// No description provided for @formUploadVideoDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Video from Device'**
+  String get formUploadVideoDevice;
+
+  /// No description provided for @formVideoUrlLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Video URL (or paste link)'**
+  String get formVideoUrlLabel;
+
+  /// No description provided for @formPromptText.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt Text'**
+  String get formPromptText;
+
+  /// No description provided for @formOfferCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer Code / Key'**
+  String get formOfferCode;
+
+  /// No description provided for @formAnnounceText.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement Text'**
+  String get formAnnounceText;
+
+  /// No description provided for @formPromptInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the prompt text (users can copy this)'**
+  String get formPromptInput;
+
+  /// No description provided for @formOfferInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code, key, or offer details'**
+  String get formOfferInput;
+
+  /// No description provided for @formAnnounceInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement details (optional)'**
+  String get formAnnounceInput;
+
+  /// No description provided for @formCopyHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Users will see a Copy button for this content'**
+  String get formCopyHelper;
+
+  /// No description provided for @formExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {date}'**
+  String formExpires(String date);
+
+  /// No description provided for @formSetExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Set Expiry Date (Optional)'**
+  String get formSetExpiry;
+
+  /// No description provided for @formCategorization.
+  ///
+  /// In en, this message translates to:
+  /// **'Categorization'**
+  String get formCategorization;
+
+  /// No description provided for @formSelectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Category'**
+  String get formSelectCategory;
+
+  /// No description provided for @formTitleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Title is required.'**
+  String get formTitleRequired;
+
+  /// No description provided for @formUrlRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'URL is required for websites.'**
+  String get formUrlRequired;
+
+  /// No description provided for @formPublishedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Published successfully!'**
+  String get formPublishedSuccess;
+
+  /// No description provided for @formUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated successfully!'**
+  String get formUpdatedSuccess;
+
+  /// No description provided for @formOfflineError.
+  ///
+  /// In en, this message translates to:
+  /// **'You are offline. Please check your internet connection.'**
+  String get formOfflineError;
+
+  /// No description provided for @formSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving: {error}'**
+  String formSaveError(String error);
+
+  /// No description provided for @notifSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Notification'**
+  String get notifSend;
+
+  /// No description provided for @notifSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification sent!'**
+  String get notifSent;
+
+  /// No description provided for @notifNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New Notification'**
+  String get notifNew;
+
+  /// No description provided for @notifDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a push notification to all users'**
+  String get notifDesc;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get notifTitle;
+
+  /// No description provided for @notifBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body'**
+  String get notifBody;
+
+  /// No description provided for @notifUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Target URL (optional)'**
+  String get notifUrl;
+
+  /// No description provided for @notifImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Image (Optional)'**
+  String get notifImage;
+
+  /// No description provided for @notifImgUploadSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Image uploaded successfully!'**
+  String get notifImgUploadSuccess;
+
+  /// No description provided for @notifImgUploadFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed. Try again.'**
+  String get notifImgUploadFail;
+
+  /// No description provided for @notifUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading...'**
+  String get notifUploading;
+
+  /// No description provided for @notifUploadImg.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload Image'**
+  String get notifUploadImg;
+
+  /// No description provided for @notifOrImgUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Or Image URL'**
+  String get notifOrImgUrl;
+
+  /// No description provided for @notifInvalidImg.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid image URL'**
+  String get notifInvalidImg;
+
+  /// No description provided for @notifType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get notifType;
+
+  /// No description provided for @notifTypeGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get notifTypeGeneral;
+
+  /// No description provided for @notifTypeAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get notifTypeAnnouncement;
+
+  /// No description provided for @notifTypeUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get notifTypeUpdate;
+
+  /// No description provided for @notifAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert'**
+  String get notifAlert;
+
+  /// No description provided for @notifFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed: {error}'**
+  String notifFailed(String error);
+
+  /// No description provided for @chatFailedUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to upload image'**
+  String get chatFailedUpload;
+
+  /// No description provided for @chatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String chatError(String error);
+
+  /// No description provided for @chatSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get chatSupport;
+
+  /// No description provided for @chatSupportSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Typically replies in a few hours'**
+  String get chatSupportSub;
+
+  /// No description provided for @chatInitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not initialize chat.'**
+  String get chatInitError;
+
+  /// No description provided for @chatSendMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Send us a message'**
+  String get chatSendMsg;
+
+  /// No description provided for @chatHereToHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'We are here to help you!'**
+  String get chatHereToHelp;
+
+  /// No description provided for @chatUploadingImg.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading image...'**
+  String get chatUploadingImg;
+
+  /// No description provided for @chatTypeMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a message...'**
+  String get chatTypeMsg;
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chatTitle;
+
+  /// No description provided for @chatUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get chatUser;
+
+  /// No description provided for @chatLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get chatLoading;
+
+  /// No description provided for @chatNoMsgs.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get chatNoMsgs;
+
+  /// No description provided for @chatMessageUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Message User...'**
+  String get chatMessageUser;
+
+  /// No description provided for @chatUserMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'User Messages'**
+  String get chatUserMessages;
+
+  /// No description provided for @chatNoActive.
+  ///
+  /// In en, this message translates to:
+  /// **'No active conversations found.'**
+  String get chatNoActive;
+
+  /// No description provided for @chatConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get chatConfirm;
+
+  /// No description provided for @chatDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you wish to delete this conversation?'**
+  String get chatDeleteConfirm;
+
+  /// No description provided for @chatCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'CANCEL'**
+  String get chatCancel;
+
+  /// No description provided for @chatDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'DELETE'**
+  String get chatDelete;
+
+  /// No description provided for @chatDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversation deleted'**
+  String get chatDeleted;
+
+  /// No description provided for @chatDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete: {error}'**
+  String chatDeleteFailed(String error);
+
+  /// No description provided for @chatUnknownUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown User'**
+  String get chatUnknownUser;
+
+  /// No description provided for @chatStartedConv.
+  ///
+  /// In en, this message translates to:
+  /// **'Started a conversation'**
+  String get chatStartedConv;
+
+  /// No description provided for @chatNew.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} NEW'**
+  String chatNew(int count);
+
+  /// No description provided for @searchBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Search bookmarks...'**
+  String get searchBookmarks;
+
+  /// No description provided for @searchDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Search discover...'**
+  String get searchDiscover;
+
+  /// No description provided for @searchVault.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your vault...'**
+  String get searchVault;
+
+  /// No description provided for @communityAddReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reply...'**
+  String get communityAddReply;
+
+  /// No description provided for @communityAddUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a URL (optional)'**
+  String get communityAddUrl;
+
+  /// No description provided for @emailPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'you@email.com'**
+  String get emailPlaceholder;
+
+  /// No description provided for @formDescContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Description & Content'**
+  String get formDescContent;
+
+  /// No description provided for @formDescPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a detailed description...'**
+  String get formDescPlaceholder;
+
+  /// No description provided for @formDisplayVis.
+  ///
+  /// In en, this message translates to:
+  /// **'Display & Visibility'**
+  String get formDisplayVis;
+
+  /// No description provided for @formActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get formActive;
+
+  /// No description provided for @formActiveSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Show this item in Discover'**
+  String get formActiveSub;
+
+  /// No description provided for @formTrending.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in Trending'**
+  String get formTrending;
+
+  /// No description provided for @formTrendingSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlight in the trending slider'**
+  String get formTrendingSub;
+
+  /// No description provided for @formPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as Popular'**
+  String get formPopular;
+
+  /// No description provided for @formPopularSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in the popular section'**
+  String get formPopularSub;
+
+  /// No description provided for @formFeaturedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature Status'**
+  String get formFeaturedStatus;
+
+  /// No description provided for @formFeaturedSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Flag as a featured discovery'**
+  String get formFeaturedSub;
+
+  /// No description provided for @formNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get formNotification;
+
+  /// No description provided for @formSendNotif.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Notification on Publish'**
+  String get formSendNotif;
+
+  /// No description provided for @formSendNotifSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify all users about this new item'**
+  String get formSendNotifSub;
+
+  /// No description provided for @allItems.
+  ///
+  /// In en, this message translates to:
+  /// **'All Items'**
+  String get allItems;
+
+  /// No description provided for @uncategorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncategorized'**
+  String get uncategorized;
+
+  /// No description provided for @label.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get label;
+
+  /// No description provided for @value.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get value;
+
+  /// No description provided for @contentToCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Content to copy'**
+  String get contentToCopy;
+
+  /// No description provided for @saveToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Clipboard'**
+  String get saveToClipboard;
+
+  /// No description provided for @moveToGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Group'**
+  String get moveToGroup;
+
+  /// No description provided for @selectMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Multiple'**
+  String get selectMultiple;
+
+  /// No description provided for @editGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Group'**
+  String get editGroup;
+
+  /// No description provided for @addGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Group'**
+  String get addGroup;
+
+  /// No description provided for @groupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Group Name'**
+  String get groupName;
+
+  /// No description provided for @movedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Moved to \"{group}\"'**
+  String movedTo(String group);
+
+  /// No description provided for @pinToTop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to Top'**
+  String get pinToTop;
+
+  /// No description provided for @unpin.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpin'**
+  String get unpin;
+
+  /// No description provided for @deleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Item'**
+  String get deleteItem;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @errorLoadingNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading notifications'**
+  String get errorLoadingNotifications;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get noNotifications;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark all as read'**
+  String get markAllRead;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard!'**
+  String get copiedToClipboard;
+
+  /// No description provided for @bookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get bookmarks;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @community.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get community;
+
+  /// No description provided for @post.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get post;
+
+  /// No description provided for @postPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Post published!'**
+  String get postPublished;
+
+  /// No description provided for @addReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a reply...'**
+  String get addReply;
+
+  /// No description provided for @deleteReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Reply?'**
+  String get deleteReply;
+
+  /// No description provided for @whatToShare.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to share with the community?'**
+  String get whatToShare;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @categoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get categoryGeneral;
+
+  /// No description provided for @categoryQuestions.
+  ///
+  /// In en, this message translates to:
+  /// **'Questions'**
+  String get categoryQuestions;
+
+  /// No description provided for @categoryTips.
+  ///
+  /// In en, this message translates to:
+  /// **'Tips'**
+  String get categoryTips;
+
+  /// No description provided for @categoryResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Resources'**
+  String get categoryResources;
+
+  /// No description provided for @categoryQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get categoryQuestion;
+
+  /// No description provided for @categoryTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get categoryTip;
+
+  /// No description provided for @categoryResource.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource'**
+  String get categoryResource;
+
+  /// No description provided for @signIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get signIn;
+
+  /// No description provided for @signUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Up'**
+  String get signUp;
+
+  /// No description provided for @signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign Out'**
+  String get signOut;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back'**
+  String get loginTitle;
+
+  /// No description provided for @registerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get registerTitle;
+
+  /// No description provided for @resetPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get resetPassword;
+
+  /// No description provided for @resetPasswordSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset link sent! Check your email.'**
+  String get resetPasswordSent;
+
+  /// No description provided for @pages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get pages;
+
+  /// No description provided for @addPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Page'**
+  String get addPage;
+
+  /// No description provided for @searchPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages...'**
+  String get searchPages;
+
+  /// No description provided for @pageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get pageTitle;
+
+  /// No description provided for @pageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get pageUrl;
+
+  /// No description provided for @pageTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'My Awesome Page'**
+  String get pageTitleHint;
+
+  /// No description provided for @folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder'**
+  String get folder;
+
+  /// No description provided for @selectFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a folder'**
+  String get selectFolder;
+
+  /// No description provided for @tags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get tags;
+
+  /// No description provided for @notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notes;
+
+  /// No description provided for @notesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What is this page about?'**
+  String get notesHint;
+
+  /// No description provided for @noPagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No pages yet'**
+  String get noPagesYet;
+
+  /// No description provided for @editPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Page'**
+  String get editPage;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
+
+  /// No description provided for @yes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get no;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy Link'**
+  String get copyLink;
+
+  /// No description provided for @openUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openUrl;
+
+  /// No description provided for @type.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get type;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No results found'**
+  String get noResultsFound;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong'**
+  String get somethingWentWrong;
+
+  /// No description provided for @analyticsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ANALYTICS'**
+  String get analyticsLabel;
+
+  /// No description provided for @analyticsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App Activities'**
+  String get analyticsTitle;
+
+  /// No description provided for @analyticsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor user engagement and content performance'**
+  String get analyticsSubtitle;
+
+  /// No description provided for @analyticsNotEnoughData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data to generate chart'**
+  String get analyticsNotEnoughData;
+
+  /// No description provided for @analyticsTotalUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get analyticsTotalUsers;
+
+  /// No description provided for @analyticsActiveThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active this week'**
+  String analyticsActiveThisWeek(int count);
+
+  /// No description provided for @analyticsActiveToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Today'**
+  String get analyticsActiveToday;
+
+  /// No description provided for @analyticsUniqueLogins.
+  ///
+  /// In en, this message translates to:
+  /// **'Unique logins / opens'**
+  String get analyticsUniqueLogins;
+
+  /// No description provided for @analyticsItemViews.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Views'**
+  String get analyticsItemViews;
+
+  /// No description provided for @analyticsTotalAcrossItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Total across all items'**
+  String get analyticsTotalAcrossItems;
+
+  /// No description provided for @analyticsBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get analyticsBookmarks;
+
+  /// No description provided for @analyticsSavedByUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved by users'**
+  String get analyticsSavedByUsers;
+
+  /// No description provided for @analyticsDau.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Active Users (15 Days)'**
+  String get analyticsDau;
+
+  /// No description provided for @analyticsTopViewed.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Viewed Items'**
+  String get analyticsTopViewed;
+
+  /// No description provided for @analyticsNoViewData.
+  ///
+  /// In en, this message translates to:
+  /// **'No view data available yet.'**
+  String get analyticsNoViewData;
+
+  /// No description provided for @analyticsMostBookmarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Most Bookmarked'**
+  String get analyticsMostBookmarked;
+
+  /// No description provided for @analyticsNoBookmarkData.
+  ///
+  /// In en, this message translates to:
+  /// **'No bookmark data available yet.'**
+  String get analyticsNoBookmarkData;
+
+  /// No description provided for @analyticsTopSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Searches (15 Days)'**
+  String get analyticsTopSearches;
+
+  /// No description provided for @analyticsNoSearchData.
+  ///
+  /// In en, this message translates to:
+  /// **'No search data available yet.'**
+  String get analyticsNoSearchData;
+
+  /// No description provided for @analyticsViews.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} views'**
+  String analyticsViews(int count);
+
+  /// No description provided for @analyticsSaves.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} saves'**
+  String analyticsSaves(int count);
+
+  /// No description provided for @analyticsSearches.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} searches'**
+  String analyticsSearches(int count);
+
+  /// No description provided for @analyticsShowLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Less'**
+  String get analyticsShowLess;
+
+  /// No description provided for @analyticsViewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All ({count})'**
+  String analyticsViewAll(int count);
+
+  /// No description provided for @timeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get timeJustNow;
+
+  /// No description provided for @timeMinutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m ago'**
+  String timeMinutesAgo(int count);
+
+  /// No description provided for @timeHoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h ago'**
+  String timeHoursAgo(int count);
+
+  /// No description provided for @timeDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}d ago'**
+  String timeDaysAgo(int count);
+
+  /// No description provided for @timeMinutesAgoFull.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} minutes ago'**
+  String timeMinutesAgoFull(int count);
+
+  /// No description provided for @timeHoursAgoFull.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} hours ago'**
+  String timeHoursAgoFull(int count);
+
+  /// No description provided for @timeDaysAgoFull.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} days ago'**
+  String timeDaysAgoFull(int count);
+
+  /// No description provided for @discoverOpenButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get discoverOpenButton;
+
+  /// No description provided for @exploreNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore Now'**
+  String get exploreNow;
+
+  /// No description provided for @openLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Link'**
+  String get openLink;
+
+  /// No description provided for @attachedLink.
+  ///
+  /// In en, this message translates to:
+  /// **'ATTACHED LINK'**
+  String get attachedLink;
+
+  /// No description provided for @searchPagesAndClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Search pages, clipboard...'**
+  String get searchPagesAndClipboard;
+
+  /// No description provided for @searchSavedPagesAndClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your saved pages & clipboard'**
+  String get searchSavedPagesAndClipboard;
+
+  /// No description provided for @noResultsForQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String noResultsForQuery(String query);
+
+  /// No description provided for @searchResultPages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get searchResultPages;
+
+  /// No description provided for @searchResultClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Clipboard'**
+  String get searchResultClipboard;
+
+  /// No description provided for @browseDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse Discover'**
+  String get browseDiscover;
+
+  /// No description provided for @searchOnlineContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Search online content & websites'**
+  String get searchOnlineContent;
+
+  /// No description provided for @forgotPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Password'**
+  String get forgotPasswordTitle;
+
+  /// No description provided for @forgotPasswordEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Sent!'**
+  String get forgotPasswordEmailSent;
+
+  /// No description provided for @forgotPasswordInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordInstructions;
+
+  /// No description provided for @forgotPasswordCheckEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email for a password reset link.'**
+  String get forgotPasswordCheckEmail;
+
+  /// No description provided for @forgotPasswordSendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Reset Link'**
+  String get forgotPasswordSendButton;
+
+  /// No description provided for @forgotPasswordBackToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Sign In'**
+  String get forgotPasswordBackToSignIn;
+
+  /// No description provided for @forgotPasswordEmptyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email'**
+  String get forgotPasswordEmptyEmail;
+
+  /// No description provided for @forgotPasswordFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send reset email'**
+  String get forgotPasswordFailed;
+
+  /// No description provided for @notifBodyOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'🔥 New offer available! Check it out now.'**
+  String get notifBodyOffer;
+
+  /// No description provided for @notifBodyPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'💡 New prompt added! Tap to explore.'**
+  String get notifBodyPrompt;
+
+  /// No description provided for @notifBodyAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'📢 New announcement! Tap to read.'**
+  String get notifBodyAnnouncement;
+
+  /// No description provided for @notifBodyDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'🌐 New content just added! Tap to discover.'**
+  String get notifBodyDefault;
 }
 
 class _AppLocalizationsDelegate

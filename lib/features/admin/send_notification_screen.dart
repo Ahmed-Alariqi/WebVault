@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../core/services/imagekit_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class SendNotificationScreen extends ConsumerStatefulWidget {
   const SendNotificationScreen({super.key});
@@ -28,6 +29,21 @@ class _SendNotificationScreenState
   double _uploadProgress = 0;
 
   final _types = ['general', 'announcement', 'update', 'alert'];
+
+  String _getTypeLabel(BuildContext context, String t) {
+    switch (t) {
+      case 'general':
+        return AppLocalizations.of(context)!.notifTypeGeneral;
+      case 'announcement':
+        return AppLocalizations.of(context)!.notifTypeAnnouncement;
+      case 'update':
+        return AppLocalizations.of(context)!.notifTypeUpdate;
+      case 'alert':
+        return AppLocalizations.of(context)!.notifAlert;
+      default:
+        return AppLocalizations.of(context)!.notifTypeGeneral;
+    }
+  }
 
   @override
   void dispose() {
@@ -76,8 +92,8 @@ class _SendNotificationScreenState
           SnackBar(
             content: Text(
               isOffline
-                  ? 'You are offline. Please check your internet connection.'
-                  : 'Failed: $e',
+                  ? AppLocalizations.of(context)!.formOfflineError
+                  : AppLocalizations.of(context)!.notifFailed(e.toString()),
             ),
             backgroundColor: isOffline ? Colors.orange : Colors.red,
           ),
@@ -95,7 +111,7 @@ class _SendNotificationScreenState
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Send Notification'),
+        title: Text(AppLocalizations.of(context)!.notifSend),
         forceMaterialTransparency: true,
       ),
       body: SingleChildScrollView(
@@ -120,7 +136,7 @@ class _SendNotificationScreenState
                     const Icon(Icons.check_circle, color: Colors.green),
                     const SizedBox(width: 10),
                     Text(
-                      'Notification sent!',
+                      AppLocalizations.of(context)!.notifSent,
                       style: TextStyle(
                         color: Colors.green.shade700,
                         fontWeight: FontWeight.w600,
@@ -157,7 +173,7 @@ class _SendNotificationScreenState
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'New Notification',
+                    AppLocalizations.of(context)!.notifNew,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
@@ -166,7 +182,7 @@ class _SendNotificationScreenState
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Send a push notification to all users',
+                    AppLocalizations.of(context)!.notifDesc,
                     style: TextStyle(
                       fontSize: 13,
                       color: isDark ? Colors.white54 : Colors.black45,
@@ -174,15 +190,28 @@ class _SendNotificationScreenState
                   ),
                   const SizedBox(height: 24),
 
-                  _field(_titleCtrl, 'Title', isDark),
+                  _field(
+                    _titleCtrl,
+                    AppLocalizations.of(context)!.notifTitle,
+                    isDark,
+                  ),
                   const SizedBox(height: 14),
-                  _field(_bodyCtrl, 'Body', isDark, maxLines: 4),
+                  _field(
+                    _bodyCtrl,
+                    AppLocalizations.of(context)!.notifBody,
+                    isDark,
+                    maxLines: 4,
+                  ),
                   const SizedBox(height: 14),
-                  _field(_urlCtrl, 'Target URL (optional)', isDark),
+                  _field(
+                    _urlCtrl,
+                    AppLocalizations.of(context)!.notifUrl,
+                    isDark,
+                  ),
                   const SizedBox(height: 16),
 
                   Text(
-                    'Notification Image (Optional)',
+                    AppLocalizations.of(context)!.notifImage,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -265,7 +294,11 @@ class _SendNotificationScreenState
                                   )
                                 : Icon(PhosphorIcons.uploadSimple(), size: 18),
                             label: Text(
-                              _isUploading ? 'Uploading...' : 'Upload Image',
+                              _isUploading
+                                  ? AppLocalizations.of(context)!.notifUploading
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.notifUploadImg,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -282,7 +315,11 @@ class _SendNotificationScreenState
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: _field(_imageUrlCtrl, 'Or Image URL', isDark),
+                        child: _field(
+                          _imageUrlCtrl,
+                          AppLocalizations.of(context)!.notifOrImgUrl,
+                          isDark,
+                        ),
                       ),
                     ],
                   ),
@@ -325,7 +362,7 @@ class _SendNotificationScreenState
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Invalid image URL',
+                                AppLocalizations.of(context)!.notifInvalidImg,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark
@@ -343,7 +380,7 @@ class _SendNotificationScreenState
 
                   // Type selector
                   Text(
-                    'Type',
+                    AppLocalizations.of(context)!.notifType,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -371,7 +408,7 @@ class _SendNotificationScreenState
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            t[0].toUpperCase() + t.substring(1),
+                            _getTypeLabel(context, t),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -429,9 +466,9 @@ class _SendNotificationScreenState
                                   color: Colors.white,
                                 ),
                                 const SizedBox(width: 8),
-                                const Text(
-                                  'Send Notification',
-                                  style: TextStyle(
+                                Text(
+                                  AppLocalizations.of(context)!.notifSend,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.white,

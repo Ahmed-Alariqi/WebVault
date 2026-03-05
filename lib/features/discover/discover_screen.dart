@@ -17,6 +17,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../l10n/app_localizations.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -139,7 +140,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Search bookmarks...',
+                    hintText: AppLocalizations.of(context)!.searchBookmarks,
                     prefixIcon: Icon(
                       PhosphorIcons.magnifyingGlass(),
                       size: 20,
@@ -537,9 +538,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                       color: Colors.white,
                                     ),
                                     const SizedBox(width: 4),
-                                    const Text(
-                                      'Trending',
-                                      style: TextStyle(
+                                    Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.badgeTrending,
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
@@ -785,9 +788,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => _copyToClipboard(context, site.actionValue),
                   icon: Icon(PhosphorIcons.copy(), size: 14),
-                  label: const Text(
-                    'Copy',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  label: Text(
+                    AppLocalizations.of(context)!.copyButton,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF9C27B0),
@@ -1324,7 +1330,7 @@ class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search discover...',
+                      hintText: AppLocalizations.of(context)!.searchDiscover,
                       hintStyle: TextStyle(
                         color: isDark ? Colors.white38 : Colors.black38,
                         fontSize: 14,

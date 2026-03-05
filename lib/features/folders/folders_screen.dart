@@ -9,6 +9,7 @@ import '../../presentation/providers/providers.dart';
 import '../../data/models/folder_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../l10n/app_localizations.dart';
 
 class FoldersScreen extends ConsumerWidget {
   const FoldersScreen({super.key});
@@ -63,11 +64,11 @@ class FoldersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('Folders'),
+        title: Text(AppLocalizations.of(context)!.folders),
         forceMaterialTransparency: true,
       ),
       body: folders.isEmpty
-          ? _buildEmpty(isDark)
+          ? _buildEmpty(context, isDark)
           : GridView.builder(
               padding: const EdgeInsets.all(20),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -84,7 +85,7 @@ class FoldersScreen extends ConsumerWidget {
       floatingActionButton: ModernFab.extended(
         onPressed: () => _showAddFolderDialog(context, ref, isDark),
         icon: Icon(PhosphorIcons.folderPlus(PhosphorIconsStyle.fill)),
-        label: const Text('New Folder'),
+        label: Text(AppLocalizations.of(context)!.newFolder),
       ),
     );
   }
@@ -141,9 +142,9 @@ class FoldersScreen extends ConsumerWidget {
                     Icons.delete_rounded,
                     color: AppTheme.errorColor,
                   ),
-                  title: const Text(
-                    'Delete Folder',
-                    style: TextStyle(color: AppTheme.errorColor),
+                  title: Text(
+                    AppLocalizations.of(context)!.deleteFolder,
+                    style: const TextStyle(color: AppTheme.errorColor),
                   ),
                   onTap: () {
                     ref.read(foldersProvider.notifier).deleteFolder(folder.id);
@@ -204,7 +205,7 @@ class FoldersScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '$itemCount items',
+              AppLocalizations.of(context)!.itemCount(itemCount),
               style: TextStyle(
                 fontSize: 11,
                 color: isDark
@@ -218,7 +219,7 @@ class FoldersScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmpty(bool isDark) {
+  Widget _buildEmpty(BuildContext context, bool isDark) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -238,7 +239,7 @@ class FoldersScreen extends ConsumerWidget {
           ).animate().fadeIn().scale(),
           const SizedBox(height: 24),
           Text(
-            'No folders yet',
+            AppLocalizations.of(context)!.noFoldersYet,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -249,7 +250,7 @@ class FoldersScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Create folders to organize your pages',
+            AppLocalizations.of(context)!.createFoldersToOrganize,
             style: TextStyle(
               fontSize: 15,
               color: isDark
@@ -308,7 +309,7 @@ class FoldersScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'New Folder',
+                        AppLocalizations.of(context)!.newFolder,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -328,8 +329,8 @@ class FoldersScreen extends ConsumerWidget {
                     ),
                     decoration: ModernFormWidgets.inputDecoration(
                       context,
-                      label: 'Folder Name',
-                      hint: 'e.g. Finance',
+                      label: AppLocalizations.of(context)!.folderName,
+                      hint: AppLocalizations.of(context)!.egFinance,
                       icon: PhosphorIcons.textT(),
                       isDark: isDark,
                     ),
@@ -338,7 +339,7 @@ class FoldersScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   Text(
-                    'Color',
+                    AppLocalizations.of(context)!.color,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -391,7 +392,7 @@ class FoldersScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   Text(
-                    'Icon',
+                    AppLocalizations.of(context)!.icon,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -442,7 +443,7 @@ class FoldersScreen extends ConsumerWidget {
                   const SizedBox(height: 32),
 
                   ModernFormWidgets.gradientButton(
-                    label: 'Create Folder',
+                    label: AppLocalizations.of(context)!.createFolder,
                     icon: PhosphorIcons.plus(),
                     onPressed: () {
                       if (nameCtrl.text.trim().isEmpty) return;

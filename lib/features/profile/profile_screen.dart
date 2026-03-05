@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -205,7 +206,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Personal Info',
+                  AppLocalizations.of(context)!.personalInfo,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -214,9 +215,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                _field(_nameCtrl, 'Full Name', PhosphorIcons.user(), isDark),
+                _field(
+                  _nameCtrl,
+                  AppLocalizations.of(context)!.fullName,
+                  PhosphorIcons.user(),
+                  isDark,
+                ),
                 const SizedBox(height: 14),
-                _field(_usernameCtrl, 'Username', PhosphorIcons.at(), isDark),
+                _field(
+                  _usernameCtrl,
+                  AppLocalizations.of(context)!.username,
+                  PhosphorIcons.at(),
+                  isDark,
+                ),
 
                 const SizedBox(height: 24),
 
@@ -229,12 +240,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       color: Colors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.check_circle, color: Colors.green, size: 20),
                         SizedBox(width: 8),
                         Text(
-                          'Profile saved',
+                          AppLocalizations.of(context)!.profileSaved,
                           style: TextStyle(
                             color: Colors.green,
                             fontWeight: FontWeight.w600,
@@ -277,8 +288,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : const Text(
-                            'Save Profile',
+                        : Text(
+                            AppLocalizations.of(context)!.saveProfile,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -346,7 +357,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
               ),
               title: Text(
-                'Contact Support',
+                AppLocalizations.of(context)!.contactSupport,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: isDark ? Colors.white : Colors.black87,
@@ -391,8 +402,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   size: 20,
                 ),
               ),
-              title: const Text(
-                'Sign Out',
+              title: Text(
+                AppLocalizations.of(context)!.signOutLabel,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   color: AppTheme.errorColor,

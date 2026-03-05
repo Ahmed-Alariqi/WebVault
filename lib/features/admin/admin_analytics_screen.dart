@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_analytics_provider.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class AdminAnalyticsScreen extends ConsumerWidget {
   const AdminAnalyticsScreen({super.key});
@@ -70,9 +71,9 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
-                              'ANALYTICS',
-                              style: TextStyle(
+                            child: Text(
+                              AppLocalizations.of(context)!.analyticsLabel,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
@@ -81,17 +82,17 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          const Text(
-                            'App Activities',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.analyticsTitle,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Text(
-                            'Monitor user engagement and content performance',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.analyticsSubtitle,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
@@ -146,36 +147,40 @@ class AdminAnalyticsScreen extends ConsumerWidget {
             scrollDirection: Axis.horizontal,
             children: [
               _KpiCard(
-                title: 'Total Users',
+                title: AppLocalizations.of(context)!.analyticsTotalUsers,
                 value: data.totalUsers.toString(),
-                subtitle: '${data.activeThisWeek} active this week',
+                subtitle: AppLocalizations.of(
+                  context,
+                )!.analyticsActiveThisWeek(data.activeThisWeek),
                 icon: PhosphorIcons.users(),
                 color: const Color(0xFF6366F1),
                 isDark: isDark,
               ),
               const SizedBox(width: 16),
               _KpiCard(
-                title: 'Active Today',
+                title: AppLocalizations.of(context)!.analyticsActiveToday,
                 value: data.activeToday.toString(),
-                subtitle: 'Unique logins / opens',
+                subtitle: AppLocalizations.of(context)!.analyticsUniqueLogins,
                 icon: PhosphorIcons.pulse(),
                 color: const Color(0xFF10B981),
                 isDark: isDark,
               ),
               const SizedBox(width: 16),
               _KpiCard(
-                title: 'Item Views',
+                title: AppLocalizations.of(context)!.analyticsItemViews,
                 value: data.totalItemViews.toString(),
-                subtitle: 'Total across all items',
+                subtitle: AppLocalizations.of(
+                  context,
+                )!.analyticsTotalAcrossItems,
                 icon: PhosphorIcons.eye(),
                 color: const Color(0xFFF59E0B),
                 isDark: isDark,
               ),
               const SizedBox(width: 16),
               _KpiCard(
-                title: 'Bookmarks',
+                title: AppLocalizations.of(context)!.analyticsBookmarks,
                 value: data.totalBookmarks.toString(),
-                subtitle: 'Saved by users',
+                subtitle: AppLocalizations.of(context)!.analyticsSavedByUsers,
                 icon: PhosphorIcons.bookmarkSimple(),
                 color: const Color(0xFFEC4899),
                 isDark: isDark,
@@ -190,7 +195,7 @@ class AdminAnalyticsScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _SectionTitle(
-            title: 'Daily Active Users (15 Days)',
+            title: AppLocalizations.of(context)!.analyticsDau,
             icon: PhosphorIcons.trendUp(),
             isDark: isDark,
           ),
@@ -210,7 +215,7 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                     : Colors.black.withValues(alpha: 0.05),
               ),
             ),
-            child: _buildDauChart(data.dauData, isDark),
+            child: _buildDauChart(context, data.dauData, isDark),
           ).animate().fadeIn().slideY(begin: 0.1),
         ),
 
@@ -220,16 +225,16 @@ class AdminAnalyticsScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _SectionTitle(
-            title: 'Top Viewed Items',
+            title: AppLocalizations.of(context)!.analyticsTopViewed,
             icon: PhosphorIcons.trophy(),
             isDark: isDark,
           ),
         ),
         const SizedBox(height: 16),
         if (data.topViewedItems.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text('No view data available yet.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(AppLocalizations.of(context)!.analyticsNoViewData),
           )
         else
           SizedBox(
@@ -243,7 +248,9 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                 return _TopItemCard(
                   item: item,
                   rank: index + 1,
-                  metricLabel: '${item['views']} views',
+                  metricLabel: AppLocalizations.of(context)!.analyticsViews(
+                    item['views'] is num ? (item['views'] as num).toInt() : 0,
+                  ),
                   isDark: isDark,
                 );
               },
@@ -256,16 +263,16 @@ class AdminAnalyticsScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _SectionTitle(
-            title: 'Most Bookmarked',
+            title: AppLocalizations.of(context)!.analyticsMostBookmarked,
             icon: PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
             isDark: isDark,
           ),
         ),
         const SizedBox(height: 16),
         if (data.topBookmarkedItems.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text('No bookmark data available yet.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(AppLocalizations.of(context)!.analyticsNoBookmarkData),
           )
         else
           SizedBox(
@@ -279,7 +286,11 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                 return _TopItemCard(
                   item: item,
                   rank: index + 1,
-                  metricLabel: '${item['bookmarks']} saves',
+                  metricLabel: AppLocalizations.of(context)!.analyticsSaves(
+                    item['bookmarks'] is num
+                        ? (item['bookmarks'] as num).toInt()
+                        : 0,
+                  ),
                   isDark: isDark,
                 );
               },
@@ -292,16 +303,16 @@ class AdminAnalyticsScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: _SectionTitle(
-            title: 'Top Searches (15 Days)',
+            title: AppLocalizations.of(context)!.analyticsTopSearches,
             icon: PhosphorIcons.magnifyingGlass(),
             isDark: isDark,
           ),
         ),
         const SizedBox(height: 16),
         if (data.topSearches.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text('No search data available yet.'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(AppLocalizations.of(context)!.analyticsNoSearchData),
           )
         else
           _TopSearchesList(
@@ -314,9 +325,15 @@ class AdminAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDauChart(List<Map<String, dynamic>> dauData, bool isDark) {
+  Widget _buildDauChart(
+    BuildContext context,
+    List<Map<String, dynamic>> dauData,
+    bool isDark,
+  ) {
     if (dauData.isEmpty) {
-      return const Center(child: Text('Not enough data to generate chart'));
+      return Center(
+        child: Text(AppLocalizations.of(context)!.analyticsNotEnoughData),
+      );
     }
 
     final spots = <FlSpot>[];
@@ -763,7 +780,11 @@ class _TopSearchesListState extends State<_TopSearchesList> {
                 _showAll ? PhosphorIcons.caretUp() : PhosphorIcons.caretDown(),
               ),
               label: Text(
-                _showAll ? 'Show Less' : 'View All (${widget.searches.length})',
+                _showAll
+                    ? AppLocalizations.of(context)!.analyticsShowLess
+                    : AppLocalizations.of(
+                        context,
+                      )!.analyticsViewAll(widget.searches.length),
               ),
               style: TextButton.styleFrom(
                 foregroundColor: AppTheme.primaryColor,

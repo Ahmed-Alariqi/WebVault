@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -47,7 +48,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       // GoRouter's refreshListenable detects auth state change
       // and automatically redirects to /dashboard
     } catch (e) {
-      if (mounted) setState(() => _error = _parseError(e.toString()));
+      if (mounted) setState(() => _error = _parseError(e.toString(), context));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -59,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     if (!canCheck) return;
 
     final didAuth = await localAuth.authenticate(
-      localizedReason: 'Authenticate to sign in',
+      localizedReason: AppLocalizations.of(context)!.authToSignIn,
     );
     if (didAuth && mounted) {
       // Biometric just unlocks if session already exists
@@ -81,23 +82,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       await authService.signInWithGoogle();
       // GoRouter handles the rest automatically
     } catch (e) {
-      if (mounted) setState(() => _error = _parseError(e.toString()));
+      if (mounted) setState(() => _error = _parseError(e.toString(), context));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  String _parseError(String error) {
+  String _parseError(String error, BuildContext context) {
     if (error.contains('Invalid login credentials')) {
-      return 'Invalid email or password';
+      return AppLocalizations.of(context)!.invalidEmailOrPassword;
     }
     if (error.contains('Email not confirmed')) {
-      return 'Please verify your email first';
+      return AppLocalizations.of(context)!.verifyEmailFirst;
     }
     if (error.contains('network')) {
-      return 'Network error. Check your connection';
+      return AppLocalizations.of(context)!.networkErrorCheckConnection;
     }
-    return 'Login failed. Please try again';
+    return AppLocalizations.of(context)!.loginFailedTryAgain;
   }
 
   @override
@@ -196,7 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ).animate().fadeIn(delay: 200.ms),
         const SizedBox(height: 4),
         Text(
-          'Your secure web page manager',
+          AppLocalizations.of(context)!.secureWebManager,
           style: TextStyle(
             fontSize: 14,
             color: isDark ? Colors.white54 : Colors.black45,
@@ -229,7 +230,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Sign In',
+                  AppLocalizations.of(context)!.signIn,
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -274,14 +275,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 // Email
                 _buildTextField(
                   controller: _emailCtrl,
-                  label: 'Email',
-                  hint: 'you@email.com',
+                  label: AppLocalizations.of(context)!.email,
+                  hint: AppLocalizations.of(context)!.emailHint,
                   icon: PhosphorIcons.envelope(),
                   isDark: isDark,
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Email is required';
-                    if (!v.contains('@')) return 'Enter a valid email';
+                    if (v == null || v.isEmpty) {
+                      return AppLocalizations.of(context)!.required;
+                    }
+                    if (!v.contains('@')) {
+                      return AppLocalizations.of(context)!.required;
+                    }
                     return null;
                   },
                 ),
@@ -290,8 +295,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 // Password
                 _buildTextField(
                   controller: _passwordCtrl,
-                  label: 'Password',
-                  hint: '••••••••',
+                  label: AppLocalizations.of(context)!.password,
+                  hint: AppLocalizations.of(context)!.passwordHint,
                   icon: PhosphorIcons.lock(),
                   isDark: isDark,
                   obscure: _obscure,
@@ -304,7 +309,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Password is required';
+                    if (v == null || v.isEmpty) {
+                      return AppLocalizations.of(context)!.required;
+                    }
                     return null;
                   },
                 ),
@@ -328,7 +335,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Remember me',
+                      AppLocalizations.of(context)!.rememberMe,
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark ? Colors.white54 : Colors.black54,
@@ -338,8 +345,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     GestureDetector(
                       onTap: () => context.push('/forgot-password'),
                       child: Text(
-                        'Forgot password?',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.forgotPassword,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.primaryColor,
@@ -352,7 +359,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 // Sign In Button
                 _buildGradientButton(
-                  label: _loading ? 'Signing in...' : 'Sign In',
+                  label: _loading
+                      ? AppLocalizations.of(context)!.loading
+                      : AppLocalizations.of(context)!.signIn,
                   icon: _loading ? null : PhosphorIcons.signIn(),
                   onPressed: _loading ? null : _signIn,
                   loading: _loading,
@@ -384,7 +393,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Use Biometrics',
+                            AppLocalizations.of(context)!.useBiometrics,
                             style: TextStyle(
                               fontSize: 13,
                               color: isDark ? Colors.white60 : Colors.black54,
@@ -402,9 +411,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 OutlinedButton.icon(
                   onPressed: _loading ? null : _signInWithGoogle,
                   icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
-                  label: const Text(
-                    'Continue with Google',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  label: Text(
+                    AppLocalizations.of(context)!.continueWithGoogle,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -431,7 +443,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "Don't have an account? ",
+          AppLocalizations.of(context)!.dontHaveAccount,
           style: TextStyle(
             color: isDark ? Colors.white54 : Colors.black45,
             fontSize: 14,
@@ -439,8 +451,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
         GestureDetector(
           onTap: () => context.push('/signup'),
-          child: const Text(
-            'Sign Up',
+          child: Text(
+            AppLocalizations.of(context)!.signUp,
             style: TextStyle(
               color: AppTheme.primaryColor,
               fontWeight: FontWeight.w700,

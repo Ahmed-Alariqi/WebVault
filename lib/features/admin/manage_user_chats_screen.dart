@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../l10n/app_localizations.dart';
 
 class ManageUserChatsScreen extends ConsumerWidget {
   const ManageUserChatsScreen({super.key});
@@ -19,7 +20,7 @@ class ManageUserChatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: const Text('User Messages'),
+        title: Text(AppLocalizations.of(context)!.chatUserMessages),
         centerTitle: true,
         backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
         elevation: 0.5,
@@ -31,7 +32,9 @@ class ManageUserChatsScreen extends ConsumerWidget {
       body: conversationsAsync.when(
         data: (conversations) {
           if (conversations.isEmpty) {
-            return const Center(child: Text('No active conversations found.'));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.chatNoActive),
+            );
           }
 
           return ListView.builder(
@@ -69,22 +72,26 @@ class ManageUserChatsScreen extends ConsumerWidget {
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
-                              title: const Text("Confirm"),
-                              content: const Text(
-                                "Are you sure you wish to delete this conversation?",
+                              title: Text(
+                                AppLocalizations.of(context)!.chatConfirm,
+                              ),
+                              content: Text(
+                                AppLocalizations.of(context)!.chatDeleteConfirm,
                               ),
                               actions: <Widget>[
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(context).pop(false),
-                                  child: const Text("CANCEL"),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.chatCancel,
+                                  ),
                                 ),
                                 TextButton(
                                   onPressed: () =>
                                       Navigator.of(context).pop(true),
-                                  child: const Text(
-                                    "DELETE",
-                                    style: TextStyle(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.chatDelete,
+                                    style: const TextStyle(
                                       color: AppTheme.errorColor,
                                     ),
                                   ),
@@ -99,8 +106,10 @@ class ManageUserChatsScreen extends ConsumerWidget {
                             await deleteConversation(conv.id);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Conversation deleted'),
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(context)!.chatDeleted,
+                                  ),
                                 ),
                               );
                             }
@@ -109,7 +118,13 @@ class ManageUserChatsScreen extends ConsumerWidget {
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to delete: $e')),
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.chatDeleteFailed(e.toString()),
+                                  ),
+                                ),
                               );
                             }
                             return false;
@@ -210,7 +225,9 @@ class ManageUserChatsScreen extends ConsumerWidget {
                                                 data: (p) {
                                                   return Text(
                                                     p?['full_name'] ??
-                                                        'Unknown User',
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.chatUnknownUser,
                                                     style: TextStyle(
                                                       fontWeight: hasUnread
                                                           ? FontWeight.bold
@@ -225,10 +242,16 @@ class ManageUserChatsScreen extends ConsumerWidget {
                                                         TextOverflow.ellipsis,
                                                   );
                                                 },
-                                                loading: () =>
-                                                    const Text('Loading...'),
-                                                error: (e, trace) =>
-                                                    const Text('Error'),
+                                                loading: () => Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.chatLoading,
+                                                ),
+                                                error: (e, trace) => Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.chatError(e.toString()),
+                                                ),
                                               ),
                                             ),
                                             const SizedBox(width: 8),
@@ -289,7 +312,9 @@ class ManageUserChatsScreen extends ConsumerWidget {
                                             Expanded(
                                               child: Text(
                                                 conv.lastMessage ??
-                                                    'Started a conversation',
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.chatStartedConv,
                                                 maxLines: 2,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
@@ -336,14 +361,18 @@ class ManageUserChatsScreen extends ConsumerWidget {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
                                     ],
                                   ),
                                   child: Text(
-                                    '${conv.unreadAdminCount} NEW',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.chatNew(conv.unreadAdminCount),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 10,

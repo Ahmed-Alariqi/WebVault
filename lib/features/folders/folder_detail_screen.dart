@@ -48,7 +48,9 @@ class FolderDetailScreen extends ConsumerWidget {
     final folderIndex = folders.indexWhere((f) => f.id == folderId);
 
     if (folderIndex == -1) {
-      return const Scaffold(body: Center(child: Text('Folder not found')));
+      return Scaffold(
+        body: Center(child: Text(AppLocalizations.of(context)!.folderNotFound)),
+      );
     }
 
     final folder = folders[folderIndex];
@@ -132,7 +134,9 @@ class FolderDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Created on ${_formatDate(folder.createdAt)}',
+                        AppLocalizations.of(
+                          context,
+                        )!.createdOn(_formatDate(folder.createdAt)),
                         style: TextStyle(
                           fontSize: 13,
                           color: isDark ? Colors.white38 : Colors.black38,

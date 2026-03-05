@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -28,7 +29,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   Future<void> _resetPassword() async {
     if (_emailCtrl.text.trim().isEmpty) {
-      setState(() => _error = 'Please enter your email');
+      setState(
+        () => _error = AppLocalizations.of(context)!.forgotPasswordEmptyEmail,
+      );
       return;
     }
     setState(() {
@@ -41,7 +44,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await authService.resetPassword(_emailCtrl.text.trim());
       setState(() => _sent = true);
     } catch (e) {
-      setState(() => _error = 'Failed to send reset email');
+      setState(
+        () => _error = AppLocalizations.of(context)!.forgotPasswordFailed,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -90,7 +95,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const SizedBox(height: 24),
 
                 Text(
-                  _sent ? 'Email Sent!' : 'Reset Password',
+                  _sent
+                      ? AppLocalizations.of(context)!.forgotPasswordEmailSent
+                      : AppLocalizations.of(context)!.forgotPasswordTitle,
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -148,7 +155,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         ).animate().scale(curve: Curves.elasticOut, duration: 800.ms),
         const SizedBox(height: 20),
         Text(
-          'Check your email for a password reset link.',
+          AppLocalizations.of(context)!.forgotPasswordCheckEmail,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15,
@@ -168,9 +175,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text(
-              'Back to Sign In',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context)!.forgotPasswordBackToSignIn,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -187,7 +194,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Enter your email address and we\'ll send you a link to reset your password.',
+          AppLocalizations.of(context)!.forgotPasswordInstructions,
           style: TextStyle(
             fontSize: 14,
             color: isDark ? Colors.white54 : Colors.black54,
@@ -216,7 +223,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           decoration: InputDecoration(
             labelText: 'Email',
-            hintText: 'you@email.com',
+            hintText: AppLocalizations.of(context)!.emailPlaceholder,
             prefixIcon: Icon(
               PhosphorIcons.envelope(),
               size: 20,
@@ -293,9 +300,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         color: Colors.white,
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'Send Reset Link',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)!.forgotPasswordSendButton,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,

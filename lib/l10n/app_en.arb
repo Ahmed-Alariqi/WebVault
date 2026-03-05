@@ -1,5 +1,6 @@
 {
   "settings": "Settings",
+  "settings": "Settings",
   "account": "Account",
   "myProfile": "My Profile",
   "viewAndEditProfile": "View and edit your profile",
@@ -141,5 +142,815 @@
   "importSuccessful": "Import successful",
   "backupFailed": "Backup failed",
   "importFailed": "Import failed",
-  "invalidBackupFile": "Invalid backup file"
+  "invalidBackupFile": "Invalid backup file",
+
+  "personalInfo": "Personal Info",
+  "username": "Username",
+  "profileSaved": "Profile saved",
+  "saveProfile": "Save Profile",
+  "contactSupport": "Contact Support",
+  "signOutLabel": "Sign Out",
+  "getHelpFromAdmin": "Get help from an administrator",
+  "clipboardSettings": "Clipboard Settings",
+  "clipboardSettingsSubtitle": "Floating clipboard, overlay permission, smart copy & tips",
+  "support": "Support",
+
+  "addValue": "Add Value",
+  "folderNotFound": "Folder not found",
+  "createdOn": "Created on {date}",
+  "@createdOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "createFoldersToOrganize": "Create folders to organize your pages",
+  "egFinance": "e.g. Finance",
+
+  "adminBadge": "ADMINISTRATOR",
+  "controlCenter": "Control Center",
+  "manageVaultEcosystem": "Manage your vault ecosystem",
+  "management": "MANAGEMENT",
+  "appActivities": "App Activities",
+  "analyticsTracking": "Analytics & Tracking",
+  "suggestionsTitle": "Suggestions",
+  "reviewRequests": "Review Requests",
+  "websitesTitle": "Websites",
+  "addEditSites": "Add/Edit Sites",
+  "categoriesTitle": "Categories",
+  "organizeContent": "Organize Content",
+  "pushNotificationsTitle": "Push Notifications",
+  "sendOutsideAlerts": "Send outside alerts",
+  "inAppMessagesTitle": "In-App Messages",
+  "popupCampaigns": "Popup campaigns",
+  "usersTitle": "Users",
+  "viewAccounts": "View Accounts",
+  "communityTitle": "Community",
+  "managePosts": "Manage Posts",
+  "userMessagesTitle": "User Messages",
+  "supportChats": "Support chats",
+  "totalUsers": "Total Users",
+  "accessRestricted": "Access Restricted",
+  "adminPrivilegesRequired": "Administrator privileges required.",
+  "returnHome": "Return Home",
+
+  "quickClipboard": "Quick Clipboard",
+  "all": "All",
+  "noClipboardItems": "No clipboard items.\nAdd values from the Clipboard tab.",
+  "injectedItem": "Injected \"{label}\"",
+  "@injectedItem": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "selectTextFieldFirst": "Please select a text field first.",
+  "copiedItem": "Copied \"{label}\"",
+  "@copiedItem": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "copied": "Copied",
+  "savedToVault": "Saved to Vault",
+  "savedExplicitlyToClipboard": "Saved explicitly to WebVault Clipboard!",
+  "savedToClipboard": "Saved to WebVault Clipboard!",
+  "saveToVaultBtn": "Save to Vault",
+  "cancel": "Cancel",
+  "save": "Save",
+  "promptSaveToVault": "Would you like to save this text into your WebVault clipboard for later use?",
+  "copiedText": "Copied Text",
+  "quickAddToClipboard": "Quick Add to Clipboard",
+  "pasteOrTypeText": "Paste or type text here...",
+  "manualEntry": "Manual Entry",
+
+  "approvePublish": "Approve & Publish",
+  "titleLabel": "Title",
+  "urlLabel": "URL",
+  "descriptionLabel": "Description",
+  "trending": "Trending",
+  "popular": "Popular",
+  "featured": "Featured",
+  "publish": "Publish",
+  "suggestionApprovedPublished": "Suggestion approved and published!",
+  "errorMessage": "Error: {message}",
+  "@errorMessage": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "userSuggestions": "User Suggestions",
+  "noPendingSuggestions": "No pending suggestions",
+  "suggestedDate": "Suggested: {date}",
+  "@suggestedDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "suggestionRejected": "Suggestion rejected",
+  "reject": "Reject",
+  "approve": "Approve",
+
+  "manageCategoriesTitle": "Manage Categories",
+  "seedDefaultCategories": "Seed Default Categories",
+  "noCategories": "No categories",
+  "defaultCategoriesInjected": "Default categories injected successfully!",
+  "failedToSeedCategories": "Failed to seed categories: {message}",
+  "@failedToSeedCategories": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "addCategory": "Add Category",
+  "editCategory": "Edit Category",
+  "categoryName": "Category Name",
+  "addBtn": "Add",
+
+  "manageItemsTitle": "Manage Items",
+  "noItemsYet": "No items yet",
+  "tapPlusToAddOne": "Tap + to add one",
+  "newItem": "New Item",
+
+  "promptBadge": "Prompt",
+  "offerBadge": "Offer",
+  "newsBadge": "News",
+  "websiteBadge": "Website",
+
+  "expiredBadge": "Expired",
+  "daysLeft": "{days}d left",
+  "@daysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  },
+  "hoursLeft": "{hours}h left",
+  "@hoursLeft": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "minsLeft": "{mins}m left",
+  "@minsLeft": {
+    "placeholders": {
+      "mins": {
+        "type": "String"
+      }
+    }
+  },
+
+  "promptText": "Prompt Text",
+  "codeOrKey": "Code / Key",
+  "copiedTooltip": "Copied!",
+  "copy": "Copy",
+  
+  "promptCopiedTooltip": "Prompt copied!",
+  "copyPrompt": "Copy Prompt",
+  "tryIt": "Try It",
+  "offerCopiedTooltip": "Code copied!",
+  "copyCode": "Copy Code",
+  "visit": "Visit",
+  "visitLink": "Visit Link",
+  "openApp": "Open App",
+  "openInBrowser": "Open in Browser",
+
+  "videoPlaybackError": "Video playback error",
+  "openExternally": "Open Externally",
+  "watchTutorial": "Watch Tutorial",
+  "watchVideo": "Watch Video",
+  "opensOnYoutube": "Opens on YouTube",
+  "opensOnVimeo": "Opens on Vimeo",
+  "opensInBrowser": "Opens in browser",
+  "couldNotLoadVideo": "Could not load video",
+
+  "titleMessageRequired": "Title and Message are required",
+  "campaignUpdated": "Campaign Updated",
+  "campaignCreated": "Campaign Created",
+  "offlineWarningDetails": "You are offline. Please check your internet connection.",
+  "failedWarning": "Failed: {error}",
+  "@failedWarning": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "previewBadge": "PREVIEW",
+  "invalidUrl": "Invalid URL",
+  "closePreview": "Close Preview",
+  "failedToUpdateStatus": "Failed to update status: {error}",
+  "@failedToUpdateStatus": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteMessageTitle": "Delete Message?",
+  "deleteMessageContent": "This cannot be undone.",
+  "cancelLabel": "Cancel",
+  "deleteLabel": "Delete",
+  "deleteFailedWarning": "Delete failed: {error}",
+  "@deleteFailedWarning": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "inAppMessagesTitle": "In-App Messages",
+  "editCampaign": "Edit Campaign",
+  "newCampaign": "New Campaign",
+  "cancelEdit": "Cancel Edit",
+  "titleLabel": "Title",
+  "messageLabel": "Message",
+  "campaignImageOptional": "Campaign Image (Optional)",
+  "imageUploadedSuccessfully": "Image uploaded successfully!",
+  "uploadFailed": "Upload failed. Try again.",
+  "uploading": "Uploading...",
+  "uploadFromDevice": "Upload from Device",
+  "orPasteUrl": "or paste URL",
+  "imageUrlLabel": "Image URL",
+  "buttonUrlOptional": "Button URL (optional)",
+  "buttonTextOptional": "Button Text (optional)",
+  "campaignModeLabel": "Campaign Mode",
+  "modeStandard": "Standard",
+  "modeRecurring": "Recurring",
+  "modeHardBlock": "Hard Block",
+  "modeStandardDesc": "Shows once per user. They can dismiss it forever.",
+  "modeRecurringDesc": "Shows every time the user opens the app, but they can dismiss it.",
+  "modeHardBlockDesc": "Shows every time, CANNOT be dismissed. Blocks the app completely.",
+  "targetVersionOptional": "Target Version Required (e.g. 1.0.5) (optional)",
+  "saveChanges": "Save Changes",
+  "updateCampaign": "Update Campaign",
+  "createCampaign": "Create Campaign",
+  "existingCampaigns": "EXISTING CAMPAIGNS",
+  "noCampaignsYet": "No campaigns yet.",
+  "activeBadge": "ACTIVE",
+  "updateBadge": "UPDATE: {version}",
+  "@updateBadge": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "hardBlockBadge": "HARD BLOCK",
+  "recurringBadge": "RECURRING",
+  "editTooltip": "Edit",
+  "deleteTooltip": "Delete",
+
+  "noName": "No Name",
+  "noEmail": "No Email",
+  "emailPasswordChangeNote": "Note: To change email/password, please use the Auth dashboard or add logic to backend.",
+  "wipeChatTitle": "WIPE ALL CHAT?",
+  "wipeChatContent": "This will permanently delete ALL posts, replies, and reactions in the Community to free up database storage. This action CANNOT be undone.",
+  "wipeChatAction": "WIPE CHAT",
+  "chatWipedSuccess": "Chat successfully wiped.",
+  "chatWipedFailed": "Failed to wipe chat: {error}",
+  "@chatWipedFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pinPostFailed": "Failed to pin post: {error}",
+  "@pinPostFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "communityManagement": "Community Management",
+  "wipeAllChatTooltip": "WIPE ALL CHAT",
+  "wipeChatInfo": "Use the Trash icon in the top right to permanently wipe all community posts and free up Supabase storage space.",
+  "noCommunityPosts": "No posts in the community.",
+  "unpinPostTooltip": "Unpin Post",
+  "pinPostTooltip": "Pin Post",
+  "deletePostTitle": "Delete Post?",
+  "deletePostContent": "Are you sure you want to delete this post?",
+  "deletePostAction": "Delete Post",
+
+  "youAreOfflineTitle": "You are offline",
+  "youAreOfflineDesc": "Please check your internet connection.",
+
+  "authToSignIn": "Authenticate to sign in",
+  "invalidEmailOrPassword": "Invalid email or password",
+  "verifyEmailFirst": "Please verify your email first",
+  "networkErrorCheckConnection": "Network error. Check your connection",
+  "loginFailedTryAgain": "Login failed. Please try again",
+  "secureWebManager": "Your secure web page manager",
+  "emailHint": "you@email.com",
+  "passwordHint": "••••••••",
+  "rememberMe": "Remember me",
+  "forgotPassword": "Forgot password?",
+  "useBiometrics": "Use Biometrics",
+  "continueWithGoogle": "Continue with Google",
+  "dontHaveAccount": "Don't have an account? ",
+
+  "passwordStrengthWeak": "Weak",
+  "passwordStrengthFair": "Fair",
+  "passwordStrengthGood": "Good",
+  "passwordStrengthStrong": "Strong",
+  "emailAlreadyRegistered": "This email is already registered. Try signing in.",
+  "invalidEmailAddress": "Email address is invalid. Please use a real email.",
+  "tooManyAttempts": "Too many attempts. Please wait a few minutes.",
+  "passwordTooWeak": "Password is too weak. Use at least 6 characters.",
+  "signUpFailed": "Sign up failed: {error}",
+  "@signUpFailed": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "accountCreated": "Account Created!",
+  "verifyEmailDesc": "We sent a verification email to\n{email}\n\nPlease verify your email, then sign in.",
+  "@verifyEmailDesc": {
+    "placeholders": {
+      "email": { "type": "String" }
+    }
+  },
+  "goToSignIn": "Go to Sign In",
+  "createAccount": "Create Account",
+  "fullName": "Full Name",
+  "nameHint": "John Doe",
+  "nameRequired": "Name is required",
+  "usernameOptional": "Username (optional)",
+  "usernameHint": "johndoe",
+  "emailRequired": "Email is required",
+  "enterValidEmail": "Enter a valid email",
+  "passwordMinLength": "Password must be at least 6 characters",
+  "confirmPasswordLabel": "Confirm Password",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "creatingAccount": "Creating account...",
+  "signUpWithGoogle": "Sign up with Google",
+  "alreadyHaveAccount": "Already have an account? ",
+
+  "faceId": "Face ID",
+  "fingerprint": "Fingerprint",
+  "iris": "Iris",
+  "biometrics": "Biometrics",
+  "immediately": "Immediately",
+  "timeoutSeconds": "{seconds} seconds",
+  "@timeoutSeconds": { "placeholders": { "seconds": { "type": "int" } } },
+  "timeoutMinutes": "{minutes} minutes",
+  "@timeoutMinutes": { "placeholders": { "minutes": { "type": "int" } } },
+  "maximumProtection": "Maximum Protection",
+  "goodProtection": "Good Protection",
+  "basicProtection": "Basic Protection",
+  "pinProtection": "PIN Protection",
+  "pinLock": "PIN Lock",
+  "enabledStr": "Enabled",
+  "off": "Off",
+  "changePin": "Change PIN",
+  "updateSecurityPin": "Update your security PIN",
+  "biometricAuth": "Biometric Authentication",
+  "enabledQuickUnlock": "Enabled — Quick unlock",
+  "tapToEnable": "Tap to enable",
+  "notAvailableOnDevice": "Not available on this device",
+  "verifyToEnableBiometric": "Verify to enable biometric unlock",
+  "biometricSetupFailed": "Biometric setup failed: {error}",
+  "@biometricSetupFailed": { "placeholders": { "error": { "type": "String" } } },
+  "setupPinFirstForBiometric": "Set up a PIN first to enable biometric authentication",
+  "appLockSettings": "App Lock Settings",
+  "autoLockTimeout": "Auto-Lock Timeout",
+  "removePinQ": "Remove PIN?",
+  "removePinWarning": "This will disable PIN lock and biometric authentication. Your app will no longer be protected.",
+  "remove": "Remove",
+  "securityTip": "Security Tip",
+  "securityTipDesc": "Enable both PIN and biometrics for maximum protection of your saved pages and clipboard data.",
+  "verifyCurrentPin": "Verify Current PIN",
+  "incorrectPin": "Incorrect PIN",
+  "enterCurrentPin": "Enter current PIN",
+
+  "howToSave": "How to Save",
+  "savingTextFromOtherApps": "Saving text from other apps",
+  "savingTextInstructions": "1. Share: Select text in any app, tap \"Share\", and choose WebVault.\n2. Text Selection: Select text and choose \"WebVault\" from the popup menu.\n3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.",
+  "smartClipboard": "Smart Clipboard",
+  "smartBackgroundCopy": "Smart Background Copy",
+  "enabledSavesEverything": "Enabled — Saves everything you copy",
+  "offManualSaveOnly": "Off — Manual save only",
+  "howSmartCopyWorks": "How Smart Copy works",
+  "smartCopyDescription": "When enabled, any text you copy to your device clipboard is automatically saved to your WebVault in the background (Android 10+ requires background service to be running).",
+  "howToUse": "How to Use",
+  "tapToCopyItem": "Tap any clipboard item to instantly copy it",
+  "tapToCopyItemDesc": "Works instantly within the clipboard screen",
+  "pinImportantItems": "Pin important items to the top",
+  "pinImportantItemsDesc": "Long press any item in the clipboard screen to pin it",
+  "organiseWithGroups": "Organise with Groups",
+  "organiseWithGroupsDesc": "Create groups/categories to keep your clipboard tidy and filterable",
+  "shareDirectlyToVault": "Share directly to WebVault",
+  "shareDirectlyToVaultDesc": "In any app, select text → Share → WebVault Clipboard to save it",
+  "pullToRefresh": "Pull-to-refresh",
+  "pullToRefreshDesc": "Swipe down in the clipboard list to reload items from storage",
+
+  "identitySection": "Identity",
+  "organizationSection": "Organization",
+  "detailsSection": "Details",
+
+  "cardButtonEdit": "Edit",
+  "cardButtonDelete": "Delete",
+  "confirmDeletionTitle": "Confirm Deletion",
+  "confirmDeletionMessage": "Delete \"{name}\"?",
+  "@confirmDeletionMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "badgeInactive": "Inactive",
+  "badgeExpired": "Expired",
+  "badgeTrending": "Trending",
+  "badgePopular": "Popular",
+  "badgeFeatured": "Featured",
+  "badgePrompt": "Prompt",
+  "badgeOffer": "Offer",
+  "badgeAnnounce": "Announce",
+  "badgeWebsite": "Website",
+  "readMoreText": "Read more...",
+  "copyButton": "Copy",
+
+  "formPublishItem": "Publish {type}",
+  "@formPublishItem": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "formSaveChanges": "Save Changes",
+  "formNewItem": "New {type}",
+  "@formNewItem": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "formEditItem": "Edit {type}",
+  "@formEditItem": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "formContentType": "Content Type",
+  "formBasicInfo": "Basic Information",
+  "formTypeTitle": "{type} Title",
+  "@formTypeTitle": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "formUrlRequiredWeb": "URL (https://...)",
+  "formUrlOptional": "Link URL (Optional)",
+  "formUrlOptionalHelper": "Optional: add a link for users to visit",
+  "formCoverImage": "Cover Image",
+  "formUploading": "Uploading...",
+  "formUploadDevice": "Upload from Device",
+  "formOrPasteUrl": "or paste URL",
+  "formImageUrl": "Image URL",
+  "formPromptImgHelper": "Add an image showing the prompt result",
+  "formInvalidUrl": "Invalid URL",
+  
+  "formTutorialVideo": "Tutorial Video",
+  "formVideoHelper": "Add a tutorial or explainer video (max 50MB)",
+  "formUploadingVideo": "Uploading Video...",
+  "formUploadVideoDevice": "Upload Video from Device",
+  "formVideoUrlLabel": "Video URL (or paste link)",
+  
+  "formPromptText": "Prompt Text",
+  "formOfferCode": "Offer Code / Key",
+  "formAnnounceText": "Announcement Text",
+  "formPromptInput": "Enter the prompt text (users can copy this)",
+  "formOfferInput": "Enter code, key, or offer details",
+  "formAnnounceInput": "Announcement details (optional)",
+  "formCopyHelper": "Users will see a Copy button for this content",
+  
+  "formExpires": "Expires: {date}",
+  "@formExpires": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "formSetExpiry": "Set Expiry Date (Optional)",
+  "formCategorization": "Categorization",
+  "formSelectCategory": "Select Category",
+  
+  "formTitleRequired": "Title is required.",
+  "formUrlRequired": "URL is required for websites.",
+  "formPublishedSuccess": "Published successfully!",
+  "formUpdatedSuccess": "Updated successfully!",
+  "formOfflineError": "You are offline. Please check your internet connection.",
+  "formSaveError": "Error saving: {error}",
+  "@formSaveError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  
+  "notifSend": "Send Notification",
+  "notifSent": "Notification sent!",
+  "notifNew": "New Notification",
+  "notifDesc": "Send a push notification to all users",
+  "notifTitle": "Title",
+  "notifBody": "Body",
+  "notifUrl": "Target URL (optional)",
+  "notifImage": "Notification Image (Optional)",
+  "notifImgUploadSuccess": "Image uploaded successfully!",
+  "notifImgUploadFail": "Upload failed. Try again.",
+  "notifUploading": "Uploading...",
+  "notifUploadImg": "Upload Image",
+  "notifOrImgUrl": "Or Image URL",
+  "notifInvalidImg": "Invalid image URL",
+  "notifType": "Type",
+  "notifTypeGeneral": "General",
+  "notifTypeAnnouncement": "Announcement",
+  "notifTypeUpdate": "Update",
+  "notifAlert": "Alert",
+  "notifFailed": "Failed: {error}",
+  "@notifFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "chatFailedUpload": "Failed to upload image",
+  "chatError": "Error: {error}",
+  "@chatError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSupport": "Support",
+  "chatSupportSub": "Typically replies in a few hours",
+  "chatInitError": "Could not initialize chat.",
+  "chatSendMsg": "Send us a message",
+  "chatHereToHelp": "We are here to help you!",
+  "chatUploadingImg": "Uploading image...",
+  "chatTypeMsg": "Type a message...",
+  "chatTitle": "Chat",
+  "chatUser": "User",
+  "chatLoading": "Loading...",
+  "chatNoMsgs": "No messages yet.",
+  "chatMessageUser": "Message User...",
+  
+  "chatUserMessages": "User Messages",
+  "chatNoActive": "No active conversations found.",
+  "chatConfirm": "Confirm",
+  "chatDeleteConfirm": "Are you sure you wish to delete this conversation?",
+  "chatCancel": "CANCEL",
+  "chatDelete": "DELETE",
+  "chatDeleted": "Conversation deleted",
+  "chatDeleteFailed": "Failed to delete: {error}",
+  "@chatDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chatUnknownUser": "Unknown User",
+  "chatStartedConv": "Started a conversation",
+  "chatNew": "{count} NEW",
+  "@chatNew": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+
+  "searchBookmarks": "Search bookmarks...",
+  "searchDiscover": "Search discover...",
+  "searchVault": "Search your vault...",
+  "communityAddReply": "Add a reply...",
+  "communityAddUrl": "Add a URL (optional)",
+  "emailPlaceholder": "you@email.com",
+  
+  "formDescContent": "Description & Content",
+  "formDescPlaceholder": "Write a detailed description...",
+  
+  "formDisplayVis": "Display & Visibility",
+  "formActive": "Active",
+  "formActiveSub": "Show this item in Discover",
+  "formTrending": "Show in Trending",
+  "formTrendingSub": "Highlight in the trending slider",
+  "formPopular": "Mark as Popular",
+  "formPopularSub": "Show in the popular section",
+  "formFeaturedStatus": "Feature Status",
+  "formFeaturedSub": "Flag as a featured discovery",
+  
+  "formNotification": "Notification",
+  "formSendNotif": "Send Notification on Publish",
+  "formSendNotifSub": "Notify all users about this new item",
+
+  "allItems": "All Items",
+  "uncategorized": "Uncategorized",
+  "label": "Label",
+  "value": "Value",
+  "contentToCopy": "Content to copy",
+  "saveToClipboard": "Save to Clipboard",
+  "moveToGroup": "Move to Group",
+  "selectMultiple": "Select Multiple",
+  "editGroup": "Edit Group",
+  "addGroup": "Add Group",
+  "groupName": "Group Name",
+  "movedTo": "Moved to \"{group}\"",
+  "@movedTo": {
+    "placeholders": {
+      "group": { "type": "String" }
+    }
+  },
+  "copiedItem": "Copied \"{label}\"",
+  "@copiedItem": {
+    "placeholders": {
+      "label": { "type": "String" }
+    }
+  },
+  "noClipboardItems": "No items yet",
+  "pinToTop": "Pin to Top",
+  "unpin": "Unpin",
+  "deleteItem": "Delete Item",
+  "all": "All",
+
+  "notifications": "Notifications",
+  "errorLoadingNotifications": "Error loading notifications",
+  "noNotifications": "No notifications",
+  "markAllRead": "Mark all as read",
+
+  "searchBookmarks": "Search bookmarks...",
+  "searchDiscover": "Search discover...",
+  "copiedToClipboard": "Copied to clipboard!",
+  "bookmarks": "Bookmarks",
+  "trending": "Trending",
+  "featured": "Featured",
+  "viewAll": "View All",
+
+  "community": "Community",
+  "post": "Post",
+  "postPublished": "Post published!",
+  "addReply": "Add a reply...",
+  "deleteReply": "Delete Reply?",
+  "whatToShare": "What do you want to share with the community?",
+  "categoryAll": "All",
+  "categoryGeneral": "General",
+  "categoryQuestions": "Questions",
+  "categoryTips": "Tips",
+  "categoryResources": "Resources",
+  "categoryQuestion": "Question",
+  "categoryTip": "Tip",
+  "categoryResource": "Resource",
+
+  "signIn": "Sign In",
+  "signUp": "Sign Up",
+  "signOut": "Sign Out",
+  "forgotPassword": "Forgot Password?",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "loginTitle": "Welcome Back",
+  "registerTitle": "Create Account",
+  "resetPassword": "Reset Password",
+  "resetPasswordSent": "Reset link sent! Check your email.",
+
+  "pages": "Pages",
+  "addPage": "Add Page",
+  "searchPages": "Search pages...",
+  "pageTitle": "Title",
+  "pageUrl": "URL",
+  "pageTitleHint": "My Awesome Page",
+  "folder": "Folder",
+  "selectFolder": "Select a folder",
+  "tags": "Tags",
+  "notes": "Notes",
+  "notesHint": "What is this page about?",
+  "noPagesYet": "No pages yet",
+  "editPage": "Edit Page",
+
+  "search": "Search",
+  "loading": "Loading...",
+  "retry": "Retry",
+  "close": "Close",
+  "confirm": "Confirm",
+  "yes": "Yes",
+  "no": "No",
+  "done": "Done",
+  "edit": "Edit",
+  "share": "Share",
+  "copyLink": "Copy Link",
+  "openUrl": "Open",
+  "type": "Type",
+  "noResultsFound": "No results found",
+  "somethingWentWrong": "Something went wrong",
+  "settings": "Settings",
+  "deleteReply": "Delete Reply?",
+
+  "analyticsLabel": "ANALYTICS",
+  "analyticsTitle": "App Activities",
+  "analyticsSubtitle": "Monitor user engagement and content performance",
+  "analyticsNotEnoughData": "Not enough data to generate chart",
+  "analyticsTotalUsers": "Total Users",
+  "analyticsActiveThisWeek": "{count} active this week",
+  "@analyticsActiveThisWeek": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "analyticsActiveToday": "Active Today",
+  "analyticsUniqueLogins": "Unique logins / opens",
+  "analyticsItemViews": "Item Views",
+  "analyticsTotalAcrossItems": "Total across all items",
+  "analyticsBookmarks": "Bookmarks",
+  "analyticsSavedByUsers": "Saved by users",
+  "analyticsDau": "Daily Active Users (15 Days)",
+  "analyticsTopViewed": "Top Viewed Items",
+  "analyticsNoViewData": "No view data available yet.",
+  "analyticsMostBookmarked": "Most Bookmarked",
+  "analyticsNoBookmarkData": "No bookmark data available yet.",
+  "analyticsTopSearches": "Top Searches (15 Days)",
+  "analyticsNoSearchData": "No search data available yet.",
+  "analyticsViews": "{count} views",
+  "@analyticsViews": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "analyticsSaves": "{count} saves",
+  "@analyticsSaves": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "analyticsSearches": "{count} searches",
+  "@analyticsSearches": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "analyticsShowLess": "Show Less",
+  "analyticsViewAll": "View All ({count})",
+  "@analyticsViewAll": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "timeJustNow": "Just now",
+  "timeMinutesAgo": "{count}m ago",
+  "@timeMinutesAgo": { "placeholders": { "count": { "type": "int" } } },
+  "timeHoursAgo": "{count}h ago",
+  "@timeHoursAgo": { "placeholders": { "count": { "type": "int" } } },
+  "timeDaysAgo": "{count}d ago",
+  "@timeDaysAgo": { "placeholders": { "count": { "type": "int" } } },
+  "timeMinutesAgoFull": "{count} minutes ago",
+  "@timeMinutesAgoFull": { "placeholders": { "count": { "type": "int" } } },
+  "timeHoursAgoFull": "{count} hours ago",
+  "@timeHoursAgoFull": { "placeholders": { "count": { "type": "int" } } },
+  "timeDaysAgoFull": "{count} days ago",
+  "@timeDaysAgoFull": { "placeholders": { "count": { "type": "int" } } },
+
+  "discoverOpenButton": "Open",
+  "exploreNow": "Explore Now",
+  "openLink": "Open Link",
+  "attachedLink": "ATTACHED LINK",
+  "openInBrowser": "Open in Browser",
+
+  "searchPagesAndClipboard": "Search pages, clipboard...",
+  "searchSavedPagesAndClipboard": "Search your saved pages & clipboard",
+  "noResultsForQuery": "No results for \"{query}\"",
+  "@noResultsForQuery": { "placeholders": { "query": { "type": "String" } } },
+  "searchResultPages": "Pages",
+  "searchResultClipboard": "Clipboard",
+  "browseDiscover": "Browse Discover",
+  "searchOnlineContent": "Search online content & websites",
+
+  "forgotPasswordTitle": "Reset Password",
+  "forgotPasswordEmailSent": "Email Sent!",
+  "forgotPasswordInstructions": "Enter your email address and we'll send you a link to reset your password.",
+  "forgotPasswordCheckEmail": "Check your email for a password reset link.",
+  "forgotPasswordSendButton": "Send Reset Link",
+  "forgotPasswordBackToSignIn": "Back to Sign In",
+  "forgotPasswordEmptyEmail": "Please enter your email",
+  "forgotPasswordFailed": "Failed to send reset email",
+
+  "notifBodyOffer": "🔥 New offer available! Check it out now.",
+  "notifBodyPrompt": "💡 New prompt added! Tap to explore.",
+  "notifBodyAnnouncement": "📢 New announcement! Tap to read.",
+  "notifBodyDefault": "🌐 New content just added! Tap to discover."
 }

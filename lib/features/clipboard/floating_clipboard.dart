@@ -11,6 +11,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/clipboard_item_model.dart';
+import '../../l10n/app_localizations.dart';
 
 class FloatingClipboard extends ConsumerStatefulWidget {
   final WebViewController? webViewController;
@@ -176,7 +177,9 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    'Quick Clipboard',
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.quickClipboard,
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w700,
@@ -217,7 +220,7 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                                   ),
                                   children: [
                                     _FloatingGroupChip(
-                                      label: 'All',
+                                      label: AppLocalizations.of(context)!.all,
                                       isSelected: activeGroupId == null,
                                       onTap: () =>
                                           ref
@@ -230,7 +233,9 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                                       isDark: isDark,
                                     ),
                                     _FloatingGroupChip(
-                                      label: 'Uncategorized',
+                                      label: AppLocalizations.of(
+                                        context,
+                                      )!.uncategorized,
                                       isSelected:
                                           activeGroupId == 'uncategorized',
                                       onTap: () =>
@@ -274,7 +279,9 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                               Padding(
                                 padding: const EdgeInsets.all(24),
                                 child: Text(
-                                  'No clipboard items.\nAdd values from the Clipboard tab.',
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.noClipboardItems,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 13,
@@ -338,7 +345,7 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                        color: AppTheme.primaryColor.withOpacity(0.4),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
@@ -444,7 +451,9 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                 if (result == true || result == 'true') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Injected "${item.label}"'),
+                      content: Text(
+                        AppLocalizations.of(context)!.injectedItem(item.label),
+                      ),
                       backgroundColor: AppTheme.successColor,
                       duration: const Duration(milliseconds: 800),
                       behavior: SnackBarBehavior.floating,
@@ -452,8 +461,10 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please select a text field first.'),
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context)!.selectTextFieldFirst,
+                      ),
                       duration: Duration(milliseconds: 1500),
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -506,7 +517,9 @@ class _FloatingClipboardState extends ConsumerState<FloatingClipboard>
               Clipboard.setData(ClipboardData(text: item.value));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Copied "${item.label}"'),
+                  content: Text(
+                    AppLocalizations.of(context)!.copiedItem(item.label),
+                  ),
                   behavior: SnackBarBehavior.floating,
                   backgroundColor: AppTheme.successColor,
                   shape: RoundedRectangleBorder(
