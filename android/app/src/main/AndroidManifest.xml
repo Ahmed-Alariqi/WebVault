@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <application
-        android:label="WebVault Manager"
+        android:label="Zaad Tech"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
@@ -58,7 +58,7 @@
         <service
             android:name=".ClipboardTileService"
             android:label="WebVault Clipboard"
-            android:icon="@drawable/ic_clipboard_tile"
+            android:icon="@mipmap/launcher_icon"
             android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

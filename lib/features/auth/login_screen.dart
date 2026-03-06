@@ -159,25 +159,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     return Column(
       children: [
         Container(
-              width: 80,
-              height: 80,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
-                ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
+                    color: const Color(0xFF3D3D8F).withValues(alpha: 0.35),
+                    blurRadius: 28,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.language_rounded,
-                color: Colors.white,
-                size: 40,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'assets/icon/app_icon.png',
+                  width: 120,
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
               ),
             )
             .animate()
@@ -189,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
         const SizedBox(height: 20),
         Text(
-          'WebVault',
+          'Zaad Tech',
           style: TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.w800,

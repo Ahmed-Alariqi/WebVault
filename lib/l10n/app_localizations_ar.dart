@@ -969,7 +969,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginFailedTryAgain => 'فشل تسجيل الدخول. يرجى المحاولة مرة أخرى';
 
   @override
-  String get secureWebManager => 'مدير صفحات الويب الآمن الخاص بك';
+  String get secureWebManager => 'اكتشف، احفظ، واسترجع فورأ';
 
   @override
   String get emailHint => 'your@email.com';

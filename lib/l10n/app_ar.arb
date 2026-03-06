@@ -320,7 +320,7 @@
   "verifyEmailFirst": "يرجى التحقق من بريدك الإلكتروني أولاً",
   "networkErrorCheckConnection": "خطأ في الشبكة. تحقق من اتصالك",
   "loginFailedTryAgain": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى",
-  "secureWebManager": "مدير صفحات الويب الآمن الخاص بك",
+  "secureWebManager": "اكتشف، احفظ، واسترجع فورأ",
   "emailHint": "your@email.com",
   "passwordHint": "••••••••",
   "rememberMe": "تذكرني",
