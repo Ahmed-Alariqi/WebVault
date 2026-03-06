@@ -26,7 +26,7 @@ class SettingsRepository {
 
   // Theme
   String getThemeMode() =>
-      _box.get(kThemeMode, defaultValue: 'system') as String;
+      _box.get(kThemeMode, defaultValue: 'light') as String;
   Future<void> setThemeMode(String mode) => _box.put(kThemeMode, mode);
 
   // Auto-delete days for clipboard (-1 = never)
@@ -43,6 +43,12 @@ class SettingsRepository {
   bool isFirstLaunch() => _box.get(kIsFirstLaunch, defaultValue: true) as bool;
   Future<void> setFirstLaunch(bool value) => _box.put(kIsFirstLaunch, value);
 
+  // Onboarding
+  bool isOnboardingCompleted() =>
+      _box.get(kOnboardingCompleted, defaultValue: false) as bool;
+  Future<void> setOnboardingCompleted(bool value) =>
+      _box.put(kOnboardingCompleted, value);
+
   // Get all settings as a map
   Map<String, dynamic> getAllSettings() {
     return {
@@ -58,6 +64,6 @@ class SettingsRepository {
   }
 
   // Locale
-  String getLocale() => _box.get(kLocale, defaultValue: 'en') as String;
+  String getLocale() => _box.get(kLocale, defaultValue: 'ar') as String;
   Future<void> setLocale(String locale) => _box.put(kLocale, locale);
 }

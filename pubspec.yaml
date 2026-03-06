@@ -82,6 +82,7 @@ flutter:
 
   assets:
     - assets/
+    - assets/onboarding/
 
 flutter_launcher_icons:
   android: "launcher_icon"

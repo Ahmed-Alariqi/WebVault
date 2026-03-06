@@ -39,6 +39,8 @@ import '../../presentation/widgets/app_shell.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/admin/manage_user_chats_screen.dart';
 import '../../features/admin/admin_chat_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
+import '../../data/repositories/settings_repository.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -78,13 +80,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       final settings = ref.read(settingsProvider);
       final isLocked = ref.read(appLockedProvider);
 
-      // Auth routes (no guard)
-      final authRoutes = ['/login', '/signup', '/forgot-password'];
+      // Auth & onboarding routes (no guard)
+      final authRoutes = [
+        '/login',
+        '/signup',
+        '/forgot-password',
+        '/onboarding',
+      ];
       final onAuthRoute = authRoutes.contains(location);
 
-      // Not logged in — force to login (unless already on an auth route)
+      // Not logged in
       if (!isLoggedIn) {
-        return onAuthRoute ? null : '/login';
+        if (onAuthRoute) return null;
+        // Check onboarding completion
+        final settingsRepo = SettingsRepository();
+        if (!settingsRepo.isOnboardingCompleted()) {
+          return '/onboarding';
+        }
+        return '/login';
       }
 
       // Logged in but on auth route — redirect to dashboard
@@ -106,6 +119,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // ---- Onboarding Route ----
+      GoRoute(
+        path: '/onboarding',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+
       // ---- Auth Routes ----
       GoRoute(
         path: '/login',
