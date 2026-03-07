@@ -57,7 +57,7 @@
         <!-- Quick Settings Tile for clipboard quick access -->
         <service
             android:name=".ClipboardTileService"
-            android:label="WebVault Clipboard"
+            android:label="ZaadTech Clipboard"
             android:icon="@mipmap/launcher_icon"
             android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
@@ -69,7 +69,7 @@
         <!-- Share Extension: receive text from any app's Share Sheet -->
         <activity
             android:name=".ShareReceiverActivity"
-            android:label="WebVault Clipboard"
+            android:label="ZaadTech Clipboard"
             android:theme="@android:style/Theme.NoDisplay"
             android:exported="true"
             android:excludeFromRecents="true">
@@ -83,7 +83,7 @@
         <!-- Text Selection Context Menu: appears when user selects text in any app -->
         <activity
             android:name=".ProcessTextActivity"
-            android:label="Save to WebVault"
+            android:label="Save to ZaadTech"
             android:theme="@android:style/Theme.NoDisplay"
             android:exported="true"
             android:excludeFromRecents="true">

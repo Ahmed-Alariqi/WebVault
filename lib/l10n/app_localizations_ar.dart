@@ -543,17 +543,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get savedExplicitlyToClipboard =>
-      'تم الحفظ بشكل صريح في حافظة WebVault!';
+      'تم الحفظ بشكل صريح في حافظة زاد تك!';
 
   @override
-  String get savedToClipboard => 'تم الحفظ في حافظة WebVault!';
+  String get savedToClipboard => 'تم الحفظ في حافظة زاد تك!';
 
   @override
   String get saveToVaultBtn => 'حفظ في القبو';
 
   @override
   String get promptSaveToVault =>
-      'هل ترغب في حفظ هذا النص في حافظة WebVault لاستخدامه لاحقًا؟';
+      'هل ترغب في حفظ هذا النص في حافظة زاد تك لاستخدامه لاحقًا؟';
 
   @override
   String get copiedText => 'نص منسوخ';
@@ -1191,7 +1191,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get savingTextInstructions =>
-      '1. المشاركة: حدد نصًا في أي تطبيق، وانقر على \"مشاركة\"، واختر WebVault.\n2. تحديد النص: حدد نصًا واختر \"WebVault\" من القائمة المنبثقة.\n3. لوحة الإعدادات السريعة: أضف WebVault إلى الإعدادات السريعة للوصول إلى الحافظة من أي مكان.';
+      '1. المشاركة: حدد نصًا في أي تطبيق، وانقر على \"مشاركة\"، واختر زاد تك.\n2. تحديد النص: حدد نصًا واختر \"زاد تك\" من القائمة المنبثقة.\n3. لوحة الإعدادات السريعة: أضف زاد تك إلى الإعدادات السريعة للوصول إلى الحافظة من أي مكان.';
 
   @override
   String get smartClipboard => 'الحافظة الذكية';
@@ -1210,7 +1210,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get smartCopyDescription =>
-      'عند تفعيله، يتم حفظ أي نص تنسخه في حافظة جهازك تلقائيًا في WebVault في الخلفية (يتطلب Android 10+ تشغيل الخدمة في الخلفية).';
+      'عند تفعيله، يتم حفظ أي نص تنسخه في حافظة جهازك تلقائيًا في زاد تك في الخلفية (يتطلب Android 10+ تشغيل الخدمة في الخلفية).';
 
   @override
   String get howToUse => 'كيفية الاستخدام';
@@ -1235,11 +1235,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بإنشاء مجموعات لترتيب الحافظة وتسهيل تصفيتها';
 
   @override
-  String get shareDirectlyToVault => 'المشاركة مباشرة إلى WebVault';
+  String get shareDirectlyToVault => 'المشاركة مباشرة إلى زاد تك';
 
   @override
   String get shareDirectlyToVaultDesc =>
-      'في أي تطبيق: حدد النص → مشاركة → WebVault Clipboard للحفظ';
+      'في أي تطبيق: حدد النص → مشاركة → زاد تك Clipboard للحفظ';
 
   @override
   String get pullToRefresh => 'السحب للتحديث';

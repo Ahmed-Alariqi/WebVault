@@ -68,10 +68,10 @@ class MainActivity: FlutterFragmentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 "webvault_push",
-                "WebVault Notifications",
-                NotificationManager.IMPORTANCE_HIGH
+                "ZaadTech Notifications",
+                NotificationManager.IMPORTANCE_DEFAULT,
             ).apply {
-                description = "Push notifications from WebVault"
+                description = "Push notifications from ZaadTech"
                 enableVibration(true)
                 enableLights(true)
                 setShowBadge(true)

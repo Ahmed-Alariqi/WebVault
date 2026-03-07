@@ -33,7 +33,7 @@ class ProcessTextActivity : Activity() {
             if (!selectedText.isNullOrBlank()) {
                 Log.d(TAG, "Received selected text: $selectedText")
                 ShareReceiverActivity.enqueueShare(this, selectedText, "Selected text")
-                Toast.makeText(this, "✓ Saved to WebVault Clipboard", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.saved_to_clipboard), Toast.LENGTH_SHORT).show()
             } else {
                 Log.w(TAG, "Received empty/blank selected text")
             }

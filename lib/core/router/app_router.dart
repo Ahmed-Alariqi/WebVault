@@ -40,6 +40,7 @@ import '../../features/chat/chat_screen.dart';
 import '../../features/admin/manage_user_chats_screen.dart';
 import '../../features/admin/admin_chat_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/welcome_splash_screen.dart';
 import '../../data/repositories/settings_repository.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -86,17 +87,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/signup',
         '/forgot-password',
         '/onboarding',
+        '/welcome',
       ];
       final onAuthRoute = authRoutes.contains(location);
 
+      final settingsRepo = SettingsRepository();
+
+      // 1. Welcome Screen Guard (First-ever run)
+      if (!settingsRepo.hasSeenWelcomeScreen()) {
+        if (location == '/welcome') return null;
+        return '/welcome';
+      }
+
       // Not logged in
       if (!isLoggedIn) {
-        if (onAuthRoute) return null;
-        // Check onboarding completion
-        final settingsRepo = SettingsRepository();
+        // Check onboarding completion first
         if (!settingsRepo.isOnboardingCompleted()) {
+          if (location == '/onboarding') return null;
           return '/onboarding';
         }
+        if (onAuthRoute) return null;
         return '/login';
       }
 
@@ -119,6 +129,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // ---- Welcome Splash (first launch only) ----
+      GoRoute(
+        path: '/welcome',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WelcomeSplashScreen(),
+      ),
+
       // ---- Onboarding Route ----
       GoRoute(
         path: '/onboarding',

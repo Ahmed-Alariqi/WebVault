@@ -16,7 +16,7 @@ import '../../presentation/widgets/modern_fab.dart';
 import 'community_new_post_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
-void _showReactionPicker(BuildContext context, String postId) {
+void _showReactionPicker(BuildContext context, WidgetRef ref, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
   final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -45,7 +45,9 @@ void _showReactionPicker(BuildContext context, String postId) {
               .map(
                 (e) => GestureDetector(
                   onTap: () {
-                    CommunityActions.toggleReaction(postId, e);
+                    ref
+                        .read(communityPostsPaginatedProvider.notifier)
+                        .toggleReaction(postId, e);
                     Navigator.pop(context);
                   },
                   child:
@@ -336,7 +338,7 @@ class _CommunityPostCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () => context.push('/community/post/${post.id}', extra: post),
-      onLongPress: () => _showReactionPicker(context, post.id),
+      onLongPress: () => _showReactionPicker(context, ref, post.id),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -470,7 +472,9 @@ class _CommunityPostCard extends ConsumerWidget {
                       color: isDark ? AppTheme.darkCard : Colors.white,
                       onSelected: (value) async {
                         if (value == 'delete') {
-                          await CommunityActions.deletePost(post.id);
+                          await ref
+                              .read(communityPostsPaginatedProvider.notifier)
+                              .deletePost(post.id);
                         }
                       },
                       itemBuilder: (context) => [
@@ -648,20 +652,22 @@ class _CommunityPostCard extends ConsumerWidget {
   }
 }
 
-class _ReactionsRow extends StatelessWidget {
+class _ReactionsRow extends ConsumerWidget {
   final Map<String, dynamic> reactions;
   final String postId;
 
   const _ReactionsRow({required this.reactions, required this.postId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (reactions.isEmpty) return const SizedBox.shrink(); // rely on long press
 
     return Row(
       children: reactions.entries.take(4).map((entry) {
         return GestureDetector(
-          onTap: () => CommunityActions.toggleReaction(postId, entry.key),
+          onTap: () => ref
+              .read(communityPostsPaginatedProvider.notifier)
+              .toggleReaction(postId, entry.key),
           child: Container(
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

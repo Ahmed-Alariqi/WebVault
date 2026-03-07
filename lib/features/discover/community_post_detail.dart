@@ -39,7 +39,9 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
     setState(() => _isReplying = true);
 
     try {
-      await CommunityActions.createReply(widget.post.id, text);
+      await ref
+          .read(communityPostsPaginatedProvider.notifier)
+          .createReply(widget.post.id, text);
       if (!mounted) return;
       _replyCtrl.clear();
       FocusScope.of(context).unfocus();
@@ -259,10 +261,15 @@ class _OriginalPostDetail extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authorNameAsync = ref.watch(profileNameProvider(post.userId));
+    final pState = ref.watch(communityPostsPaginatedProvider);
+    final currentPost = pState.items.firstWhere(
+      (p) => p.id == post.id,
+      orElse: () => post,
+    );
+    final authorNameAsync = ref.watch(profileNameProvider(currentPost.userId));
 
     return GestureDetector(
-      onLongPress: () => _showReactionPicker(context, post.id),
+      onLongPress: () => _showReactionPicker(context, ref, currentPost.id),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -579,10 +586,11 @@ class _ReplyTile extends ConsumerWidget {
                               ),
                             );
                             if (confirm == true) {
-                              await CommunityActions.deleteReply(
-                                reply.id,
-                                postId,
-                              );
+                              await ref
+                                  .read(
+                                    communityPostsPaginatedProvider.notifier,
+                                  )
+                                  .deleteReply(reply.id, postId);
                             }
                           },
                           child: Icon(
@@ -623,7 +631,7 @@ class _ReplyTile extends ConsumerWidget {
   }
 }
 
-void _showReactionPicker(BuildContext context, String postId) {
+void _showReactionPicker(BuildContext context, WidgetRef ref, String postId) {
   final emojis = ['👍', '❤️', '🔥', '💡', '😂', '👏'];
   final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -652,7 +660,9 @@ void _showReactionPicker(BuildContext context, String postId) {
               .map(
                 (e) => GestureDetector(
                   onTap: () {
-                    CommunityActions.toggleReaction(postId, e);
+                    ref
+                        .read(communityPostsPaginatedProvider.notifier)
+                        .toggleReaction(postId, e);
                     Navigator.pop(context);
                   },
                   child:
@@ -678,20 +688,22 @@ void _showReactionPicker(BuildContext context, String postId) {
   );
 }
 
-class _ReactionsRow extends StatelessWidget {
+class _ReactionsRow extends ConsumerWidget {
   final Map<String, dynamic> reactions;
   final String postId;
 
   const _ReactionsRow({required this.reactions, required this.postId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (reactions.isEmpty) return const SizedBox.shrink(); // rely on long press
 
     return Row(
       children: reactions.entries.take(4).map((entry) {
         return GestureDetector(
-          onTap: () => CommunityActions.toggleReaction(postId, entry.key),
+          onTap: () => ref
+              .read(communityPostsPaginatedProvider.notifier)
+              .toggleReaction(postId, entry.key),
           child: Container(
             margin: const EdgeInsets.only(right: 6),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

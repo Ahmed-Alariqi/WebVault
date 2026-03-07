@@ -52,13 +52,13 @@ class BackupService {
 
       final directory = await getTemporaryDirectory();
       final file = File(
-        '${directory.path}/webvault_backup_${DateTime.now().millisecondsSinceEpoch}.json',
+        '${directory.path}/zaadtech_backup_${DateTime.now().millisecondsSinceEpoch}.json',
       );
       await file.writeAsString(jsonString);
 
       final result = await Share.shareXFiles([
         XFile(file.path),
-      ], text: 'WebVault Backup');
+      ], text: 'ZaadTech Backup');
 
       return result.status == ShareResultStatus.success ||
           result.status == ShareResultStatus.dismissed;

@@ -321,7 +321,9 @@ class _AdminPostTile extends ConsumerWidget {
                     ),
                   );
                   if (confirm == true) {
-                    CommunityActions.deletePost(post.id);
+                    ref
+                        .read(communityPostsPaginatedProvider.notifier)
+                        .deletePost(post.id);
                   }
                 },
                 tooltip: AppLocalizations.of(context)!.deletePostAction,

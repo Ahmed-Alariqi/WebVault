@@ -153,7 +153,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lifetimeVisits => 'lifetime visits';
 
   @override
-  String get appName => 'WebVault Manager';
+  String get appName => 'ZaadTech';
 
   @override
   String get newFolder => 'New Folder';
@@ -540,17 +540,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savedExplicitlyToClipboard =>
-      'Saved explicitly to WebVault Clipboard!';
+      'Saved explicitly to ZaadTech Clipboard!';
 
   @override
-  String get savedToClipboard => 'Saved to WebVault Clipboard!';
+  String get savedToClipboard => 'Saved to ZaadTech Clipboard!';
 
   @override
   String get saveToVaultBtn => 'Save to Vault';
 
   @override
   String get promptSaveToVault =>
-      'Would you like to save this text into your WebVault clipboard for later use?';
+      'Would you like to save this text into your ZaadTech clipboard for later use?';
 
   @override
   String get copiedText => 'Copied Text';
@@ -1190,7 +1190,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingTextInstructions =>
-      '1. Share: Select text in any app, tap \"Share\", and choose WebVault.\n2. Text Selection: Select text and choose \"WebVault\" from the popup menu.\n3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.';
+      '1. Share: Select text in any app, tap \"Share\", and choose ZaadTech.\n2. Text Selection: Select text and choose \"ZaadTech\" from the popup menu.\n3. Quick Tile: Add the ZaadTech tile to your Quick Settings to open the clipboard from anywhere.';
 
   @override
   String get smartClipboard => 'Smart Clipboard';
@@ -1209,7 +1209,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get smartCopyDescription =>
-      'When enabled, any text you copy to your device clipboard is automatically saved to your WebVault in the background (Android 10+ requires background service to be running).';
+      'When enabled, any text you copy to your device clipboard is automatically saved to your ZaadTech in the background (Android 10+ requires background service to be running).';
 
   @override
   String get howToUse => 'How to Use';
@@ -1235,11 +1235,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create groups/categories to keep your clipboard tidy and filterable';
 
   @override
-  String get shareDirectlyToVault => 'Share directly to WebVault';
+  String get shareDirectlyToVault => 'Share directly to ZaadTech';
 
   @override
   String get shareDirectlyToVaultDesc =>
-      'In any app, select text → Share → WebVault Clipboard to save it';
+      'In any app, select text → Share → ZaadTech Clipboard to save it';
 
   @override
   String get pullToRefresh => 'Pull-to-refresh';

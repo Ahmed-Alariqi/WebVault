@@ -38,7 +38,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     _OnboardingPage(
       title: 'الإنترنت مليء بالأشياء المفيدة…\nلكن يصعب العثور عليها',
       description:
-          'كم مرة وجدت مواقع مفيدة، أدوات رائعة، أو مفاتيح مهمة ثم لم تستطع العثور عليها لاحقًا؟\nWebVault يجمع كل ذلك لك.',
+          'كم مرة وجدت مواقع مفيدة، أدوات رائعة، أو مفاتيح مهمة ثم لم تستطع العثور عليها لاحقًا؟\nزاد تك يجمع كل ذلك لك.',
       imagePath: 'assets/onboarding/onboarding_1.png',
     ),
     // Screen 2 — المستكشف
@@ -72,7 +72,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     // Screen 6 — الشاشة الأخيرة
     _OnboardingPage(
       title: 'لا تفقد اهتماماتك مرة أخرى',
-      description: 'WebVault هو مساحتك الخاصة لحفظ كل ما يهمك على الإنترنت.',
+      description: 'زاد تك هو مساحتك الخاصة لحفظ كل ما يهمك على الإنترنت.',
       imagePath: 'assets/onboarding/onboarding_6.png',
     ),
   ];

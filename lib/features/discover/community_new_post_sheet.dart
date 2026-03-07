@@ -89,35 +89,37 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      await CommunityActions.createPost(
-        content: content,
-        category: _category,
-        imageUrl: _uploadedImageUrl,
-        linkUrl: _linkCtrl.text.trim().isNotEmpty
-            ? _linkCtrl.text.trim()
-            : null,
-      );
+      await ref
+          .read(communityPostsPaginatedProvider.notifier)
+          .createPost(
+            content: content,
+            category: _category,
+            imageUrl: _uploadedImageUrl,
+            linkUrl: _linkCtrl.text.trim().isNotEmpty
+                ? _linkCtrl.text.trim()
+                : null,
+          );
 
-      if (mounted) {
-        context.pop(); // close sheet
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.postPublished),
-            backgroundColor: AppTheme.primaryColor,
-          ),
-        );
-      }
+      if (!mounted) return;
+      context.pop(); // Close sheet on success
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.postPublished),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to post: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to post: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
-      if (mounted) setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 

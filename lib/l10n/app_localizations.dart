@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'WebVault Manager'**
+  /// **'ZaadTech'**
   String get appName;
 
   /// No description provided for @newFolder.
@@ -1115,13 +1115,13 @@ abstract class AppLocalizations {
   /// No description provided for @savedExplicitlyToClipboard.
   ///
   /// In en, this message translates to:
-  /// **'Saved explicitly to WebVault Clipboard!'**
+  /// **'Saved explicitly to ZaadTech Clipboard!'**
   String get savedExplicitlyToClipboard;
 
   /// No description provided for @savedToClipboard.
   ///
   /// In en, this message translates to:
-  /// **'Saved to WebVault Clipboard!'**
+  /// **'Saved to ZaadTech Clipboard!'**
   String get savedToClipboard;
 
   /// No description provided for @saveToVaultBtn.
@@ -1133,7 +1133,7 @@ abstract class AppLocalizations {
   /// No description provided for @promptSaveToVault.
   ///
   /// In en, this message translates to:
-  /// **'Would you like to save this text into your WebVault clipboard for later use?'**
+  /// **'Would you like to save this text into your ZaadTech clipboard for later use?'**
   String get promptSaveToVault;
 
   /// No description provided for @copiedText.
@@ -2309,7 +2309,7 @@ abstract class AppLocalizations {
   /// No description provided for @savingTextInstructions.
   ///
   /// In en, this message translates to:
-  /// **'1. Share: Select text in any app, tap \"Share\", and choose WebVault.\n2. Text Selection: Select text and choose \"WebVault\" from the popup menu.\n3. Quick Tile: Add the WebVault tile to your Quick Settings to open the clipboard from anywhere.'**
+  /// **'1. Share: Select text in any app, tap \"Share\", and choose ZaadTech.\n2. Text Selection: Select text and choose \"ZaadTech\" from the popup menu.\n3. Quick Tile: Add the ZaadTech tile to your Quick Settings to open the clipboard from anywhere.'**
   String get savingTextInstructions;
 
   /// No description provided for @smartClipboard.
@@ -2345,7 +2345,7 @@ abstract class AppLocalizations {
   /// No description provided for @smartCopyDescription.
   ///
   /// In en, this message translates to:
-  /// **'When enabled, any text you copy to your device clipboard is automatically saved to your WebVault in the background (Android 10+ requires background service to be running).'**
+  /// **'When enabled, any text you copy to your device clipboard is automatically saved to your ZaadTech in the background (Android 10+ requires background service to be running).'**
   String get smartCopyDescription;
 
   /// No description provided for @howToUse.
@@ -2393,13 +2393,13 @@ abstract class AppLocalizations {
   /// No description provided for @shareDirectlyToVault.
   ///
   /// In en, this message translates to:
-  /// **'Share directly to WebVault'**
+  /// **'Share directly to ZaadTech'**
   String get shareDirectlyToVault;
 
   /// No description provided for @shareDirectlyToVaultDesc.
   ///
   /// In en, this message translates to:
-  /// **'In any app, select text → Share → WebVault Clipboard to save it'**
+  /// **'In any app, select text → Share → ZaadTech Clipboard to save it'**
   String get shareDirectlyToVaultDesc;
 
   /// No description provided for @pullToRefresh.

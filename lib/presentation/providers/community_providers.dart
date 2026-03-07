@@ -87,6 +87,113 @@ class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
     state = const PaginatedPostsState();
     loadMore();
   }
+
+  Future<void> createPost({
+    required String content,
+    String? imageUrl,
+    String? linkUrl,
+    String? linkTitle,
+    String category = 'general',
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    final response = await _client
+        .from('community_posts')
+        .insert({
+          'user_id': user.id,
+          'content': content,
+          'image_url': imageUrl,
+          'link_url': linkUrl,
+          'link_title': linkTitle,
+          'category': category,
+        })
+        .select()
+        .single();
+
+    final newPost = CommunityPost.fromJson(response);
+    state = state.copyWith(items: [newPost, ...state.items]);
+  }
+
+  Future<void> deletePost(String postId) async {
+    // Optimistic UI update
+    state = state.copyWith(
+      items: state.items.where((p) => p.id != postId).toList(),
+    );
+    await _client.from('community_posts').delete().eq('id', postId);
+  }
+
+  Future<void> createReply(String postId, String content) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    await _client.from('community_replies').insert({
+      'post_id': postId,
+      'user_id': user.id,
+      'content': content,
+    });
+
+    await _client.rpc(
+      'increment_reply_count',
+      params: {'p_post_id': postId, 'p_amount': 1},
+    );
+
+    // Update local state instantly
+    state = state.copyWith(
+      items: state.items.map((p) {
+        if (p.id == postId) {
+          return p.copyWith(repliesCount: p.repliesCount + 1);
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  Future<void> deleteReply(String replyId, String postId) async {
+    await _client.from('community_replies').delete().eq('id', replyId);
+
+    await _client.rpc(
+      'increment_reply_count',
+      params: {'p_post_id': postId, 'p_amount': -1},
+    );
+
+    // Update local state instantly
+    state = state.copyWith(
+      items: state.items.map((p) {
+        if (p.id == postId) {
+          return p.copyWith(
+            repliesCount: (p.repliesCount - 1).clamp(
+              0,
+              999999,
+            ), // Prevent negative
+          );
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  Future<void> toggleReaction(String postId, String emoji) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return;
+
+    await _client.rpc(
+      'toggle_community_reaction',
+      params: {'p_post_id': postId, 'p_user_id': user.id, 'p_emoji': emoji},
+    );
+
+    // Re-fetch the updated post to get accurate reaction counts instantly
+    final response = await _client
+        .from('community_posts')
+        .select()
+        .eq('id', postId)
+        .single();
+    final updatedPost = CommunityPost.fromJson(response);
+
+    state = state.copyWith(
+      items: state.items.map((p) => p.id == postId ? updatedPost : p).toList(),
+    );
+  }
 }
 
 final communityPostsPaginatedProvider =
@@ -148,72 +255,3 @@ final communityRepliesProvider = StreamProvider.family
                 data.map((item) => CommunityReply.fromJson(item)).toList(),
           );
     });
-
-// -----------------------------------------------------------------------------
-// ACTIONS (Create/Delete)
-// -----------------------------------------------------------------------------
-
-class CommunityActions {
-  static Future<void> createPost({
-    required String content,
-    String? imageUrl,
-    String? linkUrl,
-    String? linkTitle,
-    String category = 'general',
-  }) async {
-    final user = _client.auth.currentUser;
-    if (user == null) return;
-
-    await _client.from('community_posts').insert({
-      'user_id': user.id,
-      'content': content,
-      'image_url': imageUrl,
-      'link_url': linkUrl,
-      'link_title': linkTitle,
-      'category': category,
-    });
-  }
-
-  static Future<void> deletePost(String postId) async {
-    await _client.from('community_posts').delete().eq('id', postId);
-  }
-
-  static Future<void> createReply(String postId, String content) async {
-    // React/Reply triggers count update via RPC
-    final user = _client.auth.currentUser;
-    if (user == null) return;
-
-    await _client.from('community_replies').insert({
-      'post_id': postId,
-      'user_id': user.id,
-      'content': content,
-    });
-
-    // Use RPC safely to increment the reply count globally for all users
-    await _client.rpc(
-      'increment_reply_count',
-      params: {'p_post_id': postId, 'p_amount': 1},
-    );
-  }
-
-  static Future<void> deleteReply(String replyId, String postId) async {
-    await _client.from('community_replies').delete().eq('id', replyId);
-
-    // Decrement reply count safely via RPC
-    await _client.rpc(
-      'increment_reply_count',
-      params: {'p_post_id': postId, 'p_amount': -1},
-    );
-  }
-
-  static Future<void> toggleReaction(String postId, String emoji) async {
-    final user = _client.auth.currentUser;
-    if (user == null) return;
-
-    // Call the newly created Supabase RPC which handles upsert/delete and reactions math safely regardless of the post's author.
-    await _client.rpc(
-      'toggle_community_reaction',
-      params: {'p_post_id': postId, 'p_user_id': user.id, 'p_emoji': emoji},
-    );
-  }
-}

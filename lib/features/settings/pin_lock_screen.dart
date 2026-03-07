@@ -75,7 +75,7 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
       if (!isAvailable || !isDeviceSupported) return;
 
       final didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Unlock WebVault Manager',
+        localizedReason: 'Unlock ZaadTech',
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: true,
@@ -288,7 +288,7 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
 
               if (isUnlockMode)
                 Text(
-                  'WebVault Manager',
+                  'ZaadTech',
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark ? Colors.white38 : Colors.black38,

@@ -134,19 +134,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               children: [
-                SizedBox(height: size.height * 0.03),
+                SizedBox(height: size.height * 0.02),
 
                 // Logo / Branding
                 _buildLogo(isDark),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
 
                 // Login Card
                 _buildLoginCard(isDark),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Sign Up Link
                 _buildSignUpLink(isDark),
-                const SizedBox(height: 40),
+                const SizedBox(height: 14),
               ],
             ),
           ),
@@ -158,37 +158,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Widget _buildLogo(bool isDark) {
     return Column(
       children: [
-        Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3D3D8F).withValues(alpha: 0.35),
-                    blurRadius: 28,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Image.asset(
-                  'assets/icon/app_icon.png',
-                  width: 120,
-                  height: 120,
-                  fit: BoxFit.cover,
-                ),
-              ),
+        Image.asset(
+              'assets/onboarding/welcome_image.png',
+              height: 200,
+              fit: BoxFit.contain,
             )
             .animate()
             .fadeIn(duration: 600.ms)
             .scale(
-              begin: const Offset(0.5, 0.5),
+              begin: const Offset(0.8, 0.8),
               curve: Curves.elasticOut,
               duration: 800.ms,
             ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 5),
         Text(
           'Zaad Tech',
           style: TextStyle(
@@ -212,7 +194,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildLoginCard(bool isDark) {
     return Container(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.06)
@@ -240,7 +222,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
                 // Error Banner
                 if (_error != null)
@@ -358,7 +340,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                   ],
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
 
                 // Sign In Button
                 _buildGradientButton(

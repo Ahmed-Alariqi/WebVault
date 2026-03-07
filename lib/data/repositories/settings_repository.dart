@@ -49,6 +49,12 @@ class SettingsRepository {
   Future<void> setOnboardingCompleted(bool value) =>
       _box.put(kOnboardingCompleted, value);
 
+  // Welcome Screen
+  bool hasSeenWelcomeScreen() =>
+      _box.get(kHasSeenWelcomeScreen, defaultValue: false) as bool;
+  Future<void> setHasSeenWelcomeScreen(bool value) =>
+      _box.put(kHasSeenWelcomeScreen, value);
+
   // Get all settings as a map
   Map<String, dynamic> getAllSettings() {
     return {

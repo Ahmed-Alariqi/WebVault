@@ -23,6 +23,7 @@ const String kLocale = 'locale';
 const String kOfflineQueueCount = 'offline_queue_count';
 const String kAdvancedCopyEnabled = 'advanced_copy_enabled';
 const String kOnboardingCompleted = 'onboarding_completed';
+const String kHasSeenWelcomeScreen = 'has_seen_welcome_screen';
 
 // Auto-lock timeout options (in seconds)
 const List<int> kAutoLockOptions = [0, 30, 60, 300, 600];

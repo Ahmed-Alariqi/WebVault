@@ -60,7 +60,7 @@ class ShareReceiverActivity : Activity() {
             if (!sharedText.isNullOrBlank()) {
                 Log.d(TAG, "Received shared text: label=$sharedSubject")
                 enqueueShare(this, sharedText, sharedSubject)
-                Toast.makeText(this, "✓ Saved to WebVault Clipboard", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.saved_to_clipboard), Toast.LENGTH_SHORT).show()
             } else {
                 Log.w(TAG, "Received empty/blank shared text")
             }
