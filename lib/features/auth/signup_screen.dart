@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:ui' as ui;
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -152,14 +153,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             end: Alignment.bottomLeft,
             colors: isDark
                 ? [
-                    const Color(0xFF1A1A2E),
-                    const Color(0xFF16213E),
-                    const Color(0xFF0F3460),
+                    const Color(0xFF0F172A),
+                    const Color(0xFF1E1B4B),
+                    const Color(0xFF0F172A),
                   ]
                 : [
-                    const Color(0xFFC5CAE9),
-                    const Color(0xFFE8EAF6),
-                    const Color(0xFFE1BEE7),
+                    const Color(0xFFF8FAFC),
+                    const Color(0xFFE2E8F0),
+                    const Color(0xFFF1F5F9),
                   ],
           ),
         ),
@@ -295,200 +296,211 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Widget _buildFormCard(bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.white.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.white60),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-            blurRadius: 32,
-            offset: const Offset(0, 16),
-          ),
-        ],
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_error != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: AppTheme.errorColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppTheme.errorColor.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(
-                    color: AppTheme.errorColor,
-                    fontSize: 13,
-                  ),
-                ),
-              ).animate().shakeX(amount: 4),
-
-            _buildField(
-              _nameCtrl,
-              AppLocalizations.of(context)!.fullName,
-              AppLocalizations.of(context)!.nameHint,
-              PhosphorIcons.user(),
-              isDark,
-              validator: (v) => v == null || v.isEmpty
-                  ? AppLocalizations.of(context)!.nameRequired
-                  : null,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.5),
+              width: 1.5,
             ),
-            const SizedBox(height: 14),
-            _buildField(
-              _usernameCtrl,
-              AppLocalizations.of(context)!.usernameOptional,
-              AppLocalizations.of(context)!.usernameHint,
-              PhosphorIcons.at(),
-              isDark,
-            ),
-            const SizedBox(height: 14),
-            _buildField(
-              _emailCtrl,
-              AppLocalizations.of(context)!.email,
-              AppLocalizations.of(context)!.emailHint,
-              PhosphorIcons.envelope(),
-              isDark,
-              keyboardType: TextInputType.emailAddress,
-              validator: (v) {
-                if (v == null || v.isEmpty) {
-                  return AppLocalizations.of(context)!.emailRequired;
-                }
-                if (!v.contains('@')) {
-                  return AppLocalizations.of(context)!.enterValidEmail;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 14),
-            _buildField(
-              _passwordCtrl,
-              AppLocalizations.of(context)!.password,
-              AppLocalizations.of(context)!.passwordHint,
-              PhosphorIcons.lock(),
-              isDark,
-              obscure: _obscure,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
-                  size: 20,
-                  color: isDark ? Colors.white38 : Colors.black38,
-                ),
-                onPressed: () => setState(() => _obscure = !_obscure),
-              ),
-              validator: (v) {
-                if (v == null || v.length < 6) {
-                  return AppLocalizations.of(context)!.passwordMinLength;
-                }
-                return null;
-              },
-            ),
-
-            // Password strength indicator
-            if (_passwordCtrl.text.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: _passwordStrength(),
-                        backgroundColor: isDark
-                            ? Colors.white12
-                            : Colors.black12,
-                        color: _strengthColor(),
-                        minHeight: 4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _strengthLabel(context),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _strengthColor(),
-                    ),
-                  ),
-                ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+                blurRadius: 32,
+                offset: const Offset(0, 16),
               ),
             ],
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_error != null)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.errorColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppTheme.errorColor.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: AppTheme.errorColor,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ).animate().shakeX(amount: 4),
 
-            const SizedBox(height: 14),
-            _buildField(
-              _confirmCtrl,
-              AppLocalizations.of(context)!.confirmPasswordLabel,
-              AppLocalizations.of(context)!.passwordHint,
-              PhosphorIcons.lockKey(),
-              isDark,
-              obscure: _obscureConfirm,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirm
-                      ? PhosphorIcons.eye()
-                      : PhosphorIcons.eyeSlash(),
-                  size: 20,
-                  color: isDark ? Colors.white38 : Colors.black38,
+                _buildField(
+                  _nameCtrl,
+                  AppLocalizations.of(context)!.fullName,
+                  AppLocalizations.of(context)!.nameHint,
+                  PhosphorIcons.user(),
+                  isDark,
+                  validator: (v) => v == null || v.isEmpty
+                      ? AppLocalizations.of(context)!.nameRequired
+                      : null,
                 ),
-                onPressed: () =>
-                    setState(() => _obscureConfirm = !_obscureConfirm),
-              ),
-              validator: (v) {
-                if (v != _passwordCtrl.text) {
-                  return AppLocalizations.of(context)!.passwordsDoNotMatch;
-                }
-                return null;
-              },
+                const SizedBox(height: 14),
+                _buildField(
+                  _usernameCtrl,
+                  AppLocalizations.of(context)!.usernameOptional,
+                  AppLocalizations.of(context)!.usernameHint,
+                  PhosphorIcons.at(),
+                  isDark,
+                ),
+                const SizedBox(height: 14),
+                _buildField(
+                  _emailCtrl,
+                  AppLocalizations.of(context)!.email,
+                  AppLocalizations.of(context)!.emailHint,
+                  PhosphorIcons.envelope(),
+                  isDark,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) {
+                      return AppLocalizations.of(context)!.emailRequired;
+                    }
+                    if (!v.contains('@')) {
+                      return AppLocalizations.of(context)!.enterValidEmail;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                _buildField(
+                  _passwordCtrl,
+                  AppLocalizations.of(context)!.password,
+                  AppLocalizations.of(context)!.passwordHint,
+                  PhosphorIcons.lock(),
+                  isDark,
+                  obscure: _obscure,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
+                      size: 20,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                    onPressed: () => setState(() => _obscure = !_obscure),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.length < 6) {
+                      return AppLocalizations.of(context)!.passwordMinLength;
+                    }
+                    return null;
+                  },
+                ),
+
+                // Password strength indicator
+                if (_passwordCtrl.text.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _passwordStrength(),
+                            backgroundColor: isDark
+                                ? Colors.white12
+                                : Colors.black12,
+                            color: _strengthColor(),
+                            minHeight: 4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _strengthLabel(context),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _strengthColor(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 14),
+                _buildField(
+                  _confirmCtrl,
+                  AppLocalizations.of(context)!.confirmPasswordLabel,
+                  AppLocalizations.of(context)!.passwordHint,
+                  PhosphorIcons.lockKey(),
+                  isDark,
+                  obscure: _obscureConfirm,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirm
+                          ? PhosphorIcons.eye()
+                          : PhosphorIcons.eyeSlash(),
+                      size: 20,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscureConfirm = !_obscureConfirm),
+                  ),
+                  validator: (v) {
+                    if (v != _passwordCtrl.text) {
+                      return AppLocalizations.of(context)!.passwordsDoNotMatch;
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 28),
+
+                _buildGradientButton(
+                  label: _loading
+                      ? AppLocalizations.of(context)!.creatingAccount
+                      : AppLocalizations.of(context)!.createAccount,
+                  icon: _loading ? null : PhosphorIcons.userPlus(),
+                  onPressed: _loading ? null : _signUp,
+                  loading: _loading,
+                ),
+                const SizedBox(height: 16),
+
+                // Google Button
+                OutlinedButton.icon(
+                  onPressed: _loading ? null : _signUpWithGoogle,
+                  icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
+                  label: Text(
+                    AppLocalizations.of(context)!.signUpWithGoogle,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    side: BorderSide(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                    ),
+                    foregroundColor: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 28),
-
-            _buildGradientButton(
-              label: _loading
-                  ? AppLocalizations.of(context)!.creatingAccount
-                  : AppLocalizations.of(context)!.createAccount,
-              icon: _loading ? null : PhosphorIcons.userPlus(),
-              onPressed: _loading ? null : _signUp,
-              loading: _loading,
-            ),
-            const SizedBox(height: 16),
-
-            // Google Button
-            OutlinedButton.icon(
-              onPressed: _loading ? null : _signUpWithGoogle,
-              icon: const Icon(Icons.g_mobiledata_rounded, size: 32),
-              label: Text(
-                AppLocalizations.of(context)!.signUpWithGoogle,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                side: BorderSide(
-                  color: isDark ? Colors.white24 : Colors.black12,
-                ),
-                foregroundColor: isDark ? Colors.white70 : Colors.black54,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
@@ -511,7 +523,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             AppLocalizations.of(context)!.signIn,
             style: const TextStyle(
               color: AppTheme.primaryColor,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               fontSize: 14,
             ),
           ),
@@ -559,27 +571,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ),
         filled: true,
         fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.03),
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.9),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark ? Colors.white12 : Colors.black12,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.05),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppTheme.primaryColor,
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppTheme.errorColor),
         ),
         contentPadding: const EdgeInsets.symmetric(

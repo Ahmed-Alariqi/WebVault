@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -53,6 +54,18 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
     // Let the fade-out animate (400 ms) then navigate
     await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) context.go('/dashboard');
+  }
+
+  // Web stub: skip the splash on web immediately
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (kIsWeb) {
+      SettingsRepository().setHasSeenWelcomeScreen(true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.go('/dashboard');
+      });
+    }
   }
 
   // ── UI ──────────────────────────────────────────────────────────────────────
@@ -163,7 +176,9 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(32),
             child: Image.asset(
-              'assets/onboarding/welcome_image.png',
+              isDark
+                  ? 'assets/onboarding/welcome_image_light.png'
+                  : 'assets/onboarding/welcome_image_dark.png',
               fit: BoxFit.cover,
             ),
           ),

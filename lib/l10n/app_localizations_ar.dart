@@ -153,7 +153,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lifetimeVisits => 'زيارة';
 
   @override
-  String get appName => 'مدير الخزنة';
+  String get appName => 'زاد تك';
 
   @override
   String get newFolder => 'مجلد جديد';
@@ -884,6 +884,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteTooltip => 'حذف';
+
+  @override
+  String get personalizeNameToggle => 'تخصيص باسم المستخدم';
+
+  @override
+  String personalizeNameHint(String userName) {
+    return 'اكتب $userName في العنوان أو الرسالة لإدراج اسم المستخدم.';
+  }
+
+  @override
+  String insertUserName(String userName) {
+    return 'إدراج $userName';
+  }
+
+  @override
+  String get defaultUserFallback => 'مستخدم';
 
   @override
   String get noName => 'بلا اسم';
@@ -2054,4 +2070,73 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get beTheFirstToReply =>
       'لا توجد ردود بعد.\nكن أول من ينضم إلى المحادثة!';
+
+  @override
+  String get aboutTaglineTitle => 'زاد تك | ZaadTech';
+
+  @override
+  String get aboutTaglineSubtitle =>
+      'زاد تك هو زادك الرقمي لاكتشاف الأدوات وتنظيم كل ما تحتاجه على الإنترنت في مكان واحد.';
+
+  @override
+  String get aboutTaglineBody =>
+      'يساعدك التطبيق على اكتشاف أدوات ومواقع مفيدة، وحفظ كل ما يهمك من روابط أو نصوص أو مفاتيح أو أكواد، ثم استرجاعها بسرعة عندما تحتاجها.';
+
+  @override
+  String get aboutFeaturesTitle => 'ماذا يقدم زاد تك؟';
+
+  @override
+  String get aboutFeature1Title => 'مستكشف الأدوات';
+
+  @override
+  String get aboutFeature1Body =>
+      'اكتشف أدوات ومواقع وعروض واشتراكات جديدة يتم تحديثها باستمرار.';
+
+  @override
+  String get aboutFeature2Title => 'الحافظة الذكية';
+
+  @override
+  String get aboutFeature2Body =>
+      'احفظ النصوص، الأكواد، المفاتيح، الإيميلات أو أي معلومات مهمة للرجوع إليها لاحقًا.';
+
+  @override
+  String get aboutFeature3Title => 'حفظ المواقع والروابط';
+
+  @override
+  String get aboutFeature3Body =>
+      'احفظ أي موقع أو أداة مفيدة ونظمها داخل مجلدات خاصة بك.';
+
+  @override
+  String get aboutFeature4Title => 'استرجاع سريع أثناء التصفح';
+
+  @override
+  String get aboutFeature4Body =>
+      'انسخ أي نص أو مفتاح محفوظ فورًا عبر الحافظة السريعة دون مغادرة الصفحة.';
+
+  @override
+  String get aboutFeature5Title => 'نسخ ذكي تلقائي';
+
+  @override
+  String get aboutFeature5Body =>
+      'يمكنك تفعيل وضع النسخ المتقدم ليتم حفظ أي نص تنسخه تلقائيًا.';
+
+  @override
+  String get aboutFeature6Title => 'مجتمع المستخدمين';
+
+  @override
+  String get aboutFeature6Body =>
+      'ناقش الأدوات، شارك التجارب، واقترح أدوات جديدة ليتم نشرها في المستكشف.';
+
+  @override
+  String get aboutGoalTitle => 'هدف زاد تك';
+
+  @override
+  String get aboutGoalBody =>
+      'الهدف هو أن يكون تطبيق زادك الرقمي منصة متكاملة تجمع كل ما قد يحتاجه المهتم بالتقنية في مكان واحد؛ بدءًا من المواقع والأدوات الرقمية، وصولًا إلى أحدث العروض والخدمات والاشتراكات. كما يوفّر التطبيق خزنة رقمية خاصة تتيح للمستخدم حفظ كل ما يهمه ويخاف فقدانه أو نسيانه، ليتمكن من استرجاعه بسهولة وفي أي وقت بضغطة زر.';
+
+  @override
+  String get aboutTaglineBanner => 'زاد تك — اكتشف. احفظ. استرجع فورًا. 🚀';
+
+  @override
+  String get aboutDevLabel => 'تطوير: أحمد العريقي';
 }

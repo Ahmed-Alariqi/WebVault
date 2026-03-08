@@ -886,6 +886,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteTooltip => 'Delete';
 
   @override
+  String get personalizeNameToggle => 'Personalize with user name';
+
+  @override
+  String personalizeNameHint(String userName) {
+    return 'Type $userName in the title or message to insert the user\'s name.';
+  }
+
+  @override
+  String insertUserName(String userName) {
+    return 'Insert $userName';
+  }
+
+  @override
+  String get defaultUserFallback => 'User';
+
+  @override
   String get noName => 'No Name';
 
   @override
@@ -2056,4 +2072,74 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get beTheFirstToReply =>
       'No replies yet.\nBe the first to join the conversation!';
+
+  @override
+  String get aboutTaglineTitle => 'ZaadTech';
+
+  @override
+  String get aboutTaglineSubtitle =>
+      'ZaadTech is your digital companion for discovering tools and organizing everything you need online in one place.';
+
+  @override
+  String get aboutTaglineBody =>
+      'The app helps you discover useful tools, websites, and subscriptions, save links, texts, keys, or codes that matter to you, and retrieve them quickly whenever you need them.';
+
+  @override
+  String get aboutFeaturesTitle => 'What does ZaadTech offer?';
+
+  @override
+  String get aboutFeature1Title => 'Tools Explorer';
+
+  @override
+  String get aboutFeature1Body =>
+      'Discover tools, websites, offers, and subscriptions that are constantly updated.';
+
+  @override
+  String get aboutFeature2Title => 'Smart Clipboard';
+
+  @override
+  String get aboutFeature2Body =>
+      'Save texts, codes, keys, emails, or any important information to refer to later.';
+
+  @override
+  String get aboutFeature3Title => 'Save Websites & Links';
+
+  @override
+  String get aboutFeature3Body =>
+      'Save any useful website or tool and organize them in your own folders.';
+
+  @override
+  String get aboutFeature4Title => 'Quick Retrieval While Browsing';
+
+  @override
+  String get aboutFeature4Body =>
+      'Copy any saved text or key instantly via the quick clipboard without leaving the page.';
+
+  @override
+  String get aboutFeature5Title => 'Auto Smart Copy';
+
+  @override
+  String get aboutFeature5Body =>
+      'Enable the advanced copy mode to have any text you copy saved automatically.';
+
+  @override
+  String get aboutFeature6Title => 'User Community';
+
+  @override
+  String get aboutFeature6Body =>
+      'Discuss tools, share experiences, and suggest new tools to be published in the explorer.';
+
+  @override
+  String get aboutGoalTitle => 'ZaadTech\'s Goal';
+
+  @override
+  String get aboutGoalBody =>
+      'Our goal is to be your digital companion that provides everything you need in one place — from tools and subscriptions, to saving your information and retrieving it quickly and easily.';
+
+  @override
+  String get aboutTaglineBanner =>
+      'ZaadTech — Discover. Save. Retrieve Instantly. 🚀';
+
+  @override
+  String get aboutDevLabel => 'Dev: Ahmed Al-Ariqi';
 }

@@ -363,9 +363,33 @@ class PaginatedNotificationsNotifier
           .order('created_at', ascending: false)
           .range(from, to);
 
-      final newItems = (response as List)
+      var newItems = (response as List)
           .map((e) => NotificationModel.fromJson(e))
           .toList();
+
+      // Personalize notifications that have personalize_name enabled
+      final hasPersonalized = newItems.any((n) => n.personalizeWithName);
+      if (hasPersonalized) {
+        final user = _client.auth.currentUser;
+        String userName = 'User';
+        if (user != null) {
+          try {
+            final profile = await _client
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .maybeSingle();
+            if (profile != null &&
+                profile['full_name'] != null &&
+                (profile['full_name'] as String).isNotEmpty) {
+              userName = profile['full_name'] as String;
+            }
+          } catch (_) {}
+        }
+        newItems = newItems
+            .map((n) => n.withPersonalizedName(userName))
+            .toList();
+      }
 
       state = state.copyWith(
         items: [...state.items, ...newItems],

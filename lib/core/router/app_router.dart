@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../features/pages/pages_screen.dart';
 import '../../features/discover/discover_screen.dart';
 import '../../features/clipboard/clipboard_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/about_screen.dart';
 import '../../features/settings/pin_lock_screen.dart';
 import '../../features/settings/security_settings_screen.dart';
 import '../../features/settings/clipboard_settings_screen.dart';
@@ -93,8 +95,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final settingsRepo = SettingsRepository();
 
-      // 1. Welcome Screen Guard (First-ever run)
-      if (!settingsRepo.hasSeenWelcomeScreen()) {
+      // 1. Welcome Screen Guard (First-ever run, Android/iOS only)
+      if (!kIsWeb && !settingsRepo.hasSeenWelcomeScreen()) {
         if (location == '/welcome') return null;
         return '/welcome';
       }
@@ -213,6 +215,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/clipboard-settings',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ClipboardSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/about',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AboutScreen(),
       ),
       GoRoute(
         path: '/add-page',

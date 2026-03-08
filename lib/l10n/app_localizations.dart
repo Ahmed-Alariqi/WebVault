@@ -1748,6 +1748,30 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get deleteTooltip;
 
+  /// No description provided for @personalizeNameToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personalize with user name'**
+  String get personalizeNameToggle;
+
+  /// No description provided for @personalizeNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type {userName} in the title or message to insert the user\'s name.'**
+  String personalizeNameHint(String userName);
+
+  /// No description provided for @insertUserName.
+  ///
+  /// In en, this message translates to:
+  /// **'Insert {userName}'**
+  String insertUserName(String userName);
+
+  /// No description provided for @defaultUserFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get defaultUserFallback;
+
   /// No description provided for @noName.
   ///
   /// In en, this message translates to:
@@ -3919,6 +3943,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No replies yet.\nBe the first to join the conversation!'**
   String get beTheFirstToReply;
+
+  /// No description provided for @aboutTaglineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaadTech'**
+  String get aboutTaglineTitle;
+
+  /// No description provided for @aboutTaglineSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaadTech is your digital companion for discovering tools and organizing everything you need online in one place.'**
+  String get aboutTaglineSubtitle;
+
+  /// No description provided for @aboutTaglineBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The app helps you discover useful tools, websites, and subscriptions, save links, texts, keys, or codes that matter to you, and retrieve them quickly whenever you need them.'**
+  String get aboutTaglineBody;
+
+  /// No description provided for @aboutFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What does ZaadTech offer?'**
+  String get aboutFeaturesTitle;
+
+  /// No description provided for @aboutFeature1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools Explorer'**
+  String get aboutFeature1Title;
+
+  /// No description provided for @aboutFeature1Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover tools, websites, offers, and subscriptions that are constantly updated.'**
+  String get aboutFeature1Body;
+
+  /// No description provided for @aboutFeature2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Clipboard'**
+  String get aboutFeature2Title;
+
+  /// No description provided for @aboutFeature2Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Save texts, codes, keys, emails, or any important information to refer to later.'**
+  String get aboutFeature2Body;
+
+  /// No description provided for @aboutFeature3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Websites & Links'**
+  String get aboutFeature3Title;
+
+  /// No description provided for @aboutFeature3Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Save any useful website or tool and organize them in your own folders.'**
+  String get aboutFeature3Body;
+
+  /// No description provided for @aboutFeature4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Retrieval While Browsing'**
+  String get aboutFeature4Title;
+
+  /// No description provided for @aboutFeature4Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy any saved text or key instantly via the quick clipboard without leaving the page.'**
+  String get aboutFeature4Body;
+
+  /// No description provided for @aboutFeature5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Smart Copy'**
+  String get aboutFeature5Title;
+
+  /// No description provided for @aboutFeature5Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable the advanced copy mode to have any text you copy saved automatically.'**
+  String get aboutFeature5Body;
+
+  /// No description provided for @aboutFeature6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'User Community'**
+  String get aboutFeature6Title;
+
+  /// No description provided for @aboutFeature6Body.
+  ///
+  /// In en, this message translates to:
+  /// **'Discuss tools, share experiences, and suggest new tools to be published in the explorer.'**
+  String get aboutFeature6Body;
+
+  /// No description provided for @aboutGoalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaadTech\'s Goal'**
+  String get aboutGoalTitle;
+
+  /// No description provided for @aboutGoalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Our goal is to be your digital companion that provides everything you need in one place — from tools and subscriptions, to saving your information and retrieving it quickly and easily.'**
+  String get aboutGoalBody;
+
+  /// No description provided for @aboutTaglineBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaadTech — Discover. Save. Retrieve Instantly. 🚀'**
+  String get aboutTaglineBanner;
+
+  /// No description provided for @aboutDevLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dev: Ahmed Al-Ariqi'**
+  String get aboutDevLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -446,51 +446,50 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      PhosphorIcons.briefcase(PhosphorIconsStyle.duotone),
-                      color: Colors.white,
-                    ),
+            child: ListTile(
+              leading: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
                   ),
-                  const SizedBox(width: 14),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AppLocalizations.of(context)!.appName,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: isDark
-                              ? AppTheme.darkTextPrimary
-                              : AppTheme.lightTextPrimary,
-                        ),
-                      ),
-                      Text(
-                        '${AppLocalizations.of(context)!.version} $kAppVersion',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark
-                              ? AppTheme.darkTextSecondary
-                              : AppTheme.lightTextSecondary,
-                        ),
-                      ),
-                    ],
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.asset(
+                    isDark
+                        ? 'assets/onboarding/welcome_image_dark.png'
+                        : 'assets/onboarding/welcome_image_light.png',
+                    fit: BoxFit.cover,
                   ),
-                ],
+                ),
               ),
+              title: Text(
+                AppLocalizations.of(context)!.appName,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                ),
+              ),
+              subtitle: Text(
+                '${AppLocalizations.of(context)!.version} $kAppVersion',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                ),
+              ),
+              trailing: Icon(
+                PhosphorIcons.caretRight(),
+                size: 18,
+                color: isDark ? Colors.white38 : Colors.black26,
+              ),
+              onTap: () => context.push('/about'),
             ),
           ),
           const SizedBox(height: 28),
@@ -502,10 +501,10 @@ class SettingsScreen extends ConsumerWidget {
             isDark,
           ),
           const SizedBox(height: 12),
-          Consumer(
-            builder: (ctx, ref, _) {
-              final unreadCountAsync = ref.watch(userUnreadCountStreamProvider);
-              final unreadCount = unreadCountAsync.value ?? 0;
+          Builder(
+            builder: (ctx) {
+              final unreadCount =
+                  ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
 
               return _buildCard(
                 isDark: isDark,

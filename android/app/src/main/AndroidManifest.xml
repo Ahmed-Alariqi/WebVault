@@ -94,6 +94,11 @@
             </intent-filter>
         </activity>
 
+        <!-- OneSignal: custom notification small icon -->
+        <meta-data
+            android:name="com.onesignal.NotificationDefaultSmallIcon"
+            android:resource="@drawable/ic_stat_onesignal_default" />
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

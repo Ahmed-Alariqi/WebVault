@@ -30,6 +30,7 @@ class _ManageInAppMessagesScreenState
   bool _isLoading = false;
   bool _isUploading = false;
   double _uploadProgress = 0;
+  bool _personalizeWithName = false;
   String? _editingId; // null = create mode, non-null = editing existing message
 
   @override
@@ -74,6 +75,7 @@ class _ManageInAppMessagesScreenState
             (_campaignMode == 2 && _targetVersionCtrl.text.trim().isNotEmpty)
             ? _targetVersionCtrl.text.trim()
             : null,
+        'personalize_name': _personalizeWithName,
       };
 
       if (_editingId != null) {
@@ -134,6 +136,7 @@ class _ManageInAppMessagesScreenState
     _targetVersionCtrl.clear();
     setState(() {
       _campaignMode = 0;
+      _personalizeWithName = false;
       _editingId = null;
     });
   }
@@ -155,6 +158,7 @@ class _ManageInAppMessagesScreenState
 
     setState(() {
       _campaignMode = mode;
+      _personalizeWithName = msg['personalize_name'] == true;
       _editingId = msg['id'];
     });
 
@@ -164,8 +168,13 @@ class _ManageInAppMessagesScreenState
 
   void _previewMessage(Map<String, dynamic> msg) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final title = msg['title'] as String? ?? '';
-    final message = msg['message'] as String? ?? '';
+    String title = msg['title'] as String? ?? '';
+    String message = msg['message'] as String? ?? '';
+    // Replace {user_name} with example name for preview
+    if (msg['personalize_name'] == true) {
+      title = title.replaceAll('{user_name}', 'Ahmed');
+      message = message.replaceAll('{user_name}', 'Ahmed');
+    }
     final imageUrl = msg['image_url'] as String?;
     final actionUrl = msg['action_url'] as String?;
     final actionText = msg['action_text'] as String?;
@@ -820,6 +829,129 @@ class _ManageInAppMessagesScreenState
                         _targetVersionCtrl,
                         AppLocalizations.of(context)!.targetVersionOptional,
                         isDark,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    // --- Personalize with user name ---
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _personalizeWithName
+                            ? AppTheme.primaryColor.withValues(alpha: 0.08)
+                            : (isDark
+                                  ? Colors.white.withValues(alpha: 0.03)
+                                  : Colors.black.withValues(alpha: 0.02)),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _personalizeWithName
+                              ? AppTheme.primaryColor.withValues(alpha: 0.3)
+                              : (isDark ? Colors.white10 : Colors.black12),
+                        ),
+                      ),
+                      child: SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          AppLocalizations.of(context)!.personalizeNameToggle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        value: _personalizeWithName,
+                        activeThumbColor: AppTheme.primaryColor,
+                        onChanged: (val) {
+                          setState(() => _personalizeWithName = val);
+                        },
+                      ),
+                    ),
+                    if (_personalizeWithName) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.blue.withValues(alpha: 0.08)
+                              : Colors.blue.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              PhosphorIcons.info(),
+                              size: 16,
+                              color: Colors.blue,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.personalizeNameHint('{user_name}'),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark
+                                      ? Colors.blue[200]
+                                      : Colors.blue[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            final text = _messageCtrl.text;
+                            final selection = _messageCtrl.selection;
+                            const placeholder = '{user_name}';
+                            if (selection.isValid &&
+                                selection.start >= 0 &&
+                                selection.start <= text.length) {
+                              final newText = text.replaceRange(
+                                selection.start,
+                                selection.end,
+                                placeholder,
+                              );
+                              _messageCtrl.text = newText;
+                              _messageCtrl.selection = TextSelection.collapsed(
+                                offset: selection.start + placeholder.length,
+                              );
+                            } else {
+                              _messageCtrl.text = '$text$placeholder';
+                              _messageCtrl.selection = TextSelection.collapsed(
+                                offset: _messageCtrl.text.length,
+                              );
+                            }
+                          },
+                          icon: Icon(PhosphorIcons.userCirclePlus(), size: 16),
+                          label: Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.insertUserName('{user_name}'),
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.primaryColor,
+                            side: BorderSide(
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.4,
+                              ),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                     const SizedBox(height: 24),

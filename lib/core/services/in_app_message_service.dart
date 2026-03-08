@@ -69,6 +69,47 @@ class InAppMessageService {
         return; // Already seen and dismissed
       }
 
+      // --- Personalize with user name ---
+      final bool personalizeName = response['personalize_name'] == true;
+      if (personalizeName && currentUser != null) {
+        try {
+          final profile = await SupabaseConfig.client
+              .from('profiles')
+              .select('full_name')
+              .eq('id', currentUser.id)
+              .maybeSingle();
+          final String userName =
+              (profile != null &&
+                  profile['full_name'] != null &&
+                  (profile['full_name'] as String).isNotEmpty)
+              ? profile['full_name'] as String
+              : (context.mounted
+                    ? AppLocalizations.of(context)!.defaultUserFallback
+                    : 'User');
+          response['title'] = (response['title'] as String).replaceAll(
+            '{user_name}',
+            userName,
+          );
+          response['message'] = (response['message'] as String).replaceAll(
+            '{user_name}',
+            userName,
+          );
+        } catch (_) {
+          // If profile fetch fails, replace with fallback
+          final fallback = context.mounted
+              ? AppLocalizations.of(context)!.defaultUserFallback
+              : 'User';
+          response['title'] = (response['title'] as String).replaceAll(
+            '{user_name}',
+            fallback,
+          );
+          response['message'] = (response['message'] as String).replaceAll(
+            '{user_name}',
+            fallback,
+          );
+        }
+      }
+
       if (context.mounted) {
         _showCampaignDialog(
           context,

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:local_auth/local_auth.dart';
+import 'dart:ui' as ui;
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -114,18 +115,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
             colors: isDark
                 ? [
-                    const Color(0xFF0D0D1A),
-                    const Color(0xFF1A1A2E),
-                    const Color(0xFF16213E),
+                    const Color(0xFF0F172A),
+                    const Color(0xFF1E1B4B),
+                    const Color(0xFF0F172A),
                   ]
                 : [
-                    const Color(0xFFE8EAF6),
-                    const Color(0xFFC5CAE9),
-                    const Color(0xFF9FA8DA),
+                    const Color(0xFFF8FAFC),
+                    const Color(0xFFE2E8F0),
+                    const Color(0xFFF1F5F9),
                   ],
           ),
         ),
@@ -158,52 +159,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Widget _buildLogo(bool isDark) {
     return Column(
       children: [
+        // Sign In heading
+        Text(
+          AppLocalizations.of(context)!.signIn,
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+          ),
+        ).animate().fadeIn(duration: 400.ms),
+        const SizedBox(height: 0),
+
+        // Welcome image
         Image.asset(
-              'assets/onboarding/welcome_image.png',
+              isDark
+                  ? 'assets/onboarding/welcome_image_light.png'
+                  : 'assets/onboarding/welcome_image_dark.png',
               height: 200,
               fit: BoxFit.contain,
             )
             .animate()
             .fadeIn(duration: 600.ms)
             .scale(
-              begin: const Offset(0.8, 0.8),
+              begin: const Offset(0.85, 0.85),
               curve: Curves.elasticOut,
               duration: 800.ms,
             ),
-        const SizedBox(height: 5),
-        Text(
-          'Zaad Tech',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1,
-            color: isDark ? Colors.white : const Color(0xFF1A1A2E),
-          ),
-        ).animate().fadeIn(delay: 200.ms),
-        const SizedBox(height: 4),
-        Text(
-          AppLocalizations.of(context)!.secureWebManager,
-          style: TextStyle(
-            fontSize: 14,
-            color: isDark ? Colors.white54 : Colors.black45,
-          ),
-        ).animate().fadeIn(delay: 400.ms),
       ],
     );
   }
 
   Widget _buildLoginCard(bool isDark) {
-    return Container(
-          padding: const EdgeInsets.all(20),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.white.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: isDark ? Colors.white12 : Colors.white60),
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.5),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                 blurRadius: 32,
                 offset: const Offset(0, 16),
               ),
@@ -417,10 +424,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ],
             ),
           ),
-        )
-        .animate()
-        .fadeIn(delay: 300.ms, duration: 500.ms)
-        .slideY(begin: 0.1, curve: Curves.easeOutCubic);
+        ),
+      ),
+    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
   }
 
   Widget _buildSignUpLink(bool isDark) {
@@ -440,7 +446,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             AppLocalizations.of(context)!.signUp,
             style: TextStyle(
               color: AppTheme.primaryColor,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               fontSize: 14,
             ),
           ),
@@ -485,27 +491,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ),
         filled: true,
         fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.06)
-            : Colors.black.withValues(alpha: 0.03),
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.white.withValues(alpha: 0.9),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark ? Colors.white12 : Colors.black12,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.05),
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppTheme.primaryColor,
-            width: 1.5,
-          ),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppTheme.errorColor),
         ),
         contentPadding: const EdgeInsets.symmetric(
