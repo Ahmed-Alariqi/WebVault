@@ -187,6 +187,20 @@ Future<void> main() async {
     await settingsRepo.setFirstLaunch(false);
   }
 
+  // ── Splash version migration ──
+  // If the splash was redesigned (version bumped), reset the flag so users
+  // see the new splash once more.
+  final settingsBox = Hive.box(kSettingsBox);
+  final storedSplashVersion =
+      settingsBox.get(kSplashVersion, defaultValue: 0) as int;
+  if (storedSplashVersion < kCurrentSplashVersion) {
+    await settingsRepo.setHasSeenWelcomeScreen(false);
+    await settingsBox.put(kSplashVersion, kCurrentSplashVersion);
+    debugPrint(
+      '[Splash] Reset welcome screen flag (v$storedSplashVersion → v$kCurrentSplashVersion)',
+    );
+  }
+
   // Set system UI style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

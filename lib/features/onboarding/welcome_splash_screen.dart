@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/settings_repository.dart';
 
-/// Shown ONCE on the very first app launch, for 4 seconds,
-/// before the onboarding flow begins.
+/// Full-screen splash shown ONCE on the very first app launch.
+/// Displays the welcome image beautifully for 5 seconds, then navigates away.
 class WelcomeSplashScreen extends StatefulWidget {
   const WelcomeSplashScreen({super.key});
 
@@ -15,60 +14,37 @@ class WelcomeSplashScreen extends StatefulWidget {
   State<WelcomeSplashScreen> createState() => _WelcomeSplashScreenState();
 }
 
-class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
-    with SingleTickerProviderStateMixin {
-  // ── countdown progress ──────────────────────────────────────────────────────
-  static const Duration _displayDuration = Duration(seconds: 20);
+class _WelcomeSplashScreenState extends State<WelcomeSplashScreen> {
+  static const Duration _displayDuration = Duration(seconds: 5);
 
-  late final AnimationController _progressCtrl;
   Timer? _navTimer;
-
-  // ── fade-out overlay ────────────────────────────────────────────────────────
   bool _fadingOut = false;
 
   @override
   void initState() {
     super.initState();
-
-    // The circular ring fills over exactly 4 seconds
-    _progressCtrl = AnimationController(vsync: this, duration: _displayDuration)
-      ..forward();
-
-    // Mark first launch done so this never shows again
-    SettingsRepository().setHasSeenWelcomeScreen(true);
-
-    // Navigate away after 4 s (tiny extra buffer for fade-out)
+    // Navigate away after 5 seconds
     _navTimer = Timer(_displayDuration, _leaveScreen);
   }
 
   @override
   void dispose() {
-    _progressCtrl.dispose();
     _navTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _leaveScreen() async {
     if (!mounted) return;
+
+    // Mark first launch done so this never shows again
+    await SettingsRepository().setHasSeenWelcomeScreen(true);
+
     setState(() => _fadingOut = true);
-    // Let the fade-out animate (400 ms) then navigate
-    await Future.delayed(const Duration(milliseconds: 400));
+    // Let the fade-out animate (500 ms) then navigate
+    await Future.delayed(const Duration(milliseconds: 500));
     if (mounted) context.go('/dashboard');
   }
 
-  // Web stub: skip the splash on web immediately
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (kIsWeb) {
-      SettingsRepository().setHasSeenWelcomeScreen(true);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) context.go('/dashboard');
-      });
-    }
-  }
-
-  // ── UI ──────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -76,7 +52,7 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
 
     return Scaffold(
       body: AnimatedOpacity(
-        duration: const Duration(milliseconds: 400),
+        duration: const Duration(milliseconds: 500),
         opacity: _fadingOut ? 0.0 : 1.0,
         child: Container(
           width: double.infinity,
@@ -100,7 +76,7 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
           ),
           child: Stack(
             children: [
-              // ── decorative blobs ─────────────────────────────────────────
+              // ── Decorative background blobs ──
               _buildBlob(
                 isDark: isDark,
                 top: -size.height * 0.12,
@@ -121,25 +97,19 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
                 opacityDark: 0.12,
                 opacityLight: 0.5,
               ),
-
-              // ── main content ────────────────────────────────────────────
-              SafeArea(
-                child: Column(
-                  children: [
-                    const Spacer(flex: 2),
-
-                    // Welcome Image — zoom + fade in
-                    _buildWelcomeImage(size, isDark),
-
-                    const Spacer(flex: 2),
-
-                    // Countdown ring
-                    _buildCountdownRing(isDark),
-
-                    const SizedBox(height: 48),
-                  ],
-                ),
+              _buildBlob(
+                isDark: isDark,
+                bottom: -size.height * 0.05,
+                right: -size.width * 0.1,
+                diameter: size.width * 0.4,
+                colorDark: const Color(0xFF448AFF),
+                colorLight: const Color(0xFFBBDEFB),
+                opacityDark: 0.10,
+                opacityLight: 0.30,
               ),
+
+              // ── Centered welcome image ──
+              Center(child: _buildWelcomeImage(size, isDark)),
             ],
           ),
         ),
@@ -147,28 +117,30 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
     );
   }
 
-  // ── welcome image with glass card effect ─────────────────────────────────
+  // ── Welcome image with glow and entrance animation ──
   Widget _buildWelcomeImage(Size size, bool isDark) {
     return Container(
-          width: size.width * 0.82,
+          width: size.width * 0.85,
           constraints: BoxConstraints(
-            maxWidth: 380,
-            maxHeight: size.height * 0.55,
+            maxWidth: 400,
+            maxHeight: size.height * 0.6,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
             boxShadow: [
+              // Primary glow
               BoxShadow(
                 color: AppTheme.primaryColor.withValues(
-                  alpha: isDark ? 0.35 : 0.2,
+                  alpha: isDark ? 0.45 : 0.25,
                 ),
-                blurRadius: 48,
-                spreadRadius: 4,
-                offset: const Offset(0, 16),
+                blurRadius: 64,
+                spreadRadius: 8,
+                offset: const Offset(0, 12),
               ),
+              // Deeper shadow
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.1),
-                blurRadius: 24,
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.12),
+                blurRadius: 32,
                 offset: const Offset(0, 8),
               ),
             ],
@@ -183,84 +155,25 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen>
             ),
           ),
         )
+        // Entrance: fade in + scale up from smaller
         .animate()
-        // Entrance: fade + scale up from slightly smaller
-        .fadeIn(duration: 700.ms, curve: Curves.easeOut)
+        .fadeIn(duration: 800.ms, curve: Curves.easeOut)
         .scaleXY(
-          begin: 0.78,
+          begin: 0.75,
           end: 1.0,
-          duration: 900.ms,
+          duration: 1000.ms,
           curve: Curves.elasticOut,
         )
-        // Floating idle pulse (runs forever)
-        .then(delay: 100.ms)
+        // Subtle shimmer sweep after entrance
+        .then(delay: 200.ms)
         .shimmer(
-          delay: 400.ms,
-          duration: 1800.ms,
+          delay: 500.ms,
+          duration: 2000.ms,
           color: Colors.white.withValues(alpha: isDark ? 0.06 : 0.12),
         );
   }
 
-  // ── animated progress ring with tap-to-skip ──────────────────────────────
-  Widget _buildCountdownRing(bool isDark) {
-    return GestureDetector(
-          onTap: _leaveScreen,
-          child: AnimatedBuilder(
-            animation: _progressCtrl,
-            builder: (_, _) {
-              return SizedBox(
-                width: 64,
-                height: 64,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Track ring (dimmed)
-                    SizedBox.expand(
-                      child: CircularProgressIndicator(
-                        value: 1.0,
-                        strokeWidth: 3.5,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.1)
-                            : Colors.black.withValues(alpha: 0.08),
-                      ),
-                    ),
-                    // Progress ring
-                    SizedBox.expand(
-                      child: CircularProgressIndicator(
-                        value: _progressCtrl.value,
-                        strokeWidth: 3.5,
-                        strokeCap: StrokeCap.round,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          isDark ? Colors.white70 : AppTheme.primaryColor,
-                        ),
-                      ),
-                    ),
-                    // Inner skip icon
-                    Icon(
-                      Icons.skip_next_rounded,
-                      size: 26,
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.65)
-                          : AppTheme.primaryColor.withValues(alpha: 0.75),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        )
-        .animate()
-        .fadeIn(delay: 600.ms, duration: 500.ms)
-        .slideY(
-          begin: 0.3,
-          end: 0,
-          delay: 600.ms,
-          duration: 500.ms,
-          curve: Curves.easeOutCubic,
-        );
-  }
-
-  // ── helper: decorative background blob ───────────────────────────────────
+  // ── Decorative background blob ──
   Widget _buildBlob({
     required bool isDark,
     double? top,

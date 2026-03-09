@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -95,8 +94,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       final settingsRepo = SettingsRepository();
 
-      // 1. Welcome Screen Guard (First-ever run, Android/iOS only)
-      if (!kIsWeb && !settingsRepo.hasSeenWelcomeScreen()) {
+      // 1. Welcome Screen Guard (First-ever run)
+      if (!settingsRepo.hasSeenWelcomeScreen()) {
         if (location == '/welcome') return null;
         return '/welcome';
       }
