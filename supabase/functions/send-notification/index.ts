@@ -29,25 +29,28 @@ Deno.serve(async (req: Request) => {
             );
         }
 
+        // Convert {user_name} placeholder to OneSignal Liquid template syntax
+        // so it gets replaced with the actual user tag on the device lock screen
+        const osTitleText = (title || '').replace(/\{user_name\}/g, "{{ user_name | default: 'there' }}");
+        const osBodyText = (body || title || '').replace(/\{user_name\}/g, "{{ user_name | default: 'there' }}");
+
         const payload: Record<string, any> = {
             app_id: appId,
             // "Total Subscriptions" is the default segment that includes ALL opted-in users
             included_segments: ["Total Subscriptions"],
-            headings: { en: title },
-            contents: { en: body || title },
+            headings: { en: osTitleText },
+            contents: { en: osBodyText },
             data: { type, target_url, image_url, created_by },
             // ── Imagery ──
             ...(image_url ? { big_picture: image_url, ios_attachments: { id1: image_url } } : {}),
             // ── Android: force heads-up / status bar display ──
             priority: 10,                          // FCM high priority
-            android_channel_id: "webvault_push",    // Must match channel created in Flutter
             android_group: "webvault_notifications",
             // ── iOS ──
             ios_sound: "default",
             // ── General ──
             isAndroid: true,
             isIos: true,
-            isAnyWeb: true,
         };
 
         const response = await fetch(ONE_SIGNAL_API_URL, {

@@ -300,7 +300,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 discoverState.items.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: _buildEmptyState(isDark),
+                child:
+                    (trendingState.error != null ||
+                        popularState.error != null ||
+                        featuredState.error != null ||
+                        discoverState.error != null)
+                    ? OfflineWarningWidget(
+                        error:
+                            (trendingState.error ??
+                            popularState.error ??
+                            featuredState.error ??
+                            discoverState.error)!,
+                      )
+                    : _buildEmptyState(isDark),
               ),
           ],
 

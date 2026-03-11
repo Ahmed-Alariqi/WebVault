@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../core/services/imagekit_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../data/models/notification_model.dart';
 
 class SendNotificationScreen extends ConsumerStatefulWidget {
   const SendNotificationScreen({super.key});
@@ -607,6 +609,9 @@ class _SendNotificationScreenState
                 ],
               ),
             ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05),
+
+            const SizedBox(height: 32),
+            _buildRecentNotifications(context, ref, isDark),
           ],
         ),
       ),
@@ -656,5 +661,229 @@ class _SendNotificationScreenState
         ),
       ),
     );
+  }
+
+  Widget _buildRecentNotifications(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+  ) {
+    final state = ref.watch(adminNotificationsPaginatedProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Notifications',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            if (state.items.isNotEmpty)
+              TextButton.icon(
+                onPressed: () => _confirmDeleteAll(context, ref),
+                icon: Icon(PhosphorIcons.trash(), size: 16, color: Colors.red),
+                label: const Text(
+                  'Delete All',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (state.isLoading && state.isInitialLoad)
+          const Center(child: CircularProgressIndicator())
+        else if (state.items.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                'No recent notifications found.',
+                style: TextStyle(
+                  color: isDark ? Colors.white54 : Colors.black45,
+                ),
+              ),
+            ),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: state.items.length + (state.hasMore ? 1 : 0),
+            separatorBuilder: (context, index) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              if (index >= state.items.length) {
+                return Center(
+                  child: TextButton(
+                    onPressed: () => ref
+                        .read(adminNotificationsPaginatedProvider.notifier)
+                        .loadMore(),
+                    child: const Text('Load More'),
+                  ),
+                );
+              }
+              final notif = state.items[index];
+              return _buildNotificationItem(context, ref, notif, isDark);
+            },
+          ),
+      ],
+    ).animate().fadeIn(delay: 300.ms);
+  }
+
+  Widget _buildNotificationItem(
+    BuildContext context,
+    WidgetRef ref,
+    NotificationModel notif,
+    bool isDark,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              PhosphorIcons.bellRinging(),
+              color: AppTheme.primaryColor,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  notif.title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                if (notif.body.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    notif.body,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  DateFormat(
+                    'MMM d, yyyy • h:mm a',
+                  ).format(notif.createdAt.toLocal()),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              PhosphorIcons.trash(),
+              color: Colors.redAccent,
+              size: 20,
+            ),
+            onPressed: () => _confirmDelete(context, ref, notif.id),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    String id,
+  ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        title: const Text('Delete Notification?'),
+        content: const Text(
+          'Are you sure you want to delete this notification?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await adminDeleteNotification(id);
+      if (context.mounted) {
+        ref.read(adminNotificationsPaginatedProvider.notifier).reset();
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        title: const Text('Delete All Notifications?'),
+        content: const Text(
+          'Are you sure you want to delete ALL notifications? This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Delete All',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await adminDeleteAllNotifications();
+      if (context.mounted) {
+        ref.read(adminNotificationsPaginatedProvider.notifier).reset();
+      }
+    }
   }
 }

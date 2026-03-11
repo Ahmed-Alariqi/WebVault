@@ -8,6 +8,7 @@ import '../../presentation/widgets/modern_fab.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
@@ -171,6 +172,13 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                         5,
                         (_) => const ShimmerAdminTile(),
                       ),
+                    ),
+                  )
+                : pState.error != null
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: OfflineWarningWidget(error: pState.error!),
                     ),
                   )
                 : filtered.isEmpty

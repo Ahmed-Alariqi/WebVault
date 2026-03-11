@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +95,33 @@ Future<void> main() async {
   // Enable push subscription explicitly (OneSignal v5+ requires this)
   OneSignal.User.pushSubscription.optIn();
 
+  // ── Aggressive retry for blocked regions ──
+  // In some regions, OneSignal/FCM registration fails on first attempt.
+  // Retry every 30 seconds for up to 5 minutes until subscription is active.
+  int retryCount = 0;
+  const maxRetries = 10; // 10 × 30s = 5 minutes
+  Timer.periodic(const Duration(seconds: 30), (timer) {
+    retryCount++;
+    final subId = OneSignal.User.pushSubscription.id;
+    final token = OneSignal.User.pushSubscription.token;
+    debugPrint('[OneSignal Retry #$retryCount] subId=$subId, token=$token');
+
+    if ((subId != null && subId.isNotEmpty) || retryCount >= maxRetries) {
+      debugPrint(
+        '[OneSignal] Registration ${subId != null ? 'succeeded' : 'gave up'} after $retryCount attempts',
+      );
+      timer.cancel();
+      return;
+    }
+
+    // Retry registration
+    OneSignal.User.pushSubscription.optIn();
+    OneSignal.Notifications.requestPermission(true);
+    debugPrint(
+      '[OneSignal] Retrying registration... attempt $retryCount/$maxRetries',
+    );
+  });
+
   // Create a global container so we can invalidate providers from callbacks
   final container = ProviderContainer();
   final authService = AuthService();
@@ -138,6 +166,17 @@ Future<void> main() async {
 
         // Also ensure push subscription is opted in
         OneSignal.User.pushSubscription.optIn();
+
+        // Tag the user's name so OneSignal can personalize push content
+        final meta = session?.user.userMetadata;
+        final userName =
+            meta?['username'] as String? ??
+            meta?['full_name'] as String? ??
+            meta?['name'] as String? ??
+            session?.user.email ??
+            'there';
+        OneSignal.User.addTagWithKey('user_name', userName);
+        debugPrint('[OneSignal] Tagged user_name=$userName');
 
         // Try to store the subscription ID right away
         final subId = OneSignal.User.pushSubscription.id;

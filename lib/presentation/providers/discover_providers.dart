@@ -145,12 +145,14 @@ class PaginatedWebsitesState {
   final bool isLoading;
   final bool hasMore;
   final bool isInitialLoad;
+  final Object? error;
 
   const PaginatedWebsitesState({
     this.items = const [],
     this.isLoading = false,
     this.hasMore = true,
     this.isInitialLoad = true,
+    this.error,
   });
 
   PaginatedWebsitesState copyWith({
@@ -158,12 +160,15 @@ class PaginatedWebsitesState {
     bool? isLoading,
     bool? hasMore,
     bool? isInitialLoad,
+    Object? error,
+    bool clearError = false,
   }) {
     return PaginatedWebsitesState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -180,7 +185,7 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final categoryId = _ref.read(selectedCategoryProvider);
@@ -221,7 +226,7 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
         isInitialLoad: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, isInitialLoad: false);
+      state = state.copyWith(isLoading: false, isInitialLoad: false, error: e);
     }
   }
 

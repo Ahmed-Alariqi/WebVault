@@ -110,10 +110,26 @@ class _CommunityNewPostSheetState extends ConsumerState<CommunityNewPostSheet> {
       );
     } catch (e) {
       if (!mounted) return;
+      final errStr = e.toString().toLowerCase();
+      final isOffline =
+          errStr.contains('socketexception') ||
+          errStr.contains('failed host lookup') ||
+          errStr.contains('connection refused') ||
+          errStr.contains('clientexception') ||
+          errStr.contains('network is unreachable') ||
+          errStr.contains('xmlhttprequest error') ||
+          errStr.contains('network error') ||
+          errStr.contains('fetch failed') ||
+          errStr.contains('offline');
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to post: $e'),
-          backgroundColor: Colors.red,
+          content: Text(
+            isOffline
+                ? 'You are offline. Please check your internet connection.'
+                : 'Failed to post: $e',
+          ),
+          backgroundColor: isOffline ? Colors.orange : Colors.red,
         ),
       );
     } finally {

@@ -282,19 +282,21 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                 ref.read(selectedClipboardGroupProvider.notifier).state = null,
             isDark: isDark,
           ),
-          const SizedBox(width: 8),
-          _GroupChip(
-            label: AppLocalizations.of(context)!.uncategorized,
-            icon: PhosphorIcons.tray(),
-            isSelected: activeGroupId == 'uncategorized',
-            onTap: () =>
-                ref.read(selectedClipboardGroupProvider.notifier).state =
-                    'uncategorized',
-            isDark: isDark,
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 8),
+            child: _GroupChip(
+              label: AppLocalizations.of(context)!.uncategorized,
+              icon: PhosphorIcons.tray(),
+              isSelected: activeGroupId == 'uncategorized',
+              onTap: () =>
+                  ref.read(selectedClipboardGroupProvider.notifier).state =
+                      'uncategorized',
+              isDark: isDark,
+            ),
           ),
           ...groups.map((g) {
             return Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsetsDirectional.only(start: 8),
               child: _GroupChip(
                 label: g.name,
                 icon: _getIconData(g.iconStr),
@@ -308,16 +310,19 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               ),
             );
           }),
-          const SizedBox(width: 8),
-          ActionChip(
-            backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-            side: BorderSide(
-              color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
-            ),
-            label: const Icon(Icons.add, size: 18),
-            onPressed: () => _showManageGroupDialog(context, ref, null, isDark),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 8),
+            child: ActionChip(
+              backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              side: BorderSide(
+                color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
+              ),
+              label: const Icon(Icons.add, size: 18),
+              onPressed: () =>
+                  _showManageGroupDialog(context, ref, null, isDark),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
             ),
           ),
         ],

@@ -5,6 +5,7 @@ import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/suggestion_model.dart';
+import '../../data/models/notification_model.dart';
 import '../../data/repositories/suggestion_repository.dart';
 
 final _client = SupabaseConfig.client;
@@ -28,12 +29,14 @@ class PaginatedAdminState<T> {
   final bool isLoading;
   final bool hasMore;
   final bool isInitialLoad;
+  final Object? error;
 
   const PaginatedAdminState({
     this.items = const [],
     this.isLoading = false,
     this.hasMore = true,
     this.isInitialLoad = true,
+    this.error,
   });
 
   PaginatedAdminState<T> copyWith({
@@ -41,12 +44,15 @@ class PaginatedAdminState<T> {
     bool? isLoading,
     bool? hasMore,
     bool? isInitialLoad,
+    Object? error,
+    bool clearError = false,
   }) {
     return PaginatedAdminState<T>(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       isInitialLoad: isInitialLoad ?? this.isInitialLoad,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -60,7 +66,7 @@ class AdminWebsitesPaginatedNotifier
 
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearError: true);
 
     try {
       final from = state.items.length;
@@ -83,7 +89,7 @@ class AdminWebsitesPaginatedNotifier
         isInitialLoad: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, isInitialLoad: false);
+      state = state.copyWith(isLoading: false, isInitialLoad: false, error: e);
     }
   }
 
@@ -113,7 +119,7 @@ class AdminUsersPaginatedNotifier
   }
 
   Future<void> _fetchAll() async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, clearError: true);
     try {
       final response = await _client.functions.invoke(
         'admin-user-actions',
@@ -132,7 +138,7 @@ class AdminUsersPaginatedNotifier
       );
     } catch (e) {
       debugPrint('Error loading users: $e');
-      state = state.copyWith(isLoading: false, isInitialLoad: false);
+      state = state.copyWith(isLoading: false, isInitialLoad: false, error: e);
     }
   }
 
@@ -236,6 +242,74 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
     // Don't swallow - rethrow so admin sees push failed
     rethrow;
   }
+}
+
+// --------------- Admin Notifications CRUD & Pagination ---------------
+
+const int kAdminNotificationsPageSize = 5;
+
+class AdminNotificationsPaginatedNotifier
+    extends StateNotifier<PaginatedAdminState<NotificationModel>> {
+  AdminNotificationsPaginatedNotifier()
+    : super(const PaginatedAdminState<NotificationModel>()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoading || !state.hasMore) return;
+    state = state.copyWith(isLoading: true, clearError: true);
+
+    try {
+      final from = state.items.length;
+      final to = from + kAdminNotificationsPageSize - 1;
+
+      final response = await _client
+          .from('notifications')
+          .select()
+          .order('created_at', ascending: false)
+          .range(from, to);
+
+      final newItems = (response as List)
+          .map((e) => NotificationModel.fromJson(e))
+          .toList();
+
+      state = state.copyWith(
+        items: [...state.items, ...newItems],
+        isLoading: false,
+        hasMore: newItems.length >= kAdminNotificationsPageSize,
+        isInitialLoad: false,
+      );
+    } catch (e) {
+      debugPrint('Error loading admin notifications: $e');
+      state = state.copyWith(isLoading: false, isInitialLoad: false, error: e);
+    }
+  }
+
+  void reset() {
+    state = const PaginatedAdminState<NotificationModel>();
+    loadMore();
+  }
+}
+
+final adminNotificationsPaginatedProvider =
+    StateNotifierProvider<
+      AdminNotificationsPaginatedNotifier,
+      PaginatedAdminState<NotificationModel>
+    >((ref) {
+      return AdminNotificationsPaginatedNotifier();
+    });
+
+Future<void> adminDeleteNotification(String id) async {
+  await _client.from('notifications').delete().eq('id', id);
+}
+
+Future<void> adminDeleteAllNotifications() async {
+  // To delete all we can do a neq to something impossible or just eq on something always true.
+  // Using an open delete.
+  await _client
+      .from('notifications')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
 }
 
 // --------------- Admin In-App Messages ---------------

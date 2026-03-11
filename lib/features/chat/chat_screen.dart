@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/widgets/offline_warning_widget.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key});
@@ -369,11 +370,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     },
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(
-                      child: Text(
-                        AppLocalizations.of(context)!.chatError(e.toString()),
-                      ),
-                    ),
+                    error: (e, _) {
+                      final errStr = e.toString().toLowerCase();
+                      final isOffline =
+                          errStr.contains('socketexception') ||
+                          errStr.contains('failed host lookup') ||
+                          errStr.contains('connection refused') ||
+                          errStr.contains('clientexception') ||
+                          errStr.contains('network is unreachable') ||
+                          errStr.contains('xmlhttprequest error') ||
+                          errStr.contains('network error') ||
+                          errStr.contains('fetch failed') ||
+                          errStr.contains('offline');
+
+                      if (isOffline) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: OfflineWarningWidget(error: e),
+                          ),
+                        );
+                      }
+
+                      return Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.chatError(e.toString()),
+                        ),
+                      );
+                    },
                   ),
                 ),
 
@@ -497,9 +521,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(
-            child: Text(AppLocalizations.of(context)!.chatError(e.toString())),
-          ),
+          error: (e, _) {
+            final errStr = e.toString().toLowerCase();
+            final isOffline =
+                errStr.contains('socketexception') ||
+                errStr.contains('failed host lookup') ||
+                errStr.contains('connection refused') ||
+                errStr.contains('clientexception') ||
+                errStr.contains('network is unreachable') ||
+                errStr.contains('xmlhttprequest error') ||
+                errStr.contains('network error') ||
+                errStr.contains('fetch failed') ||
+                errStr.contains('offline');
+
+            if (isOffline) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: OfflineWarningWidget(error: e),
+                ),
+              );
+            }
+
+            return Center(
+              child: Text(
+                AppLocalizations.of(context)!.chatError(e.toString()),
+              ),
+            );
+          },
         ),
       ),
     );
