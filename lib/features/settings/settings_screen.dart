@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../../core/supabase_config.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
@@ -579,6 +581,109 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               );
             },
+          ),
+          const SizedBox(height: 28),
+
+          // Fix Notifications (VPN Required) section
+          _buildSectionHeader(
+            'Push Notifications',
+            PhosphorIcons.bell(),
+            isDark,
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            isDark: isDark,
+            child: ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Icon(
+                    PhosphorIcons.wrench(PhosphorIconsStyle.fill),
+                    color: Colors.orange,
+                  ),
+                ),
+              ),
+              title: Text(
+                'Fix Notifications',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                ),
+              ),
+              subtitle: Text(
+                'Tap while VPN is active to permanently fix blocked notifications',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                ),
+              ),
+              trailing: Icon(
+                PhosphorIcons.caretRight(),
+                size: 18,
+                color: isDark ? Colors.white38 : Colors.black26,
+              ),
+              onTap: () async {
+                final scaffoldMsg = ScaffoldMessenger.of(context);
+
+                scaffoldMsg.showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Requesting self-test push... Please ensure VPN is ON.',
+                    ),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+
+                try {
+                  // Make sure SDK is opted in
+                  OneSignal.User.pushSubscription.optIn();
+
+                  final playerId = OneSignal.User.pushSubscription.id;
+                  if (playerId == null || playerId.isEmpty) {
+                    scaffoldMsg.showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Device not registered yet. Keep VPN on and try again in 30s.',
+                        ),
+                        backgroundColor: AppTheme.errorColor,
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Invoke the self-test-notification edge function
+                  await SupabaseConfig.client.functions.invoke(
+                    'self-test-notification',
+                    body: {'player_id': playerId},
+                  );
+
+                  scaffoldMsg.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Success! You should receive a notification within seconds.',
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  scaffoldMsg.showSnackBar(
+                    SnackBar(
+                      content: Text('Failed: $e'),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
+                }
+              },
+            ),
           ),
           const SizedBox(height: 40),
         ],
