@@ -19,6 +19,7 @@ import 'presentation/providers/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'core/services/analytics_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -82,6 +83,9 @@ Future<void> main() async {
     onResume: () => checkAndProcessPendingShares(),
   );
 
+  // Set up timeago arabic locales
+  timeago.setLocaleMessages('ar', timeago.ArMessages());
+
   // Initialize Supabase
   await SupabaseConfig.initialize();
 
@@ -95,32 +99,9 @@ Future<void> main() async {
   // Enable push subscription explicitly (OneSignal v5+ requires this)
   OneSignal.User.pushSubscription.optIn();
 
-  // ── Aggressive retry for blocked regions ──
-  // In some regions, OneSignal/FCM registration fails on first attempt.
-  // Retry every 30 seconds for up to 5 minutes until subscription is active.
-  int retryCount = 0;
-  const maxRetries = 10; // 10 × 30s = 5 minutes
-  Timer.periodic(const Duration(seconds: 30), (timer) {
-    retryCount++;
-    final subId = OneSignal.User.pushSubscription.id;
-    final token = OneSignal.User.pushSubscription.token;
-    debugPrint('[OneSignal Retry #$retryCount] subId=$subId, token=$token');
-
-    if ((subId != null && subId.isNotEmpty) || retryCount >= maxRetries) {
-      debugPrint(
-        '[OneSignal] Registration ${subId != null ? 'succeeded' : 'gave up'} after $retryCount attempts',
-      );
-      timer.cancel();
-      return;
-    }
-
-    // Retry registration
-    OneSignal.User.pushSubscription.optIn();
-    OneSignal.Notifications.requestPermission(true);
-    debugPrint(
-      '[OneSignal] Retrying registration... attempt $retryCount/$maxRetries',
-    );
-  });
+  // ── OneSignal registration is now handled by the Fix Notifications button ──
+  // In blocked regions, the user opens VPN and taps "Fix Notifications" in
+  // Settings, which restarts the app so OneSignal can re-register cleanly.
 
   // Create a global container so we can invalidate providers from callbacks
   final container = ProviderContainer();

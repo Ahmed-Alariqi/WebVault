@@ -4063,6 +4063,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dev: Ahmed Al-Ariqi'**
   String get aboutDevLabel;
+
+  /// No description provided for @manageAdPanels.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Ad Panels'**
+  String get manageAdPanels;
+
+  /// No description provided for @addAd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Advertisement'**
+  String get addAd;
+
+  /// No description provided for @editAd.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Advertisement'**
+  String get editAd;
+
+  /// No description provided for @noAdvertisements.
+  ///
+  /// In en, this message translates to:
+  /// **'No Advertisements'**
+  String get noAdvertisements;
+
+  /// No description provided for @createFirstAd.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first moving ad panel.'**
+  String get createFirstAd;
+
+  /// No description provided for @newAd.
+  ///
+  /// In en, this message translates to:
+  /// **'New Ad'**
+  String get newAd;
+
+  /// No description provided for @deleteAdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Advertisement?'**
+  String get deleteAdTitle;
+
+  /// No description provided for @deleteAdConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to permanently delete this ad?'**
+  String get deleteAdConfirm;
+
+  /// No description provided for @adActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get adActive;
+
+  /// No description provided for @adHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get adHidden;
+
+  /// No description provided for @adActivated.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad activated'**
+  String get adActivated;
+
+  /// No description provided for @adHiddenMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad hidden'**
+  String get adHiddenMsg;
+
+  /// No description provided for @adDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad deleted'**
+  String get adDeleted;
+
+  /// No description provided for @adTitleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertisement Title'**
+  String get adTitleLabel;
+
+  /// No description provided for @adTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin reference name'**
+  String get adTitleHint;
+
+  /// No description provided for @adContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Text (Optional)'**
+  String get adContentLabel;
+
+  /// No description provided for @adContentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Text shown over the image'**
+  String get adContentHint;
+
+  /// No description provided for @adDurationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Duration (seconds)'**
+  String get adDurationLabel;
+
+  /// No description provided for @adTargetScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Screen'**
+  String get adTargetScreen;
+
+  /// No description provided for @adBothScreens.
+  ///
+  /// In en, this message translates to:
+  /// **'Home & Discover (Both)'**
+  String get adBothScreens;
+
+  /// No description provided for @adShowTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Remaining Time'**
+  String get adShowTimer;
+
+  /// No description provided for @adShowTimerSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Displays an expiration badge'**
+  String get adShowTimerSub;
+
+  /// No description provided for @adActiveStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Status'**
+  String get adActiveStatus;
+
+  /// No description provided for @adActiveStatusSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Immediately show or hide this ad'**
+  String get adActiveStatusSub;
+
+  /// No description provided for @adLinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad Linking'**
+  String get adLinking;
+
+  /// No description provided for @adLinkInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to Internal App Item'**
+  String get adLinkInternal;
+
+  /// No description provided for @adLinkInternalSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a website, prompt, or offer from Discover'**
+  String get adLinkInternalSub;
+
+  /// No description provided for @adExternalUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'External Link URL (Optional)'**
+  String get adExternalUrl;
+
+  /// No description provided for @adExternalUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://...'**
+  String get adExternalUrlHint;
+
+  /// No description provided for @adLinkSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked Item:'**
+  String get adLinkSelected;
+
+  /// No description provided for @adRemoveLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Link'**
+  String get adRemoveLink;
+
+  /// No description provided for @adSavedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertisement saved successfully'**
+  String get adSavedSuccess;
+
+  /// No description provided for @adSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving advertisement: {error}'**
+  String adSaveError(Object error);
+
+  /// No description provided for @adEnterImageError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an image URL or upload an image'**
+  String get adEnterImageError;
+
+  /// No description provided for @adEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad End Date (Optional)'**
+  String get adEndDate;
+
+  /// No description provided for @basicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Info'**
+  String get basicInfo;
+
+  /// No description provided for @coverImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover Image'**
+  String get coverImage;
+
+  /// No description provided for @displaySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Display Settings'**
+  String get displaySettings;
+
+  /// No description provided for @adSearchInternal.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Internal Discover Item'**
+  String get adSearchInternal;
+
+  /// No description provided for @adNoMatchingItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching items found.'**
+  String get adNoMatchingItems;
+
+  /// No description provided for @adExternalUrlHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens this link in external browser when tapped'**
+  String get adExternalUrlHelper;
+
+  /// No description provided for @invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid'**
+  String get invalid;
+
+  /// No description provided for @adEndDateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set when the ad will stop showing'**
+  String get adEndDateSubtitle;
+
+  /// No description provided for @adDurationFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'{duration}s duration'**
+  String adDurationFormat(int duration);
+
+  /// No description provided for @adScreenFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen: {screen}'**
+  String adScreenFormat(String screen);
+
+  /// No description provided for @adEndsFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends: {date}'**
+  String adEndsFormat(String date);
+
+  /// No description provided for @adEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get adEnded;
+
+  /// No description provided for @adEndsInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in {days} days'**
+  String adEndsInDays(int days);
+
+  /// No description provided for @adEndsInOneDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in 1 day'**
+  String get adEndsInOneDay;
+
+  /// No description provided for @adEndsInHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends in {hours} hours'**
+  String adEndsInHours(int hours);
+
+  /// No description provided for @adEndsSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends soon'**
+  String get adEndsSoon;
+
+  /// No description provided for @adminAdvertisementsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Advertisements'**
+  String get adminAdvertisementsTitle;
+
+  /// No description provided for @adminAdvertisementsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving ad panels'**
+  String get adminAdvertisementsSubtitle;
+
+  /// No description provided for @settingsFixNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix Notifications'**
+  String get settingsFixNotifications;
+
+  /// No description provided for @notifRecentNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Notifications'**
+  String get notifRecentNotifications;
+
+  /// No description provided for @notifNoRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent notifications found.'**
+  String get notifNoRecent;
+
+  /// No description provided for @notifDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Notification?'**
+  String get notifDeleteTitle;
+
+  /// No description provided for @notifDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this notification?'**
+  String get notifDeleteConfirm;
+
+  /// No description provided for @notifCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get notifCancel;
+
+  /// No description provided for @notifDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get notifDelete;
+
+  /// No description provided for @notifStatusRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Device is registered. Tap to send a test notification.'**
+  String get notifStatusRegistered;
+
+  /// No description provided for @notifStatusNotRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Device not registered. Tap to restart with VPN.'**
+  String get notifStatusNotRegistered;
+
+  /// No description provided for @notifTestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Test notification sent! You should receive it shortly.'**
+  String get notifTestSent;
+
+  /// No description provided for @notifTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send test notification'**
+  String get notifTestFailed;
+
+  /// No description provided for @notifRestartingApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Restarting app to re-register for notifications...'**
+  String get notifRestartingApp;
+
+  /// No description provided for @notifLoadMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load More'**
+  String get notifLoadMore;
+
+  /// No description provided for @notifFixDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Notifications'**
+  String get notifFixDialogTitle;
+
+  /// No description provided for @notifFixDialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Please make sure you have a VPN turned on first, then tap \'Restart Now\' to restart the app. The app must be reopened with VPN active to register for notifications.'**
+  String get notifFixDialogBody;
+
+  /// No description provided for @notifRestartNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart Now'**
+  String get notifRestartNow;
 }
 
 class _AppLocalizationsDelegate

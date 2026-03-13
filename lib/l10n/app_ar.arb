@@ -741,5 +741,117 @@
   "aboutGoalTitle": "هدف زاد تك",
   "aboutGoalBody": "الهدف هو أن يكون تطبيق زادك الرقمي منصة متكاملة تجمع كل ما قد يحتاجه المهتم بالتقنية في مكان واحد؛ بدءًا من المواقع والأدوات الرقمية، وصولًا إلى أحدث العروض والخدمات والاشتراكات. كما يوفّر التطبيق خزنة رقمية خاصة تتيح للمستخدم حفظ كل ما يهمه ويخاف فقدانه أو نسيانه، ليتمكن من استرجاعه بسهولة وفي أي وقت بضغطة زر.",
   "aboutTaglineBanner": "زاد تك — اكتشف. احفظ. استرجع فورًا. 🚀",
-  "aboutDevLabel": "تطوير: أحمد العريقي"
+  "aboutDevLabel": "تطوير: أحمد العريقي",
+
+  "manageAdPanels": "إدارة لوحات الإعلانات",
+  "addAd": "إضافة إعلان",
+  "editAd": "تعديل الإعلان",
+  "noAdvertisements": "لا توجد إعلانات",
+  "createFirstAd": "قم بإنشاء أول لوحة إعلانية لك.",
+  "newAd": "إعلان جديد",
+  "deleteAdTitle": "حذف الإعلان؟",
+  "deleteAdConfirm": "هل أنت متأكد أنك تريد حذف هذا الإعلان نهائياً؟",
+  "adActive": "نشط",
+  "adHidden": "مخفي",
+  "adActivated": "تم تفعيل الإعلان",
+  "adHiddenMsg": "تم إخفاء الإعلان",
+  "adDeleted": "تم حذف الإعلان",
+  "adTitleLabel": "عنوان الإعلان",
+  "adTitleHint": "اسم مرجعي للمسؤول",
+  "adContentLabel": "نص العرض (اختياري)",
+  "adContentHint": "النص المعروض فوق الصورة",
+  "adDurationLabel": "مدة العرض (ثواني)",
+  "adTargetScreen": "الشاشة المستهدفة",
+  "adBothScreens": "الرئيسية والمكتشف (كلاهما)",
+  "adShowTimer": "إظهار الوقت المتبقي",
+  "adShowTimerSub": "يعرض شارة انتهاء الصلاحية",
+  "adActiveStatus": "حالة النشاط",
+  "adActiveStatusSub": "إظهار أو إخفاء هذا الإعلان فوراً",
+  "adLinking": "ربط الإعلان",
+  "adLinkInternal": "ربط بعنصر داخل التطبيق",
+  "adLinkInternalSub": "ابحث عن موقع، أو تلميح، أو عرض من قسم المكتشف",
+  "adExternalUrl": "رابط خارجي (اختياري)",
+  "adExternalUrlHint": "https://...",
+  "adLinkSelected": "العنصر المرتبط:",
+  "adRemoveLink": "إزالة الرابط",
+  "adSavedSuccess": "تم حفظ الإعلان بنجاح",
+  "adSaveError": "خطأ في حفظ الإعلان: {error}",
+  "adEnterImageError": "يرجى إدخال رابط الصورة أو رفع صورة",
+  "adEndDate": "تاريخ انتهاء الإعلان (اختياري)",
+  "basicInfo": "المعلومات الأساسية",
+  "coverImage": "صورة الغلاف",
+  "displaySettings": "إعدادات العرض",
+
+  "adSearchInternal": "البحث عن عنصر داخلي",
+  "adNoMatchingItems": "لم يتم العثور على عناصر مطابقة.",
+  "adExternalUrlHelper": "يفتح هذا الرابط في متصفح خارجي عند النقر",
+  "invalid": "غير صالح",
+  "adEndDateSubtitle": "حدد متى سيتوقف عرض الإعلان",
+
+  "adDurationFormat": "المدة {duration} ثانية",
+  "@adDurationFormat": {
+    "placeholders": {
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
+  "adScreenFormat": "الشاشة: {screen}",
+  "@adScreenFormat": {
+    "placeholders": {
+      "screen": {
+        "type": "String"
+      }
+    }
+  },
+  "adEndsFormat": "ينتهي: {date}",
+  "@adEndsFormat": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "adEnded": "انتهى",
+  "adEndsInDays": "ينتهي خلال {days} أيام",
+  "@adEndsInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "adEndsInOneDay": "ينتهي غداً",
+  "adEndsInHours": "ينتهي خلال {hours} ساعات",
+  "@adEndsInHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "adEndsSoon": "ينتهي قريباً",
+
+  "adminAdvertisementsTitle": "الإعلانات",
+  "adminAdvertisementsSubtitle": "اللوحات الإعلانية المتحركة",
+
+  "settingsFixNotifications": "إصلاح الإشعارات",
+
+  "notifRecentNotifications": "الإشعارات الأخيرة",
+  "notifNoRecent": "لم يتم العثور على إشعارات أخيرة.",
+  "notifDeleteTitle": "حذف الإشعار؟",
+  "notifDeleteConfirm": "هل أنت متأكد أنك تريد حذف هذا الإشعار؟",
+  "notifCancel": "إلغاء",
+  "notifDelete": "حذف",
+
+  "notifStatusRegistered": "الجهاز مسجّل. اضغط لإرسال إشعار تجريبي.",
+  "notifStatusNotRegistered": "الجهاز غير مسجّل. اضغط لإعادة التشغيل مع VPN.",
+  "notifTestSent": "تم إرسال إشعار تجريبي! ستستقبله قريباً.",
+  "notifTestFailed": "فشل إرسال الإشعار التجريبي",
+  "notifRestartingApp": "جارِ إعادة تشغيل التطبيق لتسجيل الإشعارات...",
+  "notifLoadMore": "عرض المزيد",
+  "notifFixDialogTitle": "تفعيل الإشعارات",
+  "notifFixDialogBody": "تأكد أولاً من تشغيل VPN، ثم اضغط 'إعادة التشغيل الآن' لإعادة تشغيل التطبيق. يجب إعادة فتح التطبيق أثناء تشغيل VPN لتسجيل الإشعارات.",
+  "notifRestartNow": "إعادة التشغيل الآن"
 }

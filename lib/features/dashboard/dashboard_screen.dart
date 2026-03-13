@@ -11,6 +11,7 @@ import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
+import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../data/models/page_model.dart';
 import '../../data/models/clipboard_item_model.dart';
 import '../../l10n/app_localizations.dart';
@@ -45,6 +46,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         slivers: [
           // Dynamic modern App Bar/Header
           SliverToBoxAdapter(child: _DashboardHeader(isDark: isDark)),
+
+          // Advertisement Panel
+          const SliverToBoxAdapter(
+            child: AdvertisementCarousel(
+              targetScreen: 'home',
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+            ),
+          ),
 
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),

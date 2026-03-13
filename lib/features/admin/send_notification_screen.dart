@@ -677,7 +677,7 @@ class _SendNotificationScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Notifications',
+              AppLocalizations.of(context)!.notifRecentNotifications,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -703,7 +703,7 @@ class _SendNotificationScreenState
             child: Padding(
               padding: const EdgeInsets.all(32),
               child: Text(
-                'No recent notifications found.',
+                AppLocalizations.of(context)!.notifNoRecent,
                 style: TextStyle(
                   color: isDark ? Colors.white54 : Colors.black45,
                 ),
@@ -723,7 +723,7 @@ class _SendNotificationScreenState
                     onPressed: () => ref
                         .read(adminNotificationsPaginatedProvider.notifier)
                         .loadMore(),
-                    child: const Text('Load More'),
+                    child: Text(AppLocalizations.of(context)!.notifLoadMore),
                   ),
                 );
               }
@@ -827,19 +827,17 @@ class _SendNotificationScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        title: const Text('Delete Notification?'),
-        content: const Text(
-          'Are you sure you want to delete this notification?',
-        ),
+        title: Text(AppLocalizations.of(context)!.notifDeleteTitle),
+        content: Text(AppLocalizations.of(context)!.notifDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.notifCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Delete',
+            child: Text(
+              AppLocalizations.of(context)!.notifDelete,
               style: TextStyle(color: Colors.redAccent),
             ),
           ),

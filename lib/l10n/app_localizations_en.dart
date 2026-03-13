@@ -2142,4 +2142,233 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutDevLabel => 'Dev: Ahmed Al-Ariqi';
+
+  @override
+  String get manageAdPanels => 'Manage Ad Panels';
+
+  @override
+  String get addAd => 'Add Advertisement';
+
+  @override
+  String get editAd => 'Edit Advertisement';
+
+  @override
+  String get noAdvertisements => 'No Advertisements';
+
+  @override
+  String get createFirstAd => 'Create your first moving ad panel.';
+
+  @override
+  String get newAd => 'New Ad';
+
+  @override
+  String get deleteAdTitle => 'Delete Advertisement?';
+
+  @override
+  String get deleteAdConfirm =>
+      'Are you sure you want to permanently delete this ad?';
+
+  @override
+  String get adActive => 'Active';
+
+  @override
+  String get adHidden => 'Hidden';
+
+  @override
+  String get adActivated => 'Ad activated';
+
+  @override
+  String get adHiddenMsg => 'Ad hidden';
+
+  @override
+  String get adDeleted => 'Ad deleted';
+
+  @override
+  String get adTitleLabel => 'Advertisement Title';
+
+  @override
+  String get adTitleHint => 'Admin reference name';
+
+  @override
+  String get adContentLabel => 'Display Text (Optional)';
+
+  @override
+  String get adContentHint => 'Text shown over the image';
+
+  @override
+  String get adDurationLabel => 'Display Duration (seconds)';
+
+  @override
+  String get adTargetScreen => 'Target Screen';
+
+  @override
+  String get adBothScreens => 'Home & Discover (Both)';
+
+  @override
+  String get adShowTimer => 'Show Remaining Time';
+
+  @override
+  String get adShowTimerSub => 'Displays an expiration badge';
+
+  @override
+  String get adActiveStatus => 'Active Status';
+
+  @override
+  String get adActiveStatusSub => 'Immediately show or hide this ad';
+
+  @override
+  String get adLinking => 'Ad Linking';
+
+  @override
+  String get adLinkInternal => 'Link to Internal App Item';
+
+  @override
+  String get adLinkInternalSub =>
+      'Search for a website, prompt, or offer from Discover';
+
+  @override
+  String get adExternalUrl => 'External Link URL (Optional)';
+
+  @override
+  String get adExternalUrlHint => 'https://...';
+
+  @override
+  String get adLinkSelected => 'Linked Item:';
+
+  @override
+  String get adRemoveLink => 'Remove Link';
+
+  @override
+  String get adSavedSuccess => 'Advertisement saved successfully';
+
+  @override
+  String adSaveError(Object error) {
+    return 'Error saving advertisement: $error';
+  }
+
+  @override
+  String get adEnterImageError =>
+      'Please enter an image URL or upload an image';
+
+  @override
+  String get adEndDate => 'Ad End Date (Optional)';
+
+  @override
+  String get basicInfo => 'Basic Info';
+
+  @override
+  String get coverImage => 'Cover Image';
+
+  @override
+  String get displaySettings => 'Display Settings';
+
+  @override
+  String get adSearchInternal => 'Search Internal Discover Item';
+
+  @override
+  String get adNoMatchingItems => 'No matching items found.';
+
+  @override
+  String get adExternalUrlHelper =>
+      'Opens this link in external browser when tapped';
+
+  @override
+  String get invalid => 'Invalid';
+
+  @override
+  String get adEndDateSubtitle => 'Set when the ad will stop showing';
+
+  @override
+  String adDurationFormat(int duration) {
+    return '${duration}s duration';
+  }
+
+  @override
+  String adScreenFormat(String screen) {
+    return 'Screen: $screen';
+  }
+
+  @override
+  String adEndsFormat(String date) {
+    return 'Ends: $date';
+  }
+
+  @override
+  String get adEnded => 'Ended';
+
+  @override
+  String adEndsInDays(int days) {
+    return 'Ends in $days days';
+  }
+
+  @override
+  String get adEndsInOneDay => 'Ends in 1 day';
+
+  @override
+  String adEndsInHours(int hours) {
+    return 'Ends in $hours hours';
+  }
+
+  @override
+  String get adEndsSoon => 'Ends soon';
+
+  @override
+  String get adminAdvertisementsTitle => 'Advertisements';
+
+  @override
+  String get adminAdvertisementsSubtitle => 'Moving ad panels';
+
+  @override
+  String get settingsFixNotifications => 'Fix Notifications';
+
+  @override
+  String get notifRecentNotifications => 'Recent Notifications';
+
+  @override
+  String get notifNoRecent => 'No recent notifications found.';
+
+  @override
+  String get notifDeleteTitle => 'Delete Notification?';
+
+  @override
+  String get notifDeleteConfirm =>
+      'Are you sure you want to delete this notification?';
+
+  @override
+  String get notifCancel => 'Cancel';
+
+  @override
+  String get notifDelete => 'Delete';
+
+  @override
+  String get notifStatusRegistered =>
+      'Device is registered. Tap to send a test notification.';
+
+  @override
+  String get notifStatusNotRegistered =>
+      'Device not registered. Tap to restart with VPN.';
+
+  @override
+  String get notifTestSent =>
+      'Test notification sent! You should receive it shortly.';
+
+  @override
+  String get notifTestFailed => 'Failed to send test notification';
+
+  @override
+  String get notifRestartingApp =>
+      'Restarting app to re-register for notifications...';
+
+  @override
+  String get notifLoadMore => 'Load More';
+
+  @override
+  String get notifFixDialogTitle => 'Enable Notifications';
+
+  @override
+  String get notifFixDialogBody =>
+      'Please make sure you have a VPN turned on first, then tap \'Restart Now\' to restart the app. The app must be reopened with VPN active to register for notifications.';
+
+  @override
+  String get notifRestartNow => 'Restart Now';
 }

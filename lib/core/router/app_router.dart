@@ -32,6 +32,8 @@ import '../../features/admin/admin_suggestions_screen.dart';
 import '../../features/admin/admin_analytics_screen.dart';
 import '../../features/admin/admin_community_screen.dart';
 import '../../features/admin/add_edit_website_screen.dart';
+import '../../features/admin/manage_advertisements_screen.dart';
+import '../../features/admin/edit_advertisement_sheet.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../features/discover/community_screen.dart';
 import '../../features/discover/community_post_detail.dart';
@@ -42,6 +44,7 @@ import '../../features/admin/manage_user_chats_screen.dart';
 import '../../features/admin/admin_chat_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/welcome_splash_screen.dart';
+import '../../domain/models/advertisement.dart';
 import '../../data/repositories/settings_repository.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -268,6 +271,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final post = state.extra as CommunityPost;
           return CommunityPostDetail(post: post);
+        },
+      ),
+      GoRoute(
+        path: '/admin/advertisements',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageAdvertisementsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/advertisements/edit',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final existing = state.extra as Advertisement?;
+          return EditAdvertisementSheet(ad: existing);
         },
       ),
 

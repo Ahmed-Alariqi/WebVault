@@ -238,6 +238,21 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => context.push('/admin/community'),
                       delay: 325,
                     ),
+                    _ActionCard(
+                      title: AppLocalizations.of(
+                        context,
+                      )!.adminAdvertisementsTitle,
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.adminAdvertisementsSubtitle,
+                      icon: PhosphorIcons.presentationChart(
+                        PhosphorIconsStyle.duotone,
+                      ),
+                      color: const Color(0xFF8B5CF6), // Purple
+                      isDark: isDark,
+                      onTap: () => context.push('/admin/advertisements'),
+                      delay: 335,
+                    ),
 
                     Consumer(
                       builder: (context, ref, _) {

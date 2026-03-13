@@ -862,7 +862,7 @@ packages:
     source: hosted
     version: "0.7.2"
   json_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_annotation
       sha256: cb09e7dac6210041fad964ed7fbee004f14258b4eca4040f72d1234062ace4c8
@@ -1293,6 +1293,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  restart_app:
+    dependency: "direct main"
+    description:
+      name: restart_app
+      sha256: "5bbeb34f7af32d1b87fbb8bc56a6501ca779596cfbb84af6ba4e3ebf57af4a23"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.7.3"
   retry:
     dependency: transitive
     description:
@@ -1570,6 +1578,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.9"
+  timeago:
+    dependency: "direct main"
+    description:
+      name: timeago
+      sha256: b05159406a97e1cbb2b9ee4faa9fb096fe0e2dfcd8b08fcd2a00553450d3422e
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.7.1"
   typed_data:
     dependency: transitive
     description:

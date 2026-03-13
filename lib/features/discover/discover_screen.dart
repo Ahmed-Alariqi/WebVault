@@ -18,6 +18,7 @@ import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../l10n/app_localizations.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -126,6 +127,14 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 },
               ),
             ),
+
+          // Advertisement Panel
+          const SliverToBoxAdapter(
+            child: AdvertisementCarousel(
+              targetScreen: 'discover',
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+            ),
+          ),
 
           if (ref.watch(showBookmarksOnlyProvider)) ...[
             // Search bar (non-sticky in bookmarks mode)

@@ -2139,4 +2139,228 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutDevLabel => 'تطوير: أحمد العريقي';
+
+  @override
+  String get manageAdPanels => 'إدارة لوحات الإعلانات';
+
+  @override
+  String get addAd => 'إضافة إعلان';
+
+  @override
+  String get editAd => 'تعديل الإعلان';
+
+  @override
+  String get noAdvertisements => 'لا توجد إعلانات';
+
+  @override
+  String get createFirstAd => 'قم بإنشاء أول لوحة إعلانية لك.';
+
+  @override
+  String get newAd => 'إعلان جديد';
+
+  @override
+  String get deleteAdTitle => 'حذف الإعلان؟';
+
+  @override
+  String get deleteAdConfirm =>
+      'هل أنت متأكد أنك تريد حذف هذا الإعلان نهائياً؟';
+
+  @override
+  String get adActive => 'نشط';
+
+  @override
+  String get adHidden => 'مخفي';
+
+  @override
+  String get adActivated => 'تم تفعيل الإعلان';
+
+  @override
+  String get adHiddenMsg => 'تم إخفاء الإعلان';
+
+  @override
+  String get adDeleted => 'تم حذف الإعلان';
+
+  @override
+  String get adTitleLabel => 'عنوان الإعلان';
+
+  @override
+  String get adTitleHint => 'اسم مرجعي للمسؤول';
+
+  @override
+  String get adContentLabel => 'نص العرض (اختياري)';
+
+  @override
+  String get adContentHint => 'النص المعروض فوق الصورة';
+
+  @override
+  String get adDurationLabel => 'مدة العرض (ثواني)';
+
+  @override
+  String get adTargetScreen => 'الشاشة المستهدفة';
+
+  @override
+  String get adBothScreens => 'الرئيسية والمكتشف (كلاهما)';
+
+  @override
+  String get adShowTimer => 'إظهار الوقت المتبقي';
+
+  @override
+  String get adShowTimerSub => 'يعرض شارة انتهاء الصلاحية';
+
+  @override
+  String get adActiveStatus => 'حالة النشاط';
+
+  @override
+  String get adActiveStatusSub => 'إظهار أو إخفاء هذا الإعلان فوراً';
+
+  @override
+  String get adLinking => 'ربط الإعلان';
+
+  @override
+  String get adLinkInternal => 'ربط بعنصر داخل التطبيق';
+
+  @override
+  String get adLinkInternalSub =>
+      'ابحث عن موقع، أو تلميح، أو عرض من قسم المكتشف';
+
+  @override
+  String get adExternalUrl => 'رابط خارجي (اختياري)';
+
+  @override
+  String get adExternalUrlHint => 'https://...';
+
+  @override
+  String get adLinkSelected => 'العنصر المرتبط:';
+
+  @override
+  String get adRemoveLink => 'إزالة الرابط';
+
+  @override
+  String get adSavedSuccess => 'تم حفظ الإعلان بنجاح';
+
+  @override
+  String adSaveError(Object error) {
+    return 'خطأ في حفظ الإعلان: $error';
+  }
+
+  @override
+  String get adEnterImageError => 'يرجى إدخال رابط الصورة أو رفع صورة';
+
+  @override
+  String get adEndDate => 'تاريخ انتهاء الإعلان (اختياري)';
+
+  @override
+  String get basicInfo => 'المعلومات الأساسية';
+
+  @override
+  String get coverImage => 'صورة الغلاف';
+
+  @override
+  String get displaySettings => 'إعدادات العرض';
+
+  @override
+  String get adSearchInternal => 'البحث عن عنصر داخلي';
+
+  @override
+  String get adNoMatchingItems => 'لم يتم العثور على عناصر مطابقة.';
+
+  @override
+  String get adExternalUrlHelper => 'يفتح هذا الرابط في متصفح خارجي عند النقر';
+
+  @override
+  String get invalid => 'غير صالح';
+
+  @override
+  String get adEndDateSubtitle => 'حدد متى سيتوقف عرض الإعلان';
+
+  @override
+  String adDurationFormat(int duration) {
+    return 'المدة $duration ثانية';
+  }
+
+  @override
+  String adScreenFormat(String screen) {
+    return 'الشاشة: $screen';
+  }
+
+  @override
+  String adEndsFormat(String date) {
+    return 'ينتهي: $date';
+  }
+
+  @override
+  String get adEnded => 'انتهى';
+
+  @override
+  String adEndsInDays(int days) {
+    return 'ينتهي خلال $days أيام';
+  }
+
+  @override
+  String get adEndsInOneDay => 'ينتهي غداً';
+
+  @override
+  String adEndsInHours(int hours) {
+    return 'ينتهي خلال $hours ساعات';
+  }
+
+  @override
+  String get adEndsSoon => 'ينتهي قريباً';
+
+  @override
+  String get adminAdvertisementsTitle => 'الإعلانات';
+
+  @override
+  String get adminAdvertisementsSubtitle => 'اللوحات الإعلانية المتحركة';
+
+  @override
+  String get settingsFixNotifications => 'إصلاح الإشعارات';
+
+  @override
+  String get notifRecentNotifications => 'الإشعارات الأخيرة';
+
+  @override
+  String get notifNoRecent => 'لم يتم العثور على إشعارات أخيرة.';
+
+  @override
+  String get notifDeleteTitle => 'حذف الإشعار؟';
+
+  @override
+  String get notifDeleteConfirm => 'هل أنت متأكد أنك تريد حذف هذا الإشعار؟';
+
+  @override
+  String get notifCancel => 'إلغاء';
+
+  @override
+  String get notifDelete => 'حذف';
+
+  @override
+  String get notifStatusRegistered => 'الجهاز مسجّل. اضغط لإرسال إشعار تجريبي.';
+
+  @override
+  String get notifStatusNotRegistered =>
+      'الجهاز غير مسجّل. اضغط لإعادة التشغيل مع VPN.';
+
+  @override
+  String get notifTestSent => 'تم إرسال إشعار تجريبي! ستستقبله قريباً.';
+
+  @override
+  String get notifTestFailed => 'فشل إرسال الإشعار التجريبي';
+
+  @override
+  String get notifRestartingApp =>
+      'جارِ إعادة تشغيل التطبيق لتسجيل الإشعارات...';
+
+  @override
+  String get notifLoadMore => 'عرض المزيد';
+
+  @override
+  String get notifFixDialogTitle => 'تفعيل الإشعارات';
+
+  @override
+  String get notifFixDialogBody =>
+      'تأكد أولاً من تشغيل VPN، ثم اضغط \'إعادة التشغيل الآن\' لإعادة تشغيل التطبيق. يجب إعادة فتح التطبيق أثناء تشغيل VPN لتسجيل الإشعارات.';
+
+  @override
+  String get notifRestartNow => 'إعادة التشغيل الآن';
 }
