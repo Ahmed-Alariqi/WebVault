@@ -400,10 +400,19 @@ Future<void> adminCreateUser(
   );
 }
 
-Future<void> adminUpdateUser(String userId, {String? role}) async {
+Future<void> adminUpdateUser(
+  String userId, {
+  String? role,
+  List<String>? permissions,
+}) async {
   await _client.functions.invoke(
     'admin-user-actions',
-    body: {'action': 'update_user', 'userId': userId, 'role': role},
+    body: {
+      'action': 'update_user',
+      'userId': userId,
+      'role': role,
+      'permissions': permissions,
+    },
   );
 }
 

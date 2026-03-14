@@ -79,9 +79,9 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 Consumer(
                   builder: (ctx, ref, _) {
-                    final isAdmin = ref.watch(isAdminProvider);
-                    return isAdmin.when(
-                      data: (admin) => admin
+                    final hasAccess = ref.watch(hasAdminAccessProvider);
+                    return hasAccess.when(
+                      data: (access) => access
                           ? ListTile(
                               leading: Container(
                                 width: 40,

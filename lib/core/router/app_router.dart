@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/providers.dart';
+import '../../presentation/providers/auth_providers.dart';
 import '../../features/dashboard/dashboard_screen.dart';
 import '../../features/pages/pages_screen.dart';
 import '../../features/discover/discover_screen.dart';
@@ -128,6 +129,77 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
       if (goingToPin && (!pinEnabled || !isLocked)) {
         return '/dashboard';
+      }
+
+      // Admin route guards
+      if (location.startsWith('/admin')) {
+        final profile = ref.read(userProfileProvider).valueOrNull;
+
+        // If profile is still loading, we might restrict access temporarily.
+        // It's safer to block until we know their role.
+        if (profile == null) return '/dashboard';
+
+        final role = profile['role'] as String? ?? 'user';
+        final List<String> perms;
+        if (role == 'admin') {
+          perms = const [
+            'analytics',
+            'suggestions',
+            'websites',
+            'categories',
+            'notifications',
+            'in_app_messages',
+            'users',
+            'community',
+            'advertisements',
+          ];
+        } else if (role == 'content_creator') {
+          perms = const [
+            'websites',
+            'categories',
+            'notifications',
+            'suggestions',
+            'community',
+          ];
+        } else {
+          final p = profile['permissions'];
+          perms = p is List ? p.cast<String>() : [];
+        }
+
+        if (perms.isEmpty) return '/dashboard';
+
+        if (location.startsWith('/admin/analytics') &&
+            !perms.contains('analytics'))
+          return '/admin';
+        if (location.startsWith('/admin/suggestions') &&
+            !perms.contains('suggestions'))
+          return '/admin';
+        if (location.startsWith('/admin/websites') &&
+            !perms.contains('websites'))
+          return '/admin';
+        if (location.startsWith('/admin/categories') &&
+            !perms.contains('categories'))
+          return '/admin';
+        if (location.startsWith('/admin/notifications') &&
+            !perms.contains('notifications'))
+          return '/admin';
+        if (location.startsWith('/admin/in-app-messages') &&
+            !perms.contains('in_app_messages'))
+          return '/admin';
+        if (location.startsWith('/admin/users') && !perms.contains('users'))
+          return '/admin';
+        if (location.startsWith('/admin/community') &&
+            !perms.contains('community'))
+          return '/admin';
+        if ((location.startsWith('/admin/user-chats') ||
+                location.startsWith('/admin/chats')) &&
+            !perms.contains('users') &&
+            !perms.contains('community')) {
+          return '/admin';
+        }
+        if (location.startsWith('/admin/advertisements') &&
+            !perms.contains('advertisements'))
+          return '/admin';
       }
 
       return null;

@@ -2363,4 +2363,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifRestartNow => 'إعادة التشغيل الآن';
+
+  @override
+  String get roleLabel => 'الدور';
+
+  @override
+  String get roleContentCreator => 'منشئ محتوى';
+
+  @override
+  String get roleUserDesc => 'مستخدم عادي بدون صلاحيات إدارية';
+
+  @override
+  String get roleContentCreatorDesc =>
+      'يمكنه إدارة المواقع والتصنيفات والإشعارات وغيرها';
+
+  @override
+  String get roleAdminDesc => 'تحكم كامل في جميع أقسام لوحة الإدارة';
+
+  @override
+  String get permissionsLabel => 'صلاحيات';
+
+  @override
+  String get presetPermissions => 'الصلاحيات المتضمنة';
+
+  @override
+  String get customPermissions => 'صلاحيات مخصصة';
+
+  @override
+  String get customPermissionsHint =>
+      'حدد الأقسام الإدارية التي يمكن لهذا المستخدم الوصول إليها';
+
+  @override
+  String get clearAll => 'مسح الكل';
 }

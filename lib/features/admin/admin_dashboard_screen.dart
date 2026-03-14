@@ -16,14 +16,17 @@ class AdminDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isAdmin = ref.watch(isAdminProvider);
+    final hasAccess = ref.watch(hasAdminAccessProvider);
+    final userPerms = ref.watch(userPermissionsProvider);
     final statsAsync = ref.watch(adminStatsProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-      body: isAdmin.when(
-        data: (admin) {
-          if (!admin) return const _AccessDeniedView();
+      body: hasAccess.when(
+        data: (access) {
+          if (!access) return const _AccessDeniedView();
+
+          final perms = userPerms.valueOrNull ?? [];
 
           return CustomScrollView(
             slivers: [
@@ -149,7 +152,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                 ),
               ),
 
-              // 4. Action Grid
+              // 4. Action Grid — filtered by permissions
               SliverPadding(
                 padding: const EdgeInsets.all(20),
                 sliver: SliverGrid.count(
@@ -158,104 +161,127 @@ class AdminDashboardScreen extends ConsumerWidget {
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.1,
                   children: [
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.appActivities,
-                      subtitle: AppLocalizations.of(context)!.analyticsTracking,
-                      icon: PhosphorIcons.chartLineUp(
-                        PhosphorIconsStyle.duotone,
+                    if (perms.contains('analytics'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.appActivities,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.analyticsTracking,
+                        icon: PhosphorIcons.chartLineUp(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF6366F1),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/analytics'),
+                        delay: 0,
                       ),
-                      color: const Color(0xFF6366F1), // Indigo
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/analytics'),
-                      delay: 0,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.suggestionsTitle,
-                      subtitle: AppLocalizations.of(context)!.reviewRequests,
-                      icon: PhosphorIcons.lightbulb(PhosphorIconsStyle.duotone),
-                      color: const Color(0xFF8B5CF6), // Violet
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/suggestions'),
-                      delay: 0,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.websitesTitle,
-                      subtitle: AppLocalizations.of(context)!.addEditSites,
-                      icon: PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-                      color: const Color(0xFF3B82F6), // Blue
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/websites'),
-                      delay: 50,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.categoriesTitle,
-                      subtitle: AppLocalizations.of(context)!.organizeContent,
-                      icon: PhosphorIcons.tag(PhosphorIconsStyle.duotone),
-                      color: const Color(0xFF10B981), // Emerald
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/categories'),
-                      delay: 100,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(
-                        context,
-                      )!.pushNotificationsTitle,
-                      subtitle: AppLocalizations.of(context)!.sendOutsideAlerts,
-                      icon: PhosphorIcons.bellRinging(
-                        PhosphorIconsStyle.duotone,
+                    if (perms.contains('suggestions'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.suggestionsTitle,
+                        subtitle: AppLocalizations.of(context)!.reviewRequests,
+                        icon: PhosphorIcons.lightbulb(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF8B5CF6),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/suggestions'),
+                        delay: 0,
                       ),
-                      color: const Color(0xFFF59E0B), // Amber
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/notifications'),
-                      delay: 200,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.inAppMessagesTitle,
-                      subtitle: AppLocalizations.of(context)!.popupCampaigns,
-                      icon: PhosphorIcons.megaphone(PhosphorIconsStyle.duotone),
-                      color: const Color(0xFF14B8A6), // Teal
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/in-app-messages'),
-                      delay: 250,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.usersTitle,
-                      subtitle: AppLocalizations.of(context)!.viewAccounts,
-                      icon: PhosphorIcons.users(PhosphorIconsStyle.duotone),
-                      color: const Color(0xFFEC4899), // Pink
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/users'),
-                      delay: 300,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(context)!.communityTitle,
-                      subtitle: AppLocalizations.of(context)!.managePosts,
-                      icon: PhosphorIcons.globeHemisphereWest(
-                        PhosphorIconsStyle.duotone,
+                    if (perms.contains('websites'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.websitesTitle,
+                        subtitle: AppLocalizations.of(context)!.addEditSites,
+                        icon: PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+                        color: const Color(0xFF3B82F6),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/websites'),
+                        delay: 50,
                       ),
-                      color: const Color(0xFFEAB308), // Yellow
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/community'),
-                      delay: 325,
-                    ),
-                    _ActionCard(
-                      title: AppLocalizations.of(
-                        context,
-                      )!.adminAdvertisementsTitle,
-                      subtitle: AppLocalizations.of(
-                        context,
-                      )!.adminAdvertisementsSubtitle,
-                      icon: PhosphorIcons.presentationChart(
-                        PhosphorIconsStyle.duotone,
+                    if (perms.contains('categories'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.categoriesTitle,
+                        subtitle: AppLocalizations.of(context)!.organizeContent,
+                        icon: PhosphorIcons.tag(PhosphorIconsStyle.duotone),
+                        color: const Color(0xFF10B981),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/categories'),
+                        delay: 100,
                       ),
-                      color: const Color(0xFF8B5CF6), // Purple
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/advertisements'),
-                      delay: 335,
-                    ),
+                    if (perms.contains('notifications'))
+                      _ActionCard(
+                        title: AppLocalizations.of(
+                          context,
+                        )!.pushNotificationsTitle,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.sendOutsideAlerts,
+                        icon: PhosphorIcons.bellRinging(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFFF59E0B),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/notifications'),
+                        delay: 200,
+                      ),
+                    if (perms.contains('in_app_messages'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.inAppMessagesTitle,
+                        subtitle: AppLocalizations.of(context)!.popupCampaigns,
+                        icon: PhosphorIcons.megaphone(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF14B8A6),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/in-app-messages'),
+                        delay: 250,
+                      ),
+                    if (perms.contains('users'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.usersTitle,
+                        subtitle: AppLocalizations.of(context)!.viewAccounts,
+                        icon: PhosphorIcons.users(PhosphorIconsStyle.duotone),
+                        color: const Color(0xFFEC4899),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/users'),
+                        delay: 300,
+                      ),
+                    if (perms.contains('community'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.communityTitle,
+                        subtitle: AppLocalizations.of(context)!.managePosts,
+                        icon: PhosphorIcons.globeHemisphereWest(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFFEAB308),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/community'),
+                        delay: 325,
+                      ),
+                    if (perms.contains('advertisements'))
+                      _ActionCard(
+                        title: AppLocalizations.of(
+                          context,
+                        )!.adminAdvertisementsTitle,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.adminAdvertisementsSubtitle,
+                        icon: PhosphorIcons.presentationChart(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF8B5CF6),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/advertisements'),
+                        delay: 335,
+                      ),
 
                     Consumer(
                       builder: (context, ref, _) {
+                        // User messages is a special card — show if user has 'users' permission
+                        // (covers support chat access)
+                        if (!perms.contains('users') &&
+                            !perms.contains('community')) {
+                          return const SizedBox.shrink();
+                        }
                         final count = ref.watch(adminTotalUnreadCountProvider);
 
                         return _ActionCard(
@@ -266,7 +292,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                           icon: PhosphorIcons.chatCircleDots(
                             PhosphorIconsStyle.duotone,
                           ),
-                          color: const Color(0xFFF43F5E), // Rose
+                          color: const Color(0xFFF43F5E),
                           isDark: isDark,
                           onTap: () => context.push('/admin/user-chats'),
                           delay: 350,

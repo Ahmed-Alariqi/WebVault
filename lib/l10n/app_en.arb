@@ -1114,5 +1114,16 @@
   "notifLoadMore": "Load More",
   "notifFixDialogTitle": "Enable Notifications",
   "notifFixDialogBody": "Please make sure you have a VPN turned on first, then tap 'Restart Now' to restart the app. The app must be reopened with VPN active to register for notifications.",
-  "notifRestartNow": "Restart Now"
+  "notifRestartNow": "Restart Now",
+
+  "roleLabel": "Role",
+  "roleContentCreator": "Content Creator",
+  "roleUserDesc": "Normal app user with no admin access",
+  "roleContentCreatorDesc": "Can manage websites, categories, notifications & more",
+  "roleAdminDesc": "Full control over all admin panel sections",
+  "permissionsLabel": "permissions",
+  "presetPermissions": "Included Permissions",
+  "customPermissions": "Custom Permissions",
+  "customPermissionsHint": "Select which admin sections this user can access",
+  "clearAll": "Clear All"
 }

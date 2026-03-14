@@ -853,5 +853,16 @@
   "notifLoadMore": "عرض المزيد",
   "notifFixDialogTitle": "تفعيل الإشعارات",
   "notifFixDialogBody": "تأكد أولاً من تشغيل VPN، ثم اضغط 'إعادة التشغيل الآن' لإعادة تشغيل التطبيق. يجب إعادة فتح التطبيق أثناء تشغيل VPN لتسجيل الإشعارات.",
-  "notifRestartNow": "إعادة التشغيل الآن"
+  "notifRestartNow": "إعادة التشغيل الآن",
+
+  "roleLabel": "الدور",
+  "roleContentCreator": "منشئ محتوى",
+  "roleUserDesc": "مستخدم عادي بدون صلاحيات إدارية",
+  "roleContentCreatorDesc": "يمكنه إدارة المواقع والتصنيفات والإشعارات وغيرها",
+  "roleAdminDesc": "تحكم كامل في جميع أقسام لوحة الإدارة",
+  "permissionsLabel": "صلاحيات",
+  "presetPermissions": "الصلاحيات المتضمنة",
+  "customPermissions": "صلاحيات مخصصة",
+  "customPermissionsHint": "حدد الأقسام الإدارية التي يمكن لهذا المستخدم الوصول إليها",
+  "clearAll": "مسح الكل"
 }

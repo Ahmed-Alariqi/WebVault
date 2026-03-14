@@ -204,7 +204,7 @@ class _DashboardHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final unreadCount = ref.watch(notificationCountProvider).valueOrNull ?? 0;
     final hasUnread = unreadCount > 0;
-    final isAdmin = ref.watch(isAdminProvider).valueOrNull ?? false;
+    final isAdmin = ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
     final chatUnreadCount =
         ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
     final hasUnreadChats = chatUnreadCount > 0;

@@ -2371,4 +2371,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifRestartNow => 'Restart Now';
+
+  @override
+  String get roleLabel => 'Role';
+
+  @override
+  String get roleContentCreator => 'Content Creator';
+
+  @override
+  String get roleUserDesc => 'Normal app user with no admin access';
+
+  @override
+  String get roleContentCreatorDesc =>
+      'Can manage websites, categories, notifications & more';
+
+  @override
+  String get roleAdminDesc => 'Full control over all admin panel sections';
+
+  @override
+  String get permissionsLabel => 'permissions';
+
+  @override
+  String get presetPermissions => 'Included Permissions';
+
+  @override
+  String get customPermissions => 'Custom Permissions';
+
+  @override
+  String get customPermissionsHint =>
+      'Select which admin sections this user can access';
+
+  @override
+  String get clearAll => 'Clear All';
 }

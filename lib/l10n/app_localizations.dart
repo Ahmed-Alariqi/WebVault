@@ -4477,6 +4477,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restart Now'**
   String get notifRestartNow;
+
+  /// No description provided for @roleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get roleLabel;
+
+  /// No description provided for @roleContentCreator.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Creator'**
+  String get roleContentCreator;
+
+  /// No description provided for @roleUserDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal app user with no admin access'**
+  String get roleUserDesc;
+
+  /// No description provided for @roleContentCreatorDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Can manage websites, categories, notifications & more'**
+  String get roleContentCreatorDesc;
+
+  /// No description provided for @roleAdminDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Full control over all admin panel sections'**
+  String get roleAdminDesc;
+
+  /// No description provided for @permissionsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'permissions'**
+  String get permissionsLabel;
+
+  /// No description provided for @presetPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Included Permissions'**
+  String get presetPermissions;
+
+  /// No description provided for @customPermissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Permissions'**
+  String get customPermissions;
+
+  /// No description provided for @customPermissionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select which admin sections this user can access'**
+  String get customPermissionsHint;
+
+  /// No description provided for @clearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All'**
+  String get clearAll;
 }
 
 class _AppLocalizationsDelegate
