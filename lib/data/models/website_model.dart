@@ -20,6 +20,7 @@ class WebsiteModel {
   final DateTime? expiresAt; // Auto-hide after this time
   final bool isActive; // Manual on/off toggle
   final String? videoUrl; // Optional tutorial/explainer video
+  final String pricingModel; // 'free', 'freemium', 'paid'
 
   const WebsiteModel({
     required this.id,
@@ -40,6 +41,7 @@ class WebsiteModel {
     this.expiresAt,
     this.isActive = true,
     this.videoUrl,
+    this.pricingModel = 'free',
   });
 
   /// Whether this item has expired
@@ -70,6 +72,7 @@ class WebsiteModel {
     DateTime? expiresAt,
     bool? isActive,
     String? videoUrl,
+    String? pricingModel,
   }) {
     return WebsiteModel(
       id: id,
@@ -90,6 +93,7 @@ class WebsiteModel {
       expiresAt: expiresAt ?? this.expiresAt,
       isActive: isActive ?? this.isActive,
       videoUrl: videoUrl ?? this.videoUrl,
+      pricingModel: pricingModel ?? this.pricingModel,
     );
   }
 
@@ -115,6 +119,7 @@ class WebsiteModel {
           : null,
       isActive: json['is_active'] as bool? ?? true,
       videoUrl: json['video_url'] as String?,
+      pricingModel: json['pricing_model'] as String? ?? 'free',
     );
   }
 
@@ -134,6 +139,7 @@ class WebsiteModel {
       'expires_at': expiresAt?.toIso8601String(),
       'is_active': isActive,
       'video_url': videoUrl,
+      'pricing_model': pricingModel,
     };
   }
 }

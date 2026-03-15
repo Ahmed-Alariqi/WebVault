@@ -668,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Open'**
   String get openButton;
 
+  /// No description provided for @detailsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsButton;
+
   /// No description provided for @communityTitle.
   ///
   /// In en, this message translates to:
@@ -1327,6 +1333,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Website'**
   String get websiteBadge;
+
+  /// No description provided for @toolBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool'**
+  String get toolBadge;
+
+  /// No description provided for @courseBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get courseBadge;
+
+  /// No description provided for @pricingPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'PAID'**
+  String get pricingPaid;
+
+  /// No description provided for @pricingFree.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get pricingFree;
+
+  /// No description provided for @pricingFreemium.
+  ///
+  /// In en, this message translates to:
+  /// **'FREEMIUM'**
+  String get pricingFreemium;
 
   /// No description provided for @expiredBadge.
   ///
@@ -2576,6 +2612,42 @@ abstract class AppLocalizations {
   /// **'Content Type'**
   String get formContentType;
 
+  /// No description provided for @formTypeTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get formTypeTools;
+
+  /// No description provided for @formTypeCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get formTypeCourses;
+
+  /// No description provided for @formTypeResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Resources'**
+  String get formTypeResources;
+
+  /// No description provided for @formTypePrompts.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompts'**
+  String get formTypePrompts;
+
+  /// No description provided for @formTypeOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'Offers'**
+  String get formTypeOffers;
+
+  /// No description provided for @formTypeNews.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get formTypeNews;
+
   /// No description provided for @formBasicInfo.
   ///
   /// In en, this message translates to:
@@ -2594,6 +2666,36 @@ abstract class AppLocalizations {
   /// **'URL (https://...)'**
   String get formUrlRequiredWeb;
 
+  /// No description provided for @formUrlRequiredTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Link / Download URL'**
+  String get formUrlRequiredTool;
+
+  /// No description provided for @formUrlRequiredCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Course URL / Enrollment Link'**
+  String get formUrlRequiredCourse;
+
+  /// No description provided for @formUrlPromptRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference URL (optional)'**
+  String get formUrlPromptRef;
+
+  /// No description provided for @formUrlOfferRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer / Store URL (optional)'**
+  String get formUrlOfferRef;
+
+  /// No description provided for @formUrlNewsRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Source Article URL (optional)'**
+  String get formUrlNewsRef;
+
   /// No description provided for @formUrlOptional.
   ///
   /// In en, this message translates to:
@@ -2605,6 +2707,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional: add a link for users to visit'**
   String get formUrlOptionalHelper;
+
+  /// No description provided for @formUrlToolHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to the tool, download, or landing page'**
+  String get formUrlToolHelper;
+
+  /// No description provided for @formUrlCourseHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to the course enrollment or info page'**
+  String get formUrlCourseHelper;
 
   /// No description provided for @formCoverImage.
   ///
@@ -2677,6 +2791,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Video URL (or paste link)'**
   String get formVideoUrlLabel;
+
+  /// No description provided for @formActionPromptHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt Content'**
+  String get formActionPromptHeader;
+
+  /// No description provided for @formActionOfferHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer Details'**
+  String get formActionOfferHeader;
+
+  /// No description provided for @formActionToolHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Details'**
+  String get formActionToolHeader;
+
+  /// No description provided for @formActionCourseHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrollment Info'**
+  String get formActionCourseHeader;
+
+  /// No description provided for @formActionNewsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Article Highlights'**
+  String get formActionNewsHeader;
+
+  /// No description provided for @formActionDefaultHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional Content'**
+  String get formActionDefaultHeader;
+
+  /// No description provided for @formActionPromptLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt Text'**
+  String get formActionPromptLabel;
+
+  /// No description provided for @formActionOfferLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon / Promo Code'**
+  String get formActionOfferLabel;
+
+  /// No description provided for @formActionToolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key / Access Code (optional)'**
+  String get formActionToolLabel;
+
+  /// No description provided for @formActionCourseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Enrollment Code (optional)'**
+  String get formActionCourseLabel;
+
+  /// No description provided for @formActionNewsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Highlights / Summary'**
+  String get formActionNewsLabel;
+
+  /// No description provided for @formActionDefaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Copyable Value (optional)'**
+  String get formActionDefaultLabel;
 
   /// No description provided for @formPromptText.
   ///
@@ -4537,6 +4723,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear All'**
   String get clearAll;
+
+  /// No description provided for @filterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filterTitle;
+
+  /// No description provided for @filterReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get filterReset;
+
+  /// No description provided for @filterApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Filters'**
+  String get filterApply;
+
+  /// No description provided for @filterContentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get filterContentType;
+
+  /// No description provided for @filterCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get filterCategory;
+
+  /// No description provided for @filterPricingModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Pricing Model'**
+  String get filterPricingModel;
+
+  /// No description provided for @filterSortBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort By'**
+  String get filterSortBy;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterAny.
+  ///
+  /// In en, this message translates to:
+  /// **'Any'**
+  String get filterAny;
+
+  /// No description provided for @filterNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get filterNewest;
+
+  /// No description provided for @filterOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get filterOldest;
+
+  /// No description provided for @filterPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get filterPopular;
+
+  /// No description provided for @filterTrending.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending'**
+  String get filterTrending;
+
+  /// No description provided for @filterErrorLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading categories'**
+  String get filterErrorLoading;
+
+  /// No description provided for @adminSearchItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items...'**
+  String get adminSearchItems;
+
+  /// No description provided for @adminSortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest First'**
+  String get adminSortNewest;
+
+  /// No description provided for @adminSortOldest.
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest First'**
+  String get adminSortOldest;
+
+  /// No description provided for @adminAllTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'All Types'**
+  String get adminAllTypes;
+
+  /// No description provided for @adminItemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String adminItemsCount(int count);
 }
 
 class _AppLocalizationsDelegate

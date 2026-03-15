@@ -306,6 +306,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openButton => 'Open';
 
   @override
+  String get detailsButton => 'Details';
+
+  @override
   String get communityTitle => 'Community';
 
   @override
@@ -655,6 +658,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get websiteBadge => 'Website';
+
+  @override
+  String get toolBadge => 'Tool';
+
+  @override
+  String get courseBadge => 'Course';
+
+  @override
+  String get pricingPaid => 'PAID';
+
+  @override
+  String get pricingFree => 'FREE';
+
+  @override
+  String get pricingFreemium => 'FREEMIUM';
 
   @override
   String get expiredBadge => 'Expired';
@@ -1342,6 +1360,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formContentType => 'Content Type';
 
   @override
+  String get formTypeTools => 'Tools';
+
+  @override
+  String get formTypeCourses => 'Courses';
+
+  @override
+  String get formTypeResources => 'Resources';
+
+  @override
+  String get formTypePrompts => 'Prompts';
+
+  @override
+  String get formTypeOffers => 'Offers';
+
+  @override
+  String get formTypeNews => 'News';
+
+  @override
   String get formBasicInfo => 'Basic Information';
 
   @override
@@ -1353,10 +1389,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formUrlRequiredWeb => 'URL (https://...)';
 
   @override
+  String get formUrlRequiredTool => 'Tool Link / Download URL';
+
+  @override
+  String get formUrlRequiredCourse => 'Course URL / Enrollment Link';
+
+  @override
+  String get formUrlPromptRef => 'Reference URL (optional)';
+
+  @override
+  String get formUrlOfferRef => 'Offer / Store URL (optional)';
+
+  @override
+  String get formUrlNewsRef => 'Source Article URL (optional)';
+
+  @override
   String get formUrlOptional => 'Link URL (Optional)';
 
   @override
   String get formUrlOptionalHelper => 'Optional: add a link for users to visit';
+
+  @override
+  String get formUrlToolHelper => 'Link to the tool, download, or landing page';
+
+  @override
+  String get formUrlCourseHelper =>
+      'Link to the course enrollment or info page';
 
   @override
   String get formCoverImage => 'Cover Image';
@@ -1393,6 +1451,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formVideoUrlLabel => 'Video URL (or paste link)';
+
+  @override
+  String get formActionPromptHeader => 'Prompt Content';
+
+  @override
+  String get formActionOfferHeader => 'Offer Details';
+
+  @override
+  String get formActionToolHeader => 'Access Details';
+
+  @override
+  String get formActionCourseHeader => 'Enrollment Info';
+
+  @override
+  String get formActionNewsHeader => 'Article Highlights';
+
+  @override
+  String get formActionDefaultHeader => 'Additional Content';
+
+  @override
+  String get formActionPromptLabel => 'Prompt Text';
+
+  @override
+  String get formActionOfferLabel => 'Coupon / Promo Code';
+
+  @override
+  String get formActionToolLabel => 'API Key / Access Code (optional)';
+
+  @override
+  String get formActionCourseLabel => 'Enrollment Code (optional)';
+
+  @override
+  String get formActionNewsLabel => 'Key Highlights / Summary';
+
+  @override
+  String get formActionDefaultLabel => 'Copyable Value (optional)';
 
   @override
   String get formPromptText => 'Prompt Text';
@@ -2403,4 +2497,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get clearAll => 'Clear All';
+
+  @override
+  String get filterTitle => 'Filters';
+
+  @override
+  String get filterReset => 'Reset';
+
+  @override
+  String get filterApply => 'Apply Filters';
+
+  @override
+  String get filterContentType => 'Content Type';
+
+  @override
+  String get filterCategory => 'Category';
+
+  @override
+  String get filterPricingModel => 'Pricing Model';
+
+  @override
+  String get filterSortBy => 'Sort By';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterAny => 'Any';
+
+  @override
+  String get filterNewest => 'Newest';
+
+  @override
+  String get filterOldest => 'Oldest';
+
+  @override
+  String get filterPopular => 'Popular';
+
+  @override
+  String get filterTrending => 'Trending';
+
+  @override
+  String get filterErrorLoading => 'Error loading categories';
+
+  @override
+  String get adminSearchItems => 'Search items...';
+
+  @override
+  String get adminSortNewest => 'Newest First';
+
+  @override
+  String get adminSortOldest => 'Oldest First';
+
+  @override
+  String get adminAllTypes => 'All Types';
+
+  @override
+  String adminItemsCount(int count) {
+    return '$count items';
+  }
 }

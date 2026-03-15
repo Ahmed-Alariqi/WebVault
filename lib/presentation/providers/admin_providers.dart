@@ -20,6 +20,12 @@ final adminWebsitesProvider = FutureProvider<List<WebsiteModel>>((ref) async {
   return (response as List).map((e) => WebsiteModel.fromJson(e)).toList();
 });
 
+// --------------- Admin Filter State ---------------
+
+final adminSearchQueryProvider = StateProvider<String>((ref) => '');
+final adminContentTypeFilterProvider = StateProvider<String?>((ref) => null);
+final adminSortAscendingProvider = StateProvider<bool>((ref) => false);
+
 // --------------- Paginated Admin Websites (8 items/page) ---------------
 
 const int kAdminPageSize = 8;
@@ -59,7 +65,9 @@ class PaginatedAdminState<T> {
 
 class AdminWebsitesPaginatedNotifier
     extends StateNotifier<PaginatedAdminState<WebsiteModel>> {
-  AdminWebsitesPaginatedNotifier()
+  final Ref _ref;
+
+  AdminWebsitesPaginatedNotifier(this._ref)
     : super(const PaginatedAdminState<WebsiteModel>()) {
     loadMore();
   }
@@ -71,11 +79,21 @@ class AdminWebsitesPaginatedNotifier
     try {
       final from = state.items.length;
       final to = from + kAdminPageSize - 1;
+      final searchQuery = _ref.read(adminSearchQueryProvider).trim();
+      final contentType = _ref.read(adminContentTypeFilterProvider);
+      final ascending = _ref.read(adminSortAscendingProvider);
 
-      final response = await _client
-          .from('websites')
-          .select()
-          .order('created_at', ascending: false)
+      var query = _client.from('websites').select();
+
+      if (contentType != null && contentType.isNotEmpty) {
+        query = query.eq('content_type', contentType);
+      }
+      if (searchQuery.isNotEmpty) {
+        query = query.ilike('title', '%$searchQuery%');
+      }
+
+      final response = await query
+          .order('created_at', ascending: ascending)
           .range(from, to);
 
       final newItems = (response as List)
@@ -88,7 +106,8 @@ class AdminWebsitesPaginatedNotifier
         hasMore: newItems.length >= kAdminPageSize,
         isInitialLoad: false,
       );
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('AdminWebsitesPaginatedNotifier error: $e\n$stack');
       state = state.copyWith(isLoading: false, isInitialLoad: false, error: e);
     }
   }
@@ -104,7 +123,7 @@ final adminWebsitesPaginatedProvider =
       AdminWebsitesPaginatedNotifier,
       PaginatedAdminState<WebsiteModel>
     >((ref) {
-      return AdminWebsitesPaginatedNotifier();
+      return AdminWebsitesPaginatedNotifier(ref);
     });
 
 // --------------- Paginated Admin Users (client-side, 15/page) ---------------

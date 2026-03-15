@@ -309,6 +309,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get openButton => 'فتح';
 
   @override
+  String get detailsButton => 'التفاصيل';
+
+  @override
   String get communityTitle => 'المجتمع';
 
   @override
@@ -656,6 +659,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get websiteBadge => 'موقع';
+
+  @override
+  String get toolBadge => 'أداة';
+
+  @override
+  String get courseBadge => 'كورس';
+
+  @override
+  String get pricingPaid => 'مدفوع';
+
+  @override
+  String get pricingFree => 'مجاني';
+
+  @override
+  String get pricingFreemium => 'مجاني جزئياً';
 
   @override
   String get expiredBadge => 'منتهي الصلاحية';
@@ -1342,6 +1360,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formContentType => 'نوع المحتوى';
 
   @override
+  String get formTypeTools => 'أدوات';
+
+  @override
+  String get formTypeCourses => 'دورات';
+
+  @override
+  String get formTypeResources => 'مواقع';
+
+  @override
+  String get formTypePrompts => 'تلقينات';
+
+  @override
+  String get formTypeOffers => 'عروض';
+
+  @override
+  String get formTypeNews => 'أخبار';
+
+  @override
   String get formBasicInfo => 'المعلومات الأساسية';
 
   @override
@@ -1353,10 +1389,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formUrlRequiredWeb => 'الرابط (https://...)';
 
   @override
+  String get formUrlRequiredTool => 'رابط الأداة / رابط التحميل';
+
+  @override
+  String get formUrlRequiredCourse => 'رابط الكورس / رابط التسجيل';
+
+  @override
+  String get formUrlPromptRef => 'الرابط المرجعي (اختياري)';
+
+  @override
+  String get formUrlOfferRef => 'رابط العرض / المتجر (اختياري)';
+
+  @override
+  String get formUrlNewsRef => 'رابط المقال الأصلي (اختياري)';
+
+  @override
   String get formUrlOptional => 'الرابط (اختياري)';
 
   @override
   String get formUrlOptionalHelper => 'اختياري: أضف رابط للمستخدمين لزيارته';
+
+  @override
+  String get formUrlToolHelper =>
+      'رابط الأداة، أو رابط التحميل، أو صفحة الأداة الرئيسية';
+
+  @override
+  String get formUrlCourseHelper => 'رابط الكورس أو صفحة معلومات الكورس';
 
   @override
   String get formCoverImage => 'صورة الغلاف';
@@ -1394,6 +1452,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get formVideoUrlLabel => 'رابط الفيديو (أو الصق الرابط)';
+
+  @override
+  String get formActionPromptHeader => 'محتوى التلقين';
+
+  @override
+  String get formActionOfferHeader => 'تفاصيل العرض';
+
+  @override
+  String get formActionToolHeader => 'تفاصيل الوصول';
+
+  @override
+  String get formActionCourseHeader => 'معلومات التسجيل';
+
+  @override
+  String get formActionNewsHeader => 'أهم نقاط المقال';
+
+  @override
+  String get formActionDefaultHeader => 'محتوى إضافي';
+
+  @override
+  String get formActionPromptLabel => 'نص التلقين';
+
+  @override
+  String get formActionOfferLabel => 'كوبون / رمز الخصم';
+
+  @override
+  String get formActionToolLabel => 'مفتاح API / رمز الوصول (اختياري)';
+
+  @override
+  String get formActionCourseLabel => 'رمز التسجيل (اختياري)';
+
+  @override
+  String get formActionNewsLabel => 'أهم النقاط / ملخص';
+
+  @override
+  String get formActionDefaultLabel => 'القيمة القابلة للنسخ (اختياري)';
 
   @override
   String get formPromptText => 'نص التلميح';
@@ -1753,7 +1847,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryTips => 'نصائح';
 
   @override
-  String get categoryResources => 'موارد';
+  String get categoryResources => 'مواقع';
 
   @override
   String get categoryQuestion => 'سؤال';
@@ -1762,7 +1856,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryTip => 'نصيحة';
 
   @override
-  String get categoryResource => 'مورد';
+  String get categoryResource => 'موقع';
 
   @override
   String get signIn => 'تسجيل الدخول';
@@ -2395,4 +2489,63 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get clearAll => 'مسح الكل';
+
+  @override
+  String get filterTitle => 'الفلاتر';
+
+  @override
+  String get filterReset => 'إعادة تعيين';
+
+  @override
+  String get filterApply => 'تطبيق الفلاتر';
+
+  @override
+  String get filterContentType => 'نوع المحتوى';
+
+  @override
+  String get filterCategory => 'الفئة';
+
+  @override
+  String get filterPricingModel => 'نموذج التسعير';
+
+  @override
+  String get filterSortBy => 'ترتيب حسب';
+
+  @override
+  String get filterAll => 'الكل';
+
+  @override
+  String get filterAny => 'أي';
+
+  @override
+  String get filterNewest => 'الأحدث';
+
+  @override
+  String get filterOldest => 'الأقدم';
+
+  @override
+  String get filterPopular => 'الأكثر شعبية';
+
+  @override
+  String get filterTrending => 'الرائج';
+
+  @override
+  String get filterErrorLoading => 'خطأ في تحميل الفئات';
+
+  @override
+  String get adminSearchItems => 'البحث في العناصر...';
+
+  @override
+  String get adminSortNewest => 'الأحدث أولاً';
+
+  @override
+  String get adminSortOldest => 'الأقدم أولاً';
+
+  @override
+  String get adminAllTypes => 'جميع الأنواع';
+
+  @override
+  String adminItemsCount(int count) {
+    return '$count عنصر';
+  }
 }

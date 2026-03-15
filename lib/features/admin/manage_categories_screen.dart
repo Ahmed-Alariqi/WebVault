@@ -103,13 +103,47 @@ class ManageCategoriesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Text(
-                        cat.name,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            cat.name,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          if (cat.contentType != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  cat.contentType!,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     IconButton(
@@ -244,75 +278,127 @@ class ManageCategoriesScreen extends ConsumerWidget {
     CategoryModel? existing,
   }) {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
+    String? selectedContentType = existing?.contentType;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(
-          existing == null
-              ? AppLocalizations.of(context)!.addCategory
-              : AppLocalizations.of(context)!.editCategory,
-        ),
-        content: TextField(
-          controller: nameCtrl,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-          decoration: InputDecoration(
-            labelText: AppLocalizations.of(context)!.categoryName,
-            filled: true,
-            fillColor: isDark
-                ? Colors.white.withValues(alpha: 0.06)
-                : Colors.black.withValues(alpha: 0.03),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return AlertDialog(
+            backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameCtrl.text.trim().isEmpty) return;
-
-              final data = <String, dynamic>{'name': nameCtrl.text.trim()};
-
-              if (existing == null) {
-                // Must supply default icons and color values explicitly since DB might lack defaults
-                // Colors must utilize toSigned(32) to respect PostgreSQL bounds.
-                data['icon_code_point'] = PhosphorIcons.tag().codePoint;
-                data['color_value'] = AppTheme.primaryColor.toARGB32().toSigned(
-                  32,
-                );
-                data['sort_order'] = 0; // Or query max
-
-                await adminAddCategory(data);
-              } else {
-                await adminUpdateCategory(existing.id, data);
-              }
-
-              ref.invalidate(adminCategoriesProvider);
-              ref.invalidate(categoriesProvider);
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+            title: Text(
+              existing == null
+                  ? AppLocalizations.of(context)!.addCategory
+                  : AppLocalizations.of(context)!.editCategory,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.categoryName,
+                      filled: true,
+                      fillColor: isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.black.withValues(alpha: 0.03),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String?>(
+                    value: selectedContentType,
+                    decoration: InputDecoration(
+                      labelText: 'Content Type (Optional)',
+                      filled: true,
+                      fillColor: isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : Colors.black.withValues(alpha: 0.03),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: null, child: Text('All/General')),
+                      DropdownMenuItem(
+                        value: 'website',
+                        child: Text('Websites / Resources'),
+                      ),
+                      DropdownMenuItem(value: 'tool', child: Text('Tools')),
+                      DropdownMenuItem(value: 'course', child: Text('Courses')),
+                      DropdownMenuItem(value: 'prompt', child: Text('Prompts')),
+                      DropdownMenuItem(value: 'offer', child: Text('Offers')),
+                      DropdownMenuItem(
+                        value: 'announcement',
+                        child: Text('News / Articles'),
+                      ),
+                    ],
+                    onChanged: (val) {
+                      setState(() {
+                        selectedContentType = val;
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
-            child: Text(
-              existing == null
-                  ? AppLocalizations.of(context)!.addBtn
-                  : AppLocalizations.of(context)!.save,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(AppLocalizations.of(context)!.cancel),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (nameCtrl.text.trim().isEmpty) return;
+
+                  final data = <String, dynamic>{
+                    'name': nameCtrl.text.trim(),
+                    'content_type': selectedContentType,
+                  };
+
+                  if (existing == null) {
+                    data['icon_code_point'] = PhosphorIcons.tag().codePoint;
+                    data['color_value'] = AppTheme.primaryColor
+                        .toARGB32()
+                        .toSigned(32);
+                    data['sort_order'] = 0;
+
+                    await adminAddCategory(data);
+                  } else {
+                    await adminUpdateCategory(existing.id, data);
+                  }
+
+                  ref.invalidate(adminCategoriesProvider);
+                  ref.invalidate(categoriesProvider);
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  existing == null
+                      ? AppLocalizations.of(context)!.addBtn
+                      : AppLocalizations.of(context)!.save,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

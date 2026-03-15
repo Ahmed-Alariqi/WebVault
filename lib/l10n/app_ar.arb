@@ -604,10 +604,10 @@
   "categoryGeneral": "عام",
   "categoryQuestions": "أسئلة",
   "categoryTips": "نصائح",
-  "categoryResources": "موارد",
+  "categoryResources": "مواقع",
   "categoryQuestion": "سؤال",
   "categoryTip": "نصيحة",
-  "categoryResource": "مورد",
+  "categoryResource": "موقع",
 
   "signIn": "تسجيل الدخول",
   "signUp": "إنشاء حساب",
@@ -649,6 +649,7 @@
   "howItWorks": "كيف تعمل؟",
   "discoverTitle": "المستكشف",
   "openButton": "فتح",
+  "detailsButton": "التفاصيل",
   "communityTitle": "المجتمع",
   "dismissButton": "تجاهل",
   "emptySearchTitle": "لا توجد نتائج",
@@ -864,5 +865,70 @@
   "presetPermissions": "الصلاحيات المتضمنة",
   "customPermissions": "صلاحيات مخصصة",
   "customPermissionsHint": "حدد الأقسام الإدارية التي يمكن لهذا المستخدم الوصول إليها",
-  "clearAll": "مسح الكل"
+  "clearAll": "مسح الكل",
+
+  "toolBadge": "أداة",
+  "courseBadge": "كورس",
+
+  "pricingPaid": "مدفوع",
+  "pricingFree": "مجاني",
+  "pricingFreemium": "مجاني جزئياً",
+
+  "formTypeTools": "أدوات",
+  "formTypeCourses": "دورات",
+  "formTypeResources": "مواقع",
+  "formTypePrompts": "تلقينات",
+  "formTypeOffers": "عروض",
+  "formTypeNews": "أخبار",
+
+  "formUrlRequiredTool": "رابط الأداة / رابط التحميل",
+  "formUrlRequiredCourse": "رابط الكورس / رابط التسجيل",
+  "formUrlPromptRef": "الرابط المرجعي (اختياري)",
+  "formUrlOfferRef": "رابط العرض / المتجر (اختياري)",
+  "formUrlNewsRef": "رابط المقال الأصلي (اختياري)",
+
+  "formUrlToolHelper": "رابط الأداة، أو رابط التحميل، أو صفحة الأداة الرئيسية",
+  "formUrlCourseHelper": "رابط الكورس أو صفحة معلومات الكورس",
+
+  "formActionPromptHeader": "محتوى التلقين",
+  "formActionOfferHeader": "تفاصيل العرض",
+  "formActionToolHeader": "تفاصيل الوصول",
+  "formActionCourseHeader": "معلومات التسجيل",
+  "formActionNewsHeader": "أهم نقاط المقال",
+  "formActionDefaultHeader": "محتوى إضافي",
+
+  "formActionPromptLabel": "نص التلقين",
+  "formActionOfferLabel": "كوبون / رمز الخصم",
+  "formActionToolLabel": "مفتاح API / رمز الوصول (اختياري)",
+  "formActionCourseLabel": "رمز التسجيل (اختياري)",
+  "formActionNewsLabel": "أهم النقاط / ملخص",
+  "formActionDefaultLabel": "القيمة القابلة للنسخ (اختياري)",
+
+  "filterTitle": "الفلاتر",
+  "filterReset": "إعادة تعيين",
+  "filterApply": "تطبيق الفلاتر",
+  "filterContentType": "نوع المحتوى",
+  "filterCategory": "الفئة",
+  "filterPricingModel": "نموذج التسعير",
+  "filterSortBy": "ترتيب حسب",
+  "filterAll": "الكل",
+  "filterAny": "أي",
+  "filterNewest": "الأحدث",
+  "filterOldest": "الأقدم",
+  "filterPopular": "الأكثر شعبية",
+  "filterTrending": "الرائج",
+  "filterErrorLoading": "خطأ في تحميل الفئات",
+
+  "adminSearchItems": "البحث في العناصر...",
+  "adminSortNewest": "الأحدث أولاً",
+  "adminSortOldest": "الأقدم أولاً",
+  "adminAllTypes": "جميع الأنواع",
+  "adminItemsCount": "{count} عنصر",
+  "@adminItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -5,6 +5,7 @@ class CategoryModel {
   final int iconCodePoint;
   final int colorValue;
   final int sortOrder;
+  final String? contentType;
 
   const CategoryModel({
     required this.id,
@@ -12,6 +13,7 @@ class CategoryModel {
     this.iconCodePoint = 983044,
     this.colorValue = 4282339765,
     this.sortOrder = 0,
+    this.contentType,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class CategoryModel {
       iconCodePoint: json['icon_code_point'] as int? ?? 983044,
       colorValue: json['color_value'] as int? ?? 4282339765,
       sortOrder: json['sort_order'] as int? ?? 0,
+      contentType: json['content_type'] as String?,
     );
   }
 
@@ -30,6 +33,7 @@ class CategoryModel {
       'icon_code_point': iconCodePoint,
       'color_value': colorValue,
       'sort_order': sortOrder,
+      'content_type': contentType,
     };
   }
 }

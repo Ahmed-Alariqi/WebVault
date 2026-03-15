@@ -191,6 +191,8 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
       final categoryId = _ref.read(selectedCategoryProvider);
       final search = _ref.read(discoverSearchProvider);
       final contentType = _ref.read(selectedContentTypeProvider);
+      final pricingModel = _ref.read(selectedPricingModelProvider);
+      final sortBy = _ref.read(discoverSortByProvider);
 
       var query = _client.from('websites').select().eq('is_active', true);
 
@@ -203,15 +205,33 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
       if (contentType != null) {
         query = query.eq('content_type', contentType);
       }
+      if (pricingModel != null) {
+        query = query.eq('pricing_model', pricingModel);
+      }
       if (search.isNotEmpty) {
         query = query.or('title.ilike.%$search%,description.ilike.%$search%');
+      }
+
+      // Sort logic
+      // If we are in the main lists and not a specific tab like trending/popular
+      if (_filterField == null) {
+        if (sortBy == 'popular') {
+          query = query.eq('is_popular', true);
+        } else if (sortBy == 'trending') {
+          query = query.eq('is_trending', true);
+        }
+      }
+
+      bool ascending = false;
+      if (_filterField == null && sortBy == 'oldest') {
+        ascending = true;
       }
 
       final from = state.items.length;
       final to = from + kDiscoverPageSize - 1;
 
       final response = await query
-          .order('created_at', ascending: false)
+          .order('created_at', ascending: ascending)
           .range(from, to);
 
       final newItems = (response as List)
@@ -246,6 +266,8 @@ final discoverPaginatedProvider =
       ref.watch(selectedCategoryProvider);
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
+      ref.watch(selectedPricingModelProvider);
+      ref.watch(discoverSortByProvider);
       return PaginatedWebsitesNotifier(ref, null);
     });
 
@@ -258,6 +280,7 @@ final trendingPaginatedProvider =
       ref.watch(selectedCategoryProvider);
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
+      ref.watch(selectedPricingModelProvider);
       return PaginatedWebsitesNotifier(ref, 'is_trending');
     });
 
@@ -270,6 +293,7 @@ final popularPaginatedProvider =
       ref.watch(selectedCategoryProvider);
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
+      ref.watch(selectedPricingModelProvider);
       return PaginatedWebsitesNotifier(ref, 'is_popular');
     });
 
@@ -282,6 +306,7 @@ final featuredPaginatedProvider =
       ref.watch(selectedCategoryProvider);
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
+      ref.watch(selectedPricingModelProvider);
       return PaginatedWebsitesNotifier(ref, 'is_featured');
     });
 
@@ -439,6 +464,8 @@ final notificationsProvider = FutureProvider<List<NotificationModel>>((
 final discoverSearchProvider = StateProvider<String>((ref) => '');
 final selectedCategoryProvider = StateProvider<String?>((ref) => null);
 final selectedContentTypeProvider = StateProvider<String?>((ref) => null);
+final selectedPricingModelProvider = StateProvider<String?>((ref) => null);
+final discoverSortByProvider = StateProvider<String>((ref) => 'newest');
 
 // --------------- User Saved ---------------
 

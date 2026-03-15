@@ -109,6 +109,7 @@
   "howItWorks": "How it works?",
   "discoverTitle": "Discover",
   "openButton": "Open",
+  "detailsButton": "Details",
   "communityTitle": "Community",
   "dismissButton": "Dismiss",
   "emptySearchTitle": "No results found",
@@ -291,6 +292,12 @@
   "offerBadge": "Offer",
   "newsBadge": "News",
   "websiteBadge": "Website",
+  "toolBadge": "Tool",
+  "courseBadge": "Course",
+
+  "pricingPaid": "PAID",
+  "pricingFree": "FREE",
+  "pricingFreemium": "FREEMIUM",
 
   "expiredBadge": "Expired",
   "daysLeft": "{days}d left",
@@ -636,6 +643,14 @@
     }
   },
   "formContentType": "Content Type",
+  
+  "formTypeTools": "Tools",
+  "formTypeCourses": "Courses",
+  "formTypeResources": "Resources",
+  "formTypePrompts": "Prompts",
+  "formTypeOffers": "Offers",
+  "formTypeNews": "News",
+
   "formBasicInfo": "Basic Information",
   "formTypeTitle": "{type} Title",
   "@formTypeTitle": {
@@ -646,8 +661,17 @@
     }
   },
   "formUrlRequiredWeb": "URL (https://...)",
+  "formUrlRequiredTool": "Tool Link / Download URL",
+  "formUrlRequiredCourse": "Course URL / Enrollment Link",
+  "formUrlPromptRef": "Reference URL (optional)",
+  "formUrlOfferRef": "Offer / Store URL (optional)",
+  "formUrlNewsRef": "Source Article URL (optional)",
+  
   "formUrlOptional": "Link URL (Optional)",
   "formUrlOptionalHelper": "Optional: add a link for users to visit",
+  "formUrlToolHelper": "Link to the tool, download, or landing page",
+  "formUrlCourseHelper": "Link to the course enrollment or info page",
+
   "formCoverImage": "Cover Image",
   "formUploading": "Uploading...",
   "formUploadDevice": "Upload from Device",
@@ -662,6 +686,20 @@
   "formUploadVideoDevice": "Upload Video from Device",
   "formVideoUrlLabel": "Video URL (or paste link)",
   
+  "formActionPromptHeader": "Prompt Content",
+  "formActionOfferHeader": "Offer Details",
+  "formActionToolHeader": "Access Details",
+  "formActionCourseHeader": "Enrollment Info",
+  "formActionNewsHeader": "Article Highlights",
+  "formActionDefaultHeader": "Additional Content",
+
+  "formActionPromptLabel": "Prompt Text",
+  "formActionOfferLabel": "Coupon / Promo Code",
+  "formActionToolLabel": "API Key / Access Code (optional)",
+  "formActionCourseLabel": "Enrollment Code (optional)",
+  "formActionNewsLabel": "Key Highlights / Summary",
+  "formActionDefaultLabel": "Copyable Value (optional)",
+
   "formPromptText": "Prompt Text",
   "formOfferCode": "Offer Code / Key",
   "formAnnounceText": "Announcement Text",
@@ -1125,5 +1163,33 @@
   "presetPermissions": "Included Permissions",
   "customPermissions": "Custom Permissions",
   "customPermissionsHint": "Select which admin sections this user can access",
-  "clearAll": "Clear All"
+  "clearAll": "Clear All",
+
+  "filterTitle": "Filters",
+  "filterReset": "Reset",
+  "filterApply": "Apply Filters",
+  "filterContentType": "Content Type",
+  "filterCategory": "Category",
+  "filterPricingModel": "Pricing Model",
+  "filterSortBy": "Sort By",
+  "filterAll": "All",
+  "filterAny": "Any",
+  "filterNewest": "Newest",
+  "filterOldest": "Oldest",
+  "filterPopular": "Popular",
+  "filterTrending": "Trending",
+  "filterErrorLoading": "Error loading categories",
+
+  "adminSearchItems": "Search items...",
+  "adminSortNewest": "Newest First",
+  "adminSortOldest": "Oldest First",
+  "adminAllTypes": "All Types",
+  "adminItemsCount": "{count} items",
+  "@adminItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -30,6 +30,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   late final TextEditingController _imgCtrl;
   late final TextEditingController _actionValueCtrl;
   late final TextEditingController _videoUrlCtrl;
+  late final TextEditingController _tagsCtrl;
   late final QuillController _quillController;
 
   bool _isTrending = false;
@@ -38,6 +39,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   bool _isActive = true;
   String? _selectedCategoryId;
   String _contentType = 'website';
+  String _pricingModel = 'free';
   DateTime? _expiresAt;
   bool _sendNotification = false;
   bool _isSaving = false;
@@ -49,11 +51,20 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
   static const _contentTypeValues = [
     'website',
+    'tool',
+    'course',
     'prompt',
     'offer',
     'announcement',
   ];
-  static const _contentTypeLabels = ['Website', 'Prompt', 'Offer', 'Announce'];
+  static const _contentTypeColors = [
+    Color(0xFF4A8FE7), // Resources - blue
+    Color(0xFF607D8B), // Tools - blue-grey
+    Color(0xFF4CAF50), // Courses - green
+    Color(0xFF9C27B0), // Prompts - purple
+    Color(0xFFFF9800), // Offers - orange
+    Color(0xFF2196F3), // News - light blue
+  ];
 
   IconData _contentTypeIcon(String type) {
     switch (type) {
@@ -63,8 +74,31 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tool':
+        return PhosphorIcons.wrench();
+      case 'course':
+        return PhosphorIcons.graduationCap();
       default:
         return PhosphorIcons.globe();
+    }
+  }
+
+  String _contentTypeLabel(BuildContext context, String type) {
+    switch (type) {
+      case 'tool':
+        return AppLocalizations.of(context)!.formTypeTools;
+      case 'course':
+        return AppLocalizations.of(context)!.formTypeCourses;
+      case 'website':
+        return AppLocalizations.of(context)!.formTypeResources;
+      case 'prompt':
+        return AppLocalizations.of(context)!.formTypePrompts;
+      case 'offer':
+        return AppLocalizations.of(context)!.formTypeOffers;
+      case 'announcement':
+        return AppLocalizations.of(context)!.formTypeNews;
+      default:
+        return type.toUpperCase();
     }
   }
 
@@ -80,6 +114,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _videoUrlCtrl = TextEditingController(
       text: widget.existing?.videoUrl ?? '',
     );
+    _tagsCtrl = TextEditingController(
+      text: widget.existing?.tags.join(', ') ?? '',
+    );
     _showVideoSection = widget.existing?.hasVideo ?? false;
 
     _isTrending = widget.existing?.isTrending ?? false;
@@ -88,6 +125,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _isActive = widget.existing?.isActive ?? true;
     _selectedCategoryId = widget.existing?.categoryId;
     _contentType = widget.existing?.contentType ?? 'website';
+    _pricingModel = widget.existing?.pricingModel ?? 'free';
     _expiresAt = widget.existing?.expiresAt;
 
     Document doc;
@@ -115,6 +153,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _imgCtrl.dispose();
     _actionValueCtrl.dispose();
     _videoUrlCtrl.dispose();
+    _tagsCtrl.dispose();
     _quillController.dispose();
     super.dispose();
   }
@@ -159,6 +198,14 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         'video_url': _videoUrlCtrl.text.trim().isEmpty
             ? null
             : _videoUrlCtrl.text.trim(),
+        'tags': _tagsCtrl.text.trim().isEmpty
+            ? <String>[]
+            : _tagsCtrl.text
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList(),
+        'pricing_model': _pricingModel,
       };
 
       // Notification translation strings
@@ -280,8 +327,66 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.offerBadge;
       case 'announcement':
         return AppLocalizations.of(context)!.newsBadge;
+      case 'tool':
+        return 'Tool';
+      case 'course':
+        return 'Course';
       default:
         return AppLocalizations.of(context)!.websiteBadge;
+    }
+  }
+
+  /// Dynamic URL field label based on content type
+  String _urlLabel(BuildContext context) {
+    switch (_contentType) {
+      case 'tool':
+        return AppLocalizations.of(context)!.formUrlRequiredTool;
+      case 'course':
+        return AppLocalizations.of(context)!.formUrlRequiredCourse;
+      case 'prompt':
+        return AppLocalizations.of(context)!.formUrlPromptRef;
+      case 'offer':
+        return AppLocalizations.of(context)!.formUrlOfferRef;
+      case 'announcement':
+        return AppLocalizations.of(context)!.formUrlNewsRef;
+      default:
+        return AppLocalizations.of(context)!.formUrlRequiredWeb;
+    }
+  }
+
+  /// Dynamic action value label
+  String _actionLabel(BuildContext context) {
+    switch (_contentType) {
+      case 'prompt':
+        return AppLocalizations.of(context)!.formActionPromptLabel;
+      case 'offer':
+        return AppLocalizations.of(context)!.formActionOfferLabel;
+      case 'tool':
+        return AppLocalizations.of(context)!.formActionToolLabel;
+      case 'course':
+        return AppLocalizations.of(context)!.formActionCourseLabel;
+      case 'announcement':
+        return AppLocalizations.of(context)!.formActionNewsLabel;
+      default:
+        return AppLocalizations.of(context)!.formActionDefaultLabel;
+    }
+  }
+
+  /// Dynamic action section header
+  String _actionSectionHeader(BuildContext context) {
+    switch (_contentType) {
+      case 'prompt':
+        return AppLocalizations.of(context)!.formActionPromptHeader;
+      case 'offer':
+        return AppLocalizations.of(context)!.formActionOfferHeader;
+      case 'tool':
+        return AppLocalizations.of(context)!.formActionToolHeader;
+      case 'course':
+        return AppLocalizations.of(context)!.formActionCourseHeader;
+      case 'announcement':
+        return AppLocalizations.of(context)!.formActionNewsHeader;
+      default:
+        return AppLocalizations.of(context)!.formActionDefaultHeader;
     }
   }
 
@@ -433,86 +538,92 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             PhosphorIcons.squaresFour(),
                             isDark,
                           ),
-                          Row(
-                            children: [
-                              for (
-                                int i = 0;
-                                i < _contentTypeValues.length;
-                                i++
-                              ) ...[
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => setState(
-                                      () =>
-                                          _contentType = _contentTypeValues[i],
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: 1.3,
+                                ),
+                            itemCount: _contentTypeValues.length,
+                            itemBuilder: (ctx, i) {
+                              final isSelected =
+                                  _contentType == _contentTypeValues[i];
+                              final typeColor = _contentTypeColors[i];
+                              return GestureDetector(
+                                onTap: () => setState(
+                                  () => _contentType = _contentTypeValues[i],
+                                ),
+                                child: AnimatedContainer(
+                                  duration: 200.ms,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? typeColor
+                                        : (isDark
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.04,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.02,
+                                                )),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? typeColor
+                                          : (isDark
+                                                ? Colors.white12
+                                                : Colors.black12),
+                                      width: isSelected ? 2 : 1,
                                     ),
-                                    child: AnimatedContainer(
-                                      duration: 200.ms,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color:
-                                            _contentType ==
-                                                _contentTypeValues[i]
-                                            ? AppTheme.primaryColor
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                              color: typeColor.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 3),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        _contentTypeIcon(_contentTypeValues[i]),
+                                        size: 24,
+                                        color: isSelected
+                                            ? Colors.white
                                             : (isDark
-                                                  ? Colors.white.withValues(
-                                                      alpha: 0.04,
-                                                    )
-                                                  : Colors.black.withValues(
-                                                      alpha: 0.02,
-                                                    )),
-                                        borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color:
-                                              _contentType ==
-                                                  _contentTypeValues[i]
-                                              ? AppTheme.primaryColor
+                                                  ? Colors.white60
+                                                  : Colors.black54),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        _contentTypeLabel(
+                                          context,
+                                          _contentTypeValues[i],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: isSelected
+                                              ? Colors.white
                                               : (isDark
-                                                    ? Colors.white12
-                                                    : Colors.black12),
+                                                    ? Colors.white60
+                                                    : Colors.black54),
                                         ),
                                       ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            _contentTypeIcon(
-                                              _contentTypeValues[i],
-                                            ),
-                                            size: 22,
-                                            color:
-                                                _contentType ==
-                                                    _contentTypeValues[i]
-                                                ? Colors.white
-                                                : (isDark
-                                                      ? Colors.white60
-                                                      : Colors.black54),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            _contentTypeLabels[i],
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color:
-                                                  _contentType ==
-                                                      _contentTypeValues[i]
-                                                  ? Colors.white
-                                                  : (isDark
-                                                        ? Colors.white60
-                                                        : Colors.black54),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                    ],
                                   ),
                                 ),
-                                if (i < _contentTypeValues.length - 1)
-                                  const SizedBox(width: 8),
-                              ],
-                            ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -541,18 +652,22 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           // URL field — required for websites, optional for others
                           _buildTextField(
                             controller: _urlCtrl,
-                            label: _contentType == 'website'
-                                ? AppLocalizations.of(
-                                    context,
-                                  )!.formUrlRequiredWeb
-                                : AppLocalizations.of(context)!.formUrlOptional,
+                            label: _urlLabel(context),
                             prefixIcon: PhosphorIcons.link(),
                             isDark: isDark,
-                            helperText: _contentType != 'website'
+                            helperText: _contentType == 'website'
+                                ? null
+                                : _contentType == 'tool'
                                 ? AppLocalizations.of(
                                     context,
-                                  )!.formUrlOptionalHelper
-                                : null,
+                                  )!.formUrlToolHelper
+                                : _contentType == 'course'
+                                ? AppLocalizations.of(
+                                    context,
+                                  )!.formUrlCourseHelper
+                                : AppLocalizations.of(
+                                    context,
+                                  )!.formUrlOptionalHelper,
                           ),
                           const SizedBox(height: 16),
                           // ── Cover Image Section ──
@@ -1049,7 +1164,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                       ),
                     ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
 
-                    // ── Copyable Content (Prompt / Offer / Announcement) ──
+                    // ── Copyable Content (all non-website types) ──
                     if (_contentType != 'website')
                       _buildCard(
                             isDark: isDark,
@@ -1057,37 +1172,21 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 _buildSectionHeader(
-                                  _contentType == 'prompt'
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.formPromptText
-                                      : _contentType == 'offer'
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.formOfferCode
-                                      : AppLocalizations.of(
-                                          context,
-                                        )!.formAnnounceText,
+                                  _actionSectionHeader(context),
                                   _contentType == 'prompt'
                                       ? PhosphorIcons.sparkle()
                                       : _contentType == 'offer'
                                       ? PhosphorIcons.key()
+                                      : _contentType == 'tool'
+                                      ? PhosphorIcons.wrench()
+                                      : _contentType == 'course'
+                                      ? PhosphorIcons.graduationCap()
                                       : PhosphorIcons.megaphone(),
                                   isDark,
                                 ),
                                 _buildTextField(
                                   controller: _actionValueCtrl,
-                                  label: _contentType == 'prompt'
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.formPromptInput
-                                      : _contentType == 'offer'
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.formOfferInput
-                                      : AppLocalizations.of(
-                                          context,
-                                        )!.formAnnounceInput,
+                                  label: _actionLabel(context),
                                   prefixIcon: PhosphorIcons.clipboardText(),
                                   isDark: isDark,
                                   maxLines: _contentType == 'prompt' ? 6 : 3,
@@ -1204,6 +1303,29 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                   );
                                   return categoriesAsync.when(
                                     data: (cats) {
+                                      final filteredCats = cats
+                                          .where(
+                                            (c) =>
+                                                c.contentType == null ||
+                                                c.contentType == _contentType,
+                                          )
+                                          .toList();
+
+                                      // Auto-clear selection if it is no longer valid
+                                      if (_selectedCategoryId != null &&
+                                          !filteredCats.any(
+                                            (c) => c.id == _selectedCategoryId,
+                                          )) {
+                                        WidgetsBinding.instance
+                                            .addPostFrameCallback((_) {
+                                              if (mounted)
+                                                setState(
+                                                  () => _selectedCategoryId =
+                                                      null,
+                                                );
+                                            });
+                                      }
+
                                       return Container(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 20,
@@ -1263,7 +1385,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                                   )!.uncategorized,
                                                 ),
                                               ),
-                                              ...cats.map(
+                                              ...filteredCats.map(
                                                 (c) => DropdownMenuItem(
                                                   value: c.id,
                                                   child: Text(
@@ -1293,6 +1415,107 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                         OfflineWarningWidget(error: e),
                                   );
                                 },
+                              ),
+                              const SizedBox(height: 16),
+                              // ── Tags ──
+                              _buildTextField(
+                                controller: _tagsCtrl,
+                                label: 'Tags (comma separated)',
+                                prefixIcon: PhosphorIcons.tag(),
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 16),
+                              // ── Pricing Model ──
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.filterPricingModel,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.04)
+                                      : Colors.black.withValues(alpha: 0.02),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.black.withValues(alpha: 0.05),
+                                  ),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    dropdownColor: isDark
+                                        ? AppTheme.darkCard
+                                        : Colors.white,
+                                    value: _pricingModel,
+                                    icon: Icon(
+                                      PhosphorIcons.caretDown(),
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black54,
+                                    ),
+                                    items: [
+                                      DropdownMenuItem(
+                                        value: 'free',
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.pricingFree,
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'freemium',
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.pricingFreemium,
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'paid',
+                                        child: Text(
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.pricingPaid,
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() => _pricingModel = val);
+                                      }
+                                    },
+                                  ),
+                                ),
                               ),
                             ],
                           ),

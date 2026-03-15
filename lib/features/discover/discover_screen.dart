@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,8 +18,9 @@ import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
-import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/widgets/advertisement_carousel.dart';
+import 'widgets/discover_filter_bottom_sheet.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -103,28 +104,126 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
           // ── Sticky Search + Filter Bar ──
           if (!ref.watch(showBookmarksOnlyProvider))
-            SliverPersistentHeader(
+            SliverAppBar(
               pinned: true,
-              delegate: _StickySearchFilterDelegate(
-                isDark: isDark,
-                ref: ref,
-                selectedType: ref.watch(selectedContentTypeProvider),
-                selectedCategory: ref.watch(selectedCategoryProvider),
-                searchQuery: ref.watch(discoverSearchProvider),
-                onSearchChanged: (v) {
-                  ref.read(discoverSearchProvider.notifier).state = v;
-                  if (_searchDebounce?.isActive ?? false) {
-                    _searchDebounce!.cancel();
-                  }
-                  _searchDebounce = Timer(
-                    const Duration(milliseconds: 1500),
-                    () {
-                      if (v.trim().isNotEmpty) {
-                        AnalyticsService.trackSearch(v);
-                      }
-                    },
-                  );
-                },
+              automaticallyImplyLeading: false,
+              toolbarHeight: 68,
+              backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+              titleSpacing: 0,
+              title: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: Row(
+                  children: [
+                    // ── Search Bar ──
+                    Expanded(
+                      child: SizedBox(
+                        height: 48,
+                        child: TextField(
+                          onChanged: (v) {
+                            ref.read(discoverSearchProvider.notifier).state = v;
+                            if (_searchDebounce?.isActive ?? false) {
+                              _searchDebounce!.cancel();
+                            }
+                            _searchDebounce = Timer(
+                              const Duration(milliseconds: 1500),
+                              () {
+                                if (v.trim().isNotEmpty) {
+                                  AnalyticsService.trackSearch(v);
+                                }
+                              },
+                            );
+                          },
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontSize: 14,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: AppLocalizations.of(
+                              context,
+                            )!.searchDiscover,
+                            hintStyle: TextStyle(
+                              color: isDark ? Colors.white38 : Colors.black38,
+                              fontSize: 14,
+                            ),
+                            prefixIcon: Icon(
+                              PhosphorIcons.magnifyingGlass(),
+                              size: 20,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
+                            filled: true,
+                            fillColor: isDark
+                                ? AppTheme.darkCard
+                                : AppTheme.lightCard,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // ── Filter Button ──
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (ctx) => const DiscoverFilterBottomSheet(),
+                        );
+                      },
+                      child: Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.darkCard
+                              : AppTheme.lightCard,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              PhosphorIcons.faders(),
+                              size: 22,
+                              color:
+                                  (ref.watch(selectedContentTypeProvider) !=
+                                          null ||
+                                      ref.watch(selectedCategoryProvider) !=
+                                          null)
+                                  ? AppTheme.primaryColor
+                                  : (isDark ? Colors.white70 : Colors.black87),
+                            ),
+                            if (ref.watch(selectedContentTypeProvider) !=
+                                    null ||
+                                ref.watch(selectedCategoryProvider) != null)
+                              Positioned(
+                                top: 12,
+                                right: 12,
+                                child: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -226,6 +325,32 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                   ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ] else if (!trendingState.isInitialLoad &&
+              !popularState.isInitialLoad &&
+              !featuredState.isInitialLoad &&
+              !discoverState.isInitialLoad &&
+              trendingState.items.isEmpty &&
+              popularState.items.isEmpty &&
+              featuredState.items.isEmpty &&
+              discoverState.items.isEmpty) ...[
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child:
+                  (trendingState.error != null ||
+                      popularState.error != null ||
+                      featuredState.error != null ||
+                      discoverState.error != null)
+                  ? OfflineWarningWidget(
+                      error:
+                          trendingState.error ??
+                          popularState.error ??
+                          featuredState.error ??
+                          discoverState.error ??
+                          'Unknown Error',
+                    )
+                  : _buildEmptyState(isDark),
+            ),
           ] else ...[
             // Trending Section
             SliverToBoxAdapter(
@@ -298,34 +423,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
             ),
 
-            // Offline Error State — show only when all sections are empty + initial load done
-            if (!trendingState.isInitialLoad &&
-                !popularState.isInitialLoad &&
-                !featuredState.isInitialLoad &&
-                !discoverState.isInitialLoad &&
-                trendingState.items.isEmpty &&
-                popularState.items.isEmpty &&
-                featuredState.items.isEmpty &&
-                discoverState.items.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child:
-                    (trendingState.error != null ||
-                        popularState.error != null ||
-                        featuredState.error != null ||
-                        discoverState.error != null)
-                    ? OfflineWarningWidget(
-                        error:
-                            (trendingState.error ??
-                            popularState.error ??
-                            featuredState.error ??
-                            discoverState.error)!,
-                      )
-                    : _buildEmptyState(isDark),
-              ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
-
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
@@ -528,10 +627,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                 ),
                               ),
                             ),
-                            errorWidget: (ctx, url, err) =>
-                                _placeholderImage(isDark, site.contentType),
+                            errorWidget: (ctx, url, err) => _placeholderImage(
+                              context,
+                              isDark,
+                              site.contentType,
+                            ),
                           )
-                        : _placeholderImage(isDark, site.contentType),
+                        : _placeholderImage(context, isDark, site.contentType),
                   ),
                   // Trending badge
                   if (showBadge)
@@ -607,7 +709,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              _typeLabel(site.contentType),
+                              _typeLabel(context, site.contentType),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -699,17 +801,68 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      site.title,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppTheme.darkTextPrimary
-                            : AppTheme.lightTextPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            site.title,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.darkTextPrimary
+                                  : AppTheme.lightTextPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (site.pricingModel != 'free' &&
+                            site.pricingModel.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: site.pricingModel == 'paid'
+                                  ? Colors.redAccent.withValues(alpha: 0.15)
+                                  : Colors.orangeAccent.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: site.pricingModel == 'paid'
+                                    ? Colors.redAccent.withValues(alpha: 0.3)
+                                    : Colors.orangeAccent.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                width: 0.5,
+                              ),
+                            ),
+                            child: Text(
+                              site.pricingModel == 'paid'
+                                  ? AppLocalizations.of(
+                                      context,
+                                    )!.pricingPaid.toUpperCase()
+                                  : AppLocalizations.of(
+                                      context,
+                                    )!.pricingFreemium.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 8,
+                                fontWeight: FontWeight.bold,
+                                color: site.pricingModel == 'paid'
+                                    ? (isDark
+                                          ? Colors.redAccent.shade100
+                                          : Colors.redAccent.shade700)
+                                    : (isDark
+                                          ? Colors.orangeAccent.shade100
+                                          : Colors.orange.shade800),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Expanded(
@@ -781,6 +934,39 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         ],
                       ),
                     ),
+                    if (site.tags.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 18,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: site.tags.length > 3
+                              ? 3
+                              : site.tags.length, // max 3 tags to not overflow
+                          separatorBuilder: (_, __) => const SizedBox(width: 4),
+                          itemBuilder: (ctx, idx) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white12
+                                  : Colors.black.withValues(alpha: 0.04),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '#${site.tags[idx]}',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     // ── Dynamic Action Buttons ──
                     _buildActionButtons(context, ref, site, isDark),
@@ -872,7 +1058,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       : null,
                   icon: Icon(PhosphorIcons.key(), size: 14),
                   label: Text(
-                    site.hasCopyableValue ? 'Copy Code' : 'View',
+                    site.hasCopyableValue
+                        ? AppLocalizations.of(context)!.copyButton
+                        : AppLocalizations.of(context)!.detailsButton,
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -974,6 +1162,59 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ],
         );
 
+      case 'tool':
+      case 'course':
+        return Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 32,
+                child: ElevatedButton(
+                  onPressed: () =>
+                      context.push('/discover-browser', extra: site),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _typeColor(site.contentType),
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(context)!.detailsButton,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            SizedBox(
+              height: 32,
+              width: 32,
+              child: IconButton(
+                onPressed: () => _openUrl(site.url, inApp: false),
+                icon: Icon(PhosphorIcons.globe(), size: 18),
+                padding: EdgeInsets.zero,
+                style: IconButton.styleFrom(
+                  backgroundColor: isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.05),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                color: isDark ? Colors.white70 : Colors.black54,
+                tooltip: 'Open in Browser',
+              ),
+            ),
+            const SizedBox(width: 6),
+            _bookmarkButton(ref, site, isDark),
+          ],
+        );
+
       default: // website
         return Row(
           children: [
@@ -1065,7 +1306,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   // ── Placeholder image based on content type ──
-  Widget _placeholderImage(bool isDark, String contentType) {
+  Widget _placeholderImage(
+    BuildContext context,
+    bool isDark,
+    String contentType,
+  ) {
     return Container(
       height: 120,
       color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
@@ -1080,7 +1325,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              _typeLabel(contentType),
+              _typeLabel(context, contentType),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
@@ -1194,6 +1439,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tool':
+        return PhosphorIcons.wrench();
+      case 'course':
+        return PhosphorIcons.graduationCap();
       default:
         return PhosphorIcons.globe();
     }
@@ -1207,21 +1456,29 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return const Color(0xFFFF9800);
       case 'announcement':
         return const Color(0xFF2196F3);
+      case 'tool':
+        return const Color(0xFF607D8B);
+      case 'course':
+        return const Color(0xFF4CAF50);
       default:
         return AppTheme.primaryColor;
     }
   }
 
-  String _typeLabel(String type) {
+  String _typeLabel(BuildContext context, String type) {
     switch (type) {
       case 'prompt':
-        return 'Prompt';
+        return AppLocalizations.of(context)!.badgePrompt;
       case 'offer':
-        return 'Offer';
+        return AppLocalizations.of(context)!.badgeOffer;
       case 'announcement':
-        return 'News';
+        return AppLocalizations.of(context)!.badgeAnnounce;
+      case 'tool':
+        return AppLocalizations.of(context)!.toolBadge;
+      case 'course':
+        return AppLocalizations.of(context)!.courseBadge;
       default:
-        return 'Website';
+        return AppLocalizations.of(context)!.badgeWebsite;
     }
   }
 
@@ -1260,315 +1517,5 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         mode: inApp ? LaunchMode.inAppWebView : LaunchMode.externalApplication,
       );
     }
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// Sticky Search + Filter Header Delegate
-// ════════════════════════════════════════════════════════════════════════════
-
-class _StickySearchFilterDelegate extends SliverPersistentHeaderDelegate {
-  final bool isDark;
-  final WidgetRef ref;
-  final ValueChanged<String> onSearchChanged;
-  final String? selectedType;
-  final String? selectedCategory;
-  final String searchQuery;
-
-  static const double _maxExtent = 146.0;
-  static const double _minExtent = 146.0;
-
-  // Type filter definitions (must match the ones in _DiscoverScreenState)
-  static const _typeFilters = [
-    {'value': null, 'label': 'All', 'icon': 'all'},
-    {'value': 'website', 'label': 'Websites', 'icon': 'website'},
-    {'value': 'prompt', 'label': 'Prompts', 'icon': 'prompt'},
-    {'value': 'offer', 'label': 'Offers', 'icon': 'offer'},
-    {'value': 'announcement', 'label': 'News', 'icon': 'announcement'},
-  ];
-
-  _StickySearchFilterDelegate({
-    required this.isDark,
-    required this.ref,
-    required this.onSearchChanged,
-    required this.selectedType,
-    required this.selectedCategory,
-    required this.searchQuery,
-  });
-
-  @override
-  double get maxExtent => _maxExtent;
-
-  @override
-  double get minExtent => _minExtent;
-
-  @override
-  bool shouldRebuild(covariant _StickySearchFilterDelegate oldDelegate) {
-    return isDark != oldDelegate.isDark ||
-        selectedType != oldDelegate.selectedType ||
-        selectedCategory != oldDelegate.selectedCategory ||
-        searchQuery != oldDelegate.searchQuery;
-  }
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    final bgColor = isDark
-        ? AppTheme.darkBg.withValues(alpha: shrinkOffset > 0 ? 0.85 : 1.0)
-        : AppTheme.lightBg.withValues(alpha: shrinkOffset > 0 ? 0.85 : 1.0);
-
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: shrinkOffset > 0 ? 12 : 0,
-          sigmaY: shrinkOffset > 0 ? 12 : 0,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            border: Border(
-              bottom: BorderSide(
-                color: shrinkOffset > 0
-                    ? (isDark
-                          ? Colors.white10
-                          : Colors.black.withValues(alpha: 0.05))
-                    : Colors.transparent,
-                width: 1,
-              ),
-            ),
-          ),
-          child: Column(
-            children: [
-              // ── Search Bar ──
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                child: SizedBox(
-                  height: 42,
-                  child: TextField(
-                    onChanged: onSearchChanged,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontSize: 14,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.searchDiscover,
-                      hintStyle: TextStyle(
-                        color: isDark ? Colors.white38 : Colors.black38,
-                        fontSize: 14,
-                      ),
-                      prefixIcon: Icon(
-                        PhosphorIcons.magnifyingGlass(),
-                        size: 20,
-                        color: isDark ? Colors.white38 : Colors.black38,
-                      ),
-                      filled: true,
-                      fillColor: isDark
-                          ? AppTheme.darkCard
-                          : AppTheme.lightCard,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ── Content Type Tabs ──
-              SizedBox(height: 38, child: _buildTypeTabs(context)),
-
-              // ── Category Chips ──
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SizedBox(height: 34, child: _buildCategoryChips()),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTypeTabs(BuildContext context) {
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: _typeFilters.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemBuilder: (context, index) {
-        final filter = _typeFilters[index];
-        final value = filter['value'];
-        final label = filter['label'] as String;
-        final iconKey = filter['icon'] as String;
-        final isActive = selectedType == value;
-
-        IconData icon;
-        Color activeColor;
-        switch (iconKey) {
-          case 'website':
-            icon = PhosphorIcons.globe(
-              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
-            );
-            activeColor = const Color(0xFF6366F1);
-            break;
-          case 'prompt':
-            icon = PhosphorIcons.lightbulb(
-              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
-            );
-            activeColor = const Color(0xFFEC4899);
-            break;
-          case 'offer':
-            icon = PhosphorIcons.tag(
-              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
-            );
-            activeColor = const Color(0xFFF59E0B);
-            break;
-          case 'announcement':
-            icon = PhosphorIcons.megaphone(
-              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
-            );
-            activeColor = const Color(0xFF489DFC);
-            break;
-          default:
-            icon = PhosphorIcons.squaresFour(
-              isActive ? PhosphorIconsStyle.fill : PhosphorIconsStyle.regular,
-            );
-            activeColor = AppTheme.primaryColor;
-        }
-
-        return GestureDetector(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            ref.read(selectedContentTypeProvider.notifier).state = value;
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? activeColor.withValues(alpha: 0.15)
-                  : (isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.04)),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isActive
-                    ? activeColor.withValues(alpha: 0.4)
-                    : (isDark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.06)),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 16,
-                  color: isActive
-                      ? activeColor
-                      : (isDark ? Colors.white54 : Colors.black54),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive
-                        ? activeColor
-                        : (isDark ? Colors.white60 : Colors.black54),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildCategoryChips() {
-    final categories = ref.watch(categoriesProvider);
-
-    return categories.when(
-      data: (cats) {
-        if (cats.isEmpty) return const SizedBox();
-        return ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: cats.length + 1,
-          separatorBuilder: (_, _) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            final isAll = index == 0;
-            final isActive = isAll
-                ? selectedCategory == null
-                : selectedCategory == cats[index - 1].id;
-            final label = isAll ? 'All' : cats[index - 1].name;
-            final onTap = isAll
-                ? () {
-                    HapticFeedback.lightImpact();
-                    ref.read(selectedCategoryProvider.notifier).state = null;
-                  }
-                : () {
-                    HapticFeedback.lightImpact();
-                    ref.read(selectedCategoryProvider.notifier).state =
-                        cats[index - 1].id;
-                  };
-
-            return GestureDetector(
-              onTap: onTap,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 0,
-                ),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? AppTheme.primaryColor.withValues(alpha: 0.15)
-                      : (isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.04)),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isActive
-                        ? AppTheme.primaryColor.withValues(alpha: 0.4)
-                        : (isDark
-                              ? Colors.white.withValues(alpha: 0.1)
-                              : Colors.black.withValues(alpha: 0.06)),
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive
-                        ? AppTheme.primaryColor
-                        : (isDark ? Colors.white60 : Colors.black54),
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-      loading: () => const SizedBox(),
-      error: (e, st) => const SizedBox(),
-    );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -24,11 +25,16 @@ class ManageWebsitesScreen extends ConsumerStatefulWidget {
 
 class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    // Sync search controller with provider
+    _searchController.text = ref.read(adminSearchQueryProvider);
   }
 
   void _onScroll() {
@@ -38,10 +44,31 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
     }
   }
 
+  void _onSearchChanged(String query) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      ref.read(adminSearchQueryProvider.notifier).state = query;
+      ref.read(adminWebsitesPaginatedProvider.notifier).reset();
+    });
+  }
+
+  void _onContentTypeChanged(String? type) {
+    ref.read(adminContentTypeFilterProvider.notifier).state = type;
+    ref.read(adminWebsitesPaginatedProvider.notifier).reset();
+  }
+
+  void _toggleSort() {
+    final current = ref.read(adminSortAscendingProvider);
+    ref.read(adminSortAscendingProvider.notifier).state = !current;
+    ref.read(adminWebsitesPaginatedProvider.notifier).reset();
+  }
+
   @override
   void dispose() {
+    _debounce?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -49,70 +76,259 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pState = ref.watch(adminWebsitesPaginatedProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final selectedType = ref.watch(adminContentTypeFilterProvider);
+    final ascending = ref.watch(adminSortAscendingProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.manageItemsTitle),
         forceMaterialTransparency: true,
-      ),
-      body: pState.isInitialLoad
-          ? Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: List.generate(5, (_) => const ShimmerAdminTile()),
-              ),
-            )
-          : pState.items.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-                    size: 56,
-                    color: AppTheme.primaryColor.withValues(alpha: 0.5),
+        title: _isSearching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: l10n.adminSearchItems,
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontSize: 16,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    AppLocalizations.of(context)!.noItemsYet,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    AppLocalizations.of(context)!.tapPlusToAddOne,
-                    style: TextStyle(
-                      color: isDark ? Colors.white54 : Colors.black45,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : GridView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 300,
-                mainAxisExtent: 290, // Match discover card height roughly
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-              ),
-              itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
-              itemBuilder: (ctx, i) {
-                if (i >= pState.items.length) {
-                  return const ShimmerAdminTile();
-                }
-                return _websiteTile(context, ref, pState.items[i], isDark, i);
-              },
+                ),
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black,
+                  fontSize: 16,
+                ),
+              )
+            : Text(l10n.manageItemsTitle),
+        actions: [
+          // Search toggle
+          IconButton(
+            icon: Icon(
+              _isSearching
+                  ? PhosphorIcons.x()
+                  : PhosphorIcons.magnifyingGlass(),
             ),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _searchController.clear();
+                  _onSearchChanged('');
+                }
+                _isSearching = !_isSearching;
+              });
+            },
+            tooltip: _isSearching ? l10n.cancel : l10n.adminSearchItems,
+          ),
+          // Sort toggle
+          IconButton(
+            icon: Icon(
+              ascending
+                  ? PhosphorIcons.sortAscending()
+                  : PhosphorIcons.sortDescending(),
+            ),
+            onPressed: _toggleSort,
+            tooltip: ascending ? l10n.adminSortOldest : l10n.adminSortNewest,
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // ── Content Type Filter Chips ──
+          SizedBox(
+            height: 48,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                _filterChip(
+                  label: l10n.adminAllTypes,
+                  isSelected: selectedType == null,
+                  onTap: () => _onContentTypeChanged(null),
+                  isDark: isDark,
+                ),
+                _filterChip(
+                  label: l10n.formTypeResources,
+                  isSelected: selectedType == 'website',
+                  onTap: () => _onContentTypeChanged('website'),
+                  isDark: isDark,
+                  color: AppTheme.primaryColor,
+                ),
+                _filterChip(
+                  label: l10n.formTypeTools,
+                  isSelected: selectedType == 'tool',
+                  onTap: () => _onContentTypeChanged('tool'),
+                  isDark: isDark,
+                  color: const Color(0xFF607D8B),
+                ),
+                _filterChip(
+                  label: l10n.formTypeCourses,
+                  isSelected: selectedType == 'course',
+                  onTap: () => _onContentTypeChanged('course'),
+                  isDark: isDark,
+                  color: const Color(0xFF4CAF50),
+                ),
+                _filterChip(
+                  label: l10n.formTypePrompts,
+                  isSelected: selectedType == 'prompt',
+                  onTap: () => _onContentTypeChanged('prompt'),
+                  isDark: isDark,
+                  color: const Color(0xFF9C27B0),
+                ),
+                _filterChip(
+                  label: l10n.formTypeOffers,
+                  isSelected: selectedType == 'offer',
+                  onTap: () => _onContentTypeChanged('offer'),
+                  isDark: isDark,
+                  color: const Color(0xFFFF9800),
+                ),
+                _filterChip(
+                  label: l10n.formTypeNews,
+                  isSelected: selectedType == 'announcement',
+                  onTap: () => _onContentTypeChanged('announcement'),
+                  isDark: isDark,
+                  color: const Color(0xFF2196F3),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // ── Item count ──
+          if (!pState.isInitialLoad)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  l10n.adminItemsCount(pState.items.length),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+
+          // ── Grid ──
+          Expanded(
+            child: pState.isInitialLoad
+                ? Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: List.generate(
+                        5,
+                        (_) => const ShimmerAdminTile(),
+                      ),
+                    ),
+                  )
+                : pState.items.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+                          size: 56,
+                          color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.noItemsYet,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.tapPlusToAddOne,
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : Colors.black45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(20),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 300,
+                          mainAxisExtent: 290,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 16,
+                        ),
+                    itemCount: pState.items.length + (pState.hasMore ? 1 : 0),
+                    itemBuilder: (ctx, i) {
+                      if (i >= pState.items.length) {
+                        return const ShimmerAdminTile();
+                      }
+                      return _websiteTile(
+                        context,
+                        ref,
+                        pState.items[i],
+                        isDark,
+                        i,
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: ModernFab.extended(
         onPressed: () => context.push('/admin/websites/edit'),
         icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-        label: Text(AppLocalizations.of(context)!.newItem),
+        label: Text(l10n.newItem),
+      ),
+    );
+  }
+
+  // ── Filter Chip Widget ──
+  Widget _filterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    Color? color,
+  }) {
+    final chipColor = color ?? AppTheme.primaryColor;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? chipColor.withValues(alpha: 0.15)
+                : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? chipColor.withValues(alpha: 0.5)
+                  : (isDark ? Colors.white12 : Colors.black12),
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected
+                    ? chipColor
+                    : (isDark ? Colors.white70 : Colors.black87),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -453,7 +669,9 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                               ),
                             ),
                             color: Colors.red,
-                            tooltip: 'Delete',
+                            tooltip: AppLocalizations.of(
+                              context,
+                            )!.cardButtonDelete,
                           ),
                         ),
                       ],
@@ -494,6 +712,10 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tool':
+        return PhosphorIcons.wrench();
+      case 'course':
+        return PhosphorIcons.graduationCap();
       default:
         return PhosphorIcons.globe();
     }
@@ -507,6 +729,10 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return const Color(0xFFFF9800);
       case 'announcement':
         return const Color(0xFF2196F3);
+      case 'tool':
+        return const Color(0xFF607D8B);
+      case 'course':
+        return const Color(0xFF4CAF50);
       default:
         return AppTheme.primaryColor;
     }
@@ -520,6 +746,10 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return AppLocalizations.of(context)!.badgeOffer;
       case 'announcement':
         return AppLocalizations.of(context)!.badgeAnnounce;
+      case 'tool':
+        return AppLocalizations.of(context)!.toolBadge;
+      case 'course':
+        return AppLocalizations.of(context)!.courseBadge;
       default:
         return AppLocalizations.of(context)!.badgeWebsite;
     }
