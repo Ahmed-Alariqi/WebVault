@@ -20,6 +20,7 @@ import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/widgets/advertisement_carousel.dart';
+import '../../data/models/collection_model.dart';
 import 'widgets/discover_filter_bottom_sheet.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
@@ -47,6 +48,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final discoverState = ref.watch(discoverPaginatedProvider);
     final selected = ref.watch(selectedCategoryProvider);
     final search = ref.watch(discoverSearchProvider);
+    final collectionsAsync = ref.watch(featuredCollectionsProvider);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -404,6 +406,18 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
             ),
 
+            // Featured Collections Section
+            SliverToBoxAdapter(
+              child: collectionsAsync.when(
+                data: (collections) {
+                  if (collections.isEmpty) return const SizedBox();
+                  return _buildCollectionsSection(context, collections, isDark);
+                },
+                loading: () => const SizedBox(),
+                error: (_, __) => const SizedBox(),
+              ),
+            ),
+
             // All / Filter Results Section
             SliverToBoxAdapter(
               child: discoverState.isInitialLoad
@@ -425,6 +439,209 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
+        ],
+      ),
+    );
+  }
+
+  // ── Collections Section Builder ──
+  Widget _buildCollectionsSection(
+    BuildContext context,
+    List<CollectionModel> collections,
+    bool isDark,
+  ) {
+    final loc = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Icon(
+                  PhosphorIcons.folderStar(PhosphorIconsStyle.fill),
+                  color: isDark ? Colors.white : Colors.black87,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  loc.collectionsTitle,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 140,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              scrollDirection: Axis.horizontal,
+              itemCount: collections.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (ctx, i) {
+                final col = collections[i];
+                final color = Color(col.colorValue);
+                return GestureDetector(
+                  onTap: () => context.push('/collection-items', extra: col),
+                  child: Container(
+                    width: 130,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      children: [
+                        // Background Layer (Image or Color Gradient)
+                        if (col.coverImageUrl != null &&
+                            col.coverImageUrl!.isNotEmpty)
+                          Positioned.fill(
+                            child: CachedNetworkImage(
+                              imageUrl: col.coverImageUrl!,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        else
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [color.withValues(alpha: 0.8), color],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Dark/Gradient Overlay to make text readable
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.black.withValues(alpha: 0.1),
+                                  Colors.black.withValues(alpha: 0.8),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Content (Icon and Title)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  IconData(
+                                    col.iconCodePoint,
+                                    fontFamily: 'MaterialIcons',
+                                  ),
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                col.title,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.2,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (col.itemCount > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    '${col.itemCount} items',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.7,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Full Screen Image Viewer ──
+  void _showFullImage(BuildContext context, String imageUrl) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.9),
+      builder: (ctx) => Stack(
+        children: [
+          Positioned.fill(
+            child: InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+                errorWidget: (_, __, ___) => const Center(
+                  child: Icon(Icons.error, color: Colors.white, size: 48),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: Material(
+              color: Colors.transparent,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -610,30 +827,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   SizedBox(
                     height: 120,
                     width: double.infinity,
-                    child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: site.imageUrl!,
-                            fit: BoxFit.cover,
-                            placeholder: (ctx, url) => Container(
-                              color: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
-                              child: Center(
-                                child: Icon(
-                                  _typeIcon(site.contentType),
-                                  color: isDark
-                                      ? Colors.white24
-                                      : Colors.black12,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (site.imageUrl != null &&
+                            site.imageUrl!.isNotEmpty) {
+                          _showFullImage(context, site.imageUrl!);
+                        }
+                      },
+                      child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: site.imageUrl!,
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, url) => Container(
+                                color: isDark
+                                    ? Colors.white10
+                                    : Colors.black.withValues(alpha: 0.05),
+                                child: Center(
+                                  child: Icon(
+                                    _typeIcon(site.contentType),
+                                    color: isDark
+                                        ? Colors.white24
+                                        : Colors.black12,
+                                  ),
                                 ),
                               ),
-                            ),
-                            errorWidget: (ctx, url, err) => _placeholderImage(
+                              errorWidget: (ctx, url, err) => _placeholderImage(
+                                context,
+                                isDark,
+                                site.contentType,
+                              ),
+                            )
+                          : _placeholderImage(
                               context,
                               isDark,
                               site.contentType,
                             ),
-                          )
-                        : _placeholderImage(context, isDark, site.contentType),
+                    ),
                   ),
                   // Trending badge
                   if (showBadge)
@@ -936,35 +1165,36 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                     if (site.tags.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      SizedBox(
-                        height: 18,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: site.tags.length > 3
-                              ? 3
-                              : site.tags.length, // max 3 tags to not overflow
-                          separatorBuilder: (_, __) => const SizedBox(width: 4),
-                          itemBuilder: (ctx, idx) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Colors.white12
-                                  : Colors.black.withValues(alpha: 0.04),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '#${site.tags[idx]}',
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: isDark ? Colors.white60 : Colors.black54,
-                                fontWeight: FontWeight.w500,
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: site.tags
+                            .take(6)
+                            .map(
+                              (tag) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : Colors.black.withValues(alpha: 0.04),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '#$tag',
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: isDark
+                                        ? Colors.white60
+                                        : Colors.black54,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
+                            )
+                            .toList(),
                       ),
                     ],
                     const SizedBox(height: 8),

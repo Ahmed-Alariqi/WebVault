@@ -429,7 +429,7 @@
   "badgeTrending": "رائج",
   "badgePopular": "شائع",
   "badgeFeatured": "مميز",
-  "badgePrompt": "تلميح",
+  "badgePrompt": "تلقينة",
   "badgeOffer": "عرض",
   "badgeAnnounce": "إعلان",
   "badgeWebsite": "موقع",
@@ -451,7 +451,7 @@
   "formUploadDevice": "رفع من الجهاز",
   "formOrPasteUrl": "أو الصق الرابط",
   "formImageUrl": "رابط الصورة",
-  "formPromptImgHelper": "أضف صورة توضح نتيجة التلميح",
+  "formPromptImgHelper": "أضف صورة توضح نتيجة التلقينة",
   "formInvalidUrl": "رابط غير صالح",
   
   "formTutorialVideo": "فيديو توضيحي",
@@ -460,10 +460,10 @@
   "formUploadVideoDevice": "رفع فيديو من الجهاز",
   "formVideoUrlLabel": "رابط الفيديو (أو الصق الرابط)",
   
-  "formPromptText": "نص التلميح",
+  "formPromptText": "نص التلقينة",
   "formOfferCode": "رمز العرض / المفتاح",
   "formAnnounceText": "نص الإعلان",
-  "formPromptInput": "أدخل نص التلميح (ليقوم المستخدمون بنسخه)",
+  "formPromptInput": "أدخل نص التلقينة (ليقوم المستخدمون بنسخه)",
   "formOfferInput": "أدخل الرمز أو المفتاح أو تفاصيل العرض",
   "formAnnounceInput": "تفاصيل الإعلان (اختياري)",
   "formCopyHelper": "سيرى المستخدمون زر نسخ لهذا المحتوى",
@@ -770,7 +770,7 @@
   "adActiveStatusSub": "إظهار أو إخفاء هذا الإعلان فوراً",
   "adLinking": "ربط الإعلان",
   "adLinkInternal": "ربط بعنصر داخل التطبيق",
-  "adLinkInternalSub": "ابحث عن موقع، أو تلميح، أو عرض من قسم المكتشف",
+  "adLinkInternalSub": "ابحث عن موقع، أو تلقينة، أو عرض من قسم المكتشف",
   "adExternalUrl": "رابط خارجي (اختياري)",
   "adExternalUrlHint": "https://...",
   "adLinkSelected": "العنصر المرتبط:",
@@ -930,5 +930,37 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "collectionsTitle": "المجموعات المميزة",
+  "collectionsEmpty": "لا توجد مجموعات حالياً",
+  "collectionItems": "{count} عنصر",
+  "@collectionItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manageCollections": "إدارة المجموعات",
+  "manageCollectionsDesc": "إنشاء وإدارة المجموعات المميزة",
+  "newCollection": "مجموعة جديدة",
+  "editCollection": "تعديل المجموعة",
+  "collectionName": "اسم المجموعة",
+  "collectionNameHint": "مثلاً: أفضل كورسات AI 2026",
+  "collectionDescription": "الوصف",
+  "collectionDescriptionHint": "وصف مختصر للمجموعة",
+  "collectionCoverImage": "رابط صورة الغلاف",
+  "collectionSaved": "تم حفظ المجموعة بنجاح",
+  "collectionDeleted": "تم حذف المجموعة",
+  "deleteCollectionConfirm": "حذف هذه المجموعة؟ العناصر بداخلها لن تُحذف.",
+  "addItems": "إضافة عناصر",
+  "removeFromCollection": "إزالة من المجموعة",
+  "itemAdded": "تمت إضافة العنصر للمجموعة",
+  "itemRemoved": "تمت إزالة العنصر من المجموعة",
+  "searchItemsToAdd": "ابحث عن عناصر لإضافتها...",
+  "noItemsInCollection": "لا توجد عناصر في هذه المجموعة بعد",
+  "addToCollections": "إضافة لمجموعات",
+  "tapToViewFull": "اضغط على الصورة لعرضها بالحجم الكامل",
+  "closeImage": "إغلاق"
 }

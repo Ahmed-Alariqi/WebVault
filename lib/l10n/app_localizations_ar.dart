@@ -1321,7 +1321,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get badgeFeatured => 'مميز';
 
   @override
-  String get badgePrompt => 'تلميح';
+  String get badgePrompt => 'تلقينة';
 
   @override
   String get badgeOffer => 'عرض';
@@ -1432,7 +1432,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formImageUrl => 'رابط الصورة';
 
   @override
-  String get formPromptImgHelper => 'أضف صورة توضح نتيجة التلميح';
+  String get formPromptImgHelper => 'أضف صورة توضح نتيجة التلقينة';
 
   @override
   String get formInvalidUrl => 'رابط غير صالح';
@@ -1490,7 +1490,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formActionDefaultLabel => 'القيمة القابلة للنسخ (اختياري)';
 
   @override
-  String get formPromptText => 'نص التلميح';
+  String get formPromptText => 'نص التلقينة';
 
   @override
   String get formOfferCode => 'رمز العرض / المفتاح';
@@ -1499,7 +1499,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formAnnounceText => 'نص الإعلان';
 
   @override
-  String get formPromptInput => 'أدخل نص التلميح (ليقوم المستخدمون بنسخه)';
+  String get formPromptInput => 'أدخل نص التلقينة (ليقوم المستخدمون بنسخه)';
 
   @override
   String get formOfferInput => 'أدخل الرمز أو المفتاح أو تفاصيل العرض';
@@ -2315,7 +2315,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adLinkInternalSub =>
-      'ابحث عن موقع، أو تلميح، أو عرض من قسم المكتشف';
+      'ابحث عن موقع، أو تلقينة، أو عرض من قسم المكتشف';
 
   @override
   String get adExternalUrl => 'رابط خارجي (اختياري)';
@@ -2548,4 +2548,79 @@ class AppLocalizationsAr extends AppLocalizations {
   String adminItemsCount(int count) {
     return '$count عنصر';
   }
+
+  @override
+  String get collectionsTitle => 'المجموعات المميزة';
+
+  @override
+  String get collectionsEmpty => 'لا توجد مجموعات حالياً';
+
+  @override
+  String collectionItems(int count) {
+    return '$count عنصر';
+  }
+
+  @override
+  String get manageCollections => 'إدارة المجموعات';
+
+  @override
+  String get manageCollectionsDesc => 'إنشاء وإدارة المجموعات المميزة';
+
+  @override
+  String get newCollection => 'مجموعة جديدة';
+
+  @override
+  String get editCollection => 'تعديل المجموعة';
+
+  @override
+  String get collectionName => 'اسم المجموعة';
+
+  @override
+  String get collectionNameHint => 'مثلاً: أفضل كورسات AI 2026';
+
+  @override
+  String get collectionDescription => 'الوصف';
+
+  @override
+  String get collectionDescriptionHint => 'وصف مختصر للمجموعة';
+
+  @override
+  String get collectionCoverImage => 'رابط صورة الغلاف';
+
+  @override
+  String get collectionSaved => 'تم حفظ المجموعة بنجاح';
+
+  @override
+  String get collectionDeleted => 'تم حذف المجموعة';
+
+  @override
+  String get deleteCollectionConfirm =>
+      'حذف هذه المجموعة؟ العناصر بداخلها لن تُحذف.';
+
+  @override
+  String get addItems => 'إضافة عناصر';
+
+  @override
+  String get removeFromCollection => 'إزالة من المجموعة';
+
+  @override
+  String get itemAdded => 'تمت إضافة العنصر للمجموعة';
+
+  @override
+  String get itemRemoved => 'تمت إزالة العنصر من المجموعة';
+
+  @override
+  String get searchItemsToAdd => 'ابحث عن عناصر لإضافتها...';
+
+  @override
+  String get noItemsInCollection => 'لا توجد عناصر في هذه المجموعة بعد';
+
+  @override
+  String get addToCollections => 'إضافة لمجموعات';
+
+  @override
+  String get tapToViewFull => 'اضغط على الصورة لعرضها بالحجم الكامل';
+
+  @override
+  String get closeImage => 'إغلاق';
 }

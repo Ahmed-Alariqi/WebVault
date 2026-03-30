@@ -34,15 +34,18 @@ import '../../features/admin/admin_analytics_screen.dart';
 import '../../features/admin/admin_community_screen.dart';
 import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/admin/manage_advertisements_screen.dart';
+import '../../features/admin/manage_collections_screen.dart';
 import '../../features/admin/edit_advertisement_sheet.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../features/discover/community_screen.dart';
 import '../../features/discover/community_post_detail.dart';
 import '../../data/models/community_model.dart';
+import '../../data/models/collection_model.dart';
 import '../../presentation/widgets/app_shell.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/admin/manage_user_chats_screen.dart';
 import '../../features/admin/admin_chat_screen.dart';
+import '../../features/discover/collection_items_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/welcome_splash_screen.dart';
 import '../../domain/models/advertisement.dart';
@@ -424,6 +427,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/analytics',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AdminAnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/collections',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageCollectionsScreen(),
+      ),
+      GoRoute(
+        path: '/collection-items',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final col = state.extra as CollectionModel;
+          return CollectionItemsScreen(collection: col);
+        },
       ),
       GoRoute(
         path: '/admin/user-chats',

@@ -4,10 +4,25 @@ import '../../data/models/website_model.dart';
 import '../../data/models/tool_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/notification_model.dart';
+import '../../data/models/collection_model.dart';
 
 // --------------- Supabase Client ---------------
 
 final _client = SupabaseConfig.client;
+
+// --------------- Featured Collections ---------------
+
+final featuredCollectionsProvider = FutureProvider<List<CollectionModel>>((
+  ref,
+) async {
+  final response = await _client
+      .from('featured_collections')
+      .select('*, collection_items(*, websites(*))')
+      .eq('is_active', true)
+      .order('sort_order', ascending: true);
+
+  return (response as List).map((e) => CollectionModel.fromJson(e)).toList();
+});
 
 // --------------- Helper: filter expired + inactive ---------------
 

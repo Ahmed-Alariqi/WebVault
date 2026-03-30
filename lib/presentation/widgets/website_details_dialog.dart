@@ -45,6 +45,48 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
     }
   }
 
+  void _showFullImage(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black.withValues(alpha: 0.9),
+        pageBuilder: (ctx, _, __) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Stack(
+              children: [
+                Center(
+                  child: InteractiveViewer(
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                      placeholder: (_, __) =>
+                          const CircularProgressIndicator(color: Colors.white),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 40,
+                  right: 16,
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                    onPressed: () => Navigator.of(ctx).pop(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -106,33 +148,39 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                         child:
                             widget.site.imageUrl != null &&
                                 widget.site.imageUrl!.isNotEmpty
-                            ? CachedNetworkImage(
-                                imageUrl: widget.site.imageUrl!,
-                                fit: BoxFit.cover,
-                                placeholder: (ctx, url) => Container(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black.withValues(alpha: 0.05),
-                                  child: Center(
-                                    child: Icon(
-                                      PhosphorIcons.image(),
-                                      color: isDark
-                                          ? Colors.white24
-                                          : Colors.black12,
+                            ? GestureDetector(
+                                onTap: () => _showFullImage(
+                                  context,
+                                  widget.site.imageUrl!,
+                                ),
+                                child: CachedNetworkImage(
+                                  imageUrl: widget.site.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (ctx, url) => Container(
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.05),
+                                    child: Center(
+                                      child: Icon(
+                                        PhosphorIcons.image(),
+                                        color: isDark
+                                            ? Colors.white24
+                                            : Colors.black12,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                errorWidget: (ctx, url, err) => Container(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black.withValues(alpha: 0.05),
-                                  child: Center(
-                                    child: Icon(
-                                      PhosphorIcons.globe(),
-                                      size: 48,
-                                      color: isDark
-                                          ? Colors.white24
-                                          : Colors.black12,
+                                  errorWidget: (ctx, url, err) => Container(
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.05),
+                                    child: Center(
+                                      child: Icon(
+                                        PhosphorIcons.globe(),
+                                        size: 48,
+                                        color: isDark
+                                            ? Colors.white24
+                                            : Colors.black12,
+                                      ),
                                     ),
                                   ),
                                 ),

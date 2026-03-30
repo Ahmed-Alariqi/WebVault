@@ -2556,4 +2556,80 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminItemsCount(int count) {
     return '$count items';
   }
+
+  @override
+  String get collectionsTitle => 'Featured Collections';
+
+  @override
+  String get collectionsEmpty => 'No collections yet';
+
+  @override
+  String collectionItems(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get manageCollections => 'Manage Collections';
+
+  @override
+  String get manageCollectionsDesc => 'Create and manage featured collections';
+
+  @override
+  String get newCollection => 'New Collection';
+
+  @override
+  String get editCollection => 'Edit Collection';
+
+  @override
+  String get collectionName => 'Collection Name';
+
+  @override
+  String get collectionNameHint => 'e.g. Best AI Courses 2026';
+
+  @override
+  String get collectionDescription => 'Description';
+
+  @override
+  String get collectionDescriptionHint =>
+      'Short description of this collection';
+
+  @override
+  String get collectionCoverImage => 'Cover Image URL';
+
+  @override
+  String get collectionSaved => 'Collection saved successfully';
+
+  @override
+  String get collectionDeleted => 'Collection deleted';
+
+  @override
+  String get deleteCollectionConfirm =>
+      'Delete this collection? Items inside will not be deleted.';
+
+  @override
+  String get addItems => 'Add Items';
+
+  @override
+  String get removeFromCollection => 'Remove from collection';
+
+  @override
+  String get itemAdded => 'Item added to collection';
+
+  @override
+  String get itemRemoved => 'Item removed from collection';
+
+  @override
+  String get searchItemsToAdd => 'Search items to add...';
+
+  @override
+  String get noItemsInCollection => 'No items in this collection yet';
+
+  @override
+  String get addToCollections => 'Add to Collections';
+
+  @override
+  String get tapToViewFull => 'Tap image to view full size';
+
+  @override
+  String get closeImage => 'Close';
 }

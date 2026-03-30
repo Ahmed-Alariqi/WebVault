@@ -4837,6 +4837,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} items'**
   String adminItemsCount(int count);
+
+  /// No description provided for @collectionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured Collections'**
+  String get collectionsTitle;
+
+  /// No description provided for @collectionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No collections yet'**
+  String get collectionsEmpty;
+
+  /// No description provided for @collectionItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String collectionItems(int count);
+
+  /// No description provided for @manageCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Collections'**
+  String get manageCollections;
+
+  /// No description provided for @manageCollectionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create and manage featured collections'**
+  String get manageCollectionsDesc;
+
+  /// No description provided for @newCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'New Collection'**
+  String get newCollection;
+
+  /// No description provided for @editCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Collection'**
+  String get editCollection;
+
+  /// No description provided for @collectionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection Name'**
+  String get collectionName;
+
+  /// No description provided for @collectionNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Best AI Courses 2026'**
+  String get collectionNameHint;
+
+  /// No description provided for @collectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get collectionDescription;
+
+  /// No description provided for @collectionDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Short description of this collection'**
+  String get collectionDescriptionHint;
+
+  /// No description provided for @collectionCoverImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover Image URL'**
+  String get collectionCoverImage;
+
+  /// No description provided for @collectionSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection saved successfully'**
+  String get collectionSaved;
+
+  /// No description provided for @collectionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection deleted'**
+  String get collectionDeleted;
+
+  /// No description provided for @deleteCollectionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this collection? Items inside will not be deleted.'**
+  String get deleteCollectionConfirm;
+
+  /// No description provided for @addItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Items'**
+  String get addItems;
+
+  /// No description provided for @removeFromCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from collection'**
+  String get removeFromCollection;
+
+  /// No description provided for @itemAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Item added to collection'**
+  String get itemAdded;
+
+  /// No description provided for @itemRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Item removed from collection'**
+  String get itemRemoved;
+
+  /// No description provided for @searchItemsToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Search items to add...'**
+  String get searchItemsToAdd;
+
+  /// No description provided for @noItemsInCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this collection yet'**
+  String get noItemsInCollection;
+
+  /// No description provided for @addToCollections.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Collections'**
+  String get addToCollections;
+
+  /// No description provided for @tapToViewFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap image to view full size'**
+  String get tapToViewFull;
+
+  /// No description provided for @closeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeImage;
 }
 
 class _AppLocalizationsDelegate

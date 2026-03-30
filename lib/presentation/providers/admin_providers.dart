@@ -7,6 +7,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/repositories/suggestion_repository.dart';
+import '../../data/models/collection_model.dart';
 
 final _client = SupabaseConfig.client;
 
@@ -464,3 +465,70 @@ Future<void> adminUpdateSuggestion(String id, String status) async {
 }
 
 // Re-export repository for convenience if needed, but usually we use provider
+
+// --------------- Admin Collections ---------------
+
+final adminCollectionsProvider = FutureProvider<List<CollectionModel>>((
+  ref,
+) async {
+  final response = await _client
+      .from('featured_collections')
+      .select('*, collection_items(id)')
+      .order('sort_order', ascending: true);
+
+  return (response as List).map((json) {
+    final itemCount = (json['collection_items'] as List?)?.length ?? 0;
+    json['item_count'] = itemCount;
+    return CollectionModel.fromJson(json);
+  }).toList();
+});
+
+Future<void> adminCreateCollection(Map<String, dynamic> data) async {
+  await _client.from('featured_collections').insert(data);
+}
+
+Future<void> adminUpdateCollection(String id, Map<String, dynamic> data) async {
+  await _client.from('featured_collections').update(data).eq('id', id);
+}
+
+Future<void> adminDeleteCollection(String id) async {
+  await _client.from('featured_collections').delete().eq('id', id);
+}
+
+Future<void> adminAddItemToCollection(
+  String collectionId,
+  String websiteId,
+) async {
+  await _client.from('collection_items').insert({
+    'collection_id': collectionId,
+    'website_id': websiteId,
+  });
+}
+
+Future<void> adminRemoveItemFromCollection(
+  String collectionId,
+  String websiteId,
+) async {
+  await _client
+      .from('collection_items')
+      .delete()
+      .eq('collection_id', collectionId)
+      .eq('website_id', websiteId);
+}
+
+final collectionItemsProvider =
+    FutureProvider.family<List<WebsiteModel>, String>((
+      ref,
+      collectionId,
+    ) async {
+      final response = await _client
+          .from('collection_items')
+          .select('*, websites(*)')
+          .eq('collection_id', collectionId)
+          .order('sort_order', ascending: true);
+
+      return (response as List)
+          .where((ci) => ci['websites'] != null)
+          .map((ci) => WebsiteModel.fromJson(ci['websites']))
+          .toList();
+    });

@@ -273,6 +273,20 @@ class AdminDashboardScreen extends ConsumerWidget {
                         onTap: () => context.push('/admin/advertisements'),
                         delay: 335,
                       ),
+                    if (perms.contains('websites'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.manageCollections,
+                        subtitle: AppLocalizations.of(
+                          context,
+                        )!.manageCollectionsDesc,
+                        icon: PhosphorIcons.folderStar(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF0EA5E9),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/collections'),
+                        delay: 340,
+                      ),
 
                     Consumer(
                       builder: (context, ref, _) {

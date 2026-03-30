@@ -8,6 +8,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 import '../../data/models/website_model.dart';
+import '../../core/supabase_config.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
@@ -40,6 +41,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   String? _selectedCategoryId;
   String _contentType = 'website';
   String _pricingModel = 'free';
+  Set<String> _selectedCollectionIds = {};
   DateTime? _expiresAt;
   bool _sendNotification = false;
   bool _isSaving = false;
@@ -65,6 +67,19 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     Color(0xFFFF9800), // Offers - orange
     Color(0xFF2196F3), // News - light blue
   ];
+
+  Future<void> _loadExistingCollections(String websiteId) async {
+    final response = await SupabaseConfig.client
+        .from('collection_items')
+        .select('collection_id')
+        .eq('website_id', websiteId);
+
+    setState(() {
+      _selectedCollectionIds = (response as List)
+          .map((item) => item['collection_id'] as String)
+          .toSet();
+    });
+  }
 
   IconData _contentTypeIcon(String type) {
     switch (type) {
@@ -138,6 +153,10 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       }
     } catch (_) {
       doc = Document()..insert(0, widget.existing?.description ?? '');
+    }
+
+    if (widget.existing != null) {
+      _loadExistingCollections(widget.existing!.id);
     }
 
     _quillController = QuillController(
@@ -221,6 +240,22 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         newItemId = await adminAddWebsite(data);
       } else {
         await adminUpdateWebsite(widget.existing!.id, data);
+        newItemId = widget.existing!.id;
+      }
+
+      // Sync collections
+      if (newItemId != null) {
+        await SupabaseConfig.client
+            .from('collection_items')
+            .delete()
+            .eq('website_id', newItemId);
+
+        if (_selectedCollectionIds.isNotEmpty) {
+          final inserts = _selectedCollectionIds
+              .map((cid) => {'collection_id': cid, 'website_id': newItemId})
+              .toList();
+          await SupabaseConfig.client.from('collection_items').insert(inserts);
+        }
       }
 
       // Send notification if toggled on (only for new items)
@@ -452,22 +487,23 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   }
 
   Widget _buildSectionHeader(String title, IconData icon, bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        children: [
-          Icon(icon, size: 22, color: AppTheme.primaryColor),
-          const SizedBox(width: 10),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: isDark ? Colors.white54 : AppTheme.primaryColor,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -492,6 +528,63 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         ),
       ),
       child: child,
+    );
+  }
+
+  Widget _buildCollectionsSection(BuildContext context, bool isDark) {
+    final collectionsAsync = ref.watch(adminCollectionsProvider);
+    final loc = AppLocalizations.of(context)!;
+
+    return _buildCard(
+      isDark: isDark,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+            loc.addToCollections,
+            Icons.folder_special,
+            isDark,
+          ),
+          const SizedBox(height: 16),
+          collectionsAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) =>
+                Text('Error: $e', style: const TextStyle(color: Colors.red)),
+            data: (collections) {
+              if (collections.isEmpty) {
+                return Text(
+                  loc.collectionsEmpty,
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                  ),
+                );
+              }
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: collections.map((col) {
+                  final isSelected = _selectedCollectionIds.contains(col.id);
+                  return FilterChip(
+                    label: Text(col.title),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedCollectionIds.add(col.id);
+                        } else {
+                          _selectedCollectionIds.remove(col.id);
+                        }
+                      });
+                    },
+                    selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    checkmarkColor: AppTheme.primaryColor,
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -975,7 +1068,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 color: isDark ? Colors.white38 : Colors.black38,
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
+                            _buildCollectionsSection(context, isDark),
+                            const SizedBox(height: 32),
                             // Upload video button
                             SizedBox(
                               height: 44,
@@ -1318,11 +1413,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                           )) {
                                         WidgetsBinding.instance
                                             .addPostFrameCallback((_) {
-                                              if (mounted)
+                                              if (mounted) {
                                                 setState(
                                                   () => _selectedCategoryId =
                                                       null,
                                                 );
+                                              }
                                             });
                                       }
 

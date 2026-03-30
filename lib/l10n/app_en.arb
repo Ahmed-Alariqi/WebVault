@@ -1191,5 +1191,37 @@
         "type": "int"
       }
     }
-  }
+  },
+
+  "collectionsTitle": "Featured Collections",
+  "collectionsEmpty": "No collections yet",
+  "collectionItems": "{count} items",
+  "@collectionItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "manageCollections": "Manage Collections",
+  "manageCollectionsDesc": "Create and manage featured collections",
+  "newCollection": "New Collection",
+  "editCollection": "Edit Collection",
+  "collectionName": "Collection Name",
+  "collectionNameHint": "e.g. Best AI Courses 2026",
+  "collectionDescription": "Description",
+  "collectionDescriptionHint": "Short description of this collection",
+  "collectionCoverImage": "Cover Image URL",
+  "collectionSaved": "Collection saved successfully",
+  "collectionDeleted": "Collection deleted",
+  "deleteCollectionConfirm": "Delete this collection? Items inside will not be deleted.",
+  "addItems": "Add Items",
+  "removeFromCollection": "Remove from collection",
+  "itemAdded": "Item added to collection",
+  "itemRemoved": "Item removed from collection",
+  "searchItemsToAdd": "Search items to add...",
+  "noItemsInCollection": "No items in this collection yet",
+  "addToCollections": "Add to Collections",
+  "tapToViewFull": "Tap image to view full size",
+  "closeImage": "Close"
 }
