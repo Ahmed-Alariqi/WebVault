@@ -172,28 +172,36 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (perms.isEmpty) return '/dashboard';
 
         if (location.startsWith('/admin/analytics') &&
-            !perms.contains('analytics'))
+            !perms.contains('analytics')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/suggestions') &&
-            !perms.contains('suggestions'))
+            !perms.contains('suggestions')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/websites') &&
-            !perms.contains('websites'))
+            !perms.contains('websites')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/categories') &&
-            !perms.contains('categories'))
+            !perms.contains('categories')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/notifications') &&
-            !perms.contains('notifications'))
+            !perms.contains('notifications')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/in-app-messages') &&
-            !perms.contains('in_app_messages'))
+            !perms.contains('in_app_messages')) {
           return '/admin';
-        if (location.startsWith('/admin/users') && !perms.contains('users'))
+        }
+        if (location.startsWith('/admin/users') && !perms.contains('users')) {
           return '/admin';
+        }
         if (location.startsWith('/admin/community') &&
-            !perms.contains('community'))
+            !perms.contains('community')) {
           return '/admin';
+        }
         if ((location.startsWith('/admin/user-chats') ||
                 location.startsWith('/admin/chats')) &&
             !perms.contains('users') &&
@@ -201,8 +209,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/admin';
         }
         if (location.startsWith('/admin/advertisements') &&
-            !perms.contains('advertisements'))
+            !perms.contains('advertisements')) {
           return '/admin';
+        }
       }
 
       return null;

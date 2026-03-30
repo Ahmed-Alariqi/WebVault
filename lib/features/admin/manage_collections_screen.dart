@@ -6,6 +6,7 @@ import '../../core/services/imagekit_service.dart';
 import '../../data/models/collection_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'widgets/google_image_search_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
 class ManageCollectionsScreen extends ConsumerStatefulWidget {
@@ -548,6 +549,45 @@ class _ManageCollectionsScreenState
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 46,
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final url = await showModalBottomSheet<String>(
+                              context: context,
+                              isScrollControlled: true,
+                              enableDrag: false,
+                              backgroundColor: Colors.transparent,
+                              builder: (ctx) => GoogleImageSearchSheet(
+                                initialQuery: titleCtrl.text,
+                              ),
+                            );
+                            if (url != null && context.mounted) {
+                              setSheetState(() => coverCtrl.text = url);
+                            }
+                          },
+                          icon: Icon(PhosphorIcons.googleLogo(), size: 18),
+                          label: const Text(
+                            'Search Web',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: isDark
+                                ? Colors.white70
+                                : Colors.black87,
+                            side: BorderSide(
+                              color: isDark ? Colors.white10 : Colors.black12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),

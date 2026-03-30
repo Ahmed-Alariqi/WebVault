@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'widgets/google_image_search_sheet.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 import '../../presentation/providers/admin_providers.dart';
@@ -624,36 +625,48 @@ class _ManageInAppMessagesScreenState
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(
-                          height: 48,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.05)
-                                : Colors.black.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isDark ? Colors.white10 : Colors.black12,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                PhosphorIcons.link(),
-                                size: 16,
-                                color: isDark ? Colors.white54 : Colors.black45,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
+                        Expanded(
+                          child: SizedBox(
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                final url = await showModalBottomSheet<String>(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  enableDrag: false,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (ctx) => GoogleImageSearchSheet(
+                                    initialQuery: _titleCtrl.text,
+                                  ),
+                                );
+                                if (url != null && mounted) {
+                                  setState(() {
+                                    _imageUrlCtrl.text = url;
+                                  });
+                                }
+                              },
+                              icon: Icon(PhosphorIcons.googleLogo(), size: 18),
+                              label: Text(
                                 AppLocalizations.of(context)!.orPasteUrl,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark
-                                      ? Colors.white54
-                                      : Colors.black45,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ],
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: isDark
+                                    ? Colors.white70
+                                    : Colors.black87,
+                                side: BorderSide(
+                                  color: isDark
+                                      ? Colors.white10
+                                      : Colors.black12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],

@@ -193,7 +193,7 @@ Future<void> main() async {
     container.invalidate(notificationCountProvider);
     // Route to notifications screen
     final router = container.read(routerProvider);
-    router.push('/notifications');
+    router.go('/notifications');
   });
 
   // Seed dummy data on first launch

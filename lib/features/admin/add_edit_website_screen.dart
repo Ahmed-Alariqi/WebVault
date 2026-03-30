@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
+import 'widgets/google_image_search_sheet.dart';
 import '../../data/models/website_model.dart';
 import '../../core/supabase_config.dart';
 import '../../presentation/providers/admin_providers.dart';
@@ -876,44 +877,53 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Container(
-                                height: 44,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.05)
-                                      : Colors.black.withValues(alpha: 0.03),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white10
-                                        : Colors.black12,
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      PhosphorIcons.link(),
-                                      size: 16,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black45,
+                              Expanded(
+                                child: SizedBox(
+                                  height: 44,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () async {
+                                      final url =
+                                          await showModalBottomSheet<String>(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            enableDrag: false,
+                                            backgroundColor: Colors.transparent,
+                                            builder: (ctx) =>
+                                                GoogleImageSearchSheet(
+                                                  initialQuery: _titleCtrl.text,
+                                                ),
+                                          );
+                                      if (url != null && context.mounted) {
+                                        setState(() {
+                                          _imgCtrl.text = url;
+                                        });
+                                      }
+                                    },
+                                    icon: Icon(
+                                      PhosphorIcons.googleLogo(),
+                                      size: 18,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.formOrPasteUrl,
+                                    label: const Text(
+                                      'Search Web',
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.black45,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                  ],
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                      side: BorderSide(
+                                        color: isDark
+                                            ? Colors.white10
+                                            : Colors.black12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -1401,8 +1411,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                       final filteredCats = cats
                                           .where(
                                             (c) =>
-                                                c.contentType == null ||
-                                                c.contentType == _contentType,
+                                                c.contentTypes == null ||
+                                                c.contentTypes!.isEmpty ||
+                                                c.contentTypes!.contains(
+                                                  _contentType,
+                                                ),
                                           )
                                           .toList();
 

@@ -32,7 +32,9 @@ class _AppShellState extends State<AppShell> {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/dashboard')) return 0;
     if (location.startsWith('/pages')) return 1;
-    if (location.startsWith('/discover')) return 2;
+    if (location.startsWith('/discover') ||
+        location.startsWith('/notifications'))
+      return 2;
     if (location.startsWith('/clipboard')) return 3;
     if (location.startsWith('/settings')) return 4;
     return 0;

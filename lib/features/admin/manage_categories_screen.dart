@@ -114,33 +114,40 @@ class ManageCategoriesScreen extends ConsumerWidget {
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
-                          if (cat.contentType != null)
+                          if (cat.contentTypes != null &&
+                              cat.contentTypes!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: AppTheme.primaryColor.withValues(
-                                      alpha: 0.3,
+                              child: Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                children: cat.contentTypes!.map((type) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
                                     ),
-                                  ),
-                                ),
-                                child: Text(
-                                  cat.contentType!,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      type,
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
                               ),
                             ),
                         ],
@@ -278,7 +285,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
     CategoryModel? existing,
   }) {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
-    String? selectedContentType = existing?.contentType;
+    List<String> selectedContentTypes = existing?.contentTypes?.toList() ?? [];
 
     showDialog(
       context: context,
@@ -316,39 +323,48 @@ class ManageCategoriesScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String?>(
-                    value: selectedContentType,
-                    decoration: InputDecoration(
-                      labelText: 'Content Type (Optional)',
-                      filled: true,
-                      fillColor: isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.03),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
+                  Text(
+                    'Content Types (Optional. If none selected, applies to all)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white70 : Colors.black87,
                     ),
-                    items: const [
-                      DropdownMenuItem(value: null, child: Text('All/General')),
-                      DropdownMenuItem(
-                        value: 'website',
-                        child: Text('Websites / Resources'),
-                      ),
-                      DropdownMenuItem(value: 'tool', child: Text('Tools')),
-                      DropdownMenuItem(value: 'course', child: Text('Courses')),
-                      DropdownMenuItem(value: 'prompt', child: Text('Prompts')),
-                      DropdownMenuItem(value: 'offer', child: Text('Offers')),
-                      DropdownMenuItem(
-                        value: 'announcement',
-                        child: Text('News / Articles'),
-                      ),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                        selectedContentType = val;
-                      });
-                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        [
+                          {'val': 'website', 'lbl': 'Websites / Resources'},
+                          {'val': 'tool', 'lbl': 'Tools'},
+                          {'val': 'course', 'lbl': 'Courses'},
+                          {'val': 'prompt', 'lbl': 'Prompts'},
+                          {'val': 'offer', 'lbl': 'Offers'},
+                          {'val': 'announcement', 'lbl': 'News / Articles'},
+                        ].map((item) {
+                          final val = item['val']!;
+                          final lbl = item['lbl']!;
+                          final isSelected = selectedContentTypes.contains(val);
+                          return FilterChip(
+                            label: Text(lbl),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  selectedContentTypes.add(val);
+                                } else {
+                                  selectedContentTypes.remove(val);
+                                }
+                              });
+                            },
+                            selectedColor: AppTheme.primaryColor.withValues(
+                              alpha: 0.2,
+                            ),
+                            checkmarkColor: AppTheme.primaryColor,
+                          );
+                        }).toList(),
                   ),
                 ],
               ),
@@ -364,7 +380,9 @@ class ManageCategoriesScreen extends ConsumerWidget {
 
                   final data = <String, dynamic>{
                     'name': nameCtrl.text.trim(),
-                    'content_type': selectedContentType,
+                    'content_types': selectedContentTypes.isEmpty
+                        ? null
+                        : selectedContentTypes,
                   };
 
                   if (existing == null) {

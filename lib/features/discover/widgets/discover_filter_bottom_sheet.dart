@@ -119,8 +119,9 @@ class _DiscoverFilterBottomSheetState
                   data: (cats) {
                     final filteredCats = cats.where((c) {
                       if (_tempContentType == null) return true;
-                      return c.contentType == null ||
-                          c.contentType == _tempContentType;
+                      return c.contentTypes == null ||
+                          c.contentTypes!.isEmpty ||
+                          c.contentTypes!.contains(_tempContentType);
                     }).toList();
 
                     return _buildCategoryChips(filteredCats, isDark, l10n);

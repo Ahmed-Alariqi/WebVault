@@ -22,6 +22,7 @@ import '../../l10n/app_localizations.dart';
 import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../data/models/collection_model.dart';
 import 'widgets/discover_filter_bottom_sheet.dart';
+import 'widgets/discover_quick_filter_bar.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -226,6 +227,14 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+
+          if (!ref.watch(showBookmarksOnlyProvider))
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 8, bottom: 8),
+                child: DiscoverQuickFilterBar(),
               ),
             ),
 
