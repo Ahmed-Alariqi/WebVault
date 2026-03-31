@@ -6,6 +6,7 @@ import '../../data/models/category_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/modern_fab.dart';
 import '../../l10n/app_localizations.dart';
 
 class ManageCategoriesScreen extends ConsumerWidget {
@@ -21,17 +22,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.manageCategoriesTitle),
         forceMaterialTransparency: true,
-        actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.magicWand()),
-            tooltip: AppLocalizations.of(context)!.seedDefaultCategories,
-            onPressed: () => _seedDefaultCategories(ref, context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context, ref, isDark),
-          ),
-        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: ModernFab.extended(
+        onPressed: () => _showAddEditDialog(context, ref, isDark),
+        icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
+        label: Text(AppLocalizations.of(context)!.addCategory),
       ),
       body: categories.when(
         data: (list) {
@@ -195,89 +191,6 @@ class ManageCategoriesScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _seedDefaultCategories(
-    WidgetRef ref,
-    BuildContext context,
-  ) async {
-    final defaults = [
-      {
-        'name': 'Technology',
-        'icon_code_point': PhosphorIcons.desktop().codePoint,
-        'color_value': 0xFF3F51B5.toSigned(32),
-        'sort_order': 0,
-      },
-      {
-        'name': 'Education',
-        'icon_code_point': PhosphorIcons.bookBookmark().codePoint,
-        'color_value': 0xFF4CAF50.toSigned(32),
-        'sort_order': 1,
-      },
-      {
-        'name': 'Software',
-        'icon_code_point': PhosphorIcons.code().codePoint,
-        'color_value': 0xFFF44336.toSigned(32),
-        'sort_order': 2,
-      },
-      {
-        'name': 'Design',
-        'icon_code_point': PhosphorIcons.paintBrush().codePoint,
-        'color_value': 0xFFE91E63.toSigned(32),
-        'sort_order': 3,
-      },
-      {
-        'name': 'Business',
-        'icon_code_point': PhosphorIcons.briefcase().codePoint,
-        'color_value': 0xFFFF9800.toSigned(32),
-        'sort_order': 4,
-      },
-    ];
-
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (ctx) => Center(
-          child: CircularProgressIndicator(color: AppTheme.primaryColor),
-        ),
-      );
-
-      for (final cat in defaults) {
-        await adminAddCategory(cat);
-      }
-
-      ref.invalidate(adminCategoriesProvider);
-      ref.invalidate(categoriesProvider);
-
-      if (context.mounted) {
-        Navigator.pop(context); // close loading
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.defaultCategoriesInjected,
-            ),
-            backgroundColor: AppTheme.primaryColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) Navigator.pop(context); // close loading
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(
-                context,
-              )!.failedToSeedCategories(e.toString()),
-            ),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
   void _showAddEditDialog(
     BuildContext context,
     WidgetRef ref,
@@ -324,7 +237,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Content Types (Optional. If none selected, applies to all)',
+                    AppLocalizations.of(context)!.formContentType,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -337,33 +250,106 @@ class ManageCategoriesScreen extends ConsumerWidget {
                     runSpacing: 8,
                     children:
                         [
-                          {'val': 'website', 'lbl': 'Websites / Resources'},
-                          {'val': 'tool', 'lbl': 'Tools'},
-                          {'val': 'course', 'lbl': 'Courses'},
-                          {'val': 'prompt', 'lbl': 'Prompts'},
-                          {'val': 'offer', 'lbl': 'Offers'},
-                          {'val': 'announcement', 'lbl': 'News / Articles'},
-                          {'val': 'tutorial', 'lbl': 'Tutorials'},
+                          {
+                            'val': 'all',
+                            'lbl': AppLocalizations.of(context)!.all,
+                          },
+                          {
+                            'val': 'website',
+                            'lbl': AppLocalizations.of(
+                              context,
+                            )!.formTypeResources,
+                          },
+                          {
+                            'val': 'tool',
+                            'lbl': AppLocalizations.of(context)!.formTypeTools,
+                          },
+                          {
+                            'val': 'course',
+                            'lbl': AppLocalizations.of(
+                              context,
+                            )!.formTypeCourses,
+                          },
+                          {
+                            'val': 'prompt',
+                            'lbl': AppLocalizations.of(
+                              context,
+                            )!.formTypePrompts,
+                          },
+                          {
+                            'val': 'offer',
+                            'lbl': AppLocalizations.of(context)!.formTypeOffers,
+                          },
+                          {
+                            'val': 'announcement',
+                            'lbl': AppLocalizations.of(context)!.formTypeNews,
+                          },
+                          {
+                            'val': 'tutorial',
+                            'lbl': AppLocalizations.of(
+                              context,
+                            )!.formTypeTutorials,
+                          },
                         ].map((item) {
                           final val = item['val']!;
                           final lbl = item['lbl']!;
-                          final isSelected = selectedContentTypes.contains(val);
+                          final isAll = val == 'all';
+
+                          // "All" is visibly selected only when the actual array is empty
+                          final isSelected = isAll
+                              ? selectedContentTypes.isEmpty
+                              : selectedContentTypes.contains(val);
+
                           return FilterChip(
-                            label: Text(lbl),
+                            label: Text(
+                              lbl,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : (isDark
+                                          ? Colors.white70
+                                          : Colors.black87),
+                              ),
+                            ),
                             selected: isSelected,
                             onSelected: (selected) {
                               setState(() {
-                                if (selected) {
-                                  selectedContentTypes.add(val);
+                                if (isAll) {
+                                  // Choosing All instantly clears specific typings
+                                  selectedContentTypes.clear();
                                 } else {
-                                  selectedContentTypes.remove(val);
+                                  if (selected) {
+                                    selectedContentTypes.add(val);
+                                  } else {
+                                    selectedContentTypes.remove(val);
+                                  }
                                 }
                               });
                             },
+                            showCheckmark: false,
                             selectedColor: AppTheme.primaryColor.withValues(
-                              alpha: 0.2,
+                              alpha: 0.15,
                             ),
-                            checkmarkColor: AppTheme.primaryColor,
+                            backgroundColor: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.04),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : Colors.transparent,
+                                width: 1.5,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 8,
+                            ),
                           );
                         }).toList(),
                   ),

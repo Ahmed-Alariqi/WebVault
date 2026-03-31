@@ -476,45 +476,74 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       maxLines: maxLines,
       style: TextStyle(
         color: isDark ? Colors.white : Colors.black87,
-        fontSize: 16,
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
       ),
       decoration: InputDecoration(
         labelText: label,
         helperText: helperText,
+        alignLabelWithHint: maxLines > 1,
+        floatingLabelStyle: TextStyle(
+          color: AppTheme.primaryColor,
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+        ),
         helperStyle: TextStyle(
-          color: isDark ? Colors.white38 : Colors.black38,
+          color: isDark ? Colors.white38 : Colors.black45,
           fontSize: 11,
+          fontWeight: FontWeight.w500,
         ),
         labelStyle: TextStyle(
-          color: isDark ? Colors.white54 : Colors.black54,
+          color: isDark ? Colors.white60 : Colors.black54,
           fontSize: 14,
+          fontWeight: FontWeight.w500,
         ),
         filled: true,
         fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.04)
-            : Colors.black.withValues(alpha: 0.02),
+            ? Colors.white.withValues(alpha: 0.03)
+            : const Color(0xFFF9FAFB),
         prefixIcon: prefixIcon != null
-            ? Icon(
-                prefixIcon,
-                color: isDark ? Colors.white54 : Colors.black54,
-                size: 20,
+            ? Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    prefixIcon,
+                    color: AppTheme.primaryColor,
+                    size: 18,
+                  ),
+                ),
               )
             : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
+                ? Colors.white10
                 : Colors.black.withValues(alpha: 0.05),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppTheme.primaryColor, width: 2),
+          borderSide: BorderSide(
+            color: AppTheme.primaryColor.withValues(alpha: 0.5),
+            width: 2,
+          ),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
@@ -554,15 +583,16 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.05),
+              ? Colors.white.withValues(alpha: 0.03)
+              : Colors.black.withValues(alpha: 0.03),
+          width: 1,
         ),
       ),
       child: child,
@@ -812,152 +842,188 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                           Row(
                             children: [
                               Expanded(
-                                child: SizedBox(
-                                  height: 44,
-                                  child: ElevatedButton.icon(
-                                    onPressed: _isUploading
-                                        ? null
-                                        : () async {
-                                            setState(() {
-                                              _isUploading = true;
-                                              _uploadProgress = 0;
-                                            });
-                                            try {
-                                              final url =
-                                                  await ImageKitService.pickAndUpload(
-                                                    folder: '/discover',
-                                                    onProgress: (p) {
-                                                      if (mounted) {
-                                                        setState(
-                                                          () =>
-                                                              _uploadProgress =
-                                                                  p,
-                                                        );
-                                                      }
-                                                    },
-                                                  );
-                                              if (url != null &&
-                                                  context.mounted) {
-                                                setState(() {
-                                                  _imgCtrl.text = url;
-                                                });
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Image uploaded successfully!',
-                                                    ),
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                  ),
+                                child: InkWell(
+                                  onTap: _isUploading
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            _isUploading = true;
+                                            _uploadProgress = 0;
+                                          });
+                                          try {
+                                            final url =
+                                                await ImageKitService.pickAndUpload(
+                                                  folder: '/discover',
+                                                  onProgress: (p) {
+                                                    if (mounted) {
+                                                      setState(
+                                                        () =>
+                                                            _uploadProgress = p,
+                                                      );
+                                                    }
+                                                  },
                                                 );
-                                              } else if (context.mounted &&
-                                                  _uploadProgress > 0) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Upload failed. Try again.',
-                                                    ),
-                                                    backgroundColor: Colors.red,
+                                            if (url != null &&
+                                                context.mounted) {
+                                              setState(() {
+                                                _imgCtrl.text = url;
+                                              });
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Image uploaded successfully!',
                                                   ),
-                                                );
-                                              }
-                                            } finally {
-                                              if (mounted) {
-                                                setState(() {
-                                                  _isUploading = false;
-                                                  _uploadProgress = 0;
-                                                });
-                                              }
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            } else if (context.mounted &&
+                                                _uploadProgress > 0) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Upload failed. Try again.',
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
                                             }
-                                          },
-                                    icon: _isUploading
-                                        ? SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              value: _uploadProgress > 0
-                                                  ? _uploadProgress
-                                                  : null,
-                                              strokeWidth: 2,
-                                              color: Colors.white,
+                                          } finally {
+                                            if (mounted) {
+                                              setState(() {
+                                                _isUploading = false;
+                                                _uploadProgress = 0;
+                                              });
+                                            }
+                                          }
+                                        },
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? AppTheme.primaryColor.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : AppTheme.primaryColor.withValues(
+                                              alpha: 0.05,
                                             ),
-                                          )
-                                        : Icon(
-                                            PhosphorIcons.uploadSimple(),
-                                            size: 18,
-                                          ),
-                                    label: Text(
-                                      _isUploading
-                                          ? AppLocalizations.of(
-                                              context,
-                                            )!.formUploading
-                                          : AppLocalizations.of(
-                                              context,
-                                            )!.formUploadDevice,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        width: 1.5,
                                       ),
+                                      borderRadius: BorderRadius.circular(16),
                                     ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
+                                    child: Center(
+                                      child: _isUploading
+                                          ? SizedBox(
+                                              height: 32,
+                                              width: 32,
+                                              child: CircularProgressIndicator(
+                                                value: _uploadProgress > 0
+                                                    ? _uploadProgress
+                                                    : null,
+                                                strokeWidth: 3,
+                                                color: AppTheme.primaryColor,
+                                              ),
+                                            )
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  PhosphorIcons.uploadSimple(),
+                                                  size: 28,
+                                                  color: AppTheme.primaryColor,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.formUploadDevice,
+                                                  style: TextStyle(
+                                                    color:
+                                                        AppTheme.primaryColor,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            ),
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 12),
                               Expanded(
-                                child: SizedBox(
-                                  height: 44,
-                                  child: OutlinedButton.icon(
-                                    onPressed: () async {
-                                      final url =
-                                          await showModalBottomSheet<String>(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            enableDrag: false,
-                                            backgroundColor: Colors.transparent,
-                                            builder: (ctx) =>
-                                                GoogleImageSearchSheet(
-                                                  initialQuery: _titleCtrl.text,
-                                                ),
-                                          );
-                                      if (url != null && context.mounted) {
-                                        setState(() {
-                                          _imgCtrl.text = url;
-                                        });
-                                      }
-                                    },
-                                    icon: Icon(
-                                      PhosphorIcons.googleLogo(),
-                                      size: 18,
-                                    ),
-                                    label: const Text(
-                                      'Search Web',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: isDark
-                                          ? Colors.white70
-                                          : Colors.black87,
-                                      side: BorderSide(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final url =
+                                        await showModalBottomSheet<String>(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          enableDrag: false,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (ctx) =>
+                                              GoogleImageSearchSheet(
+                                                initialQuery: _titleCtrl.text,
+                                              ),
+                                        );
+                                    if (url != null && context.mounted) {
+                                      setState(() {
+                                        _imgCtrl.text = url;
+                                      });
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.03)
+                                          : Colors.black.withValues(
+                                              alpha: 0.02,
+                                            ),
+                                      border: Border.all(
                                         color: isDark
                                             ? Colors.white10
-                                            : Colors.black12,
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            PhosphorIcons.googleLogo(),
+                                            size: 28,
+                                            color: isDark
+                                                ? Colors.white70
+                                                : Colors.black54,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'Search Web',
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white70
+                                                  : Colors.black87,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -1068,243 +1134,270 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
                     // ── Video Section (Toggle) ──
                     _buildCard(
-                      isDark: isDark,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                          isDark: isDark,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                PhosphorIcons.videoCamera(),
-                                size: 18,
-                                color: AppTheme.primaryColor,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.formTutorialVideo,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? AppTheme.darkTextPrimary
-                                        : AppTheme.lightTextPrimary,
+                              Row(
+                                children: [
+                                  Icon(
+                                    PhosphorIcons.videoCamera(),
+                                    size: 18,
+                                    color: AppTheme.primaryColor,
                                   ),
-                                ),
-                              ),
-                              Switch.adaptive(
-                                value: _showVideoSection,
-                                activeTrackColor: AppTheme.primaryColor,
-                                onChanged: (v) {
-                                  setState(() {
-                                    _showVideoSection = v;
-                                    if (!v) _videoUrlCtrl.clear();
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          if (_showVideoSection) ...[
-                            const SizedBox(height: 8),
-                            Text(
-                              AppLocalizations.of(context)!.formVideoHelper,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: isDark ? Colors.white38 : Colors.black38,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildCollectionsSection(context, isDark),
-                            const SizedBox(height: 32),
-                            // Upload video button
-                            SizedBox(
-                              height: 44,
-                              width: double.infinity,
-                              child: ElevatedButton.icon(
-                                onPressed: _isUploadingVideo
-                                    ? null
-                                    : () async {
-                                        setState(() {
-                                          _isUploadingVideo = true;
-                                          _videoUploadProgress = 0;
-                                        });
-                                        try {
-                                          final url =
-                                              await ImageKitService.pickAndUploadVideo(
-                                                folder: '/discover/videos',
-                                                onProgress: (p) {
-                                                  if (mounted) {
-                                                    setState(
-                                                      () =>
-                                                          _videoUploadProgress =
-                                                              p,
-                                                    );
-                                                  }
-                                                },
-                                              );
-                                          if (url != null && context.mounted) {
-                                            setState(() {
-                                              _videoUrlCtrl.text = url;
-                                            });
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Video uploaded!',
-                                                ),
-                                                backgroundColor: Colors.green,
-                                              ),
-                                            );
-                                          } else if (context.mounted &&
-                                              _videoUploadProgress > 0) {
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Upload failed or video too large (max 50MB).',
-                                                ),
-                                                backgroundColor: Colors.red,
-                                              ),
-                                            );
-                                          }
-                                        } finally {
-                                          if (mounted) {
-                                            setState(() {
-                                              _isUploadingVideo = false;
-                                              _videoUploadProgress = 0;
-                                            });
-                                          }
-                                        }
-                                      },
-                                icon: _isUploadingVideo
-                                    ? SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(
-                                          value: _videoUploadProgress > 0
-                                              ? _videoUploadProgress
-                                              : null,
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : Icon(
-                                        PhosphorIcons.uploadSimple(),
-                                        size: 18,
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.formTutorialVideo,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark
+                                            ? AppTheme.darkTextPrimary
+                                            : AppTheme.lightTextPrimary,
                                       ),
-                                label: Text(
-                                  _isUploadingVideo
-                                      ? AppLocalizations.of(
-                                          context,
-                                        )!.formUploadingVideo
-                                      : AppLocalizations.of(
-                                          context,
-                                        )!.formUploadVideoDevice,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF7C3AED),
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Progress bar
-                            if (_isUploadingVideo && _videoUploadProgress > 0)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value: _videoUploadProgress,
-                                    backgroundColor: isDark
-                                        ? Colors.white10
-                                        : Colors.black12,
-                                    color: const Color(0xFF7C3AED),
-                                    minHeight: 4,
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: 10),
-                            _buildTextField(
-                              controller: _videoUrlCtrl,
-                              label: AppLocalizations.of(
-                                context,
-                              )!.formVideoUrlLabel,
-                              prefixIcon: PhosphorIcons.link(),
-                              isDark: isDark,
-                            ),
-                            // Video URL preview
-                            if (_videoUrlCtrl.text.trim().isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFF7C3AED,
-                                    ).withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: const Color(
-                                        0xFF7C3AED,
-                                      ).withValues(alpha: 0.2),
                                     ),
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        PhosphorIcons.filmSlate(
-                                          PhosphorIconsStyle.fill,
-                                        ),
-                                        color: const Color(0xFF7C3AED),
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          _videoUrlCtrl.text.trim(),
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontFamily: 'monospace',
-                                            color: isDark
-                                                ? Colors.white70
-                                                : Colors.black54,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      GestureDetector(
-                                        onTap: () => setState(
-                                          () => _videoUrlCtrl.clear(),
-                                        ),
-                                        child: Icon(
-                                          Icons.close,
-                                          size: 18,
-                                          color: isDark
-                                              ? Colors.white38
-                                              : Colors.black38,
-                                        ),
-                                      ),
-                                    ],
+                                  Switch.adaptive(
+                                    value: _showVideoSection,
+                                    activeTrackColor: AppTheme.primaryColor,
+                                    onChanged: (v) {
+                                      setState(() {
+                                        _showVideoSection = v;
+                                        if (!v) _videoUrlCtrl.clear();
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              if (_showVideoSection) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  AppLocalizations.of(context)!.formVideoHelper,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isDark
+                                        ? Colors.white38
+                                        : Colors.black38,
                                   ),
                                 ),
-                              ),
-                          ],
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
+                                const SizedBox(height: 16),
+                                _buildCollectionsSection(context, isDark),
+                                const SizedBox(height: 32),
+                                // Upload video button
+                                InkWell(
+                                  onTap: _isUploadingVideo
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            _isUploadingVideo = true;
+                                            _videoUploadProgress = 0;
+                                          });
+                                          try {
+                                            final url =
+                                                await ImageKitService.pickAndUploadVideo(
+                                                  folder: '/discover/videos',
+                                                  onProgress: (p) {
+                                                    if (mounted) {
+                                                      setState(
+                                                        () =>
+                                                            _videoUploadProgress =
+                                                                p,
+                                                      );
+                                                    }
+                                                  },
+                                                );
+                                            if (url != null &&
+                                                context.mounted) {
+                                              setState(() {
+                                                _videoUrlCtrl.text = url;
+                                              });
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Video uploaded!',
+                                                  ),
+                                                  backgroundColor: Colors.green,
+                                                ),
+                                              );
+                                            } else if (context.mounted &&
+                                                _videoUploadProgress > 0) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Upload failed or video too large (max 50MB).',
+                                                  ),
+                                                  backgroundColor: Colors.red,
+                                                ),
+                                              );
+                                            }
+                                          } finally {
+                                            if (mounted) {
+                                              setState(() {
+                                                _isUploadingVideo = false;
+                                                _videoUploadProgress = 0;
+                                              });
+                                            }
+                                          }
+                                        },
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    height: 100,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? const Color(
+                                              0xFF7C3AED,
+                                            ).withValues(alpha: 0.1)
+                                          : const Color(
+                                              0xFF7C3AED,
+                                            ).withValues(alpha: 0.05),
+                                      border: Border.all(
+                                        color: const Color(
+                                          0xFF7C3AED,
+                                        ).withValues(alpha: 0.3),
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Center(
+                                      child: _isUploadingVideo
+                                          ? SizedBox(
+                                              height: 32,
+                                              width: 32,
+                                              child: CircularProgressIndicator(
+                                                value: _videoUploadProgress > 0
+                                                    ? _videoUploadProgress
+                                                    : null,
+                                                strokeWidth: 3,
+                                                color: const Color(0xFF7C3AED),
+                                              ),
+                                            )
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  PhosphorIcons.uploadSimple(),
+                                                  size: 28,
+                                                  color: const Color(
+                                                    0xFF7C3AED,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.formUploadVideoDevice,
+                                                  style: const TextStyle(
+                                                    color: Color(0xFF7C3AED),
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                                // Progress bar
+                                if (_isUploadingVideo &&
+                                    _videoUploadProgress > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: LinearProgressIndicator(
+                                        value: _videoUploadProgress,
+                                        backgroundColor: isDark
+                                            ? Colors.white10
+                                            : Colors.black12,
+                                        color: const Color(0xFF7C3AED),
+                                        minHeight: 4,
+                                      ),
+                                    ),
+                                  ),
+                                const SizedBox(height: 10),
+                                _buildTextField(
+                                  controller: _videoUrlCtrl,
+                                  label: AppLocalizations.of(
+                                    context,
+                                  )!.formVideoUrlLabel,
+                                  prefixIcon: PhosphorIcons.link(),
+                                  isDark: isDark,
+                                ),
+                                // Video URL preview
+                                if (_videoUrlCtrl.text.trim().isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF7C3AED,
+                                        ).withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFF7C3AED,
+                                          ).withValues(alpha: 0.2),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            PhosphorIcons.filmSlate(
+                                              PhosphorIconsStyle.fill,
+                                            ),
+                                            color: const Color(0xFF7C3AED),
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              _videoUrlCtrl.text.trim(),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                fontFamily: 'monospace',
+                                                color: isDark
+                                                    ? Colors.white70
+                                                    : Colors.black54,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          GestureDetector(
+                                            onTap: () => setState(
+                                              () => _videoUrlCtrl.clear(),
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 18,
+                                              color: isDark
+                                                  ? Colors.white38
+                                                  : Colors.black38,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 150.ms, duration: 400.ms)
+                        .slideY(begin: 0.1),
 
                     // ── Copyable Content (all non-website types) ──
                     if (_contentType != 'website')
@@ -1946,75 +2039,109 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                 color: isDark ? AppTheme.darkCard : Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, -6),
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isSaving ? null : () => context.pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(
-                          color: isDark ? Colors.white24 : Colors.black26,
+              child: SafeArea(
+                bottom: true,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: _isSaving ? null : () => context.pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        AppLocalizations.of(context)!.cancel,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white70 : Colors.black87,
+                        child: Text(
+                          AppLocalizations.of(context)!.cancel,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton(
-                      onPressed: _isSaving ? null : _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
+                    const SizedBox(width: 16),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 3,
-                              ),
-                            )
-                          : Text(
-                              widget.existing == null
-                                  ? AppLocalizations.of(
-                                      context,
-                                    )!.formPublishItem(_typeLabel(context))
-                                  : AppLocalizations.of(
-                                      context,
-                                    )!.formSaveChanges,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF4F46E5,
+                              ).withValues(alpha: 0.35),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
                             ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 3,
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      widget.existing == null
+                                          ? PhosphorIcons.rocketLaunch()
+                                          : PhosphorIcons.checkCircle(),
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      widget.existing == null
+                                          ? AppLocalizations.of(
+                                              context,
+                                            )!.formPublishItem(
+                                              _typeLabel(context),
+                                            )
+                                          : AppLocalizations.of(
+                                              context,
+                                            )!.formSaveChanges,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
