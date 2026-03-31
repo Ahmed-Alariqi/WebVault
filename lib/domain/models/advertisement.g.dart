@@ -23,6 +23,12 @@ _Advertisement _$AdvertisementFromJson(Map<String, dynamic> json) =>
       createdAt: DateTime.parse(json['created_at'] as String),
       linkUrl: json['link_url'] as String?,
       linkedWebsiteId: json['linked_website_id'] as String?,
+      detailCardEnabled: json['detail_card_enabled'] as bool? ?? false,
+      detailCardInstructions: json['detail_card_instructions'] as String?,
+      detailCardButtonText: json['detail_card_button_text'] as String?,
+      detailCardActionType:
+          json['detail_card_action_type'] as String? ?? 'support_chat',
+      detailCardActionUrl: json['detail_card_action_url'] as String?,
     );
 
 Map<String, dynamic> _$AdvertisementToJson(_Advertisement instance) =>
@@ -39,4 +45,9 @@ Map<String, dynamic> _$AdvertisementToJson(_Advertisement instance) =>
       'created_at': instance.createdAt.toIso8601String(),
       'link_url': instance.linkUrl,
       'linked_website_id': instance.linkedWebsiteId,
+      'detail_card_enabled': instance.detailCardEnabled,
+      'detail_card_instructions': instance.detailCardInstructions,
+      'detail_card_button_text': instance.detailCardButtonText,
+      'detail_card_action_type': instance.detailCardActionType,
+      'detail_card_action_url': instance.detailCardActionUrl,
     };

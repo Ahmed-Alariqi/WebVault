@@ -2641,4 +2641,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get closeImage => 'إغلاق';
+
+  @override
+  String get adDetailCard => 'بطاقة التفاصيل';
+
+  @override
+  String get adDetailCardSub => 'عرض بطاقة تفاصيل مع تعليمات عند النقر';
+
+  @override
+  String get adDetailInstructions => 'التعليمات';
+
+  @override
+  String get adDetailInstructionsHint => 'اكتب التعليمات المراد عرضها...';
+
+  @override
+  String get adDetailButtonText => 'نص الزر';
+
+  @override
+  String get adDetailButtonTextHint => 'مثال: احصل عليه الآن، تفاصيل اكثر...';
+
+  @override
+  String get adDetailActionType => 'نوع الإجراء';
+
+  @override
+  String get adDetailActionSupportChat => 'محادثة الدعم';
+
+  @override
+  String get adDetailActionWhatsApp => 'رقم واتساب';
+
+  @override
+  String get adDetailActionTelegram => 'احد مستخدمي تلجرام';
+
+  @override
+  String get adDetailActionExternalLink => 'رابط خارجي';
+
+  @override
+  String get adDetailActionUrl => 'الهدف (رقم/مستخدم/رابط)';
+
+  @override
+  String get adDetailActionWhatsAppHelper =>
+      'مثال: +1234567890 (أدخل مفتاح الدولة بدون +)';
+
+  @override
+  String get adDetailActionTelegramHelper => 'مثال: username (بدون @)';
+
+  @override
+  String get adDetailActionExternalLinkHelper =>
+      'مثال: https://example.com/...';
+
+  @override
+  String get adDetailDefaultButton => 'تفاصيل اكثر';
 }

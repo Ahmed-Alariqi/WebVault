@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Advertisement {
 
- String get id; String get title;@JsonKey(name: 'image_url') String get imageUrl;@JsonKey(name: 'text_content') String? get textContent;@JsonKey(name: 'display_duration_seconds') int get displayDurationSeconds;@JsonKey(name: 'ad_end_date') DateTime? get adEndDate;@JsonKey(name: 'show_remaining_time') bool get showRemainingTime;@JsonKey(name: 'target_screen') String get targetScreen;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'link_url') String? get linkUrl;@JsonKey(name: 'linked_website_id') String? get linkedWebsiteId;
+ String get id; String get title;@JsonKey(name: 'image_url') String get imageUrl;@JsonKey(name: 'text_content') String? get textContent;@JsonKey(name: 'display_duration_seconds') int get displayDurationSeconds;@JsonKey(name: 'ad_end_date') DateTime? get adEndDate;@JsonKey(name: 'show_remaining_time') bool get showRemainingTime;@JsonKey(name: 'target_screen') String get targetScreen;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'link_url') String? get linkUrl;@JsonKey(name: 'linked_website_id') String? get linkedWebsiteId;@JsonKey(name: 'detail_card_enabled') bool get detailCardEnabled;@JsonKey(name: 'detail_card_instructions') String? get detailCardInstructions;@JsonKey(name: 'detail_card_button_text') String? get detailCardButtonText;@JsonKey(name: 'detail_card_action_type') String get detailCardActionType;@JsonKey(name: 'detail_card_action_url') String? get detailCardActionUrl;
 /// Create a copy of Advertisement
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AdvertisementCopyWith<Advertisement> get copyWith => _$AdvertisementCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Advertisement&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.textContent, textContent) || other.textContent == textContent)&&(identical(other.displayDurationSeconds, displayDurationSeconds) || other.displayDurationSeconds == displayDurationSeconds)&&(identical(other.adEndDate, adEndDate) || other.adEndDate == adEndDate)&&(identical(other.showRemainingTime, showRemainingTime) || other.showRemainingTime == showRemainingTime)&&(identical(other.targetScreen, targetScreen) || other.targetScreen == targetScreen)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl)&&(identical(other.linkedWebsiteId, linkedWebsiteId) || other.linkedWebsiteId == linkedWebsiteId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Advertisement&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.textContent, textContent) || other.textContent == textContent)&&(identical(other.displayDurationSeconds, displayDurationSeconds) || other.displayDurationSeconds == displayDurationSeconds)&&(identical(other.adEndDate, adEndDate) || other.adEndDate == adEndDate)&&(identical(other.showRemainingTime, showRemainingTime) || other.showRemainingTime == showRemainingTime)&&(identical(other.targetScreen, targetScreen) || other.targetScreen == targetScreen)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl)&&(identical(other.linkedWebsiteId, linkedWebsiteId) || other.linkedWebsiteId == linkedWebsiteId)&&(identical(other.detailCardEnabled, detailCardEnabled) || other.detailCardEnabled == detailCardEnabled)&&(identical(other.detailCardInstructions, detailCardInstructions) || other.detailCardInstructions == detailCardInstructions)&&(identical(other.detailCardButtonText, detailCardButtonText) || other.detailCardButtonText == detailCardButtonText)&&(identical(other.detailCardActionType, detailCardActionType) || other.detailCardActionType == detailCardActionType)&&(identical(other.detailCardActionUrl, detailCardActionUrl) || other.detailCardActionUrl == detailCardActionUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,imageUrl,textContent,displayDurationSeconds,adEndDate,showRemainingTime,targetScreen,isActive,createdAt,linkUrl,linkedWebsiteId);
+int get hashCode => Object.hash(runtimeType,id,title,imageUrl,textContent,displayDurationSeconds,adEndDate,showRemainingTime,targetScreen,isActive,createdAt,linkUrl,linkedWebsiteId,detailCardEnabled,detailCardInstructions,detailCardButtonText,detailCardActionType,detailCardActionUrl);
 
 @override
 String toString() {
-  return 'Advertisement(id: $id, title: $title, imageUrl: $imageUrl, textContent: $textContent, displayDurationSeconds: $displayDurationSeconds, adEndDate: $adEndDate, showRemainingTime: $showRemainingTime, targetScreen: $targetScreen, isActive: $isActive, createdAt: $createdAt, linkUrl: $linkUrl, linkedWebsiteId: $linkedWebsiteId)';
+  return 'Advertisement(id: $id, title: $title, imageUrl: $imageUrl, textContent: $textContent, displayDurationSeconds: $displayDurationSeconds, adEndDate: $adEndDate, showRemainingTime: $showRemainingTime, targetScreen: $targetScreen, isActive: $isActive, createdAt: $createdAt, linkUrl: $linkUrl, linkedWebsiteId: $linkedWebsiteId, detailCardEnabled: $detailCardEnabled, detailCardInstructions: $detailCardInstructions, detailCardButtonText: $detailCardButtonText, detailCardActionType: $detailCardActionType, detailCardActionUrl: $detailCardActionUrl)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AdvertisementCopyWith<$Res>  {
   factory $AdvertisementCopyWith(Advertisement value, $Res Function(Advertisement) _then) = _$AdvertisementCopyWithImpl;
 @useResult
 $Res call({
- String id, String title,@JsonKey(name: 'image_url') String imageUrl,@JsonKey(name: 'text_content') String? textContent,@JsonKey(name: 'display_duration_seconds') int displayDurationSeconds,@JsonKey(name: 'ad_end_date') DateTime? adEndDate,@JsonKey(name: 'show_remaining_time') bool showRemainingTime,@JsonKey(name: 'target_screen') String targetScreen,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'link_url') String? linkUrl,@JsonKey(name: 'linked_website_id') String? linkedWebsiteId
+ String id, String title,@JsonKey(name: 'image_url') String imageUrl,@JsonKey(name: 'text_content') String? textContent,@JsonKey(name: 'display_duration_seconds') int displayDurationSeconds,@JsonKey(name: 'ad_end_date') DateTime? adEndDate,@JsonKey(name: 'show_remaining_time') bool showRemainingTime,@JsonKey(name: 'target_screen') String targetScreen,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'link_url') String? linkUrl,@JsonKey(name: 'linked_website_id') String? linkedWebsiteId,@JsonKey(name: 'detail_card_enabled') bool detailCardEnabled,@JsonKey(name: 'detail_card_instructions') String? detailCardInstructions,@JsonKey(name: 'detail_card_button_text') String? detailCardButtonText,@JsonKey(name: 'detail_card_action_type') String detailCardActionType,@JsonKey(name: 'detail_card_action_url') String? detailCardActionUrl
 });
 
 
@@ -65,7 +65,7 @@ class _$AdvertisementCopyWithImpl<$Res>
 
 /// Create a copy of Advertisement
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? imageUrl = null,Object? textContent = freezed,Object? displayDurationSeconds = null,Object? adEndDate = freezed,Object? showRemainingTime = null,Object? targetScreen = null,Object? isActive = null,Object? createdAt = null,Object? linkUrl = freezed,Object? linkedWebsiteId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = null,Object? imageUrl = null,Object? textContent = freezed,Object? displayDurationSeconds = null,Object? adEndDate = freezed,Object? showRemainingTime = null,Object? targetScreen = null,Object? isActive = null,Object? createdAt = null,Object? linkUrl = freezed,Object? linkedWebsiteId = freezed,Object? detailCardEnabled = null,Object? detailCardInstructions = freezed,Object? detailCardButtonText = freezed,Object? detailCardActionType = null,Object? detailCardActionUrl = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -79,6 +79,11 @@ as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,linkUrl: freezed == linkUrl ? _self.linkUrl : linkUrl // ignore: cast_nullable_to_non_nullable
 as String?,linkedWebsiteId: freezed == linkedWebsiteId ? _self.linkedWebsiteId : linkedWebsiteId // ignore: cast_nullable_to_non_nullable
+as String?,detailCardEnabled: null == detailCardEnabled ? _self.detailCardEnabled : detailCardEnabled // ignore: cast_nullable_to_non_nullable
+as bool,detailCardInstructions: freezed == detailCardInstructions ? _self.detailCardInstructions : detailCardInstructions // ignore: cast_nullable_to_non_nullable
+as String?,detailCardButtonText: freezed == detailCardButtonText ? _self.detailCardButtonText : detailCardButtonText // ignore: cast_nullable_to_non_nullable
+as String?,detailCardActionType: null == detailCardActionType ? _self.detailCardActionType : detailCardActionType // ignore: cast_nullable_to_non_nullable
+as String,detailCardActionUrl: freezed == detailCardActionUrl ? _self.detailCardActionUrl : detailCardActionUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -164,10 +169,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId, @JsonKey(name: 'detail_card_enabled')  bool detailCardEnabled, @JsonKey(name: 'detail_card_instructions')  String? detailCardInstructions, @JsonKey(name: 'detail_card_button_text')  String? detailCardButtonText, @JsonKey(name: 'detail_card_action_type')  String detailCardActionType, @JsonKey(name: 'detail_card_action_url')  String? detailCardActionUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Advertisement() when $default != null:
-return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId);case _:
+return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId,_that.detailCardEnabled,_that.detailCardInstructions,_that.detailCardButtonText,_that.detailCardActionType,_that.detailCardActionUrl);case _:
   return orElse();
 
 }
@@ -185,10 +190,10 @@ return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.disp
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId, @JsonKey(name: 'detail_card_enabled')  bool detailCardEnabled, @JsonKey(name: 'detail_card_instructions')  String? detailCardInstructions, @JsonKey(name: 'detail_card_button_text')  String? detailCardButtonText, @JsonKey(name: 'detail_card_action_type')  String detailCardActionType, @JsonKey(name: 'detail_card_action_url')  String? detailCardActionUrl)  $default,) {final _that = this;
 switch (_that) {
 case _Advertisement():
-return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId);case _:
+return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId,_that.detailCardEnabled,_that.detailCardInstructions,_that.detailCardButtonText,_that.detailCardActionType,_that.detailCardActionUrl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +210,10 @@ return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.disp
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String title, @JsonKey(name: 'image_url')  String imageUrl, @JsonKey(name: 'text_content')  String? textContent, @JsonKey(name: 'display_duration_seconds')  int displayDurationSeconds, @JsonKey(name: 'ad_end_date')  DateTime? adEndDate, @JsonKey(name: 'show_remaining_time')  bool showRemainingTime, @JsonKey(name: 'target_screen')  String targetScreen, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'link_url')  String? linkUrl, @JsonKey(name: 'linked_website_id')  String? linkedWebsiteId, @JsonKey(name: 'detail_card_enabled')  bool detailCardEnabled, @JsonKey(name: 'detail_card_instructions')  String? detailCardInstructions, @JsonKey(name: 'detail_card_button_text')  String? detailCardButtonText, @JsonKey(name: 'detail_card_action_type')  String detailCardActionType, @JsonKey(name: 'detail_card_action_url')  String? detailCardActionUrl)?  $default,) {final _that = this;
 switch (_that) {
 case _Advertisement() when $default != null:
-return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId);case _:
+return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.displayDurationSeconds,_that.adEndDate,_that.showRemainingTime,_that.targetScreen,_that.isActive,_that.createdAt,_that.linkUrl,_that.linkedWebsiteId,_that.detailCardEnabled,_that.detailCardInstructions,_that.detailCardButtonText,_that.detailCardActionType,_that.detailCardActionUrl);case _:
   return null;
 
 }
@@ -220,7 +225,7 @@ return $default(_that.id,_that.title,_that.imageUrl,_that.textContent,_that.disp
 @JsonSerializable()
 
 class _Advertisement implements Advertisement {
-  const _Advertisement({required this.id, required this.title, @JsonKey(name: 'image_url') required this.imageUrl, @JsonKey(name: 'text_content') this.textContent, @JsonKey(name: 'display_duration_seconds') this.displayDurationSeconds = 5, @JsonKey(name: 'ad_end_date') this.adEndDate, @JsonKey(name: 'show_remaining_time') this.showRemainingTime = false, @JsonKey(name: 'target_screen') this.targetScreen = 'both', @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'link_url') this.linkUrl, @JsonKey(name: 'linked_website_id') this.linkedWebsiteId});
+  const _Advertisement({required this.id, required this.title, @JsonKey(name: 'image_url') required this.imageUrl, @JsonKey(name: 'text_content') this.textContent, @JsonKey(name: 'display_duration_seconds') this.displayDurationSeconds = 5, @JsonKey(name: 'ad_end_date') this.adEndDate, @JsonKey(name: 'show_remaining_time') this.showRemainingTime = false, @JsonKey(name: 'target_screen') this.targetScreen = 'both', @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'link_url') this.linkUrl, @JsonKey(name: 'linked_website_id') this.linkedWebsiteId, @JsonKey(name: 'detail_card_enabled') this.detailCardEnabled = false, @JsonKey(name: 'detail_card_instructions') this.detailCardInstructions, @JsonKey(name: 'detail_card_button_text') this.detailCardButtonText, @JsonKey(name: 'detail_card_action_type') this.detailCardActionType = 'support_chat', @JsonKey(name: 'detail_card_action_url') this.detailCardActionUrl});
   factory _Advertisement.fromJson(Map<String, dynamic> json) => _$AdvertisementFromJson(json);
 
 @override final  String id;
@@ -235,6 +240,11 @@ class _Advertisement implements Advertisement {
 @override@JsonKey(name: 'created_at') final  DateTime createdAt;
 @override@JsonKey(name: 'link_url') final  String? linkUrl;
 @override@JsonKey(name: 'linked_website_id') final  String? linkedWebsiteId;
+@override@JsonKey(name: 'detail_card_enabled') final  bool detailCardEnabled;
+@override@JsonKey(name: 'detail_card_instructions') final  String? detailCardInstructions;
+@override@JsonKey(name: 'detail_card_button_text') final  String? detailCardButtonText;
+@override@JsonKey(name: 'detail_card_action_type') final  String detailCardActionType;
+@override@JsonKey(name: 'detail_card_action_url') final  String? detailCardActionUrl;
 
 /// Create a copy of Advertisement
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +259,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Advertisement&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.textContent, textContent) || other.textContent == textContent)&&(identical(other.displayDurationSeconds, displayDurationSeconds) || other.displayDurationSeconds == displayDurationSeconds)&&(identical(other.adEndDate, adEndDate) || other.adEndDate == adEndDate)&&(identical(other.showRemainingTime, showRemainingTime) || other.showRemainingTime == showRemainingTime)&&(identical(other.targetScreen, targetScreen) || other.targetScreen == targetScreen)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl)&&(identical(other.linkedWebsiteId, linkedWebsiteId) || other.linkedWebsiteId == linkedWebsiteId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Advertisement&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.textContent, textContent) || other.textContent == textContent)&&(identical(other.displayDurationSeconds, displayDurationSeconds) || other.displayDurationSeconds == displayDurationSeconds)&&(identical(other.adEndDate, adEndDate) || other.adEndDate == adEndDate)&&(identical(other.showRemainingTime, showRemainingTime) || other.showRemainingTime == showRemainingTime)&&(identical(other.targetScreen, targetScreen) || other.targetScreen == targetScreen)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl)&&(identical(other.linkedWebsiteId, linkedWebsiteId) || other.linkedWebsiteId == linkedWebsiteId)&&(identical(other.detailCardEnabled, detailCardEnabled) || other.detailCardEnabled == detailCardEnabled)&&(identical(other.detailCardInstructions, detailCardInstructions) || other.detailCardInstructions == detailCardInstructions)&&(identical(other.detailCardButtonText, detailCardButtonText) || other.detailCardButtonText == detailCardButtonText)&&(identical(other.detailCardActionType, detailCardActionType) || other.detailCardActionType == detailCardActionType)&&(identical(other.detailCardActionUrl, detailCardActionUrl) || other.detailCardActionUrl == detailCardActionUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,imageUrl,textContent,displayDurationSeconds,adEndDate,showRemainingTime,targetScreen,isActive,createdAt,linkUrl,linkedWebsiteId);
+int get hashCode => Object.hash(runtimeType,id,title,imageUrl,textContent,displayDurationSeconds,adEndDate,showRemainingTime,targetScreen,isActive,createdAt,linkUrl,linkedWebsiteId,detailCardEnabled,detailCardInstructions,detailCardButtonText,detailCardActionType,detailCardActionUrl);
 
 @override
 String toString() {
-  return 'Advertisement(id: $id, title: $title, imageUrl: $imageUrl, textContent: $textContent, displayDurationSeconds: $displayDurationSeconds, adEndDate: $adEndDate, showRemainingTime: $showRemainingTime, targetScreen: $targetScreen, isActive: $isActive, createdAt: $createdAt, linkUrl: $linkUrl, linkedWebsiteId: $linkedWebsiteId)';
+  return 'Advertisement(id: $id, title: $title, imageUrl: $imageUrl, textContent: $textContent, displayDurationSeconds: $displayDurationSeconds, adEndDate: $adEndDate, showRemainingTime: $showRemainingTime, targetScreen: $targetScreen, isActive: $isActive, createdAt: $createdAt, linkUrl: $linkUrl, linkedWebsiteId: $linkedWebsiteId, detailCardEnabled: $detailCardEnabled, detailCardInstructions: $detailCardInstructions, detailCardButtonText: $detailCardButtonText, detailCardActionType: $detailCardActionType, detailCardActionUrl: $detailCardActionUrl)';
 }
 
 
@@ -269,7 +279,7 @@ abstract mixin class _$AdvertisementCopyWith<$Res> implements $AdvertisementCopy
   factory _$AdvertisementCopyWith(_Advertisement value, $Res Function(_Advertisement) _then) = __$AdvertisementCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String title,@JsonKey(name: 'image_url') String imageUrl,@JsonKey(name: 'text_content') String? textContent,@JsonKey(name: 'display_duration_seconds') int displayDurationSeconds,@JsonKey(name: 'ad_end_date') DateTime? adEndDate,@JsonKey(name: 'show_remaining_time') bool showRemainingTime,@JsonKey(name: 'target_screen') String targetScreen,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'link_url') String? linkUrl,@JsonKey(name: 'linked_website_id') String? linkedWebsiteId
+ String id, String title,@JsonKey(name: 'image_url') String imageUrl,@JsonKey(name: 'text_content') String? textContent,@JsonKey(name: 'display_duration_seconds') int displayDurationSeconds,@JsonKey(name: 'ad_end_date') DateTime? adEndDate,@JsonKey(name: 'show_remaining_time') bool showRemainingTime,@JsonKey(name: 'target_screen') String targetScreen,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'link_url') String? linkUrl,@JsonKey(name: 'linked_website_id') String? linkedWebsiteId,@JsonKey(name: 'detail_card_enabled') bool detailCardEnabled,@JsonKey(name: 'detail_card_instructions') String? detailCardInstructions,@JsonKey(name: 'detail_card_button_text') String? detailCardButtonText,@JsonKey(name: 'detail_card_action_type') String detailCardActionType,@JsonKey(name: 'detail_card_action_url') String? detailCardActionUrl
 });
 
 
@@ -286,7 +296,7 @@ class __$AdvertisementCopyWithImpl<$Res>
 
 /// Create a copy of Advertisement
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? imageUrl = null,Object? textContent = freezed,Object? displayDurationSeconds = null,Object? adEndDate = freezed,Object? showRemainingTime = null,Object? targetScreen = null,Object? isActive = null,Object? createdAt = null,Object? linkUrl = freezed,Object? linkedWebsiteId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? title = null,Object? imageUrl = null,Object? textContent = freezed,Object? displayDurationSeconds = null,Object? adEndDate = freezed,Object? showRemainingTime = null,Object? targetScreen = null,Object? isActive = null,Object? createdAt = null,Object? linkUrl = freezed,Object? linkedWebsiteId = freezed,Object? detailCardEnabled = null,Object? detailCardInstructions = freezed,Object? detailCardButtonText = freezed,Object? detailCardActionType = null,Object? detailCardActionUrl = freezed,}) {
   return _then(_Advertisement(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
@@ -300,6 +310,11 @@ as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast
 as bool,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,linkUrl: freezed == linkUrl ? _self.linkUrl : linkUrl // ignore: cast_nullable_to_non_nullable
 as String?,linkedWebsiteId: freezed == linkedWebsiteId ? _self.linkedWebsiteId : linkedWebsiteId // ignore: cast_nullable_to_non_nullable
+as String?,detailCardEnabled: null == detailCardEnabled ? _self.detailCardEnabled : detailCardEnabled // ignore: cast_nullable_to_non_nullable
+as bool,detailCardInstructions: freezed == detailCardInstructions ? _self.detailCardInstructions : detailCardInstructions // ignore: cast_nullable_to_non_nullable
+as String?,detailCardButtonText: freezed == detailCardButtonText ? _self.detailCardButtonText : detailCardButtonText // ignore: cast_nullable_to_non_nullable
+as String?,detailCardActionType: null == detailCardActionType ? _self.detailCardActionType : detailCardActionType // ignore: cast_nullable_to_non_nullable
+as String,detailCardActionUrl: freezed == detailCardActionUrl ? _self.detailCardActionUrl : detailCardActionUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

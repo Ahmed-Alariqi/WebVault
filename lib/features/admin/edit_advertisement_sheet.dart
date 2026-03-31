@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 
 import '../../core/supabase_config.dart';
 import '../../core/theme/app_theme.dart';
@@ -32,6 +34,9 @@ class _EditAdvertisementSheetState
   final _linkUrlController = TextEditingController();
   final _linkedWebsiteIdController = TextEditingController();
   final _searchController = TextEditingController();
+  late final QuillController _detailInstructionsController;
+  final _detailButtonTextController = TextEditingController();
+  final _detailActionUrlController = TextEditingController();
 
   bool _isLoading = false;
   bool _isUploading = false;
@@ -41,6 +46,8 @@ class _EditAdvertisementSheetState
   String _targetScreen = 'both';
   DateTime? _adEndDate;
   bool _isInternalLink = false;
+  bool _detailCardEnabled = false;
+  String _detailCardActionType = 'support_chat';
 
   Timer? _debounce;
   bool _isSearching = false;
@@ -57,6 +64,28 @@ class _EditAdvertisementSheetState
       _imageController.text = widget.ad!.imageUrl;
       _linkUrlController.text = widget.ad!.linkUrl ?? '';
       _linkedWebsiteIdController.text = widget.ad!.linkedWebsiteId ?? '';
+      _detailCardEnabled = widget.ad!.detailCardEnabled;
+
+      Document doc;
+      try {
+        if (widget.ad!.detailCardInstructions != null &&
+            widget.ad!.detailCardInstructions!.isNotEmpty) {
+          final decoded = jsonDecode(widget.ad!.detailCardInstructions!);
+          doc = Document.fromJson(decoded);
+        } else {
+          doc = Document();
+        }
+      } catch (_) {
+        doc = Document()..insert(0, widget.ad!.detailCardInstructions ?? '');
+      }
+      _detailInstructionsController = QuillController(
+        document: doc,
+        selection: const TextSelection.collapsed(offset: 0),
+      );
+
+      _detailButtonTextController.text = widget.ad!.detailCardButtonText ?? '';
+      _detailCardActionType = widget.ad!.detailCardActionType;
+      _detailActionUrlController.text = widget.ad!.detailCardActionUrl ?? '';
       if (_linkedWebsiteIdController.text.isNotEmpty) {
         _isInternalLink = true;
         _fetchInitialWebsite(_linkedWebsiteIdController.text);
@@ -70,6 +99,10 @@ class _EditAdvertisementSheetState
       _adEndDate = widget.ad!.adEndDate;
     } else {
       _durationController.text = '5'; // Default 5 seconds
+      _detailInstructionsController = QuillController(
+        document: Document(),
+        selection: const TextSelection.collapsed(offset: 0),
+      );
     }
   }
 
@@ -82,6 +115,9 @@ class _EditAdvertisementSheetState
     _linkUrlController.dispose();
     _linkedWebsiteIdController.dispose();
     _searchController.dispose();
+    _detailInstructionsController.dispose();
+    _detailButtonTextController.dispose();
+    _detailActionUrlController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -197,6 +233,21 @@ class _EditAdvertisementSheetState
         'show_remaining_time': _showRemainingTime,
         'target_screen': _targetScreen,
         'is_active': _isActive,
+        'detail_card_enabled': _detailCardEnabled,
+        'detail_card_instructions':
+            _detailInstructionsController.document.isEmpty()
+            ? null
+            : jsonEncode(
+                _detailInstructionsController.document.toDelta().toJson(),
+              ),
+        'detail_card_button_text':
+            _detailButtonTextController.text.trim().isEmpty
+            ? null
+            : _detailButtonTextController.text.trim(),
+        'detail_card_action_type': _detailCardActionType,
+        'detail_card_action_url': _detailActionUrlController.text.trim().isEmpty
+            ? null
+            : _detailActionUrlController.text.trim(),
       };
 
       if (widget.ad == null) {
@@ -339,6 +390,378 @@ class _EditAdvertisementSheetState
         ),
       ),
       child: child,
+    );
+  }
+
+  // ── Detail Card Form (shown when detail card is enabled) ──
+  Widget _buildDetailCardForm(bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        // ── Instructions (Rich Text) ──
+        Text(
+          l10n.adDetailInstructions,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.05),
+            ),
+          ),
+          child: Column(
+            children: [
+              Theme(
+                data: Theme.of(context).copyWith(
+                  canvasColor: isDark ? Colors.grey[850] : Colors.grey[200],
+                ),
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
+                  child: QuillSimpleToolbar(
+                    controller: _detailInstructionsController,
+                    config: const QuillSimpleToolbarConfig(
+                      showFontFamily: false,
+                      showFontSize: false,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 150,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.02)
+                      : Colors.white,
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.05),
+                    ),
+                  ),
+                ),
+                child: QuillEditor.basic(
+                  controller: _detailInstructionsController,
+                  config: QuillEditorConfig(
+                    padding: EdgeInsets.zero,
+                    placeholder: l10n.adDetailInstructionsHint,
+                    scrollable: true,
+                    expands: true,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildTextField(
+          controller: _detailButtonTextController,
+          label: l10n.adDetailButtonText,
+          prefixIcon: PhosphorIcons.cursor(),
+          isDark: isDark,
+          helperText: l10n.adDetailButtonTextHint,
+        ),
+        const SizedBox(height: 16),
+        // Action Type Dropdown
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            l10n.adDetailActionType,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.black.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.05),
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _detailCardActionType,
+              isExpanded: true,
+              dropdownColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              icon: Icon(PhosphorIcons.caretDown(), size: 16),
+              items: [
+                DropdownMenuItem(
+                  value: 'support_chat',
+                  child: Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.chatCircleDots(),
+                        size: 18,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(l10n.adDetailActionSupportChat),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'whatsapp',
+                  child: Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.whatsappLogo(),
+                        size: 18,
+                        color: const Color(0xFF25D366),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(l10n.adDetailActionWhatsApp),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'telegram',
+                  child: Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.telegramLogo(),
+                        size: 18,
+                        color: const Color(0xFF0088CC),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(l10n.adDetailActionTelegram),
+                    ],
+                  ),
+                ),
+                DropdownMenuItem(
+                  value: 'external_link',
+                  child: Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.link(),
+                        size: 18,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(l10n.adDetailActionExternalLink),
+                    ],
+                  ),
+                ),
+              ],
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() => _detailCardActionType = v);
+                }
+              },
+            ),
+          ),
+        ),
+        // Action Target
+        if (_detailCardActionType != 'support_chat') ...[
+          const SizedBox(height: 16),
+          _buildTextField(
+            controller: _detailActionUrlController,
+            label: l10n.adDetailActionUrl,
+            prefixIcon: PhosphorIcons.link(),
+            isDark: isDark,
+            keyboardType: _detailCardActionType == 'whatsapp'
+                ? TextInputType.phone
+                : TextInputType.url,
+            helperText: _detailCardActionType == 'whatsapp'
+                ? l10n.adDetailActionWhatsAppHelper
+                : _detailCardActionType == 'telegram'
+                ? l10n.adDetailActionTelegramHelper
+                : l10n.adDetailActionExternalLinkHelper,
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ── Link Form (shown when detail card is disabled) ──
+  Widget _buildLinkForm(bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.adLinkInternal),
+          subtitle: Text(l10n.adLinkInternalSub),
+          value: _isInternalLink,
+          onChanged: (v) => setState(() => _isInternalLink = v),
+          activeThumbColor: AppTheme.primaryColor,
+        ),
+        const SizedBox(height: 16),
+        if (_isInternalLink)
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTextField(
+                controller: _searchController,
+                label: l10n.adSearchInternal,
+                prefixIcon: PhosphorIcons.magnifyingGlass(),
+                isDark: isDark,
+                onChanged: _onSearchChanged,
+              ),
+              if (_isSearching)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              if (_searchResults != null && !_isSearching)
+                Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  constraints: const BoxConstraints(maxHeight: 200),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.black12,
+                    ),
+                  ),
+                  child: _searchResults!.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(l10n.adNoMatchingItems),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _searchResults!.length,
+                          itemBuilder: (context, index) {
+                            final site = _searchResults![index];
+                            return ListTile(
+                              leading:
+                                  site.imageUrl != null &&
+                                      site.imageUrl!.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(4),
+                                      child: CachedNetworkImage(
+                                        imageUrl: site.imageUrl!,
+                                        width: 32,
+                                        height: 32,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Icon(Icons.language),
+                              title: Text(site.title, maxLines: 1),
+                              subtitle: Text(
+                                site.description,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  _selectedWebsite = site;
+                                  _linkedWebsiteIdController.text = site.id;
+                                  _searchController.clear();
+                                  _searchResults = null;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                ),
+            ],
+          )
+        else
+          _buildTextField(
+            controller: _linkUrlController,
+            label: l10n.adExternalUrl,
+            prefixIcon: PhosphorIcons.browser(),
+            isDark: isDark,
+            helperText: l10n.adExternalUrlHelper,
+          ),
+        const SizedBox(height: 16),
+        if (_selectedWebsite != null && _isInternalLink)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (_selectedWebsite!.imageUrl != null &&
+                    _selectedWebsite!.imageUrl!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: _selectedWebsite!.imageUrl!,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.language, color: Colors.grey),
+                  ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _selectedWebsite!.title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'ID: ...${_selectedWebsite!.id.substring(_selectedWebsite!.id.length - 6)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: () {
+                    setState(() {
+                      _selectedWebsite = null;
+                      _linkedWebsiteIdController.clear();
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -643,184 +1066,34 @@ class _EditAdvertisementSheetState
                       PhosphorIcons.link(),
                       isDark,
                     ),
+                    // ── Detail Card Toggle ──
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: Text(AppLocalizations.of(context)!.adLinkInternal),
-                      subtitle: Text(
-                        AppLocalizations.of(context)!.adLinkInternalSub,
+                      title: Text(
+                        AppLocalizations.of(context)!.adDetailCard,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _detailCardEnabled
+                              ? AppTheme.primaryColor
+                              : null,
+                        ),
                       ),
-                      value: _isInternalLink,
-                      onChanged: (v) => setState(() => _isInternalLink = v),
+                      subtitle: Text(
+                        AppLocalizations.of(context)!.adDetailCardSub,
+                      ),
+                      value: _detailCardEnabled,
+                      onChanged: (v) => setState(() => _detailCardEnabled = v),
                       activeThumbColor: AppTheme.primaryColor,
                     ),
-                    const SizedBox(height: 16),
-                    if (_isInternalLink)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildTextField(
-                            controller: _searchController,
-                            label: AppLocalizations.of(
-                              context,
-                            )!.adSearchInternal,
-                            prefixIcon: PhosphorIcons.magnifyingGlass(),
-                            isDark: isDark,
-                            onChanged: _onSearchChanged,
-                          ),
-                          if (_isSearching)
-                            const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: Center(child: CircularProgressIndicator()),
-                            ),
-                          if (_searchResults != null && !_isSearching)
-                            Container(
-                              margin: const EdgeInsets.only(top: 8),
-                              constraints: const BoxConstraints(maxHeight: 200),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? AppTheme.darkCard
-                                    : AppTheme.lightCard,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black12,
-                                ),
-                              ),
-                              child: _searchResults!.isEmpty
-                                  ? Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.adNoMatchingItems,
-                                      ),
-                                    )
-                                  : ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: _searchResults!.length,
-                                      itemBuilder: (context, index) {
-                                        final site = _searchResults![index];
-                                        return ListTile(
-                                          leading:
-                                              site.imageUrl != null &&
-                                                  site.imageUrl!.isNotEmpty
-                                              ? ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
-                                                  child: CachedNetworkImage(
-                                                    imageUrl: site.imageUrl!,
-                                                    width: 32,
-                                                    height: 32,
-                                                    fit: BoxFit.cover,
-                                                  ),
-                                                )
-                                              : const Icon(Icons.language),
-                                          title: Text(site.title, maxLines: 1),
-                                          subtitle: Text(
-                                            site.description,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedWebsite = site;
-                                              _linkedWebsiteIdController.text =
-                                                  site.id;
-                                              _searchController.clear();
-                                              _searchResults = null;
-                                            });
-                                          },
-                                        );
-                                      },
-                                    ),
-                            ),
-                        ],
-                      )
-                    else
-                      _buildTextField(
-                        controller: _linkUrlController,
-                        label: AppLocalizations.of(context)!.adExternalUrl,
-                        prefixIcon: PhosphorIcons.browser(),
-                        isDark: isDark,
-                        helperText: AppLocalizations.of(
-                          context,
-                        )!.adExternalUrlHelper,
-                      ),
-                    const SizedBox(height: 16),
-                    if (_selectedWebsite != null && _isInternalLink)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? AppTheme.darkCard
-                              : AppTheme.lightCard,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            if (_selectedWebsite!.imageUrl != null &&
-                                _selectedWebsite!.imageUrl!.isNotEmpty)
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  imageUrl: _selectedWebsite!.imageUrl!,
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            else
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.language,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _selectedWebsite!.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  Text(
-                                    'ID: ...${_selectedWebsite!.id.substring(_selectedWebsite!.id.length - 6)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close, color: Colors.red),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedWebsite = null;
-                                  _linkedWebsiteIdController.clear();
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                    // ── Detail Card Expanded Form ──
+                    AnimatedCrossFade(
+                      duration: const Duration(milliseconds: 350),
+                      crossFadeState: _detailCardEnabled
+                          ? CrossFadeState.showFirst
+                          : CrossFadeState.showSecond,
+                      firstChild: _buildDetailCardForm(isDark),
+                      secondChild: _buildLinkForm(isDark),
+                    ),
                   ],
                 ),
               ),

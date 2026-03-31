@@ -22,6 +22,15 @@ abstract class Advertisement with _$Advertisement {
     @JsonKey(name: 'created_at') required DateTime createdAt,
     @JsonKey(name: 'link_url') String? linkUrl,
     @JsonKey(name: 'linked_website_id') String? linkedWebsiteId,
+    @JsonKey(name: 'detail_card_enabled')
+    @Default(false)
+    bool detailCardEnabled,
+    @JsonKey(name: 'detail_card_instructions') String? detailCardInstructions,
+    @JsonKey(name: 'detail_card_button_text') String? detailCardButtonText,
+    @JsonKey(name: 'detail_card_action_type')
+    @Default('support_chat')
+    String detailCardActionType,
+    @JsonKey(name: 'detail_card_action_url') String? detailCardActionUrl,
   }) = _Advertisement;
 
   factory Advertisement.fromJson(Map<String, dynamic> json) =>

@@ -1229,5 +1229,22 @@
   "noItemsInCollection": "No items in this collection yet",
   "addToCollections": "Add to Collections",
   "tapToViewFull": "Tap image to view full size",
-  "closeImage": "Close"
+  "closeImage": "Close",
+
+  "adDetailCard": "Detail Card",
+  "adDetailCardSub": "Show a detail card with instructions when tapped",
+  "adDetailInstructions": "Instructions",
+  "adDetailInstructionsHint": "Write the instructions to display...",
+  "adDetailButtonText": "Button Text",
+  "adDetailButtonTextHint": "e.g. Get it now, More details...",
+  "adDetailActionType": "Action Type",
+  "adDetailActionSupportChat": "In-App Support Chat",
+  "adDetailActionWhatsApp": "WhatsApp Number",
+  "adDetailActionTelegram": "Telegram Username",
+  "adDetailActionExternalLink": "External Link",
+  "adDetailActionUrl": "Action Target (Number/Username/Link)",
+  "adDetailActionWhatsAppHelper": "e.g. +1234567890 (include country code without +)",
+  "adDetailActionTelegramHelper": "e.g. username (without @)",
+  "adDetailActionExternalLinkHelper": "e.g. https://example.com/...",
+  "adDetailDefaultButton": "More Details"
 }

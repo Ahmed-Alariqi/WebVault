@@ -2650,4 +2650,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get closeImage => 'Close';
+
+  @override
+  String get adDetailCard => 'Detail Card';
+
+  @override
+  String get adDetailCardSub =>
+      'Show a detail card with instructions when tapped';
+
+  @override
+  String get adDetailInstructions => 'Instructions';
+
+  @override
+  String get adDetailInstructionsHint => 'Write the instructions to display...';
+
+  @override
+  String get adDetailButtonText => 'Button Text';
+
+  @override
+  String get adDetailButtonTextHint => 'e.g. Get it now, More details...';
+
+  @override
+  String get adDetailActionType => 'Action Type';
+
+  @override
+  String get adDetailActionSupportChat => 'In-App Support Chat';
+
+  @override
+  String get adDetailActionWhatsApp => 'WhatsApp Number';
+
+  @override
+  String get adDetailActionTelegram => 'Telegram Username';
+
+  @override
+  String get adDetailActionExternalLink => 'External Link';
+
+  @override
+  String get adDetailActionUrl => 'Action Target (Number/Username/Link)';
+
+  @override
+  String get adDetailActionWhatsAppHelper =>
+      'e.g. +1234567890 (include country code without +)';
+
+  @override
+  String get adDetailActionTelegramHelper => 'e.g. username (without @)';
+
+  @override
+  String get adDetailActionExternalLinkHelper => 'e.g. https://example.com/...';
+
+  @override
+  String get adDetailDefaultButton => 'More Details';
 }

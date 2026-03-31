@@ -968,5 +968,22 @@
   "noItemsInCollection": "لا توجد عناصر في هذه المجموعة بعد",
   "addToCollections": "إضافة لمجموعات",
   "tapToViewFull": "اضغط على الصورة لعرضها بالحجم الكامل",
-  "closeImage": "إغلاق"
+  "closeImage": "إغلاق",
+
+  "adDetailCard": "بطاقة التفاصيل",
+  "adDetailCardSub": "عرض بطاقة تفاصيل مع تعليمات عند النقر",
+  "adDetailInstructions": "التعليمات",
+  "adDetailInstructionsHint": "اكتب التعليمات المراد عرضها...",
+  "adDetailButtonText": "نص الزر",
+  "adDetailButtonTextHint": "مثال: احصل عليه الآن، تفاصيل اكثر...",
+  "adDetailActionType": "نوع الإجراء",
+  "adDetailActionSupportChat": "محادثة الدعم",
+  "adDetailActionWhatsApp": "رقم واتساب",
+  "adDetailActionTelegram": "احد مستخدمي تلجرام",
+  "adDetailActionExternalLink": "رابط خارجي",
+  "adDetailActionUrl": "الهدف (رقم/مستخدم/رابط)",
+  "adDetailActionWhatsAppHelper": "مثال: +1234567890 (أدخل مفتاح الدولة بدون +)",
+  "adDetailActionTelegramHelper": "مثال: username (بدون @)",
+  "adDetailActionExternalLinkHelper": "مثال: https://example.com/...",
+  "adDetailDefaultButton": "تفاصيل اكثر"
 }

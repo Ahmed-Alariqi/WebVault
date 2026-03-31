@@ -5017,6 +5017,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get closeImage;
+
+  /// No description provided for @adDetailCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Detail Card'**
+  String get adDetailCard;
+
+  /// No description provided for @adDetailCardSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a detail card with instructions when tapped'**
+  String get adDetailCardSub;
+
+  /// No description provided for @adDetailInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get adDetailInstructions;
+
+  /// No description provided for @adDetailInstructionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write the instructions to display...'**
+  String get adDetailInstructionsHint;
+
+  /// No description provided for @adDetailButtonText.
+  ///
+  /// In en, this message translates to:
+  /// **'Button Text'**
+  String get adDetailButtonText;
+
+  /// No description provided for @adDetailButtonTextHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Get it now, More details...'**
+  String get adDetailButtonTextHint;
+
+  /// No description provided for @adDetailActionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Action Type'**
+  String get adDetailActionType;
+
+  /// No description provided for @adDetailActionSupportChat.
+  ///
+  /// In en, this message translates to:
+  /// **'In-App Support Chat'**
+  String get adDetailActionSupportChat;
+
+  /// No description provided for @adDetailActionWhatsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp Number'**
+  String get adDetailActionWhatsApp;
+
+  /// No description provided for @adDetailActionTelegram.
+  ///
+  /// In en, this message translates to:
+  /// **'Telegram Username'**
+  String get adDetailActionTelegram;
+
+  /// No description provided for @adDetailActionExternalLink.
+  ///
+  /// In en, this message translates to:
+  /// **'External Link'**
+  String get adDetailActionExternalLink;
+
+  /// No description provided for @adDetailActionUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Action Target (Number/Username/Link)'**
+  String get adDetailActionUrl;
+
+  /// No description provided for @adDetailActionWhatsAppHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. +1234567890 (include country code without +)'**
+  String get adDetailActionWhatsAppHelper;
+
+  /// No description provided for @adDetailActionTelegramHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. username (without @)'**
+  String get adDetailActionTelegramHelper;
+
+  /// No description provided for @adDetailActionExternalLinkHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. https://example.com/...'**
+  String get adDetailActionExternalLinkHelper;
+
+  /// No description provided for @adDetailDefaultButton.
+  ///
+  /// In en, this message translates to:
+  /// **'More Details'**
+  String get adDetailDefaultButton;
 }
 
 class _AppLocalizationsDelegate
