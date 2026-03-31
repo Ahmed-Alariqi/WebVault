@@ -24,6 +24,7 @@ class DiscoverQuickFilterBar extends ConsumerWidget {
       (value: 'prompt', label: l10n.formTypePrompts),
       (value: 'offer', label: l10n.formTypeOffers),
       (value: 'announcement', label: l10n.formTypeNews),
+      (value: 'tutorial', label: l10n.formTypeTutorials),
     ];
 
     // Determine sub-categories based on selectedType
@@ -52,7 +53,7 @@ class DiscoverQuickFilterBar extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             scrollDirection: Axis.horizontal,
             itemCount: types.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final item = types[index];
               final isSelected = item.value == selectedType;
@@ -118,7 +119,7 @@ class DiscoverQuickFilterBar extends ConsumerWidget {
                       scrollDirection: Axis.horizontal,
                       itemCount:
                           subCategories.length + 1, // +1 for "All" option
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      separatorBuilder: (_, _) => const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final isAllOption = index == 0;
                         final isSelected = isAllOption

@@ -9,6 +9,8 @@ import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 import 'widgets/google_image_search_sheet.dart';
 import '../../data/models/website_model.dart';
+import '../../data/models/suggestion_model.dart';
+import '../../data/repositories/suggestion_repository.dart';
 import '../../core/supabase_config.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
@@ -18,8 +20,9 @@ import '../../l10n/app_localizations.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
+  final SuggestionModel? suggestion;
 
-  const AddEditWebsiteScreen({super.key, this.existing});
+  const AddEditWebsiteScreen({super.key, this.existing, this.suggestion});
 
   @override
   ConsumerState<AddEditWebsiteScreen> createState() =>
@@ -59,6 +62,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     'prompt',
     'offer',
     'announcement',
+    'tutorial',
   ];
   static const _contentTypeColors = [
     Color(0xFF4A8FE7), // Resources - blue
@@ -67,6 +71,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     Color(0xFF9C27B0), // Prompts - purple
     Color(0xFFFF9800), // Offers - orange
     Color(0xFF2196F3), // News - light blue
+    Color(0xFFE91E63), // Tutorials - pink
   ];
 
   Future<void> _loadExistingCollections(String websiteId) async {
@@ -90,6 +95,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tutorial':
+        return PhosphorIcons.chalkboardTeacher();
       case 'tool':
         return PhosphorIcons.wrench();
       case 'course':
@@ -113,6 +120,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.formTypeOffers;
       case 'announcement':
         return AppLocalizations.of(context)!.formTypeNews;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.formTypeTutorials;
       default:
         return type.toUpperCase();
     }
@@ -121,8 +130,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   @override
   void initState() {
     super.initState();
-    _titleCtrl = TextEditingController(text: widget.existing?.title ?? '');
-    _urlCtrl = TextEditingController(text: widget.existing?.url ?? '');
+    _titleCtrl = TextEditingController(
+      text: widget.existing?.title ?? widget.suggestion?.pageTitle ?? '',
+    );
+    _urlCtrl = TextEditingController(
+      text: widget.existing?.url ?? widget.suggestion?.pageUrl ?? '',
+    );
     _imgCtrl = TextEditingController(text: widget.existing?.imageUrl ?? '');
     _actionValueCtrl = TextEditingController(
       text: widget.existing?.actionValue ?? '',
@@ -149,11 +162,21 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       if (widget.existing != null && widget.existing!.description.isNotEmpty) {
         final decoded = jsonDecode(widget.existing!.description);
         doc = Document.fromJson(decoded);
+      } else if (widget.suggestion != null &&
+          widget.suggestion!.pageDescription != null &&
+          widget.suggestion!.pageDescription!.isNotEmpty) {
+        doc = Document()..insert(0, widget.suggestion!.pageDescription!);
       } else {
         doc = Document();
       }
     } catch (_) {
-      doc = Document()..insert(0, widget.existing?.description ?? '');
+      doc = Document()
+        ..insert(
+          0,
+          widget.existing?.description ??
+              widget.suggestion?.pageDescription ??
+              '',
+        );
     }
 
     if (widget.existing != null) {
@@ -239,6 +262,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       String? newItemId;
       if (widget.existing == null) {
         newItemId = await adminAddWebsite(data);
+        if (widget.suggestion != null) {
+          await SuggestionRepository().markSuggestionAsApproved(
+            widget.suggestion!.id,
+          );
+          ref.invalidate(adminSuggestionsProvider);
+        }
       } else {
         await adminUpdateWebsite(widget.existing!.id, data);
         newItemId = widget.existing!.id;
@@ -363,6 +392,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.offerBadge;
       case 'announcement':
         return AppLocalizations.of(context)!.newsBadge;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.tutorialBadge;
       case 'tool':
         return 'Tool';
       case 'course':
@@ -385,6 +416,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.formUrlOfferRef;
       case 'announcement':
         return AppLocalizations.of(context)!.formUrlNewsRef;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.formUrlTutorialRef;
       default:
         return AppLocalizations.of(context)!.formUrlRequiredWeb;
     }
@@ -403,6 +436,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.formActionCourseLabel;
       case 'announcement':
         return AppLocalizations.of(context)!.formActionNewsLabel;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.formActionTutorialLabel;
       default:
         return AppLocalizations.of(context)!.formActionDefaultLabel;
     }
@@ -421,6 +456,8 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         return AppLocalizations.of(context)!.formActionCourseHeader;
       case 'announcement':
         return AppLocalizations.of(context)!.formActionNewsHeader;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.formActionTutorialHeader;
       default:
         return AppLocalizations.of(context)!.formActionDefaultHeader;
     }

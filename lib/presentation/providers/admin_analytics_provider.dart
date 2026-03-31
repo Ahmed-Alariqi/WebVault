@@ -11,6 +11,10 @@ class AdminAnalyticsData {
   final int totalBookmarks;
   final int totalNotifications;
   final int pendingSuggestions;
+  final int totalItems;
+  final Map<String, int> itemsByContentType;
+  final Map<String, int> itemsByCategory;
+  final Map<String, Map<String, int>> categoryBreakdownByContentType;
 
   final List<Map<String, dynamic>> dauData; // Daily Active Users over 15 days
   final List<Map<String, dynamic>> topViewedItems;
@@ -25,6 +29,10 @@ class AdminAnalyticsData {
     required this.totalBookmarks,
     required this.totalNotifications,
     required this.pendingSuggestions,
+    required this.totalItems,
+    required this.itemsByContentType,
+    required this.itemsByCategory,
+    required this.categoryBreakdownByContentType,
     required this.dauData,
     required this.topViewedItems,
     required this.topBookmarkedItems,
@@ -165,6 +173,56 @@ final adminAnalyticsProvider = FutureProvider<AdminAnalyticsData>((ref) async {
       .where((s) => (s['search_count'] as num) > 2)
       .toList();
 
+  // 7. Ecosystem Stats
+  final websitesRes = await _client
+      .from('websites')
+      .select('content_type, category_id, categories(name)');
+
+  int totalItems = 0;
+  final contentTypeCounts = <String, int>{};
+  final categoryCounts = <String, int>{};
+  final categoryBreakdownByContentType = <String, Map<String, int>>{};
+
+  for (final row in (websitesRes as List)) {
+    totalItems++;
+    final cType = row['content_type'] as String? ?? 'website';
+    contentTypeCounts[cType] = (contentTypeCounts[cType] ?? 0) + 1;
+
+    if (row['categories'] != null) {
+      final dynCat = row['categories'];
+      if (dynCat is Map<String, dynamic>) {
+        final catName = dynCat['name'] as String? ?? 'Unknown';
+
+        categoryCounts[catName] = (categoryCounts[catName] ?? 0) + 1;
+
+        categoryBreakdownByContentType.putIfAbsent(
+          cType,
+          () => <String, int>{},
+        );
+        categoryBreakdownByContentType[cType]![catName] =
+            (categoryBreakdownByContentType[cType]![catName] ?? 0) + 1;
+      }
+    }
+  }
+
+  // Sort them so the highest count is first
+  final sortedContentTypes = Map.fromEntries(
+    contentTypeCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value)),
+  );
+
+  final sortedCategories = Map.fromEntries(
+    categoryCounts.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
+  );
+
+  // Sort the nested breakdowns
+  final sortedBreakdowns = <String, Map<String, int>>{};
+  for (final entry in categoryBreakdownByContentType.entries) {
+    sortedBreakdowns[entry.key] = Map.fromEntries(
+      entry.value.entries.toList()..sort((a, b) => b.value.compareTo(a.value)),
+    );
+  }
+
   return AdminAnalyticsData(
     totalUsers: profilesCount,
     activeToday: todayActive is num ? todayActive.toInt() : 0,
@@ -173,6 +231,10 @@ final adminAnalyticsProvider = FutureProvider<AdminAnalyticsData>((ref) async {
     totalBookmarks: bookmarksCount,
     totalNotifications: notificationsCount,
     pendingSuggestions: suggestionsCount,
+    totalItems: totalItems,
+    itemsByContentType: sortedContentTypes,
+    itemsByCategory: sortedCategories,
+    categoryBreakdownByContentType: sortedBreakdowns,
     dauData: (dauDataRes as List).cast<Map<String, dynamic>>(),
     topViewedItems: topViewed,
     topBookmarkedItems: topBookmarked,

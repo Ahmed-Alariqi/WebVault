@@ -97,7 +97,7 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet> {
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(
+                errorBuilder: (_, _, _) => const SizedBox(
                   height: 100,
                   child: Center(child: Text('Preview not available')),
                 ),

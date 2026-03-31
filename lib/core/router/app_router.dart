@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
+import '../../data/models/suggestion_model.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../features/dashboard/dashboard_screen.dart';
@@ -398,8 +399,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/websites/edit',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          final existing = state.extra as WebsiteModel?;
-          return AddEditWebsiteScreen(existing: existing);
+          final extra = state.extra;
+          WebsiteModel? existing;
+          SuggestionModel? suggestion;
+
+          if (extra is WebsiteModel) {
+            existing = extra;
+          } else if (extra is Map) {
+            existing = extra['existing'] as WebsiteModel?;
+            suggestion = extra['suggestion'] as SuggestionModel?;
+          }
+
+          return AddEditWebsiteScreen(
+            existing: existing,
+            suggestion: suggestion,
+          );
         },
       ),
       GoRoute(

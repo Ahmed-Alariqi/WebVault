@@ -375,7 +375,7 @@ class _ManageCollectionsScreenState
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: colorOptions.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (ctx, i) {
                         final color = Color(colorOptions[i]);
                         final isSelected = selectedColor == colorOptions[i];
@@ -424,7 +424,7 @@ class _ManageCollectionsScreenState
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: iconOptions.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (ctx, i) {
                         final iconCode = iconOptions[i];
                         final isSelected = selectedIcon == iconCode;
@@ -612,12 +612,12 @@ class _ManageCollectionsScreenState
                           height: 120,
                           width: double.infinity,
                           fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
+                          placeholder: (_, _) => Container(
                             color: isDark
                                 ? Colors.white10
                                 : Colors.black.withValues(alpha: 0.05),
                           ),
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             height: 120,
                             color: isDark
                                 ? Colors.white10
@@ -662,7 +662,7 @@ class _ManageCollectionsScreenState
                       ),
                       value: isActive,
                       onChanged: (v) => setSheetState(() => isActive = v),
-                      activeColor: Color(selectedColor),
+                      activeThumbColor: Color(selectedColor),
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -874,7 +874,7 @@ class _ManageCollectionsScreenState
                                           width: 48,
                                           height: 48,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) =>
+                                          errorBuilder: (_, _, _) =>
                                               Container(
                                                 width: 48,
                                                 height: 48,
@@ -1078,7 +1078,7 @@ class _ManageCollectionsScreenState
                                             width: 48,
                                             height: 48,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
+                                            errorBuilder: (_, _, _) =>
                                                 Container(
                                                   width: 48,
                                                   height: 48,

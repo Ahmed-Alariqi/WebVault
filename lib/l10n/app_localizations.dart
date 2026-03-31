@@ -1328,6 +1328,12 @@ abstract class AppLocalizations {
   /// **'News'**
   String get newsBadge;
 
+  /// No description provided for @tutorialBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get tutorialBadge;
+
   /// No description provided for @websiteBadge.
   ///
   /// In en, this message translates to:
@@ -2564,6 +2570,12 @@ abstract class AppLocalizations {
   /// **'Announce'**
   String get badgeAnnounce;
 
+  /// No description provided for @badgeTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get badgeTutorial;
+
   /// No description provided for @badgeWebsite.
   ///
   /// In en, this message translates to:
@@ -2648,6 +2660,12 @@ abstract class AppLocalizations {
   /// **'News'**
   String get formTypeNews;
 
+  /// No description provided for @formTypeTutorials.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorials'**
+  String get formTypeTutorials;
+
   /// No description provided for @formBasicInfo.
   ///
   /// In en, this message translates to:
@@ -2695,6 +2713,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source Article URL (optional)'**
   String get formUrlNewsRef;
+
+  /// No description provided for @formUrlTutorialRef.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial URL (optional)'**
+  String get formUrlTutorialRef;
 
   /// No description provided for @formUrlOptional.
   ///
@@ -2822,6 +2846,12 @@ abstract class AppLocalizations {
   /// **'Article Highlights'**
   String get formActionNewsHeader;
 
+  /// No description provided for @formActionTutorialHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial Steps / Notes'**
+  String get formActionTutorialHeader;
+
   /// No description provided for @formActionDefaultHeader.
   ///
   /// In en, this message translates to:
@@ -2857,6 +2887,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Key Highlights / Summary'**
   String get formActionNewsLabel;
+
+  /// No description provided for @formActionTutorialLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps / Instructions (optional)'**
+  String get formActionTutorialLabel;
 
   /// No description provided for @formActionDefaultLabel.
   ///

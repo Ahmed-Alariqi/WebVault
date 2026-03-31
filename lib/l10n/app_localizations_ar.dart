@@ -658,6 +658,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get newsBadge => 'أخبار';
 
   @override
+  String get tutorialBadge => 'شرح';
+
+  @override
   String get websiteBadge => 'موقع';
 
   @override
@@ -1330,6 +1333,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get badgeAnnounce => 'إعلان';
 
   @override
+  String get badgeTutorial => 'شرح';
+
+  @override
   String get badgeWebsite => 'موقع';
 
   @override
@@ -1378,6 +1384,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formTypeNews => 'أخبار';
 
   @override
+  String get formTypeTutorials => 'شروحات';
+
+  @override
   String get formBasicInfo => 'المعلومات الأساسية';
 
   @override
@@ -1402,6 +1411,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get formUrlNewsRef => 'رابط المقال الأصلي (اختياري)';
+
+  @override
+  String get formUrlTutorialRef => 'رابط الشرح (اختياري)';
 
   @override
   String get formUrlOptional => 'الرابط (اختياري)';
@@ -1469,6 +1481,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formActionNewsHeader => 'أهم نقاط المقال';
 
   @override
+  String get formActionTutorialHeader => 'خطوات الشرح / ملاحظات';
+
+  @override
   String get formActionDefaultHeader => 'محتوى إضافي';
 
   @override
@@ -1485,6 +1500,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get formActionNewsLabel => 'أهم النقاط / ملخص';
+
+  @override
+  String get formActionTutorialLabel => 'الخطوات / التعليمات (اختياري)';
 
   @override
   String get formActionDefaultLabel => 'القيمة القابلة للنسخ (اختياري)';

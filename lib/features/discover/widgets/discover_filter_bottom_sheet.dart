@@ -127,7 +127,7 @@ class _DiscoverFilterBottomSheetState
                     return _buildCategoryChips(filteredCats, isDark, l10n);
                   },
                   loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => Text(l10n.filterErrorLoading),
+                  error: (_, _) => Text(l10n.filterErrorLoading),
                 ),
                 const SizedBox(height: 24),
 
@@ -197,6 +197,7 @@ class _DiscoverFilterBottomSheetState
       (value: 'prompt', label: l10n.formTypePrompts),
       (value: 'offer', label: l10n.formTypeOffers),
       (value: 'announcement', label: l10n.formTypeNews),
+      (value: 'tutorial', label: l10n.formTypeTutorials),
     ];
 
     return Wrap(

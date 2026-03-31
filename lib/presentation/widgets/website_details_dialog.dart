@@ -50,7 +50,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black.withValues(alpha: 0.9),
-        pageBuilder: (ctx, _, __) {
+        pageBuilder: (ctx, _, _) {
           return Scaffold(
             backgroundColor: Colors.transparent,
             body: Stack(
@@ -62,7 +62,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                       fit: BoxFit.contain,
                       width: double.infinity,
                       height: double.infinity,
-                      placeholder: (_, __) =>
+                      placeholder: (_, _) =>
                           const CircularProgressIndicator(color: Colors.white),
                     ),
                   ),
@@ -733,6 +733,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
         );
 
       case 'announcement':
+      case 'tutorial':
         if (widget.site.hasUrl) {
           return SizedBox(
             width: double.infinity,
@@ -742,7 +743,9 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                 context.push('/discover-browser', extra: site);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2196F3),
+                backgroundColor: widget.site.contentType == 'tutorial'
+                    ? const Color(0xFFE91E63)
+                    : const Color(0xFF2196F3),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -764,6 +767,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
         return const SizedBox();
 
       default: // website
+        if (!widget.site.hasUrl) return const SizedBox();
         return Row(
           children: [
             Expanded(
@@ -824,6 +828,8 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
         return AppLocalizations.of(context)!.offerBadge;
       case 'announcement':
         return AppLocalizations.of(context)!.newsBadge;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.tutorialBadge;
       default:
         return AppLocalizations.of(context)!.websiteBadge;
     }
@@ -837,6 +843,8 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
         return const Color(0xFFFF9800);
       case 'announcement':
         return const Color(0xFF2196F3);
+      case 'tutorial':
+        return const Color(0xFFE91E63);
       default:
         return AppTheme.primaryColor;
     }

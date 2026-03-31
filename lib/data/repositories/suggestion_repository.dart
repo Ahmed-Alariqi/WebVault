@@ -51,4 +51,11 @@ class SuggestionRepository {
         .update({'status': 'approved'})
         .eq('id', id);
   }
+
+  Future<void> markSuggestionAsApproved(String id) async {
+    await _client
+        .from('page_suggestions')
+        .update({'status': 'approved'})
+        .eq('id', id);
+  }
 }

@@ -343,6 +343,7 @@ class ManageCategoriesScreen extends ConsumerWidget {
                           {'val': 'prompt', 'lbl': 'Prompts'},
                           {'val': 'offer', 'lbl': 'Offers'},
                           {'val': 'announcement', 'lbl': 'News / Articles'},
+                          {'val': 'tutorial', 'lbl': 'Tutorials'},
                         ].map((item) {
                           final val = item['val']!;
                           final lbl = item['lbl']!;

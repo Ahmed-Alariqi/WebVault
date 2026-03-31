@@ -423,28 +423,80 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   return _buildCollectionsSection(context, collections, isDark);
                 },
                 loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
+                error: (_, _) => const SizedBox(),
               ),
             ),
 
-            // All / Filter Results Section
-            SliverToBoxAdapter(
-              child: discoverState.isInitialLoad
-                  ? _buildShimmerSection(isDark)
-                  : discoverState.items.isEmpty
-                  ? const SizedBox()
-                  : _buildPaginatedSection(
-                      context,
-                      ref,
-                      (selected != null || search.isNotEmpty)
-                          ? 'Results'
-                          : 'Newly Added',
-                      PhosphorIcons.stack(),
-                      discoverState,
-                      discoverPaginatedProvider,
-                      isDark,
-                    ),
-            ),
+            // All / Filter Results Section — Vertical Grid
+            if (discoverState.isInitialLoad)
+              SliverToBoxAdapter(child: _buildShimmerSection(isDark))
+            else if (discoverState.items.isNotEmpty) ...[
+              // Section header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 14),
+                  child: Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.stack(),
+                        size: 20,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        (selected != null || search.isNotEmpty)
+                            ? 'Results'
+                            : 'Newly Added',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn(),
+                ),
+              ),
+              // Vertical 2-column grid
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 260 / 290,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, i) {
+                      if (i >= discoverState.items.length) {
+                        // Trigger load more when reaching end
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ref
+                              .read(discoverPaginatedProvider.notifier)
+                              .loadMore();
+                        });
+                        return const ShimmerCard();
+                      }
+                      return _buildDiscoverCard(
+                        context,
+                        ref,
+                        discoverState.items[i],
+                        isDark,
+                        false,
+                        i,
+                        isGridCard: true,
+                      );
+                    },
+                    childCount:
+                        discoverState.items.length +
+                        (discoverState.hasMore ? 2 : 0),
+                  ),
+                ),
+              ),
+            ],
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
@@ -494,7 +546,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
               itemCount: collections.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 12),
               itemBuilder: (ctx, i) {
                 final col = collections[i];
                 final color = Color(col.colorValue);
@@ -631,10 +683,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               child: CachedNetworkImage(
                 imageUrl: imageUrl,
                 fit: BoxFit.contain,
-                placeholder: (_, __) => const Center(
+                placeholder: (_, _) => const Center(
                   child: CircularProgressIndicator(color: Colors.white),
                 ),
-                errorWidget: (_, __, ___) => const Center(
+                errorWidget: (_, _, _) => const Center(
                   child: Icon(Icons.error, color: Colors.white, size: 48),
                 ),
               ),
@@ -795,8 +847,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     WebsiteModel site,
     bool isDark,
     bool showBadge,
-    int index,
-  ) {
+    int index, {
+    bool isGridCard = false,
+  }) {
     return GestureDetector(
       onTap: () {
         showDialog(
@@ -805,8 +858,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         );
       },
       child: Container(
-        width: 260,
-        margin: const EdgeInsets.only(right: 14),
+        width: isGridCard ? double.infinity : 260,
+        margin: isGridCard ? EdgeInsets.zero : const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
           borderRadius: BorderRadius.circular(20),
@@ -1345,6 +1398,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         );
 
       case 'announcement':
+      case 'tutorial':
+        final isAnnouncement = site.contentType == 'announcement';
         return Row(
           children: [
             Expanded(
@@ -1357,13 +1412,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       builder: (ctx) => WebsiteDetailsDialog(site: site),
                     );
                   },
-                  icon: Icon(PhosphorIcons.article(), size: 14),
-                  label: const Text(
-                    'Read',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                  icon: Icon(
+                    isAnnouncement
+                        ? PhosphorIcons.article()
+                        : PhosphorIcons.chalkboardTeacher(),
+                    size: 14,
+                  ),
+                  label: Text(
+                    isAnnouncement ? 'Read' : 'View',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
+                    backgroundColor: isAnnouncement
+                        ? const Color(0xFF2196F3)
+                        : const Color(0xFFE91E63),
                     foregroundColor: Colors.white,
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
@@ -1409,8 +1474,14 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               child: SizedBox(
                 height: 32,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      context.push('/discover-browser', extra: site),
+                  onPressed: site.hasUrl
+                      ? () => context.push('/discover-browser', extra: site)
+                      : () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => WebsiteDetailsDialog(site: site),
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _typeColor(site.contentType),
                     padding: EdgeInsets.zero,
@@ -1419,7 +1490,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.detailsButton,
+                    site.hasUrl
+                        ? AppLocalizations.of(context)!.openButton
+                        : AppLocalizations.of(context)!.detailsButton,
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -1429,26 +1502,28 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            SizedBox(
-              height: 32,
-              width: 32,
-              child: IconButton(
-                onPressed: () => _openUrl(site.url, inApp: false),
-                icon: Icon(PhosphorIcons.globe(), size: 18),
-                padding: EdgeInsets.zero,
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? Colors.white10
-                      : Colors.black.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: IconButton(
+                  onPressed: () => _openUrl(site.url, inApp: false),
+                  icon: Icon(PhosphorIcons.globe(), size: 18),
+                  padding: EdgeInsets.zero,
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  tooltip: 'Open in Browser',
                 ),
-                color: isDark ? Colors.white70 : Colors.black54,
-                tooltip: 'Open in Browser',
               ),
-            ),
+            ],
             const SizedBox(width: 6),
             _bookmarkButton(ref, site, isDark),
           ],
@@ -1461,8 +1536,14 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               child: SizedBox(
                 height: 32,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      context.push('/discover-browser', extra: site),
+                  onPressed: site.hasUrl
+                      ? () => context.push('/discover-browser', extra: site)
+                      : () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => WebsiteDetailsDialog(site: site),
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     padding: EdgeInsets.zero,
@@ -1471,8 +1552,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ),
                   ),
                   child: Text(
-                    AppLocalizations.of(context)!.openButton,
-                    style: TextStyle(
+                    site.hasUrl
+                        ? AppLocalizations.of(context)!.openButton
+                        : AppLocalizations.of(context)!.detailsButton,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -1481,26 +1564,28 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            SizedBox(
-              height: 32,
-              width: 32,
-              child: IconButton(
-                onPressed: () => _openUrl(site.url, inApp: false),
-                icon: Icon(PhosphorIcons.globe(), size: 18),
-                padding: EdgeInsets.zero,
-                style: IconButton.styleFrom(
-                  backgroundColor: isDark
-                      ? Colors.white10
-                      : Colors.black.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            if (site.hasUrl) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 32,
+                width: 32,
+                child: IconButton(
+                  onPressed: () => _openUrl(site.url, inApp: false),
+                  icon: Icon(PhosphorIcons.globe(), size: 18),
+                  padding: EdgeInsets.zero,
+                  style: IconButton.styleFrom(
+                    backgroundColor: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  tooltip: 'Open in Browser',
                 ),
-                color: isDark ? Colors.white70 : Colors.black54,
-                tooltip: 'Open in Browser',
               ),
-            ),
+            ],
             const SizedBox(width: 6),
             _bookmarkButton(ref, site, isDark),
           ],
@@ -1678,6 +1763,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tutorial':
+        return PhosphorIcons.chalkboardTeacher();
       case 'tool':
         return PhosphorIcons.wrench();
       case 'course':
@@ -1695,6 +1782,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return const Color(0xFFFF9800);
       case 'announcement':
         return const Color(0xFF2196F3);
+      case 'tutorial':
+        return const Color(0xFFE91E63);
       case 'tool':
         return const Color(0xFF607D8B);
       case 'course':
@@ -1712,6 +1801,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         return AppLocalizations.of(context)!.badgeOffer;
       case 'announcement':
         return AppLocalizations.of(context)!.badgeAnnounce;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.badgeTutorial;
       case 'tool':
         return AppLocalizations.of(context)!.toolBadge;
       case 'course':

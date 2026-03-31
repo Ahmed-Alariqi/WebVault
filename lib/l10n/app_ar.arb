@@ -213,6 +213,7 @@
   "promptBadge": "موجّه",
   "offerBadge": "عرض",
   "newsBadge": "أخبار",
+  "tutorialBadge": "شرح",
   "websiteBadge": "موقع",
 
   "expiredBadge": "منتهي الصلاحية",
@@ -432,6 +433,7 @@
   "badgePrompt": "تلقينة",
   "badgeOffer": "عرض",
   "badgeAnnounce": "إعلان",
+  "badgeTutorial": "شرح",
   "badgeWebsite": "موقع",
   "readMoreText": "إقرأ المزيد...",
   "copyButton": "نسخ",
@@ -880,12 +882,14 @@
   "formTypePrompts": "تلقينات",
   "formTypeOffers": "عروض",
   "formTypeNews": "أخبار",
+  "formTypeTutorials": "شروحات",
 
   "formUrlRequiredTool": "رابط الأداة / رابط التحميل",
   "formUrlRequiredCourse": "رابط الكورس / رابط التسجيل",
   "formUrlPromptRef": "الرابط المرجعي (اختياري)",
   "formUrlOfferRef": "رابط العرض / المتجر (اختياري)",
   "formUrlNewsRef": "رابط المقال الأصلي (اختياري)",
+  "formUrlTutorialRef": "رابط الشرح (اختياري)",
 
   "formUrlToolHelper": "رابط الأداة، أو رابط التحميل، أو صفحة الأداة الرئيسية",
   "formUrlCourseHelper": "رابط الكورس أو صفحة معلومات الكورس",
@@ -895,6 +899,7 @@
   "formActionToolHeader": "تفاصيل الوصول",
   "formActionCourseHeader": "معلومات التسجيل",
   "formActionNewsHeader": "أهم نقاط المقال",
+  "formActionTutorialHeader": "خطوات الشرح / ملاحظات",
   "formActionDefaultHeader": "محتوى إضافي",
 
   "formActionPromptLabel": "نص التلقين",
@@ -902,6 +907,7 @@
   "formActionToolLabel": "مفتاح API / رمز الوصول (اختياري)",
   "formActionCourseLabel": "رمز التسجيل (اختياري)",
   "formActionNewsLabel": "أهم النقاط / ملخص",
+  "formActionTutorialLabel": "الخطوات / التعليمات (اختياري)",
   "formActionDefaultLabel": "القيمة القابلة للنسخ (اختياري)",
 
   "filterTitle": "الفلاتر",

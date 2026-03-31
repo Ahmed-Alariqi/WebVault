@@ -139,55 +139,141 @@ class AdminAnalyticsScreen extends ConsumerWidget {
       children: [
         const SizedBox(height: 20),
 
-        // 1. KPI Cards Row (Horizontal Scroll)
-        SizedBox(
-          height: 160,
-          child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
+        // 1. KPI Cards Grid (2x2)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
             children: [
-              _KpiCard(
-                title: AppLocalizations.of(context)!.analyticsTotalUsers,
-                value: data.totalUsers.toString(),
-                subtitle: AppLocalizations.of(
-                  context,
-                )!.analyticsActiveThisWeek(data.activeThisWeek),
-                icon: PhosphorIcons.users(),
-                color: const Color(0xFF6366F1),
-                isDark: isDark,
+              Row(
+                children: [
+                  Expanded(
+                    child: _CompactKpiCard(
+                      title: AppLocalizations.of(context)!.analyticsTotalUsers,
+                      value: data.totalUsers.toString(),
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.analyticsActiveThisWeek(data.activeThisWeek),
+                      icon: PhosphorIcons.users(),
+                      color: const Color(0xFF6366F1),
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _CompactKpiCard(
+                      title: AppLocalizations.of(context)!.analyticsActiveToday,
+                      value: data.activeToday.toString(),
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.analyticsUniqueLogins,
+                      icon: PhosphorIcons.pulse(),
+                      color: const Color(0xFF10B981),
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 16),
-              _KpiCard(
-                title: AppLocalizations.of(context)!.analyticsActiveToday,
-                value: data.activeToday.toString(),
-                subtitle: AppLocalizations.of(context)!.analyticsUniqueLogins,
-                icon: PhosphorIcons.pulse(),
-                color: const Color(0xFF10B981),
-                isDark: isDark,
-              ),
-              const SizedBox(width: 16),
-              _KpiCard(
-                title: AppLocalizations.of(context)!.analyticsItemViews,
-                value: data.totalItemViews.toString(),
-                subtitle: AppLocalizations.of(
-                  context,
-                )!.analyticsTotalAcrossItems,
-                icon: PhosphorIcons.eye(),
-                color: const Color(0xFFF59E0B),
-                isDark: isDark,
-              ),
-              const SizedBox(width: 16),
-              _KpiCard(
-                title: AppLocalizations.of(context)!.analyticsBookmarks,
-                value: data.totalBookmarks.toString(),
-                subtitle: AppLocalizations.of(context)!.analyticsSavedByUsers,
-                icon: PhosphorIcons.bookmarkSimple(),
-                color: const Color(0xFFEC4899),
-                isDark: isDark,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CompactKpiCard(
+                      title: AppLocalizations.of(context)!.analyticsItemViews,
+                      value: data.totalItemViews.toString(),
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.analyticsTotalAcrossItems,
+                      icon: PhosphorIcons.eye(),
+                      color: const Color(0xFFF59E0B),
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _CompactKpiCard(
+                      title: AppLocalizations.of(context)!.analyticsBookmarks,
+                      value: data.totalBookmarks.toString(),
+                      subtitle: AppLocalizations.of(
+                        context,
+                      )!.analyticsSavedByUsers,
+                      icon: PhosphorIcons.bookmarkSimple(),
+                      color: const Color(0xFFEC4899),
+                      isDark: isDark,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ).animate().fadeIn().slideX(begin: 0.1),
+        ).animate().fadeIn().slideY(begin: 0.1),
+
+        const SizedBox(height: 32),
+
+        // Total Items Header & Grid
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SectionTitle(
+                title: AppLocalizations.of(context)!.localeName == 'ar'
+                    ? 'إحصائيات العناصر'
+                    : 'Items Statistics',
+                icon: PhosphorIcons.database(PhosphorIconsStyle.fill),
+                isDark: isDark,
+              ),
+              const SizedBox(height: 16),
+
+              // Total Items (Prominent Card)
+              _InteractiveStatCard(
+                title: AppLocalizations.of(
+                  context,
+                )!.websitesTitle, // "Websites/Items"
+                count: data.totalItems,
+                subCategories: data.itemsByCategory, // All sub-categories
+                icon: Icons.inventory_2_rounded,
+                color: const Color(0xFF6366F1),
+                isDark: isDark,
+                isFullWidth: true,
+              ),
+              const SizedBox(height: 12),
+
+              // Content Types Grid
+              if (data.itemsByContentType.isNotEmpty)
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: data.itemsByContentType.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemBuilder: (context, index) {
+                    final entry = data.itemsByContentType.entries.elementAt(
+                      index,
+                    );
+                    final type = entry.key;
+                    final count = entry.value;
+                    final subCats =
+                        data.categoryBreakdownByContentType[type] ??
+                        <String, int>{};
+
+                    return _InteractiveStatCard(
+                      title: _typeDisplayName(context, type),
+                      count: count,
+                      subCategories: subCats,
+                      icon: _typeIcon(type),
+                      color: _typeColor(type),
+                      isDark: isDark,
+                      isFullWidth: false,
+                    );
+                  },
+                ),
+            ],
+          ),
+        ).animate().fadeIn().slideY(begin: 0.1),
 
         const SizedBox(height: 32),
 
@@ -325,6 +411,69 @@ class AdminAnalyticsScreen extends ConsumerWidget {
     );
   }
 
+  String _typeDisplayName(BuildContext context, String type) {
+    switch (type) {
+      case 'prompt':
+        return AppLocalizations.of(context)!.badgePrompt;
+      case 'offer':
+        return AppLocalizations.of(context)!.badgeOffer;
+      case 'news':
+      case 'announcement':
+        return AppLocalizations.of(context)!.newsBadge;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.badgeTutorial;
+      case 'tool':
+        return AppLocalizations.of(context)!.toolBadge;
+      case 'course':
+      case 'courses':
+        return AppLocalizations.of(context)!.courseBadge;
+      default:
+        return AppLocalizations.of(context)!.badgeWebsite;
+    }
+  }
+
+  IconData _typeIcon(String type) {
+    switch (type) {
+      case 'prompt':
+        return PhosphorIcons.sparkle();
+      case 'offer':
+        return PhosphorIcons.tag();
+      case 'news':
+      case 'announcement':
+        return PhosphorIcons.megaphone();
+      case 'tutorial':
+        return PhosphorIcons.chalkboardTeacher();
+      case 'tool':
+        return PhosphorIcons.wrench();
+      case 'course':
+      case 'courses':
+        return PhosphorIcons.graduationCap();
+      default:
+        return PhosphorIcons.globe();
+    }
+  }
+
+  Color _typeColor(String type) {
+    switch (type) {
+      case 'prompt':
+        return const Color(0xFF9C27B0);
+      case 'offer':
+        return const Color(0xFFFF9800);
+      case 'news':
+      case 'announcement':
+        return const Color(0xFF2196F3);
+      case 'tutorial':
+        return const Color(0xFFE91E63);
+      case 'tool':
+        return const Color(0xFF607D8B);
+      case 'course':
+      case 'courses':
+        return const Color(0xFF4CAF50);
+      default:
+        return const Color(0xFF3B82F6);
+    }
+  }
+
   Widget _buildDauChart(
     BuildContext context,
     List<Map<String, dynamic>> dauData,
@@ -437,7 +586,7 @@ class AdminAnalyticsScreen extends ConsumerWidget {
   }
 }
 
-class _KpiCard extends StatelessWidget {
+class _CompactKpiCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
@@ -445,7 +594,7 @@ class _KpiCard extends StatelessWidget {
   final Color color;
   final bool isDark;
 
-  const _KpiCard({
+  const _CompactKpiCard({
     required this.title,
     required this.value,
     required this.subtitle,
@@ -457,50 +606,118 @@ class _KpiCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 160,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 20),
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
-          const Spacer(),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
               fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w900,
               color: isDark ? Colors.white : Colors.black87,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            title,
+            subtitle,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 11,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  final IconData icon;
+  final bool isDark;
+
+  const _StatChip({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.icon,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white70 : Colors.black87,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 10,
-              color: isDark ? Colors.white54 : Colors.black45,
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -792,6 +1009,292 @@ class _TopSearchesListState extends State<_TopSearchesList> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _InteractiveStatCard extends StatelessWidget {
+  final String title;
+  final int count;
+  final Map<String, int> subCategories;
+  final IconData icon;
+  final Color color;
+  final bool isDark;
+  final bool isFullWidth;
+
+  const _InteractiveStatCard({
+    required this.title,
+    required this.count,
+    required this.subCategories,
+    required this.icon,
+    required this.color,
+    required this.isDark,
+    this.isFullWidth = false,
+  });
+
+  void _showBreakdown(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            bottom: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, color: color, size: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          Text(
+                            '$count ${AppLocalizations.of(context)!.websitesTitle}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white54 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  AppLocalizations.of(context)!.categoriesTitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (subCategories.isEmpty)
+                  Text(
+                    'No Sub-categories',
+                    style: TextStyle(
+                      color: isDark ? Colors.white38 : Colors.black38,
+                      fontSize: 14,
+                    ),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 12,
+                    children: subCategories.entries.map((e) {
+                      return _StatChip(
+                        label: e.key,
+                        value: e.value.toString(),
+                        color: color,
+                        icon: PhosphorIcons.tag(),
+                        isDark: isDark,
+                      );
+                    }).toList(),
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => _showBreakdown(context),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: isFullWidth
+              ? LinearGradient(
+                  colors: [
+                    color.withValues(alpha: isDark ? 0.3 : 0.8),
+                    color.withValues(alpha: isDark ? 0.6 : 1.0),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: isFullWidth
+              ? null
+              : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isFullWidth
+                ? Colors.transparent
+                : (isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.05)),
+          ),
+          boxShadow: isFullWidth
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
+        ),
+        child: isFullWidth
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          count.toString(),
+                          style: const TextStyle(
+                            fontSize: 36,
+                            height: 1.0,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.localeName == 'ar'
+                                ? 'المزيد'
+                                : 'More',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            PhosphorIcons.caretDown(),
+                            color: Colors.white.withValues(alpha: 0.9),
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            : Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Align(
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(icon, color: color, size: 22),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          count.toString(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: -4,
+                    right: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.05),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        PhosphorIcons.caretDown(),
+                        size: 10,
+                        color: isDark ? Colors.white54 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 }

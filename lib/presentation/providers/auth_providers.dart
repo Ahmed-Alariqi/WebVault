@@ -70,8 +70,9 @@ final userPermissionsProvider = FutureProvider<List<String>>((ref) async {
 
   final role = profile['role'] as String? ?? 'user';
   if (role == 'admin') return List<String>.from(kAllPermissions);
-  if (role == 'content_creator')
+  if (role == 'content_creator') {
     return List<String>.from(kContentCreatorPermissions);
+  }
 
   // For regular users, check custom permissions
   final perms = profile['permissions'];

@@ -45,7 +45,7 @@ class CollectionItemsScreen extends ConsumerWidget {
                         CachedNetworkImage(
                           imageUrl: collection.coverImageUrl!,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [color, color.withValues(alpha: 0.6)],
@@ -198,12 +198,12 @@ class CollectionItemsScreen extends ConsumerWidget {
                     ? CachedNetworkImage(
                         imageUrl: item.imageUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(
+                        placeholder: (_, _) => Container(
                           color: isDark
                               ? Colors.white10
                               : Colors.black.withValues(alpha: 0.05),
                         ),
-                        errorWidget: (_, __, ___) => Container(
+                        errorWidget: (_, _, _) => Container(
                           color: accentColor.withValues(alpha: 0.15),
                           child: Icon(
                             Icons.language,

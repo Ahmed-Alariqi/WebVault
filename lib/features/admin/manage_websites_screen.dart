@@ -191,6 +191,13 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                   isDark: isDark,
                   color: const Color(0xFF2196F3),
                 ),
+                _filterChip(
+                  label: l10n.formTypeTutorials,
+                  isSelected: selectedType == 'tutorial',
+                  onTap: () => _onContentTypeChanged('tutorial'),
+                  isDark: isDark,
+                  color: const Color(0xFFE91E63),
+                ),
               ],
             ),
           ),
@@ -712,6 +719,8 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return PhosphorIcons.tag();
       case 'announcement':
         return PhosphorIcons.megaphone();
+      case 'tutorial':
+        return PhosphorIcons.chalkboardTeacher();
       case 'tool':
         return PhosphorIcons.wrench();
       case 'course':
@@ -729,6 +738,8 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return const Color(0xFFFF9800);
       case 'announcement':
         return const Color(0xFF2196F3);
+      case 'tutorial':
+        return const Color(0xFFE91E63);
       case 'tool':
         return const Color(0xFF607D8B);
       case 'course':
@@ -746,6 +757,8 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
         return AppLocalizations.of(context)!.badgeOffer;
       case 'announcement':
         return AppLocalizations.of(context)!.badgeAnnounce;
+      case 'tutorial':
+        return AppLocalizations.of(context)!.badgeTutorial;
       case 'tool':
         return AppLocalizations.of(context)!.toolBadge;
       case 'course':

@@ -291,6 +291,7 @@
   "promptBadge": "Prompt",
   "offerBadge": "Offer",
   "newsBadge": "News",
+  "tutorialBadge": "Tutorial",
   "websiteBadge": "Website",
   "toolBadge": "Tool",
   "courseBadge": "Course",
@@ -613,6 +614,7 @@
   "badgePrompt": "Prompt",
   "badgeOffer": "Offer",
   "badgeAnnounce": "Announce",
+  "badgeTutorial": "Tutorial",
   "badgeWebsite": "Website",
   "readMoreText": "Read more...",
   "copyButton": "Copy",
@@ -650,6 +652,7 @@
   "formTypePrompts": "Prompts",
   "formTypeOffers": "Offers",
   "formTypeNews": "News",
+  "formTypeTutorials": "Tutorials",
 
   "formBasicInfo": "Basic Information",
   "formTypeTitle": "{type} Title",
@@ -666,6 +669,7 @@
   "formUrlPromptRef": "Reference URL (optional)",
   "formUrlOfferRef": "Offer / Store URL (optional)",
   "formUrlNewsRef": "Source Article URL (optional)",
+  "formUrlTutorialRef": "Tutorial URL (optional)",
   
   "formUrlOptional": "Link URL (Optional)",
   "formUrlOptionalHelper": "Optional: add a link for users to visit",
@@ -691,6 +695,7 @@
   "formActionToolHeader": "Access Details",
   "formActionCourseHeader": "Enrollment Info",
   "formActionNewsHeader": "Article Highlights",
+  "formActionTutorialHeader": "Tutorial Steps / Notes",
   "formActionDefaultHeader": "Additional Content",
 
   "formActionPromptLabel": "Prompt Text",
@@ -698,6 +703,7 @@
   "formActionToolLabel": "API Key / Access Code (optional)",
   "formActionCourseLabel": "Enrollment Code (optional)",
   "formActionNewsLabel": "Key Highlights / Summary",
+  "formActionTutorialLabel": "Steps / Instructions (optional)",
   "formActionDefaultLabel": "Copyable Value (optional)",
 
   "formPromptText": "Prompt Text",

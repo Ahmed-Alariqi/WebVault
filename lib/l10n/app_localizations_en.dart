@@ -657,6 +657,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get newsBadge => 'News';
 
   @override
+  String get tutorialBadge => 'Tutorial';
+
+  @override
   String get websiteBadge => 'Website';
 
   @override
@@ -1330,6 +1333,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get badgeAnnounce => 'Announce';
 
   @override
+  String get badgeTutorial => 'Tutorial';
+
+  @override
   String get badgeWebsite => 'Website';
 
   @override
@@ -1378,6 +1384,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formTypeNews => 'News';
 
   @override
+  String get formTypeTutorials => 'Tutorials';
+
+  @override
   String get formBasicInfo => 'Basic Information';
 
   @override
@@ -1402,6 +1411,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formUrlNewsRef => 'Source Article URL (optional)';
+
+  @override
+  String get formUrlTutorialRef => 'Tutorial URL (optional)';
 
   @override
   String get formUrlOptional => 'Link URL (Optional)';
@@ -1468,6 +1480,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formActionNewsHeader => 'Article Highlights';
 
   @override
+  String get formActionTutorialHeader => 'Tutorial Steps / Notes';
+
+  @override
   String get formActionDefaultHeader => 'Additional Content';
 
   @override
@@ -1484,6 +1499,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get formActionNewsLabel => 'Key Highlights / Summary';
+
+  @override
+  String get formActionTutorialLabel => 'Steps / Instructions (optional)';
 
   @override
   String get formActionDefaultLabel => 'Copyable Value (optional)';
