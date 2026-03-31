@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import '../../presentation/widgets/custom_quill_editor.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
@@ -1774,85 +1775,13 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                 PhosphorIcons.article(),
                                 isDark,
                               ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.grey[850]
-                                      : Colors.grey[100],
-                                  borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(16),
-                                  ),
-                                  border: Border.all(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.05)
-                                        : Colors.black.withValues(alpha: 0.05),
-                                  ),
-                                ),
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(
-                                    canvasColor: isDark
-                                        ? Colors.grey[850]
-                                        : Colors.grey[200],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16),
-                                    ),
-                                    child: QuillSimpleToolbar(
-                                      controller: _quillController,
-                                      config: const QuillSimpleToolbarConfig(
-                                        showFontFamily: false,
-                                        showFontSize: false,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 250,
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.02)
-                                      : Colors.white,
-                                  borderRadius: const BorderRadius.vertical(
-                                    bottom: Radius.circular(16),
-                                  ),
-                                  border: Border(
-                                    left: BorderSide(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                    right: BorderSide(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                    bottom: BorderSide(
-                                      color: isDark
-                                          ? Colors.white.withValues(alpha: 0.05)
-                                          : Colors.black.withValues(
-                                              alpha: 0.05,
-                                            ),
-                                    ),
-                                  ),
-                                ),
-                                child: QuillEditor.basic(
-                                  controller: _quillController,
-                                  config: QuillEditorConfig(
-                                    padding: EdgeInsets.zero,
-                                    placeholder: AppLocalizations.of(
-                                      context,
-                                    )!.formDescPlaceholder,
-                                    scrollable: true,
-                                    expands: true,
-                                  ),
-                                ),
+                              CustomQuillEditor(
+                                controller: _quillController,
+                                label: '',
+                                helperText: AppLocalizations.of(
+                                  context,
+                                )!.formDescPlaceholder,
+                                height: 250.0,
                               ),
                             ],
                           ),

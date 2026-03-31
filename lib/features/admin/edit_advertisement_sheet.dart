@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import '../../presentation/widgets/custom_quill_editor.dart';
 
 import '../../core/supabase_config.dart';
 import '../../core/theme/app_theme.dart';
@@ -401,76 +402,11 @@ class _EditAdvertisementSheetState
       children: [
         const SizedBox(height: 16),
         // ── Instructions (Rich Text) ──
-        Text(
-          l10n.adDetailInstructions,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white70 : Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : Colors.black.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.05),
-            ),
-          ),
-          child: Column(
-            children: [
-              Theme(
-                data: Theme.of(context).copyWith(
-                  canvasColor: isDark ? Colors.grey[850] : Colors.grey[200],
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: QuillSimpleToolbar(
-                    controller: _detailInstructionsController,
-                    config: const QuillSimpleToolbarConfig(
-                      showFontFamily: false,
-                      showFontSize: false,
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                height: 150,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.02)
-                      : Colors.white,
-                  borderRadius: const BorderRadius.vertical(
-                    bottom: Radius.circular(16),
-                  ),
-                  border: Border(
-                    top: BorderSide(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.05)
-                          : Colors.black.withValues(alpha: 0.05),
-                    ),
-                  ),
-                ),
-                child: QuillEditor.basic(
-                  controller: _detailInstructionsController,
-                  config: QuillEditorConfig(
-                    padding: EdgeInsets.zero,
-                    placeholder: l10n.adDetailInstructionsHint,
-                    scrollable: true,
-                    expands: true,
-                  ),
-                ),
-              ),
-            ],
-          ),
+        CustomQuillEditor(
+          controller: _detailInstructionsController,
+          label: l10n.adDetailInstructions,
+          helperText: l10n.adDetailInstructionsHint,
+          height: 150.0,
         ),
         const SizedBox(height: 16),
         _buildTextField(
