@@ -689,12 +689,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daysLeft(String days) {
-    return '$daysي متبقي';
+    return 'يوم متبقي';
   }
 
   @override
   String hoursLeft(String hours) {
-    return '$hoursس متبقية';
+    return 'ساعة متبقية';
   }
 
   @override
@@ -2170,6 +2170,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifBodyDefault => '🌐 محتوى جديد أُضيف للتو! اضغط للاكتشاف.';
 
   @override
+  String get eventSendNotif => 'إشعار المستخدمين';
+
+  @override
+  String get eventSendNotifSub => 'إرسال إشعار للمستخدمين حول هذه الفعالية';
+
+  @override
+  String get notifBodyGiveaway => '🎁 مسابقة جديدة بدأت! شارك الآن للفوز.';
+
+  @override
+  String get notifBodyPoll => '📊 تصويت جديد متاح! أدلِ بصوتك الآن.';
+
+  @override
+  String get viewGiveaway => 'عرض المسابقة';
+
+  @override
+  String get viewPoll => 'عرض التصويت';
+
+  @override
   String get beTheFirstToPost => 'كن أول من ينشر!';
 
   @override
@@ -2834,4 +2852,205 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusRejected => 'مرفوض';
+
+  @override
+  String get eventsTitle => 'الفعاليات';
+
+  @override
+  String get eventsSubtitle => 'إدارة المسابقات والتصويت';
+
+  @override
+  String get eventsManagement => 'إدارة الفعاليات';
+
+  @override
+  String get giveawaysTab => 'المسابقات';
+
+  @override
+  String get pollsTab => 'التصويت';
+
+  @override
+  String get noGiveaways => 'لا توجد مسابقات';
+
+  @override
+  String get noGiveawaysDesc => 'أنشئ أول مسابقة لإشراك مجتمعك!';
+
+  @override
+  String get createGiveaway => 'إنشاء مسابقة';
+
+  @override
+  String get editGiveaway => 'تعديل المسابقة';
+
+  @override
+  String get deleteGiveaway => 'حذف المسابقة';
+
+  @override
+  String get deleteGiveawayConfirm =>
+      'هل أنت متأكد من حذف هذه المسابقة؟ سيتم فقدان جميع الاشتراكات.';
+
+  @override
+  String get giveawayTitle => 'عنوان المسابقة';
+
+  @override
+  String get giveawayDescription => 'وصف الجائزة';
+
+  @override
+  String get prizeImage => 'صورة الجائزة';
+
+  @override
+  String get prizeType => 'نوع الجائزة';
+
+  @override
+  String get prizeAccount => 'حساب';
+
+  @override
+  String get prizeSubscription => 'اشتراك';
+
+  @override
+  String get prizeCode => 'كود';
+
+  @override
+  String get prizeOther => 'أخرى';
+
+  @override
+  String get selectEndDate => 'اختر تاريخ الانتهاء';
+
+  @override
+  String get endDateDesc => 'موعد إغلاق التسجيل';
+
+  @override
+  String get maxEntries => 'أقصى عدد مشتركين';
+
+  @override
+  String get maxEntriesHint => 'اتركه فارغاً لعدد غير محدود';
+
+  @override
+  String get active => 'نشط';
+
+  @override
+  String get ended => 'منتهي';
+
+  @override
+  String get drawn => 'تم السحب';
+
+  @override
+  String get entries => 'مشترك';
+
+  @override
+  String get viewEntries => 'عرض المشتركين';
+
+  @override
+  String get noEntries => 'لا يوجد مشتركون بعد';
+
+  @override
+  String get drawWinner => 'اختيار فائز';
+
+  @override
+  String get drawWinnerConfirm =>
+      'هل أنت متأكد؟ سيتم اختيار فائز عشوائياً ولا يمكن التراجع.';
+
+  @override
+  String get draw => 'سحب';
+
+  @override
+  String get winner => 'الفائز';
+
+  @override
+  String get winnerSelected => 'تم اختيار الفائز!';
+
+  @override
+  String get minutesLeft => 'دقيقة متبقية';
+
+  @override
+  String get maxLabel => 'الحد الأقصى';
+
+  @override
+  String get giveawayLabel => 'مسابقة';
+
+  @override
+  String get enterGiveaway => 'شارك الآن';
+
+  @override
+  String get alreadyEntered => 'تم التسجيل ✓';
+
+  @override
+  String get enteredGiveaway => 'تم تسجيلك في المسابقة!';
+
+  @override
+  String get participants => 'المشاركون';
+
+  @override
+  String get timeLeft => 'الوقت المتبقي';
+
+  @override
+  String get endsOn => 'تنتهي في';
+
+  @override
+  String get congratulations => 'تهانينا للفائز!';
+
+  @override
+  String get notFound => 'غير موجود';
+
+  @override
+  String get noPolls => 'لا يوجد تصويت';
+
+  @override
+  String get noPollsDesc => 'أنشئ تصويتاً ودع مجتمعك يقرر!';
+
+  @override
+  String get createPoll => 'إنشاء تصويت';
+
+  @override
+  String get editPoll => 'تعديل التصويت';
+
+  @override
+  String get deletePoll => 'حذف التصويت';
+
+  @override
+  String get deletePollConfirm =>
+      'هل أنت متأكد من حذف هذا التصويت؟ سيتم فقدان جميع الأصوات.';
+
+  @override
+  String get endPoll => 'إنهاء التصويت';
+
+  @override
+  String get pollQuestion => 'السؤال';
+
+  @override
+  String get pollDescription => 'الوصف (اختياري)';
+
+  @override
+  String get pollOptions => 'الخيارات';
+
+  @override
+  String get option => 'خيار';
+
+  @override
+  String get addOption => 'إضافة خيار';
+
+  @override
+  String get minTwoOptions => 'يجب إضافة خيارين على الأقل';
+
+  @override
+  String get pollEndDateDesc => 'موعد إغلاق التصويت';
+
+  @override
+  String get allowMultiple => 'السماح بتعدد الاختيارات';
+
+  @override
+  String get allowMultipleDesc => 'السماح للمستخدمين باختيار أكثر من خيار';
+
+  @override
+  String get votes => 'صوت';
+
+  @override
+  String get multipleChoice => 'متعدد الخيارات';
+
+  @override
+  String get pollLabel => 'تصويت';
+
+  @override
+  String get upload => 'رفع';
+
+  @override
+  String get searchImage => 'بحث صورة';
 }

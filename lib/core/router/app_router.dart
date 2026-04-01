@@ -37,9 +37,11 @@ import '../../features/admin/add_edit_website_screen.dart';
 import '../../features/admin/manage_advertisements_screen.dart';
 import '../../features/admin/manage_collections_screen.dart';
 import '../../features/admin/edit_advertisement_sheet.dart';
+import '../../features/admin/admin_events_screen.dart';
 import '../../features/discover/notifications_screen.dart';
 import '../../features/discover/community_screen.dart';
 import '../../features/discover/community_post_detail.dart';
+import '../../features/discover/giveaway_detail_screen.dart';
 import '../../data/models/community_model.dart';
 import '../../data/models/collection_model.dart';
 import '../../presentation/widgets/app_shell.dart';
@@ -156,6 +158,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             'users',
             'community',
             'advertisements',
+            'events',
           ];
         } else if (role == 'content_creator') {
           perms = const [
@@ -164,6 +167,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             'notifications',
             'suggestions',
             'community',
+            'events',
           ];
         } else {
           final p = profile['permissions'];
@@ -211,6 +215,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
         if (location.startsWith('/admin/advertisements') &&
             !perms.contains('advertisements')) {
+          return '/admin';
+        }
+        if (location.startsWith('/admin/events') && !perms.contains('events')) {
           return '/admin';
         }
       }
@@ -455,6 +462,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/collections',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageCollectionsScreen(),
+      ),
+      GoRoute(
+        path: '/admin/events',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminEventsScreen(),
+      ),
+      GoRoute(
+        path: '/giveaway/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return GiveawayDetailScreen(giveawayId: id);
+        },
       ),
       GoRoute(
         path: '/collection-items',

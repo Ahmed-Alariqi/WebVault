@@ -23,6 +23,8 @@ import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../data/models/collection_model.dart';
 import 'widgets/discover_filter_bottom_sheet.dart';
 import 'widgets/discover_quick_filter_bar.dart';
+import 'widgets/active_giveaway_banner.dart';
+import 'widgets/active_poll_card.dart';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -245,6 +247,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
             ),
           ),
+
+          // Active Giveaway Banner
+          const SliverToBoxAdapter(child: ActiveGiveawayBanner()),
+
+          // Active Poll Card
+          const SliverToBoxAdapter(child: ActivePollCard()),
 
           if (ref.watch(showBookmarksOnlyProvider)) ...[
             // Search bar (non-sticky in bookmarks mode)

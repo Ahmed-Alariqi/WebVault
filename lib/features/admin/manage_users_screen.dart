@@ -418,6 +418,7 @@ class _UserDialogState extends State<_UserDialog> {
     ('community', Icons.public, Color(0xFFEAB308)),
     ('advertisements', Icons.ad_units, Color(0xFF8B5CF6)),
     ('collections', Icons.folder_special, Color(0xFF06B6D4)),
+    ('events', Icons.celebration, Color(0xFFE11D48)),
   ];
 
   @override
@@ -535,6 +536,8 @@ class _UserDialogState extends State<_UserDialog> {
         return l.adminAdvertisementsTitle;
       case 'collections':
         return l.manageCollections;
+      case 'events':
+        return l.eventsTitle;
       default:
         return key;
     }

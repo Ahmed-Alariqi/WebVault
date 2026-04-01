@@ -10,7 +10,11 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/website_model.dart';
+import '../../data/models/giveaway_model.dart';
+import '../../data/models/poll_model.dart';
+import '../../presentation/providers/events_providers.dart';
 import 'website_details_dialog.dart';
+import 'event_detail_dialogs.dart';
 import '../../l10n/app_localizations.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
@@ -42,6 +46,10 @@ class NotificationDetailsDialog extends ConsumerWidget {
         return Colors.orangeAccent;
       case 'new_item':
         return const Color(0xFF4CAF50);
+      case 'giveaway':
+        return AppTheme.primaryColor;
+      case 'poll':
+        return AppTheme.accentColor;
       default:
         return AppTheme.primaryColor;
     }
@@ -57,6 +65,10 @@ class NotificationDetailsDialog extends ConsumerWidget {
         return PhosphorIcons.megaphone(PhosphorIconsStyle.fill);
       case 'new_item':
         return PhosphorIcons.sparkle(PhosphorIconsStyle.fill);
+      case 'giveaway':
+        return PhosphorIcons.gift(PhosphorIconsStyle.fill);
+      case 'poll':
+        return PhosphorIcons.chartBar(PhosphorIconsStyle.fill);
       default:
         return PhosphorIcons.info(PhosphorIconsStyle.fill);
     }
@@ -243,8 +255,113 @@ class NotificationDetailsDialog extends ConsumerWidget {
                               ),
                               const SizedBox(height: 16),
 
-                              // Check if this is a new_item notification
-                              if (notification.type == 'new_item' ||
+                              // Check if this is an event notification
+                              if (notification.targetUrl!.contains(
+                                    'app://events/giveaway/',
+                                  ) ||
+                                  notification.targetUrl!.contains(
+                                    'app://events/poll/',
+                                  )) ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: () async {
+                                      final navContext = Navigator.of(
+                                        context,
+                                        rootNavigator: true,
+                                      ).context;
+                                      Navigator.of(context).pop();
+
+                                      final url = notification.targetUrl!;
+                                      if (url.contains(
+                                        'app://events/giveaway/',
+                                      )) {
+                                        final gId = url.replaceFirst(
+                                          'app://events/giveaway/',
+                                          '',
+                                        );
+                                        try {
+                                          final json = await SupabaseConfig
+                                              .client
+                                              .from('giveaways')
+                                              .select()
+                                              .eq('id', gId)
+                                              .maybeSingle();
+                                          if (json != null &&
+                                              navContext.mounted) {
+                                            final g = Giveaway.fromJson(json);
+                                            showDialog(
+                                              context: navContext,
+                                              builder: (_) =>
+                                                  GiveawayDetailDialog(
+                                                    giveaway: g,
+                                                  ),
+                                            );
+                                            return;
+                                          }
+                                        } catch (_) {}
+                                      } else {
+                                        final pId = url.replaceFirst(
+                                          'app://events/poll/',
+                                          '',
+                                        );
+                                        try {
+                                          final json = await SupabaseConfig
+                                              .client
+                                              .from('polls')
+                                              .select()
+                                              .eq('id', pId)
+                                              .maybeSingle();
+                                          if (json != null &&
+                                              navContext.mounted) {
+                                            final p = Poll.fromJson(json);
+                                            showDialog(
+                                              context: navContext,
+                                              builder: (_) =>
+                                                  PollDetailDialog(poll: p),
+                                            );
+                                            return;
+                                          }
+                                        } catch (_) {}
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: color,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    icon: Icon(
+                                      notification.targetUrl!.contains(
+                                            'giveaway',
+                                          )
+                                          ? PhosphorIcons.gift(
+                                              PhosphorIconsStyle.fill,
+                                            )
+                                          : PhosphorIcons.chartBar(
+                                              PhosphorIconsStyle.fill,
+                                            ),
+                                      size: 20,
+                                    ),
+                                    label: Text(
+                                      notification.targetUrl!.contains(
+                                            'giveaway',
+                                          )
+                                          ? l10n.viewGiveaway
+                                          : l10n.viewPoll,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else if (notification.type == 'new_item' ||
                                   notification.targetUrl!.contains(
                                     'app://discover/item/',
                                   )) ...[

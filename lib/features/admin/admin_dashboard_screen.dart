@@ -293,6 +293,18 @@ class AdminDashboardScreen extends ConsumerWidget {
                         onTap: () => context.push('/admin/collections'),
                         delay: 340,
                       ),
+                    if (perms.contains('events'))
+                      _ActionCard(
+                        title: AppLocalizations.of(context)!.eventsTitle,
+                        subtitle: AppLocalizations.of(context)!.eventsSubtitle,
+                        icon: PhosphorIcons.confetti(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFFE11D48),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/events'),
+                        delay: 345,
+                      ),
 
                     Consumer(
                       builder: (context, ref, _) {

@@ -688,12 +688,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysLeft(String days) {
-    return '${days}d left';
+    return 'days left';
   }
 
   @override
   String hoursLeft(String hours) {
-    return '${hours}h left';
+    return 'hours left';
   }
 
   @override
@@ -2172,6 +2172,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifBodyDefault => '🌐 New content just added! Tap to discover.';
 
   @override
+  String get eventSendNotif => 'Notify Users';
+
+  @override
+  String get eventSendNotifSub => 'Send a push notification about this event';
+
+  @override
+  String get notifBodyGiveaway =>
+      '🎁 A new giveaway just started! Enter now for a chance to win.';
+
+  @override
+  String get notifBodyPoll => '📊 A new poll is live! Cast your vote now.';
+
+  @override
+  String get viewGiveaway => 'View Giveaway';
+
+  @override
+  String get viewPoll => 'View Poll';
+
+  @override
   String get beTheFirstToPost => 'Be the first to post!';
 
   @override
@@ -2845,4 +2864,206 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusRejected => 'Rejected';
+
+  @override
+  String get eventsTitle => 'Events';
+
+  @override
+  String get eventsSubtitle => 'Manage giveaways & polls';
+
+  @override
+  String get eventsManagement => 'EVENTS MANAGEMENT';
+
+  @override
+  String get giveawaysTab => 'Giveaways';
+
+  @override
+  String get pollsTab => 'Polls';
+
+  @override
+  String get noGiveaways => 'No Giveaways';
+
+  @override
+  String get noGiveawaysDesc =>
+      'Create your first giveaway to engage your community!';
+
+  @override
+  String get createGiveaway => 'Create Giveaway';
+
+  @override
+  String get editGiveaway => 'Edit Giveaway';
+
+  @override
+  String get deleteGiveaway => 'Delete Giveaway';
+
+  @override
+  String get deleteGiveawayConfirm =>
+      'Are you sure you want to delete this giveaway? All entries will be lost.';
+
+  @override
+  String get giveawayTitle => 'Giveaway Title';
+
+  @override
+  String get giveawayDescription => 'Prize Description';
+
+  @override
+  String get prizeImage => 'Prize Image';
+
+  @override
+  String get prizeType => 'Prize Type';
+
+  @override
+  String get prizeAccount => 'Account';
+
+  @override
+  String get prizeSubscription => 'Subscription';
+
+  @override
+  String get prizeCode => 'Code';
+
+  @override
+  String get prizeOther => 'Other';
+
+  @override
+  String get selectEndDate => 'Select End Date';
+
+  @override
+  String get endDateDesc => 'When registration closes';
+
+  @override
+  String get maxEntries => 'Max Entries';
+
+  @override
+  String get maxEntriesHint => 'Leave empty for unlimited';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get ended => 'Ended';
+
+  @override
+  String get drawn => 'Drawn';
+
+  @override
+  String get entries => 'entries';
+
+  @override
+  String get viewEntries => 'View Entries';
+
+  @override
+  String get noEntries => 'No entries yet';
+
+  @override
+  String get drawWinner => 'Draw Winner';
+
+  @override
+  String get drawWinnerConfirm =>
+      'Are you sure? This will randomly select a winner and cannot be undone.';
+
+  @override
+  String get draw => 'Draw';
+
+  @override
+  String get winner => 'Winner';
+
+  @override
+  String get winnerSelected => 'Winner has been selected!';
+
+  @override
+  String get minutesLeft => 'min left';
+
+  @override
+  String get maxLabel => 'Max';
+
+  @override
+  String get giveawayLabel => 'GIVEAWAY';
+
+  @override
+  String get enterGiveaway => 'Enter Now';
+
+  @override
+  String get alreadyEntered => 'Already Entered';
+
+  @override
+  String get enteredGiveaway => 'You have entered the giveaway!';
+
+  @override
+  String get participants => 'Participants';
+
+  @override
+  String get timeLeft => 'Time Left';
+
+  @override
+  String get endsOn => 'Ends on';
+
+  @override
+  String get congratulations => 'Congratulations to the winner!';
+
+  @override
+  String get notFound => 'Not found';
+
+  @override
+  String get noPolls => 'No Polls';
+
+  @override
+  String get noPollsDesc => 'Create a poll and let your community decide!';
+
+  @override
+  String get createPoll => 'Create Poll';
+
+  @override
+  String get editPoll => 'Edit Poll';
+
+  @override
+  String get deletePoll => 'Delete Poll';
+
+  @override
+  String get deletePollConfirm =>
+      'Are you sure you want to delete this poll? All votes will be lost.';
+
+  @override
+  String get endPoll => 'End Poll';
+
+  @override
+  String get pollQuestion => 'Question';
+
+  @override
+  String get pollDescription => 'Description (optional)';
+
+  @override
+  String get pollOptions => 'Options';
+
+  @override
+  String get option => 'Option';
+
+  @override
+  String get addOption => 'Add Option';
+
+  @override
+  String get minTwoOptions => 'At least two options are required';
+
+  @override
+  String get pollEndDateDesc => 'When voting closes';
+
+  @override
+  String get allowMultiple => 'Allow Multiple Choices';
+
+  @override
+  String get allowMultipleDesc => 'Let users select more than one option';
+
+  @override
+  String get votes => 'votes';
+
+  @override
+  String get multipleChoice => 'Multiple choice';
+
+  @override
+  String get pollLabel => 'POLL';
+
+  @override
+  String get upload => 'Upload';
+
+  @override
+  String get searchImage => 'Search Image';
 }

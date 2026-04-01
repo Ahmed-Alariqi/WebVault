@@ -53,6 +53,7 @@ const kAllPermissions = [
   'community',
   'advertisements',
   'collections',
+  'events',
 ];
 
 /// Preset permissions for the Content Creator role
@@ -62,6 +63,7 @@ const kContentCreatorPermissions = [
   'notifications',
   'suggestions',
   'community',
+  'events',
 ];
 
 /// Returns the effective list of permission keys for the current user

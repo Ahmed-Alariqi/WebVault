@@ -1391,13 +1391,13 @@ abstract class AppLocalizations {
   /// No description provided for @daysLeft.
   ///
   /// In en, this message translates to:
-  /// **'{days}d left'**
+  /// **'days left'**
   String daysLeft(String days);
 
   /// No description provided for @hoursLeft.
   ///
   /// In en, this message translates to:
-  /// **'{hours}h left'**
+  /// **'hours left'**
   String hoursLeft(String hours);
 
   /// No description provided for @minsLeft.
@@ -4142,6 +4142,42 @@ abstract class AppLocalizations {
   /// **'🌐 New content just added! Tap to discover.'**
   String get notifBodyDefault;
 
+  /// No description provided for @eventSendNotif.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify Users'**
+  String get eventSendNotif;
+
+  /// No description provided for @eventSendNotifSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a push notification about this event'**
+  String get eventSendNotifSub;
+
+  /// No description provided for @notifBodyGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'🎁 A new giveaway just started! Enter now for a chance to win.'**
+  String get notifBodyGiveaway;
+
+  /// No description provided for @notifBodyPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'📊 A new poll is live! Cast your vote now.'**
+  String get notifBodyPoll;
+
+  /// No description provided for @viewGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'View Giveaway'**
+  String get viewGiveaway;
+
+  /// No description provided for @viewPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'View Poll'**
+  String get viewPoll;
+
   /// No description provided for @beTheFirstToPost.
   ///
   /// In en, this message translates to:
@@ -5389,6 +5425,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rejected'**
   String get statusRejected;
+
+  /// No description provided for @eventsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get eventsTitle;
+
+  /// No description provided for @eventsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage giveaways & polls'**
+  String get eventsSubtitle;
+
+  /// No description provided for @eventsManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'EVENTS MANAGEMENT'**
+  String get eventsManagement;
+
+  /// No description provided for @giveawaysTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaways'**
+  String get giveawaysTab;
+
+  /// No description provided for @pollsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Polls'**
+  String get pollsTab;
+
+  /// No description provided for @noGiveaways.
+  ///
+  /// In en, this message translates to:
+  /// **'No Giveaways'**
+  String get noGiveaways;
+
+  /// No description provided for @noGiveawaysDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create your first giveaway to engage your community!'**
+  String get noGiveawaysDesc;
+
+  /// No description provided for @createGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Giveaway'**
+  String get createGiveaway;
+
+  /// No description provided for @editGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Giveaway'**
+  String get editGiveaway;
+
+  /// No description provided for @deleteGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Giveaway'**
+  String get deleteGiveaway;
+
+  /// No description provided for @deleteGiveawayConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this giveaway? All entries will be lost.'**
+  String get deleteGiveawayConfirm;
+
+  /// No description provided for @giveawayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaway Title'**
+  String get giveawayTitle;
+
+  /// No description provided for @giveawayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prize Description'**
+  String get giveawayDescription;
+
+  /// No description provided for @prizeImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Prize Image'**
+  String get prizeImage;
+
+  /// No description provided for @prizeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Prize Type'**
+  String get prizeType;
+
+  /// No description provided for @prizeAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get prizeAccount;
+
+  /// No description provided for @prizeSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get prizeSubscription;
+
+  /// No description provided for @prizeCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get prizeCode;
+
+  /// No description provided for @prizeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get prizeOther;
+
+  /// No description provided for @selectEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select End Date'**
+  String get selectEndDate;
+
+  /// No description provided for @endDateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'When registration closes'**
+  String get endDateDesc;
+
+  /// No description provided for @maxEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Max Entries'**
+  String get maxEntries;
+
+  /// No description provided for @maxEntriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty for unlimited'**
+  String get maxEntriesHint;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @ended.
+  ///
+  /// In en, this message translates to:
+  /// **'Ended'**
+  String get ended;
+
+  /// No description provided for @drawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Drawn'**
+  String get drawn;
+
+  /// No description provided for @entries.
+  ///
+  /// In en, this message translates to:
+  /// **'entries'**
+  String get entries;
+
+  /// No description provided for @viewEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'View Entries'**
+  String get viewEntries;
+
+  /// No description provided for @noEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No entries yet'**
+  String get noEntries;
+
+  /// No description provided for @drawWinner.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw Winner'**
+  String get drawWinner;
+
+  /// No description provided for @drawWinnerConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure? This will randomly select a winner and cannot be undone.'**
+  String get drawWinnerConfirm;
+
+  /// No description provided for @draw.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw'**
+  String get draw;
+
+  /// No description provided for @winner.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner'**
+  String get winner;
+
+  /// No description provided for @winnerSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner has been selected!'**
+  String get winnerSelected;
+
+  /// No description provided for @minutesLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'min left'**
+  String get minutesLeft;
+
+  /// No description provided for @maxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Max'**
+  String get maxLabel;
+
+  /// No description provided for @giveawayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'GIVEAWAY'**
+  String get giveawayLabel;
+
+  /// No description provided for @enterGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Now'**
+  String get enterGiveaway;
+
+  /// No description provided for @alreadyEntered.
+  ///
+  /// In en, this message translates to:
+  /// **'Already Entered'**
+  String get alreadyEntered;
+
+  /// No description provided for @enteredGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'You have entered the giveaway!'**
+  String get enteredGiveaway;
+
+  /// No description provided for @participants.
+  ///
+  /// In en, this message translates to:
+  /// **'Participants'**
+  String get participants;
+
+  /// No description provided for @timeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Left'**
+  String get timeLeft;
+
+  /// No description provided for @endsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends on'**
+  String get endsOn;
+
+  /// No description provided for @congratulations.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations to the winner!'**
+  String get congratulations;
+
+  /// No description provided for @notFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not found'**
+  String get notFound;
+
+  /// No description provided for @noPolls.
+  ///
+  /// In en, this message translates to:
+  /// **'No Polls'**
+  String get noPolls;
+
+  /// No description provided for @noPollsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a poll and let your community decide!'**
+  String get noPollsDesc;
+
+  /// No description provided for @createPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Poll'**
+  String get createPoll;
+
+  /// No description provided for @editPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Poll'**
+  String get editPoll;
+
+  /// No description provided for @deletePoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Poll'**
+  String get deletePoll;
+
+  /// No description provided for @deletePollConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this poll? All votes will be lost.'**
+  String get deletePollConfirm;
+
+  /// No description provided for @endPoll.
+  ///
+  /// In en, this message translates to:
+  /// **'End Poll'**
+  String get endPoll;
+
+  /// No description provided for @pollQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Question'**
+  String get pollQuestion;
+
+  /// No description provided for @pollDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get pollDescription;
+
+  /// No description provided for @pollOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get pollOptions;
+
+  /// No description provided for @option.
+  ///
+  /// In en, this message translates to:
+  /// **'Option'**
+  String get option;
+
+  /// No description provided for @addOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Option'**
+  String get addOption;
+
+  /// No description provided for @minTwoOptions.
+  ///
+  /// In en, this message translates to:
+  /// **'At least two options are required'**
+  String get minTwoOptions;
+
+  /// No description provided for @pollEndDateDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'When voting closes'**
+  String get pollEndDateDesc;
+
+  /// No description provided for @allowMultiple.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Multiple Choices'**
+  String get allowMultiple;
+
+  /// No description provided for @allowMultipleDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Let users select more than one option'**
+  String get allowMultipleDesc;
+
+  /// No description provided for @votes.
+  ///
+  /// In en, this message translates to:
+  /// **'votes'**
+  String get votes;
+
+  /// No description provided for @multipleChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple choice'**
+  String get multipleChoice;
+
+  /// No description provided for @pollLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'POLL'**
+  String get pollLabel;
+
+  /// No description provided for @upload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get upload;
+
+  /// No description provided for @searchImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Image'**
+  String get searchImage;
 }
 
 class _AppLocalizationsDelegate
