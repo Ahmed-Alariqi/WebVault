@@ -81,6 +81,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get discover => 'استكشاف';
 
   @override
+  String get search => 'بحث';
+
+  @override
+  String get pages => 'الصفحات';
+
+  @override
   String get folders => 'المجلدات';
 
   @override
@@ -442,13 +448,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get egFinance => 'مثل: المالية';
 
   @override
-  String get adminBadge => 'المدير الثقني';
+  String get adminBadge => 'المدير التقني';
 
   @override
   String get controlCenter => 'مركز التحكم';
 
   @override
-  String get manageVaultEcosystem => 'إدارة نظام القبو الخاص بك';
+  String get manageVaultEcosystem => 'إدارة نظام ومحتوى تطبيق زاد التقني';
 
   @override
   String get management => 'الإدارة';
@@ -466,10 +472,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reviewRequests => 'مراجعة الطلبات';
 
   @override
-  String get websitesTitle => 'مواقع الويب';
+  String get websitesTitle => 'محتوى المستكشف';
 
   @override
-  String get addEditSites => 'إضافة/تعديل المواقع';
+  String get addEditSites => 'ادارة محتوى عناصر المستكشف';
 
   @override
   String get categoriesTitle => 'التصنيفات';
@@ -1898,9 +1904,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get resetPasswordSent => 'تم إرسال الرابط! تحقق من بريدك الإلكتروني.';
 
   @override
-  String get pages => 'الصفحات';
-
-  @override
   String get addPage => 'إضافة صفحة';
 
   @override
@@ -1935,9 +1938,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get editPage => 'تعديل الصفحة';
-
-  @override
-  String get search => 'بحث';
 
   @override
   String get loading => 'جاري التحميل...';
@@ -2795,4 +2795,43 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get communityNoSearchResults => 'لا توجد منشورات مطابقة للبحث';
+
+  @override
+  String get sectionNewlyAdded => 'أضيف حديثاً';
+
+  @override
+  String get sectionFeatured => 'مميز';
+
+  @override
+  String get sectionTrending => 'رائج';
+
+  @override
+  String get sectionPopular => 'شائع';
+
+  @override
+  String get pinnedPost => 'مُثبت';
+
+  @override
+  String get formTagsPlaceholder => 'الهاشتاجات (مفصولة بفاصلة)';
+
+  @override
+  String get actionCommunity => 'المجتمع';
+
+  @override
+  String get actionBookmarks => 'العلامات المرجعية';
+
+  @override
+  String get actionRead => 'قراءة';
+
+  @override
+  String get actionView => 'عرض';
+
+  @override
+  String get statusPending => 'قيد الانتظار';
+
+  @override
+  String get statusApproved => 'مقبول';
+
+  @override
+  String get statusRejected => 'مرفوض';
 }

@@ -68,11 +68,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               IconButton(
                 onPressed: () => context.push('/community'),
                 icon: Icon(
-                  PhosphorIcons.globeHemisphereWest(PhosphorIconsStyle.fill),
+                  PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
                   color: AppTheme.primaryColor,
                   size: 26,
                 ),
-                tooltip: 'Community',
+                tooltip: AppLocalizations.of(context)!.actionCommunity,
               ),
               // Bookmark toggle
               IconButton(
@@ -91,7 +91,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       ? AppTheme.primaryColor
                       : (isDark ? Colors.white70 : Colors.black54),
                 ),
-                tooltip: 'Bookmarks',
+                tooltip: AppLocalizations.of(context)!.actionBookmarks,
               ),
               IconButton(
                 onPressed: () => context.push('/notifications'),
@@ -297,7 +297,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'No bookmarks yet',
+                                AppLocalizations.of(context)!.noItemsYet,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -323,7 +323,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       return _buildSection(
                         context,
                         ref,
-                        'Your Bookmarks',
+                        AppLocalizations.of(context)!.bookmarks,
                         PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill),
                         sites,
                         isDark,
@@ -372,7 +372,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   : _buildPaginatedSection(
                       context,
                       ref,
-                      'Trending',
+                      AppLocalizations.of(context)!.sectionTrending,
                       PhosphorIcons.trendUp(),
                       trendingState,
                       trendingPaginatedProvider,
@@ -390,7 +390,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   : _buildPaginatedSection(
                       context,
                       ref,
-                      'Popular',
+                      AppLocalizations.of(context)!.sectionPopular,
                       PhosphorIcons.fire(),
                       popularState,
                       popularPaginatedProvider,
@@ -407,7 +407,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   : _buildPaginatedSection(
                       context,
                       ref,
-                      'Featured',
+                      AppLocalizations.of(context)!.sectionFeatured,
                       PhosphorIcons.star(),
                       featuredState,
                       featuredPaginatedProvider,
@@ -427,7 +427,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               ),
             ),
 
-            // All / Filter Results Section — Vertical Grid
+            // All / Filter Results Section — Two Horizontal Rows
             if (discoverState.isInitialLoad)
               SliverToBoxAdapter(child: _buildShimmerSection(isDark))
             else if (discoverState.items.isNotEmpty) ...[
@@ -446,7 +446,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       Text(
                         (selected != null || search.isNotEmpty)
                             ? 'Results'
-                            : 'Newly Added',
+                            : AppLocalizations.of(context)!.sectionNewlyAdded,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -459,41 +459,104 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   ).animate().fadeIn(),
                 ),
               ),
-              // Vertical 2-column grid
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 260 / 290,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (ctx, i) {
-                      if (i >= discoverState.items.length) {
-                        // Trigger load more when reaching end
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          ref
-                              .read(discoverPaginatedProvider.notifier)
-                              .loadMore();
-                        });
-                        return const ShimmerCard();
+              // Two Independent Horizontal Rows
+              SliverToBoxAdapter(
+                child: Builder(
+                  builder: (context) {
+                    final row1Items = <WebsiteModel>[];
+                    final row2Items = <WebsiteModel>[];
+                    for (int i = 0; i < discoverState.items.length; i++) {
+                      if (i.isEven) {
+                        row1Items.add(discoverState.items[i]);
+                      } else {
+                        row2Items.add(discoverState.items[i]);
                       }
-                      return _buildDiscoverCard(
-                        context,
-                        ref,
-                        discoverState.items[i],
-                        isDark,
-                        false,
-                        i,
-                        isGridCard: true,
-                      );
-                    },
-                    childCount:
-                        discoverState.items.length +
-                        (discoverState.hasMore ? 2 : 0),
-                  ),
+                    }
+
+                    return Column(
+                      children: [
+                        // Row 1
+                        SizedBox(
+                          height: 290,
+                          child: NotificationListener<ScrollNotification>(
+                            onNotification: (scrollInfo) {
+                              if (scrollInfo.metrics.pixels >=
+                                  scrollInfo.metrics.maxScrollExtent - 200) {
+                                ref
+                                    .read(discoverPaginatedProvider.notifier)
+                                    .loadMore();
+                              }
+                              return false;
+                            },
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                              ),
+                              itemCount:
+                                  row1Items.length +
+                                  (discoverState.hasMore ? 1 : 0),
+                              itemBuilder: (ctx, i) {
+                                if (i >= row1Items.length) {
+                                  return const ShimmerCard();
+                                }
+                                int originalIndex = i * 2;
+                                return _buildDiscoverCard(
+                                  context,
+                                  ref,
+                                  row1Items[i],
+                                  isDark,
+                                  false,
+                                  originalIndex,
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        if (row2Items.isNotEmpty || discoverState.hasMore) ...[
+                          const SizedBox(height: 14),
+                          // Row 2
+                          SizedBox(
+                            height: 290,
+                            child: NotificationListener<ScrollNotification>(
+                              onNotification: (scrollInfo) {
+                                if (scrollInfo.metrics.pixels >=
+                                    scrollInfo.metrics.maxScrollExtent - 200) {
+                                  ref
+                                      .read(discoverPaginatedProvider.notifier)
+                                      .loadMore();
+                                }
+                                return false;
+                              },
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                ),
+                                itemCount:
+                                    row2Items.length +
+                                    (discoverState.hasMore ? 1 : 0),
+                                itemBuilder: (ctx, i) {
+                                  if (i >= row2Items.length) {
+                                    return const ShimmerCard();
+                                  }
+                                  int originalIndex = i * 2 + 1;
+                                  return _buildDiscoverCard(
+                                    context,
+                                    ref,
+                                    row2Items[i],
+                                    isDark,
+                                    false,
+                                    originalIndex,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ],
@@ -832,9 +895,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     WebsiteModel site,
     bool isDark,
     bool showBadge,
-    int index, {
-    bool isGridCard = false,
-  }) {
+    int index,
+  ) {
     return GestureDetector(
       onTap: () {
         showDialog(
@@ -843,8 +905,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         );
       },
       child: Container(
-        width: isGridCard ? double.infinity : 260,
-        margin: isGridCard ? EdgeInsets.zero : const EdgeInsets.only(right: 14),
+        width: 260,
+        margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
           borderRadius: BorderRadius.circular(20),
@@ -1404,7 +1466,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     size: 14,
                   ),
                   label: Text(
-                    isAnnouncement ? 'Read' : 'View',
+                    isAnnouncement
+                        ? AppLocalizations.of(context)!.actionRead
+                        : AppLocalizations.of(context)!.actionView,
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,

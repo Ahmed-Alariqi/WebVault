@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,7 +114,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
           ),
           child: Container(
             width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            constraints: const BoxConstraints(maxWidth: 420, maxHeight: 650),
             decoration: BoxDecoration(
               color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
               borderRadius: BorderRadius.circular(28),
@@ -137,68 +138,109 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Header Image
+                    // Header Image with Gradient Overlay
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(28),
                       ),
-                      child: SizedBox(
-                        height: 180,
-                        width: double.infinity,
-                        child:
-                            widget.site.imageUrl != null &&
-                                widget.site.imageUrl!.isNotEmpty
-                            ? GestureDetector(
-                                onTap: () => _showFullImage(
-                                  context,
-                                  widget.site.imageUrl!,
-                                ),
-                                child: CachedNetworkImage(
-                                  imageUrl: widget.site.imageUrl!,
-                                  fit: BoxFit.cover,
-                                  placeholder: (ctx, url) => Container(
-                                    color: isDark
-                                        ? Colors.white10
-                                        : Colors.black.withValues(alpha: 0.05),
-                                    child: Center(
-                                      child: Icon(
-                                        PhosphorIcons.image(),
+                      child: Stack(
+                        children: [
+                          SizedBox(
+                            height: 200,
+                            width: double.infinity,
+                            child:
+                                widget.site.imageUrl != null &&
+                                    widget.site.imageUrl!.isNotEmpty
+                                ? GestureDetector(
+                                    onTap: () => _showFullImage(
+                                      context,
+                                      widget.site.imageUrl!,
+                                    ),
+                                    child: CachedNetworkImage(
+                                      imageUrl: widget.site.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      placeholder: (ctx, url) => Container(
                                         color: isDark
-                                            ? Colors.white24
-                                            : Colors.black12,
+                                            ? Colors.white10
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        child: Center(
+                                          child: Icon(
+                                            PhosphorIcons.image(),
+                                            color: isDark
+                                                ? Colors.white24
+                                                : Colors.black12,
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (ctx, url, err) => Container(
+                                        color: isDark
+                                            ? Colors.white10
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                        child: Center(
+                                          child: Icon(
+                                            PhosphorIcons.globe(),
+                                            size: 48,
+                                            color: isDark
+                                                ? Colors.white24
+                                                : Colors.black12,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  errorWidget: (ctx, url, err) => Container(
-                                    color: isDark
-                                        ? Colors.white10
-                                        : Colors.black.withValues(alpha: 0.05),
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          AppTheme.primaryColor.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                          AppTheme.primaryColor.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                     child: Center(
                                       child: Icon(
                                         PhosphorIcons.globe(),
                                         size: 48,
-                                        color: isDark
-                                            ? Colors.white24
-                                            : Colors.black12,
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.3,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                              )
-                            : Container(
-                                color: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withValues(alpha: 0.05),
-                                child: Center(
-                                  child: Icon(
-                                    PhosphorIcons.globe(),
-                                    size: 48,
-                                    color: isDark
-                                        ? Colors.white24
-                                        : Colors.black12,
-                                  ),
+                          ),
+                          // Bottom gradient overlay for smooth transition
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            child: Container(
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    (isDark
+                                            ? AppTheme.darkCard
+                                            : AppTheme.lightCard)
+                                        .withValues(alpha: 0.8),
+                                  ],
                                 ),
                               ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
@@ -275,10 +317,23 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                             const SizedBox(height: 16),
 
                             // Divider
-                            Divider(
-                              color: isDark
-                                  ? Colors.white10
-                                  : Colors.black.withValues(alpha: 0.05),
+                            Container(
+                              height: 1,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.transparent,
+                                    (isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.08)),
+                                    (isDark
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.08)),
+                                    Colors.transparent,
+                                  ],
+                                  stops: const [0.0, 0.2, 0.8, 1.0],
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 16),
 
@@ -507,37 +562,71 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                               ),
                               const SizedBox(height: 16),
                             ],
-
-                            // Action Buttons — dynamic per content type
-                            _buildDialogActions(
-                              context,
-                              ref,
-                              widget.site,
-                              isDark,
-                            ),
                           ],
                         ),
+                      ),
+                    ),
+
+                    // Pinned Action Buttons Footer
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: isDark ? 0.2 : 0.05,
+                            ),
+                            offset: const Offset(0, -4),
+                            blurRadius: 16,
+                          ),
+                        ],
+                        border: Border(
+                          top: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.03),
+                          ),
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(28),
+                        ),
+                      ),
+                      child: _buildDialogActions(
+                        context,
+                        ref,
+                        widget.site,
+                        isDark,
                       ),
                     ),
                   ],
                 ),
 
-                // Close Button Overlay
+                // Close Button Overlay with Glassmorphism
                 Positioned(
-                  top: 16,
-                  right: 16,
+                  top: 12,
+                  right: 12,
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -553,19 +642,31 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
   Widget _badge(String label, Color color, bool isDark) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        color: color.withValues(alpha: isDark ? 0.15 : 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
       ),
     );
   }

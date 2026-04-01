@@ -470,7 +470,7 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
           IconButton(
             onPressed: _showBannedUsers,
             icon: Icon(
-              PhosphorIcons.userMinus(),
+              PhosphorIcons.identificationCard(),
               color: isDark ? Colors.white70 : Colors.black54,
             ),
             tooltip: AppLocalizations.of(context)!.communityBannedUsers,
@@ -738,7 +738,7 @@ class _AdminPostTile extends ConsumerWidget {
               // Ban Button
               IconButton(
                 icon: Icon(
-                  PhosphorIcons.userMinus(),
+                  PhosphorIcons.prohibit(),
                   color: Colors.orange,
                   size: 18,
                 ),

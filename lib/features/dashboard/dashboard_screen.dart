@@ -256,11 +256,11 @@ class _DashboardHeader extends ConsumerWidget {
             IconButton(
               onPressed: () => context.push('/admin'),
               icon: Icon(
-                PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                PhosphorIcons.crown(PhosphorIconsStyle.fill),
                 size: 24,
                 color: AppTheme.primaryColor,
               ),
-              tooltip: 'Admin Dashboard',
+              tooltip: AppLocalizations.of(context)!.adminDashboard,
             ).animate().fadeIn().scale(),
             const SizedBox(width: 8),
           ],

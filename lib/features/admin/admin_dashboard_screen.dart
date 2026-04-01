@@ -119,7 +119,13 @@ class AdminDashboardScreen extends ConsumerWidget {
                     Icons.arrow_back_ios_new,
                     color: Colors.white,
                   ),
-                  onPressed: () => context.pop(),
+                  onPressed: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/dashboard');
+                    }
+                  },
                 ),
               ),
 
@@ -249,7 +255,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       _ActionCard(
                         title: AppLocalizations.of(context)!.communityTitle,
                         subtitle: AppLocalizations.of(context)!.managePosts,
-                        icon: PhosphorIcons.globeHemisphereWest(
+                        icon: PhosphorIcons.usersThree(
                           PhosphorIconsStyle.duotone,
                         ),
                         color: const Color(0xFFEAB308),

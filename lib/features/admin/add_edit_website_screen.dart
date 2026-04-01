@@ -1660,7 +1660,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                               // ── Tags ──
                               _buildTextField(
                                 controller: _tagsCtrl,
-                                label: 'Tags (comma separated)',
+                                label: AppLocalizations.of(
+                                  context,
+                                )!.formTagsPlaceholder,
                                 prefixIcon: PhosphorIcons.tag(),
                                 isDark: isDark,
                               ),

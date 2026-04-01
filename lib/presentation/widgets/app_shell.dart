@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/providers/auth_providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/in_app_message_service.dart';
 import 'dart:ui';
 
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   final Widget child;
 
   const AppShell({super.key, required this.child});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   @override
   void initState() {
     super.initState();
@@ -28,7 +30,7 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
-  static int _calculateSelectedIndex(BuildContext context) {
+  static int _calculateSelectedIndex(BuildContext context, bool isAdmin) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/dashboard')) return 0;
     if (location.startsWith('/pages')) return 1;
@@ -37,11 +39,13 @@ class _AppShellState extends State<AppShell> {
       return 2;
     }
     if (location.startsWith('/clipboard')) return 3;
-    if (location.startsWith('/settings')) return 4;
+    if (isAdmin && location.startsWith('/admin')) return 4;
+    if (!isAdmin && location.startsWith('/community')) return 4;
+    if (location.startsWith('/settings')) return 5;
     return 0;
   }
 
-  void _onItemTapped(BuildContext context, int index) {
+  void _onItemTapped(BuildContext context, int index, bool isAdmin) {
     switch (index) {
       case 0:
         context.go('/dashboard');
@@ -56,6 +60,13 @@ class _AppShellState extends State<AppShell> {
         context.go('/clipboard');
         break;
       case 4:
+        if (isAdmin) {
+          context.go('/admin');
+        } else {
+          context.go('/community');
+        }
+        break;
+      case 5:
         context.go('/settings');
         break;
     }
@@ -64,7 +75,8 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selectedIndex = _calculateSelectedIndex(context);
+    final isAdmin = ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
+    final selectedIndex = _calculateSelectedIndex(context, isAdmin);
 
     return Scaffold(
       // extendBody is false by default, which ensures the body ends ABOVE the nav bar
@@ -120,7 +132,7 @@ class _AppShellState extends State<AppShell> {
                         context,
                         icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
                         inactiveIcon: PhosphorIcons.browsers(),
-                        label: AppLocalizations.of(context)!.folders,
+                        label: AppLocalizations.of(context)!.pages,
                         index: 1,
                         selectedIndex: selectedIndex,
                         isDark: isDark,
@@ -147,10 +159,26 @@ class _AppShellState extends State<AppShell> {
                       ),
                       _buildNavItem(
                         context,
+                        icon: isAdmin
+                            ? PhosphorIcons.crown(PhosphorIconsStyle.fill)
+                            : PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+                        inactiveIcon: isAdmin
+                            ? PhosphorIcons.crown()
+                            : PhosphorIcons.usersThree(),
+                        label: isAdmin
+                            ? AppLocalizations.of(context)!.adminDashboard
+                            : AppLocalizations.of(context)!.communityTitle,
+                        index: 4,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                        isAdmin: isAdmin,
+                      ),
+                      _buildNavItem(
+                        context,
                         icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
                         inactiveIcon: PhosphorIcons.gear(),
                         label: AppLocalizations.of(context)!.settings,
-                        index: 4,
+                        index: 5,
                         selectedIndex: selectedIndex,
                         isDark: isDark,
                       ),
@@ -173,10 +201,11 @@ class _AppShellState extends State<AppShell> {
     required int index,
     required int selectedIndex,
     required bool isDark,
+    bool isAdmin = false,
   }) {
     final isSelected = index == selectedIndex;
     return GestureDetector(
-      onTap: () => _onItemTapped(context, index),
+      onTap: () => _onItemTapped(context, index, isAdmin),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

@@ -24,6 +24,8 @@
   "version": "Version",
   "home": "Home",
   "discover": "Discover",
+  "search": "Search",
+  "pages": "Pages",
   "folders": "Folders",
   "clipboard": "Clipboard",
   "userProfile": "User Profile",
@@ -1285,5 +1287,18 @@
   "communityWelcomeMessageHint": "Enter a welcome message or community rules...",
   "communityWelcomeMessageSaved": "Welcome message saved",
   "communitySearchHint": "Search posts...",
-  "communityNoSearchResults": "No posts match your search"
+  "communityNoSearchResults": "No posts match your search",
+  "sectionNewlyAdded": "Newly Added",
+  "sectionFeatured": "Featured",
+  "sectionTrending": "Trending",
+  "sectionPopular": "Popular",
+  "pinnedPost": "Pinned",
+  "formTagsPlaceholder": "Tags (comma separated)",
+  "actionCommunity": "Community",
+  "actionBookmarks": "Bookmarks",
+  "actionRead": "Read",
+  "actionView": "View",
+  "statusPending": "Pending",
+  "statusApproved": "Approved",
+  "statusRejected": "Rejected"
 }

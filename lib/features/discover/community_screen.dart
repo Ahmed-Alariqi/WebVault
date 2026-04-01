@@ -174,7 +174,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               PhosphorIcons.magnifyingGlass(),
               color: isDark ? Colors.white70 : Colors.black54,
             ),
-            tooltip: 'Search',
+            tooltip: AppLocalizations.of(context)!.search,
             onPressed: () {
               showSearch(
                 context: context,
@@ -192,25 +192,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               if (isAdmin) {
                 return IconButton(
                   icon: Icon(
-                    PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                    PhosphorIcons.crown(PhosphorIconsStyle.fill),
                     color: AppTheme.primaryColor,
                   ),
-                  tooltip: 'Admin Panel',
+                  tooltip: AppLocalizations.of(context)!.adminDashboard,
                   onPressed: () => context.push('/admin/community'),
                 ).animate().fadeIn().scale();
               }
               return const SizedBox.shrink();
             },
           ),
-          if (!isRestricted)
-            IconButton(
-              icon: Icon(
-                PhosphorIcons.notePencil(PhosphorIconsStyle.fill),
-                color: AppTheme.accentColor,
-              ),
-              tooltip: 'New Post',
-              onPressed: () => _showNewPostSheet(context),
-            ).animate().fadeIn().scale(),
         ],
       ),
       body: Column(
@@ -588,7 +579,9 @@ class _CommunityPostCard extends ConsumerWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'PINNED',
+                            AppLocalizations.of(
+                              context,
+                            )!.pinnedPost.toUpperCase(),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,

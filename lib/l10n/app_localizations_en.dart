@@ -81,6 +81,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get discover => 'Discover';
 
   @override
+  String get search => 'Search';
+
+  @override
+  String get pages => 'Pages';
+
+  @override
   String get folders => 'Folders';
 
   @override
@@ -1898,9 +1904,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resetPasswordSent => 'Reset link sent! Check your email.';
 
   @override
-  String get pages => 'Pages';
-
-  @override
   String get addPage => 'Add Page';
 
   @override
@@ -1935,9 +1938,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editPage => 'Edit Page';
-
-  @override
-  String get search => 'Search';
 
   @override
   String get loading => 'Loading...';
@@ -2806,4 +2806,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get communityNoSearchResults => 'No posts match your search';
+
+  @override
+  String get sectionNewlyAdded => 'Newly Added';
+
+  @override
+  String get sectionFeatured => 'Featured';
+
+  @override
+  String get sectionTrending => 'Trending';
+
+  @override
+  String get sectionPopular => 'Popular';
+
+  @override
+  String get pinnedPost => 'Pinned';
+
+  @override
+  String get formTagsPlaceholder => 'Tags (comma separated)';
+
+  @override
+  String get actionCommunity => 'Community';
+
+  @override
+  String get actionBookmarks => 'Bookmarks';
+
+  @override
+  String get actionRead => 'Read';
+
+  @override
+  String get actionView => 'View';
+
+  @override
+  String get statusPending => 'Pending';
+
+  @override
+  String get statusApproved => 'Approved';
+
+  @override
+  String get statusRejected => 'Rejected';
 }

@@ -22,9 +22,27 @@ class PagesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.pages),
         actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.folder()),
-            onPressed: () => context.push('/folders'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: TextButton.icon(
+              onPressed: () => context.push('/folders'),
+              icon: Icon(PhosphorIcons.folder(), size: 18),
+              label: Text(
+                AppLocalizations.of(context)!.folders,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                foregroundColor: AppTheme.primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
           ),
         ],
       ),

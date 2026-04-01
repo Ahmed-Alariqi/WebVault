@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'Discover'**
   String get discover;
 
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @pages.
+  ///
+  /// In en, this message translates to:
+  /// **'Pages'**
+  String get pages;
+
   /// No description provided for @folders.
   ///
   /// In en, this message translates to:
@@ -3650,12 +3662,6 @@ abstract class AppLocalizations {
   /// **'Reset link sent! Check your email.'**
   String get resetPasswordSent;
 
-  /// No description provided for @pages.
-  ///
-  /// In en, this message translates to:
-  /// **'Pages'**
-  String get pages;
-
   /// No description provided for @addPage.
   ///
   /// In en, this message translates to:
@@ -3727,12 +3733,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Page'**
   String get editPage;
-
-  /// No description provided for @search.
-  ///
-  /// In en, this message translates to:
-  /// **'Search'**
-  String get search;
 
   /// No description provided for @loading.
   ///
@@ -5311,6 +5311,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No posts match your search'**
   String get communityNoSearchResults;
+
+  /// No description provided for @sectionNewlyAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Newly Added'**
+  String get sectionNewlyAdded;
+
+  /// No description provided for @sectionFeatured.
+  ///
+  /// In en, this message translates to:
+  /// **'Featured'**
+  String get sectionFeatured;
+
+  /// No description provided for @sectionTrending.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending'**
+  String get sectionTrending;
+
+  /// No description provided for @sectionPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get sectionPopular;
+
+  /// No description provided for @pinnedPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned'**
+  String get pinnedPost;
+
+  /// No description provided for @formTagsPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (comma separated)'**
+  String get formTagsPlaceholder;
+
+  /// No description provided for @actionCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community'**
+  String get actionCommunity;
+
+  /// No description provided for @actionBookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get actionBookmarks;
+
+  /// No description provided for @actionRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get actionRead;
+
+  /// No description provided for @actionView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get actionView;
+
+  /// No description provided for @statusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get statusPending;
+
+  /// No description provided for @statusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get statusApproved;
+
+  /// No description provided for @statusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get statusRejected;
 }
 
 class _AppLocalizationsDelegate

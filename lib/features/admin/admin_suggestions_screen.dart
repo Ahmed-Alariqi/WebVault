@@ -24,6 +24,20 @@ class AdminSuggestionsScreen extends ConsumerWidget {
     );
   }
 
+  String _getStatusTranslation(BuildContext context, String status) {
+    final loc = AppLocalizations.of(context)!;
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return loc.statusPending;
+      case 'approved':
+        return loc.statusApproved;
+      case 'rejected':
+        return loc.statusRejected;
+      default:
+        return status;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final suggestionsAsync = ref.watch(adminSuggestionsProvider);
@@ -81,7 +95,10 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                               border: Border.all(color: Colors.orange),
                             ),
                             child: Text(
-                              item.status.toUpperCase(),
+                              _getStatusTranslation(
+                                context,
+                                item.status,
+                              ).toUpperCase(),
                               style: const TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
