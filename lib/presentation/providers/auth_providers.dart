@@ -52,6 +52,7 @@ const kAllPermissions = [
   'users',
   'community',
   'advertisements',
+  'collections',
 ];
 
 /// Preset permissions for the Content Creator role

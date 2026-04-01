@@ -6,7 +6,6 @@ class CollectionModel {
   final String title;
   final String description;
   final String? coverImageUrl;
-  final int iconCodePoint;
   final int colorValue;
   final int sortOrder;
   final bool isActive;
@@ -24,7 +23,6 @@ class CollectionModel {
     required this.title,
     this.description = '',
     this.coverImageUrl,
-    this.iconCodePoint = 983044,
     this.colorValue = 4282339765,
     this.sortOrder = 0,
     this.isActive = true,
@@ -53,7 +51,6 @@ class CollectionModel {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       coverImageUrl: json['cover_image_url'],
-      iconCodePoint: json['icon_code_point'] ?? 983044,
       colorValue: (json['color_value'] ?? 0x3F51B5) | 0xFF000000,
       sortOrder: json['sort_order'] ?? 0,
       isActive: json['is_active'] ?? true,
@@ -68,7 +65,6 @@ class CollectionModel {
     'title': title,
     'description': description,
     'cover_image_url': coverImageUrl,
-    'icon_code_point': iconCodePoint,
     'color_value': colorValue & 0xFFFFFF,
     'sort_order': sortOrder,
     'is_active': isActive,
@@ -78,7 +74,6 @@ class CollectionModel {
     String? title,
     String? description,
     String? coverImageUrl,
-    int? iconCodePoint,
     int? colorValue,
     int? sortOrder,
     bool? isActive,
@@ -90,7 +85,6 @@ class CollectionModel {
       title: title ?? this.title,
       description: description ?? this.description,
       coverImageUrl: coverImageUrl ?? this.coverImageUrl,
-      iconCodePoint: iconCodePoint ?? this.iconCodePoint,
       colorValue: colorValue ?? this.colorValue,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,

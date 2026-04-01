@@ -85,6 +85,7 @@ class CommunityScreen extends ConsumerStatefulWidget {
 
 class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   final ScrollController _scrollController = ScrollController();
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -111,11 +112,25 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pState = ref.watch(communityPostsPaginatedProvider);
     final selectedCategory = ref.watch(communityCategoryFilterProvider);
+    final readOnlyAsync = ref.watch(communityReadOnlyProvider);
+    final banStatusAsync = ref.watch(userBanStatusProvider);
+    final welcomeAsync = ref.watch(communityWelcomeMessageProvider);
 
-    // Client-side category filtering
-    final filteredPosts = selectedCategory == 'all'
+    final isReadOnly = readOnlyAsync.valueOrNull ?? false;
+    final banStatus = banStatusAsync.valueOrNull ?? const BanStatus();
+    final isRestricted = isReadOnly || banStatus.isBanned;
+
+    // Client-side category + search filtering
+    var filteredPosts = selectedCategory == 'all'
         ? pState.items
         : pState.items.where((p) => p.category == selectedCategory).toList();
+    if (_searchQuery.isNotEmpty) {
+      filteredPosts = filteredPosts
+          .where(
+            (p) => p.content.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
+    }
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -153,6 +168,24 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           ],
         ),
         actions: [
+          // Search Toggle
+          IconButton(
+            icon: Icon(
+              PhosphorIcons.magnifyingGlass(),
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+            tooltip: 'Search',
+            onPressed: () {
+              showSearch(
+                context: context,
+                delegate: _CommunitySearchDelegate(
+                  posts: pState.items,
+                  isDark: isDark,
+                  onQuery: (q) => setState(() => _searchQuery = q),
+                ),
+              );
+            },
+          ),
           Consumer(
             builder: (context, ref, _) {
               final isAdmin = ref.watch(isAdminProvider).valueOrNull == true;
@@ -169,18 +202,118 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               return const SizedBox.shrink();
             },
           ),
-          IconButton(
-            icon: Icon(
-              PhosphorIcons.notePencil(PhosphorIconsStyle.fill),
-              color: AppTheme.accentColor,
-            ),
-            tooltip: 'New Post',
-            onPressed: () => _showNewPostSheet(context),
-          ).animate().fadeIn().scale(),
+          if (!isRestricted)
+            IconButton(
+              icon: Icon(
+                PhosphorIcons.notePencil(PhosphorIconsStyle.fill),
+                color: AppTheme.accentColor,
+              ),
+              tooltip: 'New Post',
+              onPressed: () => _showNewPostSheet(context),
+            ).animate().fadeIn().scale(),
         ],
       ),
       body: Column(
         children: [
+          // --- Welcome Banner ---
+          welcomeAsync.when(
+            data: (msg) {
+              if (msg.isEmpty) return const SizedBox.shrink();
+              return Container(
+                margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.megaphone(PhosphorIconsStyle.fill),
+                      color: AppTheme.primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        msg,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn().slideY(begin: -0.1);
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
+          ),
+
+          // --- Read-Only / Ban Banner ---
+          if (isReadOnly)
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.lock_outline,
+                    color: Colors.orange,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context)!.communityReadOnlyBanner,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn()
+          else if (banStatus.isBanned)
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 4, 20, 4),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppTheme.errorColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.block, color: AppTheme.errorColor, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      banStatus.banType == 'mute'
+                          ? AppLocalizations.of(context)!.communityMutedBanner
+                          : AppLocalizations.of(context)!.communityBannedBanner,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(),
+
           // Category Filters
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -254,11 +387,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: ModernFab.extended(
-        onPressed: () => _showNewPostSheet(context),
-        icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
-        label: Text(AppLocalizations.of(context)!.post),
-      ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack),
+      floatingActionButton: isRestricted
+          ? null
+          : ModernFab.extended(
+              onPressed: () => _showNewPostSheet(context),
+              icon: Icon(PhosphorIcons.plusCircle(PhosphorIconsStyle.fill)),
+              label: Text(AppLocalizations.of(context)!.post),
+            ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack),
     );
   }
 
@@ -475,9 +610,102 @@ class _CommunityPostCard extends ConsumerWidget {
                           await ref
                               .read(communityPostsPaginatedProvider.notifier)
                               .deletePost(post.id);
+                        } else if (value == 'edit') {
+                          final canEdit =
+                              DateTime.now()
+                                  .difference(post.createdAt)
+                                  .inMinutes <=
+                              15;
+                          if (!canEdit) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.communityEditTimeExpired,
+                                ),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            return;
+                          }
+                          final controller = TextEditingController(
+                            text: post.content,
+                          );
+                          final result = await showDialog<String>(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              backgroundColor: isDark
+                                  ? AppTheme.darkCard
+                                  : Colors.white,
+                              title: Text(
+                                AppLocalizations.of(context)!.communityEditPost,
+                              ),
+                              content: TextField(
+                                controller: controller,
+                                maxLines: 5,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                                decoration: InputDecoration(
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(c),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.cancel,
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.pop(c, controller.text.trim()),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.save,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (result != null &&
+                              result.isNotEmpty &&
+                              result != post.content) {
+                            await ref
+                                .read(communityPostsPaginatedProvider.notifier)
+                                .editPost(post.id, result);
+                          }
                         }
                       },
                       itemBuilder: (context) => [
+                        if (isOwner)
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  PhosphorIcons.pencilSimple(),
+                                  color: AppTheme.primaryColor,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.communityEditPost,
+                                  style: const TextStyle(
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         if (isOwner || isAdmin)
                           PopupMenuItem(
                             value: 'delete',
@@ -505,15 +733,32 @@ class _CommunityPostCard extends ConsumerWidget {
             // Content
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                post.content,
-                style: TextStyle(
-                  fontSize: 15,
-                  height: 1.5,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.9)
-                      : Colors.black87,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.content,
+                    style: TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : Colors.black87,
+                    ),
+                  ),
+                  if (post.isEdited)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        '(${AppLocalizations.of(context)!.communityEdited})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontStyle: FontStyle.italic,
+                          color: isDark ? Colors.white38 : Colors.black38,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
 
@@ -764,6 +1009,125 @@ class _EmptyCommunityState extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// --- Search Delegate for Community Posts ---
+class _CommunitySearchDelegate extends SearchDelegate<String> {
+  final List<CommunityPost> posts;
+  final bool isDark;
+  final void Function(String) onQuery;
+
+  _CommunitySearchDelegate({
+    required this.posts,
+    required this.isDark,
+    required this.onQuery,
+  });
+
+  @override
+  String get searchFieldLabel => '';
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.copyWith(
+      appBarTheme: theme.appBarTheme.copyWith(
+        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+        elevation: 0,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+        border: InputBorder.none,
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) => [
+    if (query.isNotEmpty)
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = '';
+          onQuery('');
+        },
+      ),
+  ];
+
+  @override
+  Widget buildLeading(BuildContext context) => IconButton(
+    icon: Icon(PhosphorIcons.caretLeft()),
+    onPressed: () {
+      onQuery('');
+      close(context, '');
+    },
+  );
+
+  @override
+  Widget buildResults(BuildContext context) {
+    onQuery(query);
+    close(context, query);
+    return const SizedBox.shrink();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final results = query.isEmpty
+        ? <CommunityPost>[]
+        : posts
+              .where(
+                (p) => p.content.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
+
+    if (query.isEmpty) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.communitySearchHint,
+          style: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
+        ),
+      );
+    }
+
+    if (results.isEmpty) {
+      return Center(
+        child: Text(
+          AppLocalizations.of(context)!.communityNoSearchResults,
+          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: results.length,
+      padding: const EdgeInsets.all(16),
+      itemBuilder: (context, index) {
+        final post = results[index];
+        return ListTile(
+          title: Text(
+            post.content,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontSize: 14,
+            ),
+          ),
+          subtitle: Text(
+            DateFormat.yMMMd().format(post.createdAt),
+            style: TextStyle(
+              color: isDark ? Colors.white38 : Colors.black38,
+              fontSize: 12,
+            ),
+          ),
+          onTap: () {
+            onQuery('');
+            close(context, '');
+            context.push('/community/post/${post.id}', extra: post);
+          },
+        );
+      },
     );
   }
 }

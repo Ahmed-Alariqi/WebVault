@@ -7,6 +7,7 @@ import '../../data/models/collection_model.dart';
 import '../../presentation/providers/admin_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'widgets/google_image_search_sheet.dart';
+import 'widgets/discover_item_picker_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
 class ManageCollectionsScreen extends ConsumerStatefulWidget {
@@ -105,18 +106,22 @@ class _ManageCollectionsScreenState
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Color icon
+              // Color block with first letter
               Container(
                 width: 48,
                 height: 48,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  IconData(col.iconCodePoint, fontFamily: 'MaterialIcons'),
-                  color: color,
-                  size: 24,
+                child: Text(
+                  col.title.isNotEmpty ? col.title[0].toUpperCase() : '',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -262,9 +267,6 @@ class _ManageCollectionsScreenState
 
     // Pickers State
     int selectedColor = existing?.colorValue ?? AppTheme.primaryColor.value;
-    int selectedIcon =
-        existing?.iconCodePoint ??
-        PhosphorIcons.folder(PhosphorIconsStyle.fill).codePoint;
 
     final colorOptions = [
       AppTheme.primaryColor.value,
@@ -275,17 +277,6 @@ class _ManageCollectionsScreenState
       0xFFFF9800, // Orange
       0xFFF44336, // Red
       0xFF607D8B, // Blue Grey
-    ];
-
-    final iconOptions = [
-      PhosphorIcons.folder(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.star(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.fire(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.lightning(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.graduationCap(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.monitorPlay(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.bookBookmark(PhosphorIconsStyle.fill).codePoint,
-      PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill).codePoint,
     ];
 
     showModalBottomSheet(
@@ -334,15 +325,22 @@ class _ManageCollectionsScreenState
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: Color(selectedColor).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Icon(
-                          IconData(selectedIcon, fontFamily: 'MaterialIcons'),
-                          color: Color(selectedColor),
-                          size: 24,
+                        child: Text(
+                          titleCtrl.text.isNotEmpty
+                              ? titleCtrl.text[0].toUpperCase()
+                              : 'C',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(selectedColor),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -362,7 +360,8 @@ class _ManageCollectionsScreenState
 
                   // Pickers
                   Text(
-                    'Color & Icon',
+                    loc.manageCollections, // Or appropriate label for color
+
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -413,48 +412,6 @@ class _ManageCollectionsScreenState
                                     size: 20,
                                   )
                                 : null,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 44,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: iconOptions.length,
-                      separatorBuilder: (_, _) => const SizedBox(width: 12),
-                      itemBuilder: (ctx, i) {
-                        final iconCode = iconOptions[i];
-                        final isSelected = selectedIcon == iconCode;
-                        final color = Color(selectedColor);
-                        return GestureDetector(
-                          onTap: () =>
-                              setSheetState(() => selectedIcon = iconCode),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? color.withValues(alpha: 0.15)
-                                  : (isDark
-                                        ? Colors.white10
-                                        : Colors.black.withValues(alpha: 0.05)),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? color : Colors.transparent,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Icon(
-                              IconData(iconCode, fontFamily: 'MaterialIcons'),
-                              color: isSelected
-                                  ? color
-                                  : (isDark ? Colors.white54 : Colors.black54),
-                              size: 22,
-                            ),
                           ),
                         );
                       },
@@ -687,7 +644,6 @@ class _ManageCollectionsScreenState
                               ? null
                               : coverCtrl.text.trim(),
                           'is_active': isActive,
-                          'icon_code_point': selectedIcon,
                           'color_value': selectedColor & 0xFFFFFF,
                         };
                         if (existing != null) {
@@ -874,20 +830,19 @@ class _ManageCollectionsScreenState
                                           width: 48,
                                           height: 48,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, _, _) =>
-                                              Container(
-                                                width: 48,
-                                                height: 48,
-                                                color: isDark
-                                                    ? Colors.white10
-                                                    : Colors.black.withValues(
-                                                        alpha: 0.05,
-                                                      ),
-                                                child: const Icon(
-                                                  Icons.image,
-                                                  size: 20,
-                                                ),
-                                              ),
+                                          errorBuilder: (_, _, _) => Container(
+                                            width: 48,
+                                            height: 48,
+                                            color: isDark
+                                                ? Colors.white10
+                                                : Colors.black.withValues(
+                                                    alpha: 0.05,
+                                                  ),
+                                            child: const Icon(
+                                              Icons.image,
+                                              size: 20,
+                                            ),
+                                          ),
                                         )
                                       : Container(
                                           width: 48,
@@ -960,206 +915,40 @@ class _ManageCollectionsScreenState
 
   void _showAddItemDialog(BuildContext context, CollectionModel col) {
     final loc = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    String search = '';
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          maxChildSize: 0.95,
-          minChildSize: 0.4,
-          builder: (ctx, scrollController) => Container(
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white24 : Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+      builder: (ctx) => Consumer(
+        builder: (context, ref, _) {
+          final currentItemsAsync = ref.watch(collectionItemsProvider(col.id));
+          final currentIds =
+              currentItemsAsync.valueOrNull?.map((e) => e.id).toSet() ?? {};
+
+          return DiscoverItemPickerSheet(
+            excludedIds: currentIds,
+            autoCloseOnSelect: false,
+            trailingBuilder: (context, item) {
+              return IconButton(
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: AppTheme.primaryColor,
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                  child: TextField(
-                    onChanged: (v) => setSheetState(() => search = v),
-                    decoration: InputDecoration(
-                      hintText: loc.searchItemsToAdd,
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Consumer(
-                    builder: (ctx, ref, _) {
-                      final allItemsAsync = ref.watch(adminWebsitesProvider);
-                      final currentItemsAsync = ref.watch(
-                        collectionItemsProvider(col.id),
-                      );
-
-                      return allItemsAsync.when(
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (e, _) => Center(child: Text('Error: $e')),
-                        data: (allItems) {
-                          final currentIds =
-                              currentItemsAsync.valueOrNull
-                                  ?.map((e) => e.id)
-                                  .toSet() ??
-                              {};
-
-                          var filtered = allItems
-                              .where((item) => !currentIds.contains(item.id))
-                              .toList();
-
-                          if (search.isNotEmpty) {
-                            filtered = filtered
-                                .where(
-                                  (item) =>
-                                      item.title.toLowerCase().contains(
-                                        search.toLowerCase(),
-                                      ) ||
-                                      item.description.toLowerCase().contains(
-                                        search.toLowerCase(),
-                                      ),
-                                )
-                                .toList();
-                          }
-
-                          if (filtered.isEmpty) {
-                            return Center(
-                              child: Text(
-                                loc.noItemsInCollection,
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black38,
-                                ),
-                              ),
-                            );
-                          }
-
-                          return ListView.builder(
-                            controller: scrollController,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            itemCount: filtered.length,
-                            itemBuilder: (ctx, i) {
-                              final item = filtered[i];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: ListTile(
-                                  leading: ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child:
-                                        item.imageUrl != null &&
-                                            item.imageUrl!.isNotEmpty
-                                        ? Image.network(
-                                            item.imageUrl!,
-                                            width: 48,
-                                            height: 48,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, _, _) =>
-                                                Container(
-                                                  width: 48,
-                                                  height: 48,
-                                                  color: isDark
-                                                      ? Colors.white10
-                                                      : Colors.black.withValues(
-                                                          alpha: 0.05,
-                                                        ),
-                                                  child: const Icon(
-                                                    Icons.image,
-                                                    size: 20,
-                                                  ),
-                                                ),
-                                          )
-                                        : Container(
-                                            width: 48,
-                                            height: 48,
-                                            color: isDark
-                                                ? Colors.white10
-                                                : Colors.black.withValues(
-                                                    alpha: 0.05,
-                                                  ),
-                                            child: const Icon(
-                                              Icons.language,
-                                              size: 20,
-                                            ),
-                                          ),
-                                  ),
-                                  title: Text(
-                                    item.title,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    item.contentType,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: isDark
-                                          ? Colors.white38
-                                          : Colors.black38,
-                                    ),
-                                  ),
-                                  trailing: IconButton(
-                                    icon: Icon(
-                                      Icons.add_circle_outline,
-                                      color: AppTheme.primaryColor,
-                                    ),
-                                    onPressed: () async {
-                                      await adminAddItemToCollection(
-                                        col.id,
-                                        item.id,
-                                      );
-                                      ref.invalidate(
-                                        collectionItemsProvider(col.id),
-                                      );
-                                      ref.invalidate(adminCollectionsProvider);
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(loc.itemAdded),
-                                          ),
-                                        );
-                                      }
-                                      setSheetState(() {});
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+                onPressed: () async {
+                  await adminAddItemToCollection(col.id, item.id);
+                  ref.invalidate(collectionItemsProvider(col.id));
+                  ref.invalidate(adminCollectionsProvider);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(loc.itemAdded)));
+                  }
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

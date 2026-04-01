@@ -5113,6 +5113,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More Details'**
   String get adDetailDefaultButton;
+
+  /// No description provided for @communityReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Community is in read-only mode'**
+  String get communityReadOnly;
+
+  /// No description provided for @communityReadOnlyAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-Only Mode'**
+  String get communityReadOnlyAdmin;
+
+  /// No description provided for @communityReadOnlyAdminSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevent users from posting or replying'**
+  String get communityReadOnlyAdminSub;
+
+  /// No description provided for @communityReadOnlyBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'This community is currently in read-only mode. You can browse posts but cannot create new ones.'**
+  String get communityReadOnlyBanner;
+
+  /// No description provided for @communityBannedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You have been restricted from posting in the community.'**
+  String get communityBannedBanner;
+
+  /// No description provided for @communityMutedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'You are temporarily muted. You can browse but cannot post or reply.'**
+  String get communityMutedBanner;
+
+  /// No description provided for @communityMuteExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute expires: {date}'**
+  String communityMuteExpires(String date);
+
+  /// No description provided for @communityBanUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban User'**
+  String get communityBanUser;
+
+  /// No description provided for @communityMuteUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute User'**
+  String get communityMuteUser;
+
+  /// No description provided for @communityUnban.
+  ///
+  /// In en, this message translates to:
+  /// **'Unban'**
+  String get communityUnban;
+
+  /// No description provided for @communityBanPermanent.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanent Ban'**
+  String get communityBanPermanent;
+
+  /// No description provided for @communityMute24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute 24 Hours'**
+  String get communityMute24h;
+
+  /// No description provided for @communityMute1w.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute 1 Week'**
+  String get communityMute1w;
+
+  /// No description provided for @communityBanReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get communityBanReason;
+
+  /// No description provided for @communityBanned.
+  ///
+  /// In en, this message translates to:
+  /// **'User has been banned'**
+  String get communityBanned;
+
+  /// No description provided for @communityMuted.
+  ///
+  /// In en, this message translates to:
+  /// **'User has been muted'**
+  String get communityMuted;
+
+  /// No description provided for @communityUnbanned.
+  ///
+  /// In en, this message translates to:
+  /// **'User has been unbanned'**
+  String get communityUnbanned;
+
+  /// No description provided for @communityBannedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Banned Users'**
+  String get communityBannedUsers;
+
+  /// No description provided for @communityNoBannedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'No banned or muted users'**
+  String get communityNoBannedUsers;
+
+  /// No description provided for @communityBanType.
+  ///
+  /// In en, this message translates to:
+  /// **'Ban'**
+  String get communityBanType;
+
+  /// No description provided for @communityMuteType.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted'**
+  String get communityMuteType;
+
+  /// No description provided for @communityStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Stats'**
+  String get communityStats;
+
+  /// No description provided for @communityTotalPosts.
+  ///
+  /// In en, this message translates to:
+  /// **'Posts'**
+  String get communityTotalPosts;
+
+  /// No description provided for @communityTotalReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'Replies'**
+  String get communityTotalReplies;
+
+  /// No description provided for @communityPostsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get communityPostsToday;
+
+  /// No description provided for @communityEditPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Post'**
+  String get communityEditPost;
+
+  /// No description provided for @communityEdited.
+  ///
+  /// In en, this message translates to:
+  /// **'edited'**
+  String get communityEdited;
+
+  /// No description provided for @communityEditTimeExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit time has expired (15 min limit)'**
+  String get communityEditTimeExpired;
+
+  /// No description provided for @communityWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Message'**
+  String get communityWelcomeMessage;
+
+  /// No description provided for @communityWelcomeMessageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a welcome message or community rules...'**
+  String get communityWelcomeMessageHint;
+
+  /// No description provided for @communityWelcomeMessageSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome message saved'**
+  String get communityWelcomeMessageSaved;
+
+  /// No description provided for @communitySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search posts...'**
+  String get communitySearchHint;
+
+  /// No description provided for @communityNoSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No posts match your search'**
+  String get communityNoSearchResults;
 }
 
 class _AppLocalizationsDelegate

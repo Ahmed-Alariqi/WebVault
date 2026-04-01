@@ -613,21 +613,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  IconData(
-                                    col.iconCodePoint,
-                                    fontFamily: 'MaterialIcons',
-                                  ),
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
                               const Spacer(),
                               Text(
                                 col.title,

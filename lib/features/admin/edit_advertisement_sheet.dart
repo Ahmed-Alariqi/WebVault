@@ -13,6 +13,7 @@ import '../../core/services/imagekit_service.dart';
 import '../../domain/models/advertisement.dart';
 import '../../data/models/website_model.dart';
 import 'widgets/google_image_search_sheet.dart';
+import 'widgets/discover_item_picker_sheet.dart';
 import '../../l10n/app_localizations.dart';
 
 class EditAdvertisementSheet extends ConsumerStatefulWidget {
@@ -34,7 +35,6 @@ class _EditAdvertisementSheetState
   final _durationController = TextEditingController();
   final _linkUrlController = TextEditingController();
   final _linkedWebsiteIdController = TextEditingController();
-  final _searchController = TextEditingController();
   late final QuillController _detailInstructionsController;
   final _detailButtonTextController = TextEditingController();
   final _detailActionUrlController = TextEditingController();
@@ -50,9 +50,6 @@ class _EditAdvertisementSheetState
   bool _detailCardEnabled = false;
   String _detailCardActionType = 'support_chat';
 
-  Timer? _debounce;
-  bool _isSearching = false;
-  List<WebsiteModel>? _searchResults;
   WebsiteModel? _selectedWebsite;
 
   @override
@@ -115,11 +112,9 @@ class _EditAdvertisementSheetState
     _imageController.dispose();
     _linkUrlController.dispose();
     _linkedWebsiteIdController.dispose();
-    _searchController.dispose();
     _detailInstructionsController.dispose();
     _detailButtonTextController.dispose();
     _detailActionUrlController.dispose();
-    _debounce?.cancel();
     super.dispose();
   }
 
@@ -137,43 +132,6 @@ class _EditAdvertisementSheetState
       }
     } catch (e) {
       // ignore
-    }
-  }
-
-  void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (query.trim().isEmpty) {
-        setState(() {
-          _searchResults = null;
-          _isSearching = false;
-        });
-        return;
-      }
-      _performSearch(query);
-    });
-  }
-
-  Future<void> _performSearch(String query) async {
-    setState(() => _isSearching = true);
-    try {
-      final response = await SupabaseConfig.client
-          .from('websites')
-          .select()
-          .ilike('title', '%$query%')
-          .limit(5);
-
-      final results = (response as List)
-          .map((e) => WebsiteModel.fromJson(e))
-          .toList();
-      if (mounted) {
-        setState(() {
-          _searchResults = results;
-          _isSearching = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isSearching = false);
     }
   }
 
@@ -555,70 +513,41 @@ class _EditAdvertisementSheetState
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTextField(
-                controller: _searchController,
-                label: l10n.adSearchInternal,
-                prefixIcon: PhosphorIcons.magnifyingGlass(),
-                isDark: isDark,
-                onChanged: _onSearchChanged,
-              ),
-              if (_isSearching)
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-              if (_searchResults != null && !_isSearching)
-                Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  constraints: const BoxConstraints(maxHeight: 200),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isDark ? Colors.white10 : Colors.black12,
+              if (_selectedWebsite == null)
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final selected =
+                          await showModalBottomSheet<WebsiteModel?>(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => const DiscoverItemPickerSheet(),
+                          );
+                      if (selected != null) {
+                        setState(() {
+                          _selectedWebsite = selected;
+                          _linkedWebsiteIdController.text = selected.id;
+                        });
+                      }
+                    },
+                    icon: Icon(PhosphorIcons.magnifyingGlass(), size: 20),
+                    label: Text(
+                      l10n.adSearchInternal,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark ? Colors.white : Colors.black87,
+                      side: BorderSide(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                   ),
-                  child: _searchResults!.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(l10n.adNoMatchingItems),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: _searchResults!.length,
-                          itemBuilder: (context, index) {
-                            final site = _searchResults![index];
-                            return ListTile(
-                              leading:
-                                  site.imageUrl != null &&
-                                      site.imageUrl!.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: CachedNetworkImage(
-                                        imageUrl: site.imageUrl!,
-                                        width: 32,
-                                        height: 32,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : const Icon(Icons.language),
-                              title: Text(site.title, maxLines: 1),
-                              subtitle: Text(
-                                site.description,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  _selectedWebsite = site;
-                                  _linkedWebsiteIdController.text = site.id;
-                                  _searchController.clear();
-                                  _searchResults = null;
-                                });
-                              },
-                            );
-                          },
-                        ),
                 ),
             ],
           )

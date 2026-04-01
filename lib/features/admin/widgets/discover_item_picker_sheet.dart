@@ -5,10 +5,23 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../presentation/providers/admin_providers.dart';
 
+import '../../../data/models/website_model.dart';
 import '../../../l10n/app_localizations.dart';
 
 class DiscoverItemPickerSheet extends ConsumerStatefulWidget {
-  const DiscoverItemPickerSheet({super.key});
+  final Set<String>? excludedIds;
+  final bool autoCloseOnSelect;
+  final Widget Function(BuildContext context, WebsiteModel item)?
+  trailingBuilder;
+  final void Function(WebsiteModel item)? onItemSelected;
+
+  const DiscoverItemPickerSheet({
+    super.key,
+    this.excludedIds,
+    this.autoCloseOnSelect = true,
+    this.trailingBuilder,
+    this.onItemSelected,
+  });
 
   @override
   ConsumerState<DiscoverItemPickerSheet> createState() =>
@@ -111,86 +124,106 @@ class _DiscoverItemPickerSheetState
 
               // List
               Expanded(
-                child: state.isLoading && state.isInitialLoad
-                    ? const Center(child: CircularProgressIndicator())
-                    : state.items.isEmpty
-                    ? Center(
+                child: Builder(
+                  builder: (context) {
+                    final matchingItems = state.items.where((i) {
+                      return widget.excludedIds == null ||
+                          !widget.excludedIds!.contains(i.id);
+                    }).toList();
+
+                    if (state.isLoading && state.isInitialLoad) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (matchingItems.isEmpty && !state.hasMore) {
+                      return Center(
                         child: Text(
                           AppLocalizations.of(context)!.noMatchesFound,
                           style: TextStyle(
                             color: isDark ? Colors.white54 : Colors.black54,
                           ),
                         ),
-                      )
-                    : ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: state.items.length + (state.hasMore ? 1 : 0),
-                        separatorBuilder: (ctx, i) => const Divider(),
-                        itemBuilder: (context, index) {
-                          if (index >= state.items.length) {
-                            return Center(
-                              child: TextButton(
-                                onPressed: () {
-                                  ref
-                                      .read(
-                                        adminWebsitesPaginatedProvider.notifier,
-                                      )
-                                      .loadMore();
-                                },
-                                child: const Text('Load More'),
-                              ),
-                            );
-                          }
-                          final item = state.items[index];
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: item.imageUrl != null
-                                  ? CachedNetworkImage(
-                                      imageUrl: item.imageUrl!,
-                                      width: 50,
-                                      height: 50,
-                                      fit: BoxFit.cover,
+                      );
+                    }
+
+                    return ListView.separated(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: matchingItems.length + (state.hasMore ? 1 : 0),
+                      separatorBuilder: (ctx, i) => const Divider(),
+                      itemBuilder: (context, index) {
+                        if (index >= matchingItems.length) {
+                          return Center(
+                            child: TextButton(
+                              onPressed: () {
+                                ref
+                                    .read(
+                                      adminWebsitesPaginatedProvider.notifier,
                                     )
-                                  : Container(
-                                      width: 50,
-                                      height: 50,
-                                      color: isDark
-                                          ? Colors.white10
-                                          : Colors.black12,
-                                      child: Icon(
-                                        PhosphorIcons.image(),
-                                        color: isDark
-                                            ? Colors.white54
-                                            : Colors.black54,
-                                      ),
-                                    ),
+                                    .loadMore();
+                              },
+                              child: const Text('Load More'),
                             ),
-                            title: Text(
-                              item.title,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              item.contentType,
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontSize: 12,
-                              ),
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              Navigator.of(context).pop(item);
-                            },
                           );
-                        },
-                      ),
+                        }
+                        final item = matchingItems[index];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: item.imageUrl != null
+                                ? CachedNetworkImage(
+                                    imageUrl: item.imageUrl!,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    width: 50,
+                                    height: 50,
+                                    color: isDark
+                                        ? Colors.white10
+                                        : Colors.black12,
+                                    child: Icon(
+                                      PhosphorIcons.image(),
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                          ),
+                          title: Text(
+                            item.title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.contentType,
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: widget.trailingBuilder != null
+                              ? widget.trailingBuilder!(context, item)
+                              : const Icon(Icons.chevron_right),
+                          onTap: () {
+                            if (widget.onItemSelected != null) {
+                              widget.onItemSelected!(item);
+                            }
+                            if (widget.autoCloseOnSelect) {
+                              Navigator.of(context).pop(item);
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ],
           ),

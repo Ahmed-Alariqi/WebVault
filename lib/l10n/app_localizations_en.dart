@@ -2700,4 +2700,110 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adDetailDefaultButton => 'More Details';
+
+  @override
+  String get communityReadOnly => 'Community is in read-only mode';
+
+  @override
+  String get communityReadOnlyAdmin => 'Read-Only Mode';
+
+  @override
+  String get communityReadOnlyAdminSub =>
+      'Prevent users from posting or replying';
+
+  @override
+  String get communityReadOnlyBanner =>
+      'This community is currently in read-only mode. You can browse posts but cannot create new ones.';
+
+  @override
+  String get communityBannedBanner =>
+      'You have been restricted from posting in the community.';
+
+  @override
+  String get communityMutedBanner =>
+      'You are temporarily muted. You can browse but cannot post or reply.';
+
+  @override
+  String communityMuteExpires(String date) {
+    return 'Mute expires: $date';
+  }
+
+  @override
+  String get communityBanUser => 'Ban User';
+
+  @override
+  String get communityMuteUser => 'Mute User';
+
+  @override
+  String get communityUnban => 'Unban';
+
+  @override
+  String get communityBanPermanent => 'Permanent Ban';
+
+  @override
+  String get communityMute24h => 'Mute 24 Hours';
+
+  @override
+  String get communityMute1w => 'Mute 1 Week';
+
+  @override
+  String get communityBanReason => 'Reason (optional)';
+
+  @override
+  String get communityBanned => 'User has been banned';
+
+  @override
+  String get communityMuted => 'User has been muted';
+
+  @override
+  String get communityUnbanned => 'User has been unbanned';
+
+  @override
+  String get communityBannedUsers => 'Banned Users';
+
+  @override
+  String get communityNoBannedUsers => 'No banned or muted users';
+
+  @override
+  String get communityBanType => 'Ban';
+
+  @override
+  String get communityMuteType => 'Muted';
+
+  @override
+  String get communityStats => 'Community Stats';
+
+  @override
+  String get communityTotalPosts => 'Posts';
+
+  @override
+  String get communityTotalReplies => 'Replies';
+
+  @override
+  String get communityPostsToday => 'Today';
+
+  @override
+  String get communityEditPost => 'Edit Post';
+
+  @override
+  String get communityEdited => 'edited';
+
+  @override
+  String get communityEditTimeExpired => 'Edit time has expired (15 min limit)';
+
+  @override
+  String get communityWelcomeMessage => 'Welcome Message';
+
+  @override
+  String get communityWelcomeMessageHint =>
+      'Enter a welcome message or community rules...';
+
+  @override
+  String get communityWelcomeMessageSaved => 'Welcome message saved';
+
+  @override
+  String get communitySearchHint => 'Search posts...';
+
+  @override
+  String get communityNoSearchResults => 'No posts match your search';
 }

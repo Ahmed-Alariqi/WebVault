@@ -2691,4 +2691,108 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adDetailDefaultButton => 'تفاصيل اكثر';
+
+  @override
+  String get communityReadOnly => 'المجتمع في وضع القراءة فقط';
+
+  @override
+  String get communityReadOnlyAdmin => 'وضع القراءة فقط';
+
+  @override
+  String get communityReadOnlyAdminSub => 'منع المستخدمين من النشر أو الرد';
+
+  @override
+  String get communityReadOnlyBanner =>
+      'المجتمع حالياً في وضع القراءة فقط. يمكنك تصفح المنشورات لكن لا يمكنك إنشاء منشورات جديدة.';
+
+  @override
+  String get communityBannedBanner => 'تم تقييدك من النشر في المجتمع.';
+
+  @override
+  String get communityMutedBanner =>
+      'أنت مكتوم مؤقتاً. يمكنك التصفح لكن لا يمكنك النشر أو الرد.';
+
+  @override
+  String communityMuteExpires(String date) {
+    return 'ينتهي الكتم: $date';
+  }
+
+  @override
+  String get communityBanUser => 'حظر المستخدم';
+
+  @override
+  String get communityMuteUser => 'كتم المستخدم';
+
+  @override
+  String get communityUnban => 'إلغاء الحظر';
+
+  @override
+  String get communityBanPermanent => 'حظر دائم';
+
+  @override
+  String get communityMute24h => 'كتم 24 ساعة';
+
+  @override
+  String get communityMute1w => 'كتم أسبوع';
+
+  @override
+  String get communityBanReason => 'السبب (اختياري)';
+
+  @override
+  String get communityBanned => 'تم حظر المستخدم';
+
+  @override
+  String get communityMuted => 'تم كتم المستخدم';
+
+  @override
+  String get communityUnbanned => 'تم إلغاء حظر المستخدم';
+
+  @override
+  String get communityBannedUsers => 'المستخدمون المحظورون';
+
+  @override
+  String get communityNoBannedUsers => 'لا يوجد مستخدمون محظورون أو مكتومون';
+
+  @override
+  String get communityBanType => 'محظور';
+
+  @override
+  String get communityMuteType => 'مكتوم';
+
+  @override
+  String get communityStats => 'إحصائيات المجتمع';
+
+  @override
+  String get communityTotalPosts => 'المنشورات';
+
+  @override
+  String get communityTotalReplies => 'الردود';
+
+  @override
+  String get communityPostsToday => 'اليوم';
+
+  @override
+  String get communityEditPost => 'تعديل المنشور';
+
+  @override
+  String get communityEdited => 'تم التعديل';
+
+  @override
+  String get communityEditTimeExpired => 'انتهت مهلة التعديل (15 دقيقة)';
+
+  @override
+  String get communityWelcomeMessage => 'رسالة الترحيب';
+
+  @override
+  String get communityWelcomeMessageHint =>
+      'أدخل رسالة ترحيبية أو قوانين المجتمع...';
+
+  @override
+  String get communityWelcomeMessageSaved => 'تم حفظ رسالة الترحيب';
+
+  @override
+  String get communitySearchHint => 'البحث في المنشورات...';
+
+  @override
+  String get communityNoSearchResults => 'لا توجد منشورات مطابقة للبحث';
 }

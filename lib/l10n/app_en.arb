@@ -1246,5 +1246,44 @@
   "adDetailActionWhatsAppHelper": "e.g. +1234567890 (include country code without +)",
   "adDetailActionTelegramHelper": "e.g. username (without @)",
   "adDetailActionExternalLinkHelper": "e.g. https://example.com/...",
-  "adDetailDefaultButton": "More Details"
+  "adDetailDefaultButton": "More Details",
+
+  "communityReadOnly": "Community is in read-only mode",
+  "communityReadOnlyAdmin": "Read-Only Mode",
+  "communityReadOnlyAdminSub": "Prevent users from posting or replying",
+  "communityReadOnlyBanner": "This community is currently in read-only mode. You can browse posts but cannot create new ones.",
+  "communityBannedBanner": "You have been restricted from posting in the community.",
+  "communityMutedBanner": "You are temporarily muted. You can browse but cannot post or reply.",
+  "communityMuteExpires": "Mute expires: {date}",
+  "@communityMuteExpires": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "communityBanUser": "Ban User",
+  "communityMuteUser": "Mute User",
+  "communityUnban": "Unban",
+  "communityBanPermanent": "Permanent Ban",
+  "communityMute24h": "Mute 24 Hours",
+  "communityMute1w": "Mute 1 Week",
+  "communityBanReason": "Reason (optional)",
+  "communityBanned": "User has been banned",
+  "communityMuted": "User has been muted",
+  "communityUnbanned": "User has been unbanned",
+  "communityBannedUsers": "Banned Users",
+  "communityNoBannedUsers": "No banned or muted users",
+  "communityBanType": "Ban",
+  "communityMuteType": "Muted",
+  "communityStats": "Community Stats",
+  "communityTotalPosts": "Posts",
+  "communityTotalReplies": "Replies",
+  "communityPostsToday": "Today",
+  "communityEditPost": "Edit Post",
+  "communityEdited": "edited",
+  "communityEditTimeExpired": "Edit time has expired (15 min limit)",
+  "communityWelcomeMessage": "Welcome Message",
+  "communityWelcomeMessageHint": "Enter a welcome message or community rules...",
+  "communityWelcomeMessageSaved": "Welcome message saved",
+  "communitySearchHint": "Search posts...",
+  "communityNoSearchResults": "No posts match your search"
 }

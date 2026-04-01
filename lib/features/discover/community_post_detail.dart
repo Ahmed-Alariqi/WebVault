@@ -64,6 +64,11 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // We watch the stream of replies for this specific post
     final repliesAsync = ref.watch(communityRepliesProvider(widget.post.id));
+    final isReadOnly =
+        ref.watch(communityReadOnlyProvider).valueOrNull ?? false;
+    final banStatus =
+        ref.watch(userBanStatusProvider).valueOrNull ?? const BanStatus();
+    final isRestricted = isReadOnly || banStatus.isBanned;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -167,86 +172,95 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
             ),
           ),
 
-          // Reply Input Bar
-          Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).padding.bottom + 8,
-              top: 8,
-              left: 16,
-              right: 16,
-            ),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-              border: Border(
-                top: BorderSide(
-                  color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
-                ),
+          // Reply Input Bar (hidden when restricted)
+          if (!isRestricted)
+            Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom + 8,
+                top: 8,
+                left: 16,
+                right: 16,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                border: Border(
+                  top: BorderSide(
+                    color: isDark
+                        ? AppTheme.darkDivider
+                        : AppTheme.lightDivider,
+                  ),
                 ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _replyCtrl,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _submitReply(),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: 14,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.communityAddReply,
-                      hintStyle: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.black54,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _replyCtrl,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _submitReply(),
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 14,
                       ),
-                      prefixIcon: Icon(
-                        PhosphorIcons.chatCircle(),
-                        size: 20,
-                        color: isDark ? Colors.white54 : Colors.black54,
-                      ),
-                      filled: true,
-                      fillColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(
+                          context,
+                        )!.communityAddReply,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        prefixIcon: Icon(
+                          PhosphorIcons.chatCircle(),
+                          size: 20,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        filled: true,
+                        fillColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: _isReplying
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: _isReplying
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send,
                               color: Colors.white,
+                              size: 20,
                             ),
-                          )
-                        : const Icon(Icons.send, color: Colors.white, size: 20),
-                    onPressed: _isReplying ? null : _submitReply,
-                  ),
-                ).animate().scale(curve: Curves.elasticOut),
-              ],
+                      onPressed: _isReplying ? null : _submitReply,
+                    ),
+                  ).animate().scale(curve: Curves.elasticOut),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

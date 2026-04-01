@@ -159,7 +159,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 1.1,
+                  childAspectRatio: 0.85,
                   children: [
                     if (perms.contains('analytics'))
                       _ActionCard(

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/community_model.dart';
 import 'auth_providers.dart';
@@ -194,6 +195,27 @@ class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
       items: state.items.map((p) => p.id == postId ? updatedPost : p).toList(),
     );
   }
+
+  Future<void> editPost(String postId, String newContent) async {
+    await _client
+        .from('community_posts')
+        .update({
+          'content': newContent,
+          'is_edited': true,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', postId);
+
+    // Update local state
+    state = state.copyWith(
+      items: state.items.map((p) {
+        if (p.id == postId) {
+          return p.copyWith(content: newContent, isEdited: true);
+        }
+        return p;
+      }).toList(),
+    );
+  }
 }
 
 final communityPostsPaginatedProvider =
@@ -254,4 +276,173 @@ final communityRepliesProvider = StreamProvider.family
             (data) =>
                 data.map((item) => CommunityReply.fromJson(item)).toList(),
           );
+    });
+
+// -----------------------------------------------------------------------------
+// APP SETTINGS (remote, from Supabase app_settings table)
+// -----------------------------------------------------------------------------
+
+/// Fetches a single app setting value by key
+Future<String> _getAppSetting(String key) async {
+  try {
+    final response = await _client
+        .from('app_settings')
+        .select('value')
+        .eq('key', key)
+        .single();
+    return response['value'] as String? ?? '';
+  } catch (_) {
+    return '';
+  }
+}
+
+/// Updates a single app setting value by key
+Future<void> updateAppSetting(String key, String value) async {
+  await _client
+      .from('app_settings')
+      .update({'value': value, 'updated_at': DateTime.now().toIso8601String()})
+      .eq('key', key);
+}
+
+/// Whether the community is in read-only mode
+final communityReadOnlyProvider = FutureProvider.autoDispose<bool>((ref) async {
+  final val = await _getAppSetting('community_read_only');
+  return val == 'true';
+});
+
+/// The community welcome/rules message set by admin
+final communityWelcomeMessageProvider = FutureProvider.autoDispose<String>((
+  ref,
+) async {
+  return _getAppSetting('community_welcome_message');
+});
+
+// -----------------------------------------------------------------------------
+// USER BAN STATUS
+// -----------------------------------------------------------------------------
+
+/// Result object for ban status
+class BanStatus {
+  final bool isBanned;
+  final String banType; // 'mute', 'ban', or ''
+  final DateTime? expiresAt;
+
+  const BanStatus({this.isBanned = false, this.banType = '', this.expiresAt});
+}
+
+/// Checks if the current user is banned/muted from the community
+final userBanStatusProvider = FutureProvider.autoDispose<BanStatus>((
+  ref,
+) async {
+  final user = _client.auth.currentUser;
+  if (user == null) return const BanStatus();
+
+  try {
+    final response = await _client
+        .from('profiles')
+        .select('community_ban_type, community_ban_expires_at')
+        .eq('id', user.id)
+        .single();
+
+    final banType = response['community_ban_type'] as String?;
+    if (banType == null) return const BanStatus();
+
+    final expiresAtStr = response['community_ban_expires_at'] as String?;
+    DateTime? expiresAt;
+    if (expiresAtStr != null) {
+      expiresAt = DateTime.tryParse(expiresAtStr);
+      // If mute has expired, clear it and return not banned
+      if (expiresAt != null && expiresAt.isBefore(DateTime.now())) {
+        await _client
+            .from('profiles')
+            .update({
+              'community_ban_type': null,
+              'community_ban_expires_at': null,
+              'community_banned_by': null,
+            })
+            .eq('id', user.id);
+        return const BanStatus();
+      }
+    }
+
+    return BanStatus(isBanned: true, banType: banType, expiresAt: expiresAt);
+  } catch (_) {
+    return const BanStatus();
+  }
+});
+
+// -----------------------------------------------------------------------------
+// COMMUNITY STATS (for admin dashboard)
+// -----------------------------------------------------------------------------
+
+final communityStatsProvider = FutureProvider.autoDispose<Map<String, int>>((
+  ref,
+) async {
+  final postsCount = await _client
+      .from('community_posts')
+      .count(CountOption.exact);
+  final repliesCount = await _client
+      .from('community_replies')
+      .count(CountOption.exact);
+
+  // Posts today
+  final todayStart = DateTime.now().toUtc().toIso8601String().substring(0, 10);
+  final postsToday = await _client
+      .from('community_posts')
+      .select()
+      .gte('created_at', '${todayStart}T00:00:00Z');
+
+  return {
+    'totalPosts': postsCount,
+    'totalReplies': repliesCount,
+    'postsToday': (postsToday as List).length,
+  };
+});
+
+// -----------------------------------------------------------------------------
+// ADMIN BAN/UNBAN HELPERS
+// -----------------------------------------------------------------------------
+
+/// Ban or mute a user from the community
+Future<void> banCommunityUser({
+  required String userId,
+  required String banType, // 'mute' or 'ban'
+  required String bannedBy,
+  Duration? muteDuration,
+}) async {
+  DateTime? expiresAt;
+  if (banType == 'mute' && muteDuration != null) {
+    expiresAt = DateTime.now().add(muteDuration);
+  }
+
+  await _client
+      .from('profiles')
+      .update({
+        'community_ban_type': banType,
+        'community_ban_expires_at': expiresAt?.toIso8601String(),
+        'community_banned_by': bannedBy,
+      })
+      .eq('id', userId);
+}
+
+/// Unban a user from the community
+Future<void> unbanCommunityUser(String userId) async {
+  await _client
+      .from('profiles')
+      .update({
+        'community_ban_type': null,
+        'community_ban_expires_at': null,
+        'community_banned_by': null,
+      })
+      .eq('id', userId);
+}
+
+/// Get list of all currently banned/muted users
+final bannedUsersProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+      final response = await _client
+          .from('profiles')
+          .select('id, full_name, community_ban_type, community_ban_expires_at')
+          .not('community_ban_type', 'is', null);
+      return List<Map<String, dynamic>>.from(response);
     });

@@ -8,6 +8,7 @@ class CommunityPost {
   final String category;
   final bool isPinned;
   final bool isArchived;
+  final bool isEdited;
   final Map<String, dynamic> reactions;
   final int repliesCount;
   final DateTime createdAt;
@@ -23,6 +24,7 @@ class CommunityPost {
     this.category = 'general',
     this.isPinned = false,
     this.isArchived = false,
+    this.isEdited = false,
     this.reactions = const {},
     this.repliesCount = 0,
     required this.createdAt,
@@ -39,6 +41,7 @@ class CommunityPost {
     String? category,
     bool? isPinned,
     bool? isArchived,
+    bool? isEdited,
     Map<String, dynamic>? reactions,
     int? repliesCount,
     DateTime? createdAt,
@@ -54,6 +57,7 @@ class CommunityPost {
       category: category ?? this.category,
       isPinned: isPinned ?? this.isPinned,
       isArchived: isArchived ?? this.isArchived,
+      isEdited: isEdited ?? this.isEdited,
       reactions: reactions ?? this.reactions,
       repliesCount: repliesCount ?? this.repliesCount,
       createdAt: createdAt ?? this.createdAt,
@@ -72,6 +76,7 @@ class CommunityPost {
       'category': category,
       'is_pinned': isPinned,
       'is_archived': isArchived,
+      'is_edited': isEdited,
       'reactions': reactions,
       'replies_count': repliesCount,
       'created_at': createdAt.toIso8601String(),
@@ -89,6 +94,7 @@ class CommunityPost {
       category: json['category'] as String? ?? 'general',
       isPinned: json['is_pinned'] as bool? ?? false,
       isArchived: json['is_archived'] as bool? ?? false,
+      isEdited: json['is_edited'] as bool? ?? false,
       reactions: (json['reactions'] as Map<String, dynamic>?) ?? {},
       repliesCount: json['replies_count'] as int? ?? 0,
       createdAt: DateTime.parse(json['created_at'] as String),

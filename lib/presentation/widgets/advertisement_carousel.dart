@@ -235,12 +235,12 @@ class _AdvertisementCarouselState extends ConsumerState<AdvertisementCarousel> {
                     height: 180,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
+                    placeholder: (_, _) => Container(
                       height: 180,
                       color: isDark ? Colors.white10 : Colors.grey[100],
                       child: const Center(child: CircularProgressIndicator()),
                     ),
-                    errorWidget: (_, __, ___) => Container(
+                    errorWidget: (_, _, _) => Container(
                       height: 180,
                       color: isDark ? Colors.white10 : Colors.grey[100],
                       child: const Icon(Icons.broken_image, size: 40),

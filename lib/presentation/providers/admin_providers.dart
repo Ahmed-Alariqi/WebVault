@@ -29,7 +29,7 @@ final adminSortAscendingProvider = StateProvider<bool>((ref) => false);
 
 // --------------- Paginated Admin Websites (8 items/page) ---------------
 
-const int kAdminPageSize = 8;
+const int kAdminPageSize = 5;
 
 class PaginatedAdminState<T> {
   final List<T> items;
