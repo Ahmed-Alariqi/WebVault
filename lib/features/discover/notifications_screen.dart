@@ -167,20 +167,33 @@ class _NotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final timeAgo = _formatTimeAgo(context, notification.createdAt);
     final color = _getTypeColor(notification.type);
+    final isUnread = !notification.isRead;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [
+            isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            isDark
+                ? color.withValues(alpha: 0.06)
+                : color.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.08)
-              : color.withValues(alpha: 0.1),
+          color: isUnread
+              ? color.withValues(alpha: 0.3)
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : color.withValues(alpha: 0.08)),
+          width: isUnread ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.04),
-            blurRadius: 15,
+            color: color.withValues(alpha: isUnread ? 0.08 : 0.03),
+            blurRadius: isUnread ? 20 : 12,
             offset: const Offset(0, 6),
           ),
         ],
@@ -196,7 +209,7 @@ class _NotificationCard extends StatelessWidget {
                   NotificationDetailsDialog(notification: notification),
             );
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           highlightColor: color.withValues(alpha: 0.05),
           splashColor: color.withValues(alpha: 0.1),
           child: Padding(
@@ -206,11 +219,15 @@ class _NotificationCard extends StatelessWidget {
               children: [
                 // Icon Badge Container
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: color.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                     image:
                         notification.imageUrl != null &&
                             notification.imageUrl!.isNotEmpty
@@ -228,11 +245,11 @@ class _NotificationCard extends StatelessWidget {
                       ? Icon(
                           _getTypeIcon(notification.type),
                           color: color,
-                          size: 22,
+                          size: 24,
                         )
                       : null,
                 ),
-                const SizedBox(width: 18),
+                const SizedBox(width: 16),
 
                 // Content
                 Expanded(
@@ -247,13 +264,33 @@ class _NotificationCard extends StatelessWidget {
                               notification.title,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: isUnread
+                                    ? FontWeight.w800
+                                    : FontWeight.w700,
                                 color: isDark
                                     ? AppTheme.darkTextPrimary
                                     : AppTheme.lightTextPrimary,
                               ),
                             ),
                           ),
+                          if (isUnread) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withValues(alpha: 0.6),
+                                    blurRadius: 4,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(

@@ -420,7 +420,7 @@ class _EditPollSheetState extends ConsumerState<EditPollSheet> {
                     ),
                     value: _sendNotification,
                     onChanged: (v) => setState(() => _sendNotification = v),
-                    activeColor: AppTheme.primaryColor,
+                    activeThumbColor: AppTheme.primaryColor,
                   ),
                 ),
 

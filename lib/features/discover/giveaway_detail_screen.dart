@@ -76,7 +76,7 @@ class _GiveawayDetailScreenState extends ConsumerState<GiveawayDetailScreen> {
                       Image.network(
                         g.imageUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _gradientBg(),
+                        errorBuilder: (_, _, _) => _gradientBg(),
                       ),
                       Container(
                         decoration: BoxDecoration(
@@ -232,8 +232,8 @@ class _GiveawayDetailScreenState extends ConsumerState<GiveawayDetailScreen> {
                   ),
                 ),
 
-                // Winner section
-                if (g.isDrawn && g.winnerId != null) ...[
+                // Winner section (multiple)
+                if (g.isDrawn && g.winnerIds.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -265,30 +265,41 @@ class _GiveawayDetailScreenState extends ConsumerState<GiveawayDetailScreen> {
                             fontSize: 13,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Consumer(
-                          builder: (context, ref, _) {
-                            final nameAsync = ref.watch(
-                              winnerNameProvider(g.winnerId!),
-                            );
-                            return nameAsync.when(
-                              data: (name) => Text(
-                                name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 24,
+                        const SizedBox(height: 8),
+                        ...g.winnerIds.map(
+                          (wId) => Consumer(
+                            builder: (context, ref, _) {
+                              final nameAsync = ref.watch(
+                                winnerNameProvider(wId),
+                              );
+                              return nameAsync.when(
+                                data: (name) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 3,
+                                  ),
+                                  child: Text(
+                                    name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 20,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              loading: () => const CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                              error: (_, __) => const Text(
-                                '?',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            );
-                          },
+                                loading: () => const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 4),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                                error: (_, _) => const Text(
+                                  '?',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                         if (g.winnerAnnouncedAt != null) ...[
                           const SizedBox(height: 6),

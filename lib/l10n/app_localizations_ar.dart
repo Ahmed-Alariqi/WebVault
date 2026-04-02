@@ -689,12 +689,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String daysLeft(String days) {
-    return 'يوم متبقي';
+    return '$daysي متبقي';
   }
 
   @override
   String hoursLeft(String hours) {
-    return 'ساعة متبقية';
+    return '$hoursس متبقية';
   }
 
   @override
@@ -2958,7 +2958,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get winnerSelected => 'تم اختيار الفائز!';
 
   @override
-  String get minutesLeft => 'دقيقة متبقية';
+  String get daysLeftLabel => 'يوم متبقي';
+
+  @override
+  String get hoursLeftLabel => 'ساعة متبقية';
+
+  @override
+  String get minutesLeftLabel => 'دقيقة متبقية';
 
   @override
   String get maxLabel => 'الحد الأقصى';
@@ -2986,6 +2992,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get congratulations => 'تهانينا للفائز!';
+
+  @override
+  String get winners => 'الفائزون';
+
+  @override
+  String get winnerCount => 'عدد الفائزين';
+
+  @override
+  String get winnerCountHint => 'عدد الفائزين المراد اختيارهم (افتراضي 1)';
+
+  @override
+  String get invalidNumber => 'رقم غير صحيح';
+
+  @override
+  String get redraw => 'إعادة السحب';
+
+  @override
+  String get redrawConfirm =>
+      'سيتم مسح الفائزين الحاليين وإعادة السحب من جديد. هل تريد المتابعة؟';
+
+  @override
+  String get requestEntryData => 'طلب بيانات من المشتركين';
+
+  @override
+  String get requestEntryDataSub => 'تفعيل حقل لجمع بيانات من المشاركين';
+
+  @override
+  String get entryFieldLabel => 'عنوان الحقل';
+
+  @override
+  String get entryFieldLabelHint => 'مثال: بريدك الإلكتروني';
+
+  @override
+  String get entryValue => 'القيمة المُدخلة';
+
+  @override
+  String get enterYourValue => 'أدخل قيمتك';
+
+  @override
+  String get valueRequired => 'يرجى إدخال القيمة المطلوبة للمشاركة';
 
   @override
   String get notFound => 'غير موجود';
@@ -3053,4 +3099,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get searchImage => 'بحث صورة';
+
+  @override
+  String get failedToEnterGiveaway =>
+      'فشل الدخول في المسابقة! حاول مرة أخرى أو تأكد من الاتصال.';
 }

@@ -12,9 +12,9 @@ import '../../data/models/notification_model.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/giveaway_model.dart';
 import '../../data/models/poll_model.dart';
-import '../../presentation/providers/events_providers.dart';
 import 'website_details_dialog.dart';
 import 'event_detail_dialogs.dart';
+import '../../presentation/providers/events_providers.dart';
 import '../../l10n/app_localizations.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
@@ -281,15 +281,10 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                           '',
                                         );
                                         try {
-                                          final json = await SupabaseConfig
-                                              .client
-                                              .from('giveaways')
-                                              .select()
-                                              .eq('id', gId)
-                                              .maybeSingle();
-                                          if (json != null &&
-                                              navContext.mounted) {
-                                            final g = Giveaway.fromJson(json);
+                                          final g = await ref.read(
+                                            giveawayByIdProvider(gId).future,
+                                          );
+                                          if (g != null && navContext.mounted) {
                                             showDialog(
                                               context: navContext,
                                               builder: (_) =>
@@ -306,15 +301,10 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                           '',
                                         );
                                         try {
-                                          final json = await SupabaseConfig
-                                              .client
-                                              .from('polls')
-                                              .select()
-                                              .eq('id', pId)
-                                              .maybeSingle();
-                                          if (json != null &&
-                                              navContext.mounted) {
-                                            final p = Poll.fromJson(json);
+                                          final p = await ref.read(
+                                            pollByIdProvider(pId).future,
+                                          );
+                                          if (p != null && navContext.mounted) {
                                             showDialog(
                                               context: navContext,
                                               builder: (_) =>

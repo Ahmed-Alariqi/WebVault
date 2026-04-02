@@ -1,17 +1,40 @@
--- ===== BACKUP FIRST =====
-CREATE TABLE IF NOT EXISTS websites_backup AS SELECT * FROM websites;
+-- ===== INTERACTIVE GIVEAWAY FEATURES MIGRATION =====
+-- Run this in Supabase SQL Editor
 
--- ===== MIGRATION =====
--- إضافة الأعمدة الجديدة لجدول websites
-ALTER TABLE websites ADD COLUMN IF NOT EXISTS content_type TEXT DEFAULT 'website'
-  CHECK (content_type IN ('website','prompt','offer','announcement'));
-ALTER TABLE websites ADD COLUMN IF NOT EXISTS action_value TEXT DEFAULT '';
-ALTER TABLE websites ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
-ALTER TABLE websites ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+-- 1. Add email to profiles
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email TEXT;
 
--- ===== ROLLBACK (نفّذ فقط إذا أردت إلغاء كل شيء) =====
--- ALTER TABLE websites DROP COLUMN IF EXISTS content_type;
--- ALTER TABLE websites DROP COLUMN IF EXISTS action_value;
--- ALTER TABLE websites DROP COLUMN IF EXISTS expires_at;
--- ALTER TABLE websites DROP COLUMN IF EXISTS is_active;
--- DROP TABLE IF EXISTS websites_backup;
+-- 2. Sync existing emails from auth.users
+UPDATE profiles SET email = u.email
+FROM auth.users u WHERE profiles.id = u.id;
+
+-- 3. Update (or create) new-user trigger to copy email
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    NEW.email
+  )
+  ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Make sure trigger exists
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- 4. Giveaway new columns
+ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS entry_field_label TEXT DEFAULT NULL;
+ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS winner_count INTEGER DEFAULT 1;
+ALTER TABLE giveaways ADD COLUMN IF NOT EXISTS winner_ids JSONB DEFAULT '[]'::jsonb;
+
+-- 5. Giveaway entries new column
+ALTER TABLE giveaway_entries ADD COLUMN IF NOT EXISTS entry_value TEXT DEFAULT NULL;
+
+-- ===== DONE =====

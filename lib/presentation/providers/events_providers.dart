@@ -119,48 +119,59 @@ final giveawayByIdProvider = FutureProvider.family<Giveaway?, String>((
   }
 });
 
-/// Entries for a specific giveaway (with user names)
+/// Entries for a specific giveaway (with user names + emails)
 final giveawayEntriesProvider =
     FutureProvider.family<List<GiveawayEntry>, String>((ref, giveawayId) async {
       final response = await _supabase
           .from('giveaway_entries')
-          .select('*, profiles(display_name)')
+          .select('*, profiles(full_name, email)')
           .eq('giveaway_id', giveawayId)
           .order('entered_at', ascending: false);
       return (response as List).map((j) => GiveawayEntry.fromJson(j)).toList();
     });
 
-/// Enter a giveaway
-Future<void> enterGiveaway(String giveawayId, WidgetRef ref) async {
+/// Enter a giveaway (with optional entry value)
+Future<void> enterGiveaway(
+  String giveawayId,
+  WidgetRef ref, {
+  String? entryValue,
+}) async {
   final uid = _supabase.auth.currentUser!.id;
-  await _supabase.from('giveaway_entries').insert({
-    'giveaway_id': giveawayId,
-    'user_id': uid,
-  });
+  final data = <String, dynamic>{'giveaway_id': giveawayId, 'user_id': uid};
+  if (entryValue != null && entryValue.isNotEmpty) {
+    data['entry_value'] = entryValue;
+  }
+  await _supabase.from('giveaway_entries').insert(data);
   ref.invalidate(giveawaysProvider);
   ref.invalidate(activeGiveawayProvider);
   ref.invalidate(giveawayByIdProvider(giveawayId));
   ref.invalidate(giveawayEntriesProvider(giveawayId));
 }
 
-/// Draw a winner randomly
-Future<String?> drawGiveawayWinner(String giveawayId, WidgetRef ref) async {
+/// Draw N winners randomly
+Future<List<String>> drawGiveawayWinner(
+  String giveawayId,
+  WidgetRef ref, {
+  int winnerCount = 1,
+}) async {
   final entries = await _supabase
       .from('giveaway_entries')
       .select('user_id')
       .eq('giveaway_id', giveawayId);
 
-  if ((entries as List).isEmpty) return null;
+  if ((entries as List).isEmpty) return [];
 
-  final random = Random.secure();
-  final winner = entries[random.nextInt(entries.length)];
-  final winnerId = winner['user_id'] as String;
+  // Shuffle and pick up to winnerCount unique winners
+  final userIds = entries.map((e) => e['user_id'] as String).toSet().toList();
+  userIds.shuffle(Random.secure());
+  final winners = userIds.take(winnerCount).toList();
 
   await _supabase
       .from('giveaways')
       .update({
         'status': 'drawn',
-        'winner_id': winnerId,
+        'winner_id': winners.first, // legacy compat
+        'winner_ids': winners,
         'winner_announced_at': DateTime.now().toIso8601String(),
       })
       .eq('id', giveawayId);
@@ -168,7 +179,28 @@ Future<String?> drawGiveawayWinner(String giveawayId, WidgetRef ref) async {
   ref.invalidate(giveawaysProvider);
   ref.invalidate(activeGiveawayProvider);
   ref.invalidate(giveawayByIdProvider(giveawayId));
-  return winnerId;
+  return winners;
+}
+
+/// Redraw giveaway — clear winners and draw new ones
+Future<List<String>> redrawGiveaway(
+  String giveawayId,
+  WidgetRef ref, {
+  int winnerCount = 1,
+}) async {
+  // Reset status to active temporarily
+  await _supabase
+      .from('giveaways')
+      .update({
+        'status': 'active',
+        'winner_id': null,
+        'winner_ids': <String>[],
+        'winner_announced_at': null,
+      })
+      .eq('id', giveawayId);
+
+  // Draw fresh winners
+  return drawGiveawayWinner(giveawayId, ref, winnerCount: winnerCount);
 }
 
 /// Create giveaway — returns the new giveaway ID
@@ -346,7 +378,7 @@ Future<void> endPoll(String id, WidgetRef ref) async {
   ref.invalidate(pollByIdProvider(id));
 }
 
-/// Winner profile name provider (reusable)
+/// Winner profile info provider (name + email)
 final winnerNameProvider = FutureProvider.family<String, String>((
   ref,
   userId,
@@ -354,11 +386,29 @@ final winnerNameProvider = FutureProvider.family<String, String>((
   try {
     final resp = await _supabase
         .from('profiles')
-        .select('display_name')
+        .select('full_name')
         .eq('id', userId)
         .single();
-    return resp['display_name'] as String? ?? 'Unknown';
+    return resp['full_name'] as String? ?? 'Unknown';
   } catch (_) {
     return 'Unknown';
   }
 });
+
+/// Winner profile info (name + email) for rich display
+final winnerProfileProvider =
+    FutureProvider.family<Map<String, String>, String>((ref, userId) async {
+      try {
+        final resp = await _supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', userId)
+            .single();
+        return {
+          'name': resp['full_name'] as String? ?? 'Unknown',
+          'email': resp['email'] as String? ?? '',
+        };
+      } catch (_) {
+        return {'name': 'Unknown', 'email': ''};
+      }
+    });

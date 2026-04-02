@@ -13,12 +13,28 @@ import '../../l10n/app_localizations.dart';
 //  GIVEAWAY DETAIL DIALOG
 // ════════════════════════════════════════
 
-class GiveawayDetailDialog extends ConsumerWidget {
+class GiveawayDetailDialog extends ConsumerStatefulWidget {
   final Giveaway giveaway;
   const GiveawayDetailDialog({super.key, required this.giveaway});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GiveawayDetailDialog> createState() =>
+      _GiveawayDetailDialogState();
+}
+
+class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
+  final _entryCtrl = TextEditingController();
+  bool _isEntering = false;
+
+  @override
+  void dispose() {
+    _entryCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final giveaway = widget.giveaway;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
 
@@ -100,7 +116,6 @@ class GiveawayDetailDialog extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Title
                             Text(
                               giveaway.title,
                               style: TextStyle(
@@ -111,8 +126,6 @@ class GiveawayDetailDialog extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 10),
-
-                            // Badges
                             Row(
                               children: [
                                 _badge(statusLabel, color, isDark),
@@ -125,8 +138,6 @@ class GiveawayDetailDialog extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 16),
-
-                            // Description
                             if (giveaway.description != null &&
                                 giveaway.description!.isNotEmpty) ...[
                               Divider(
@@ -188,17 +199,124 @@ class GiveawayDetailDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: 20),
 
+                            // Entry value field
+                            if (isActive &&
+                                giveaway.hasEntryField &&
+                                !giveaway.hasEntered) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 4,
+                                  bottom: 8,
+                                ),
+                                child: Text(
+                                  giveaway.entryFieldLabel!,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.04)
+                                      : Colors.black.withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: TextField(
+                                  controller: _entryCtrl,
+                                  onChanged: (_) => setState(() {}),
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  cursorColor: AppTheme.primaryColor,
+                                  decoration: InputDecoration(
+                                    hintText: l10n.enterYourValue,
+                                    hintStyle: TextStyle(
+                                      color: isDark
+                                          ? Colors.white38
+                                          : Colors.black38,
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: const BorderSide(
+                                        color: AppTheme.primaryColor,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    prefixIcon: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Icon(
+                                        PhosphorIcons.textbox(),
+                                        size: 20,
+                                        color: AppTheme.primaryColor.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+
                             // Enter button
                             if (isActive)
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
-                                  onPressed: giveaway.hasEntered
+                                  onPressed: giveaway.hasEntered || _isEntering
+                                      ? null
+                                      : (giveaway.hasEntryField &&
+                                            _entryCtrl.text.trim().isEmpty)
                                       ? null
                                       : () async {
-                                          await enterGiveaway(giveaway.id, ref);
-                                          if (context.mounted) {
-                                            Navigator.of(context).pop();
+                                          setState(() => _isEntering = true);
+                                          try {
+                                            await enterGiveaway(
+                                              giveaway.id,
+                                              ref,
+                                              entryValue: giveaway.hasEntryField
+                                                  ? _entryCtrl.text.trim()
+                                                  : null,
+                                            );
+                                            if (context.mounted) {
+                                              Navigator.of(context).pop();
+                                            }
+                                          } catch (e) {
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    AppLocalizations.of(
+                                                          context,
+                                                        )!.failedToEnterGiveaway ??
+                                                        'Failed to enter, please try again.',
+                                                  ),
+                                                  backgroundColor:
+                                                      Colors.redAccent,
+                                                ),
+                                              );
+                                            }
+                                            setState(() => _isEntering = false);
                                           }
                                         },
                                   style: ElevatedButton.styleFrom(
@@ -226,30 +344,40 @@ class GiveawayDetailDialog extends ConsumerWidget {
                                     ),
                                     elevation: 0,
                                   ),
-                                  icon: Icon(
-                                    giveaway.hasEntered
-                                        ? PhosphorIcons.checkCircle(
-                                            PhosphorIconsStyle.fill,
-                                          )
-                                        : PhosphorIcons.ticket(
-                                            PhosphorIconsStyle.fill,
+                                  icon: _isEntering
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
                                           ),
-                                    size: 20,
-                                  ),
+                                        )
+                                      : Icon(
+                                          giveaway.hasEntered
+                                              ? PhosphorIcons.checkCircle(
+                                                  PhosphorIconsStyle.fill,
+                                                )
+                                              : PhosphorIcons.ticket(
+                                                  PhosphorIconsStyle.fill,
+                                                ),
+                                          size: 20,
+                                        ),
                                   label: Text(
                                     giveaway.hasEntered
                                         ? l10n.alreadyEntered
                                         : l10n.enterGiveaway,
                                     style: const TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
                                 ),
                               ),
 
-                            // Winner announcement
-                            if (isDrawn && giveaway.winnerId != null) ...[
+                            // Winners (multiple)
+                            if (isDrawn && giveaway.winnerIds.isNotEmpty) ...[
                               const SizedBox(height: 16),
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -264,60 +392,63 @@ class GiveawayDetailDialog extends ConsumerWidget {
                                     ),
                                   ),
                                 ),
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      PhosphorIcons.trophy(
-                                        PhosphorIconsStyle.fill,
-                                      ),
-                                      color: AppTheme.successColor,
-                                      size: 24,
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          PhosphorIcons.trophy(
+                                            PhosphorIconsStyle.fill,
+                                          ),
+                                          color: AppTheme.successColor,
+                                          size: 24,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          '${l10n.winners} (${giveaway.winnerIds.length})',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppTheme.successColor,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            l10n.winnerSelected,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppTheme.successColor,
-                                            ),
-                                          ),
-                                          Consumer(
-                                            builder: (ctx, cRef, _) {
-                                              final nameAsync = cRef.watch(
-                                                winnerNameProvider(
-                                                  giveaway.winnerId!,
-                                                ),
-                                              );
-                                              return nameAsync.when(
-                                                data: (name) => Text(
-                                                  name,
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: isDark
-                                                        ? Colors.white60
-                                                        : Colors.black54,
+                                    const SizedBox(height: 8),
+                                    ...giveaway.winnerIds.map(
+                                      (wId) => Consumer(
+                                        builder: (ctx, cRef, _) {
+                                          final nameAsync = cRef.watch(
+                                            winnerNameProvider(wId),
+                                          );
+                                          return nameAsync.when(
+                                            data: (name) => Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    vertical: 3,
                                                   ),
+                                              child: Text(
+                                                '\u2022 $name',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: isDark
+                                                      ? Colors.white60
+                                                      : Colors.black54,
                                                 ),
-                                                loading: () => const SizedBox(
-                                                  height: 14,
-                                                  width: 14,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 1.5,
-                                                      ),
-                                                ),
-                                                error: (_, __) =>
-                                                    const SizedBox(),
-                                              );
-                                            },
-                                          ),
-                                        ],
+                                              ),
+                                            ),
+                                            loading: () => const SizedBox(
+                                              height: 14,
+                                              width: 14,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 1.5,
+                                              ),
+                                            ),
+                                            error: (_, __) =>
+                                                const SizedBox.shrink(),
+                                          );
+                                        },
                                       ),
                                     ),
                                   ],
@@ -465,14 +596,23 @@ class GiveawayDetailDialog extends ConsumerWidget {
 //  POLL DETAIL DIALOG
 // ════════════════════════════════════════
 
-class PollDetailDialog extends ConsumerWidget {
+class PollDetailDialog extends ConsumerStatefulWidget {
   final Poll poll;
   const PollDetailDialog({super.key, required this.poll});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PollDetailDialog> createState() => _PollDetailDialogState();
+}
+
+class _PollDetailDialogState extends ConsumerState<PollDetailDialog> {
+  int? _selectedIndex;
+  bool _isSubmitting = false;
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final poll = widget.poll;
 
     final isActive = poll.isActive;
     final color = isActive ? AppTheme.accentColor : Colors.grey;
@@ -565,7 +705,6 @@ class PollDetailDialog extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Question
                             Text(
                               poll.question,
                               style: TextStyle(
@@ -576,8 +715,6 @@ class PollDetailDialog extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 10),
-
-                            // Badges row
                             Row(
                               children: [
                                 _badge(statusLabel, color, isDark),
@@ -595,8 +732,6 @@ class PollDetailDialog extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: 8),
-
-                            // Description
                             if (poll.description != null &&
                                 poll.description!.isNotEmpty) ...[
                               Text(
@@ -618,32 +753,51 @@ class PollDetailDialog extends ConsumerWidget {
                             ),
                             const SizedBox(height: 12),
 
-                            // Options
+                            // Interactive Options List
                             ...poll.options.asMap().entries.map((entry) {
                               final i = entry.key;
                               final option = entry.value;
                               final count = poll.voteCounts[i] ?? 0;
-                              final pct = totalVotes > 0
-                                  ? count / totalVotes
-                                  : 0.0;
-                              final hasVoted = poll.userVotes.contains(i);
+                              final pct = poll.votePercentage(i);
+                              final isSelected = poll.userVotes.contains(i);
+                              final showResults =
+                                  poll.hasVoted || poll.isEnded || !isActive;
+                              final isUpdating =
+                                  _selectedIndex == i && _isSubmitting;
 
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 8),
+                                padding: const EdgeInsets.only(bottom: 10),
                                 child: GestureDetector(
-                                  onTap: isActive && !hasVoted
-                                      ? () async {
-                                          await votePoll(poll.id, i, ref);
-                                          if (context.mounted) {
-                                            Navigator.of(context).pop();
+                                  onTap:
+                                      (poll.hasVoted && !poll.allowMultiple) ||
+                                          !isActive ||
+                                          _isSubmitting
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            _selectedIndex = i;
+                                            _isSubmitting = true;
+                                          });
+                                          try {
+                                            if (isSelected) {
+                                              await unvotePoll(poll.id, i, ref);
+                                            } else {
+                                              await votePoll(poll.id, i, ref);
+                                            }
+                                          } catch (_) {}
+                                          if (mounted) {
+                                            setState(() {
+                                              _isSubmitting = false;
+                                              _selectedIndex = null;
+                                            });
                                           }
-                                        }
-                                      : null,
-                                  child: Container(
+                                        },
+                                  child: AnimatedContainer(
+                                    duration: 400.ms,
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
-                                        color: hasVoted
+                                        color: isSelected
                                             ? AppTheme.accentColor
                                             : (isDark
                                                   ? Colors.white.withValues(
@@ -652,73 +806,133 @@ class PollDetailDialog extends ConsumerWidget {
                                                   : Colors.black.withValues(
                                                       alpha: 0.06,
                                                     )),
-                                        width: hasVoted ? 2 : 1,
+                                        width: isSelected ? 2 : 1,
                                       ),
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(11),
+                                      borderRadius: BorderRadius.circular(13),
                                       child: Stack(
                                         children: [
-                                          // Progress fill
-                                          FractionallySizedBox(
-                                            widthFactor: pct,
-                                            child: Container(
-                                              height: 48,
+                                          // Progress bar
+                                          if (showResults)
+                                            AnimatedContainer(
+                                              duration: 600.ms,
+                                              curve: Curves.easeOut,
+                                              height: 52,
+                                              width:
+                                                  MediaQuery.of(
+                                                    context,
+                                                  ).size.width *
+                                                  pct *
+                                                  (isDark ? 0.8 : 0.85),
                                               decoration: BoxDecoration(
-                                                color: hasVoted
+                                                color: isSelected
                                                     ? AppTheme.accentColor
                                                           .withValues(
                                                             alpha: 0.15,
                                                           )
-                                                    : AppTheme.primaryColor
-                                                          .withValues(
-                                                            alpha: 0.06,
-                                                          ),
+                                                    : (isDark
+                                                          ? Colors.white
+                                                                .withValues(
+                                                                  alpha: 0.05,
+                                                                )
+                                                          : AppTheme
+                                                                .primaryColor
+                                                                .withValues(
+                                                                  alpha: 0.05,
+                                                                )),
                                               ),
                                             ),
-                                          ),
                                           // Content
-                                          Padding(
+                                          Container(
+                                            height: 52,
                                             padding: const EdgeInsets.symmetric(
-                                              horizontal: 14,
-                                              vertical: 12,
+                                              horizontal: 16,
                                             ),
                                             child: Row(
                                               children: [
-                                                if (hasVoted) ...[
+                                                if (!showResults)
                                                   Icon(
-                                                    PhosphorIcons.checkCircle(
-                                                      PhosphorIconsStyle.fill,
-                                                    ),
-                                                    size: 16,
+                                                    isSelected
+                                                        ? Icons
+                                                              .radio_button_checked
+                                                        : Icons
+                                                              .radio_button_off,
+                                                    size: 20,
+                                                    color: isSelected
+                                                        ? AppTheme.accentColor
+                                                        : (isDark
+                                                              ? Colors.white24
+                                                              : Colors.black26),
+                                                  )
+                                                else if (isSelected)
+                                                  const Icon(
+                                                    PhosphorIconsRegular
+                                                        .checkCircle,
+                                                    size: 18,
                                                     color: AppTheme.accentColor,
                                                   ),
-                                                  const SizedBox(width: 8),
-                                                ],
+
+                                                if (!showResults || isSelected)
+                                                  const SizedBox(width: 10),
+
                                                 Expanded(
                                                   child: Text(
                                                     option,
                                                     style: TextStyle(
                                                       fontSize: 14,
-                                                      fontWeight: hasVoted
+                                                      fontWeight: isSelected
                                                           ? FontWeight.w700
                                                           : FontWeight.w500,
-                                                      color: isDark
-                                                          ? Colors.white
-                                                          : Colors.black87,
+                                                      color: isSelected
+                                                          ? AppTheme.accentColor
+                                                          : (isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                      .black87),
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                if (isUpdating) ...[
+                                                  const SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                  ),
+                                                ] else if (showResults) ...[
+                                                  Text(
+                                                    '${(pct * 100).toStringAsFixed(0)}%',
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: isSelected
+                                                          ? AppTheme.accentColor
+                                                          : (isDark
+                                                                ? Colors.white70
+                                                                : Colors
+                                                                      .black54),
                                                     ),
                                                   ),
-                                                ),
-                                                Text(
-                                                  '${(pct * 100).round()}%',
-                                                  style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: isDark
-                                                        ? Colors.white54
-                                                        : Colors.black45,
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    '($count)',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: isDark
+                                                          ? Colors.white38
+                                                          : Colors.black38,
+                                                    ),
                                                   ),
-                                                ),
+                                                ],
                                               ],
                                             ),
                                           ),

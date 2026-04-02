@@ -23,7 +23,7 @@ class ActivePollCard extends ConsumerWidget {
         return _PollCardContent(poll: poll);
       },
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
     );
   }
 }
@@ -355,6 +355,6 @@ class _PollCardContentState extends ConsumerState<_PollCardContent> {
     if (d.isNegative) return l10n.ended;
     if (d.inDays > 0) return l10n.daysLeft(d.inDays.toString());
     if (d.inHours > 0) return l10n.hoursLeft(d.inHours.toString());
-    return '${d.inMinutes} ${l10n.minutesLeft}';
+    return '${d.inMinutes} ${l10n.minutesLeftLabel}';
   }
 }

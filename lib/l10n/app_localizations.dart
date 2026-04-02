@@ -1391,13 +1391,13 @@ abstract class AppLocalizations {
   /// No description provided for @daysLeft.
   ///
   /// In en, this message translates to:
-  /// **'days left'**
+  /// **'{days}d left'**
   String daysLeft(String days);
 
   /// No description provided for @hoursLeft.
   ///
   /// In en, this message translates to:
-  /// **'hours left'**
+  /// **'{hours}h left'**
   String hoursLeft(String hours);
 
   /// No description provided for @minsLeft.
@@ -5630,11 +5630,23 @@ abstract class AppLocalizations {
   /// **'Winner has been selected!'**
   String get winnerSelected;
 
-  /// No description provided for @minutesLeft.
+  /// No description provided for @daysLeftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'days left'**
+  String get daysLeftLabel;
+
+  /// No description provided for @hoursLeftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'hours left'**
+  String get hoursLeftLabel;
+
+  /// No description provided for @minutesLeftLabel.
   ///
   /// In en, this message translates to:
   /// **'min left'**
-  String get minutesLeft;
+  String get minutesLeftLabel;
 
   /// No description provided for @maxLabel.
   ///
@@ -5689,6 +5701,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Congratulations to the winner!'**
   String get congratulations;
+
+  /// No description provided for @winners.
+  ///
+  /// In en, this message translates to:
+  /// **'Winners'**
+  String get winners;
+
+  /// No description provided for @winnerCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Winner Count'**
+  String get winnerCount;
+
+  /// No description provided for @winnerCountHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of winners to draw (default 1)'**
+  String get winnerCountHint;
+
+  /// No description provided for @invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid number'**
+  String get invalidNumber;
+
+  /// No description provided for @redraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-draw'**
+  String get redraw;
+
+  /// No description provided for @redrawConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Current winners will be cleared and a new draw will be performed. Continue?'**
+  String get redrawConfirm;
+
+  /// No description provided for @requestEntryData.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Data from Participants'**
+  String get requestEntryData;
+
+  /// No description provided for @requestEntryDataSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable a field to collect data from participants'**
+  String get requestEntryDataSub;
+
+  /// No description provided for @entryFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Field Label'**
+  String get entryFieldLabel;
+
+  /// No description provided for @entryFieldLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Your email address'**
+  String get entryFieldLabelHint;
+
+  /// No description provided for @entryValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted Value'**
+  String get entryValue;
+
+  /// No description provided for @enterYourValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your value'**
+  String get enterYourValue;
+
+  /// No description provided for @valueRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the required value to participate'**
+  String get valueRequired;
 
   /// No description provided for @notFound.
   ///
@@ -5821,6 +5911,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search Image'**
   String get searchImage;
+
+  /// No description provided for @failedToEnterGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to enter the giveaway. Please try again or check your connection.'**
+  String get failedToEnterGiveaway;
 }
 
 class _AppLocalizationsDelegate

@@ -24,12 +24,15 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
   final _descCtrl = TextEditingController();
   final _imageCtrl = TextEditingController();
   final _maxEntriesCtrl = TextEditingController();
+  final _entryFieldCtrl = TextEditingController();
+  final _winnerCountCtrl = TextEditingController(text: '1');
   String _prizeType = 'other';
   DateTime? _endsAt;
   bool _isLoading = false;
   bool _isUploading = false;
   double _uploadProgress = 0;
   bool _sendNotification = false;
+  bool _requestEntryData = false;
 
   @override
   void initState() {
@@ -42,6 +45,11 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
       _prizeType = g.prizeType;
       _endsAt = g.endsAt;
       if (g.maxEntries != null) _maxEntriesCtrl.text = g.maxEntries.toString();
+      if (g.entryFieldLabel != null && g.entryFieldLabel!.isNotEmpty) {
+        _requestEntryData = true;
+        _entryFieldCtrl.text = g.entryFieldLabel!;
+      }
+      _winnerCountCtrl.text = g.winnerCount.toString();
     }
   }
 
@@ -51,6 +59,8 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
     _descCtrl.dispose();
     _imageCtrl.dispose();
     _maxEntriesCtrl.dispose();
+    _entryFieldCtrl.dispose();
+    _winnerCountCtrl.dispose();
     super.dispose();
   }
 
@@ -80,6 +90,11 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
         'max_entries': _maxEntriesCtrl.text.trim().isEmpty
             ? null
             : int.tryParse(_maxEntriesCtrl.text.trim()),
+        'entry_field_label':
+            _requestEntryData && _entryFieldCtrl.text.trim().isNotEmpty
+            ? _entryFieldCtrl.text.trim()
+            : null,
+        'winner_count': int.tryParse(_winnerCountCtrl.text.trim()) ?? 1,
       };
 
       if (widget.giveaway == null) {
@@ -156,48 +171,109 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
       appBar: AppBar(
         title: Text(
           isEdit ? l10n.editGiveaway : l10n.createGiveaway,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         forceMaterialTransparency: true,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Title
-              _buildField(
-                controller: _titleCtrl,
-                label: l10n.giveawayTitle,
-                icon: PhosphorIcons.textT(),
-                isDark: isDark,
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? l10n.required : null,
+              // General Info Section
+              _buildSectionTitle(
+                'General Information',
+                PhosphorIcons.info(),
+                isDark,
               ),
-              const SizedBox(height: 16),
-
-              // Description
-              _buildField(
-                controller: _descCtrl,
-                label: l10n.giveawayDescription,
-                icon: PhosphorIcons.textAa(),
+              _buildCard(
                 isDark: isDark,
-                maxLines: 3,
+                child: Column(
+                  children: [
+                    _buildField(
+                      controller: _titleCtrl,
+                      label: l10n.giveawayTitle,
+                      icon: PhosphorIcons.textT(),
+                      isDark: isDark,
+                      validator: (v) =>
+                          v == null || v.trim().isEmpty ? l10n.required : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: _descCtrl,
+                      label: l10n.giveawayDescription,
+                      icon: PhosphorIcons.textAa(),
+                      isDark: isDark,
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 28),
 
-              // Image
+              // Prize Details Section
+              _buildSectionTitle('Prize Details', PhosphorIcons.gift(), isDark),
               _buildCard(
                 isDark: isDark,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
+                      l10n.prizeType,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ['account', 'subscription', 'code', 'other']
+                          .map(
+                            (type) => ChoiceChip(
+                              label: Text(_prizeLabel(type, l10n)),
+                              selected: _prizeType == type,
+                              onSelected: (_) =>
+                                  setState(() => _prizeType = type),
+                              selectedColor: AppTheme.primaryColor.withValues(
+                                alpha: 0.15,
+                              ),
+                              elevation: 0,
+                              pressElevation: 0,
+                              backgroundColor: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.04),
+                              side: BorderSide(
+                                color: _prizeType == type
+                                    ? AppTheme.primaryColor.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : Colors.transparent,
+                              ),
+                              labelStyle: TextStyle(
+                                color: _prizeType == type
+                                    ? AppTheme.primaryColor
+                                    : (isDark
+                                          ? Colors.white70
+                                          : Colors.black54),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const Divider(height: 32),
+                    Text(
                       l10n.prizeImage,
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
                         color: isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
@@ -206,7 +282,7 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                       children: [
                         Expanded(
                           child: SizedBox(
-                            height: 44,
+                            height: 48,
                             child: ElevatedButton.icon(
                               onPressed: _isUploading
                                   ? null
@@ -220,10 +296,11 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                                             await ImageKitService.pickAndUpload(
                                               folder: '/giveaways',
                                               onProgress: (p) {
-                                                if (mounted)
+                                                if (mounted) {
                                                   setState(
                                                     () => _uploadProgress = p,
                                                   );
+                                                }
                                               },
                                             );
                                         if (url != null && mounted) {
@@ -235,8 +312,9 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                                           setState(() => _isUploading = false);
                                         }
                                       } catch (e) {
-                                        if (mounted)
+                                        if (mounted) {
                                           setState(() => _isUploading = false);
+                                        }
                                       }
                                     },
                               icon: _isUploading
@@ -248,13 +326,23 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                                             ? _uploadProgress
                                             : null,
                                         strokeWidth: 2,
+                                        color: Colors.white,
                                       ),
                                     )
-                                  : const Icon(Icons.upload, size: 18),
-                              label: Text(l10n.upload),
+                                  : const Icon(
+                                      Icons.cloud_upload_outlined,
+                                      size: 20,
+                                    ),
+                              label: Text(
+                                l10n.upload,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primaryColor,
                                 foregroundColor: Colors.white,
+                                elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -262,10 +350,10 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: SizedBox(
-                            height: 44,
+                            height: 48,
                             child: OutlinedButton.icon(
                               onPressed: () async {
                                 final url = await showModalBottomSheet<String>(
@@ -283,9 +371,14 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                               },
                               icon: Icon(
                                 PhosphorIcons.magnifyingGlass(),
-                                size: 18,
+                                size: 20,
                               ),
-                              label: Text(l10n.searchImage),
+                              label: Text(
+                                l10n.searchImage,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: isDark
                                     ? Colors.white70
@@ -306,106 +399,203 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                     ),
                     if (_imageCtrl.text.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 12),
+                        padding: const EdgeInsets.only(top: 16),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            _imageCtrl.text,
-                            height: 120,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox(),
+                          child: Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              Image.network(
+                                _imageCtrl.text,
+                                height: 160,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, _, _) => const SizedBox(),
+                              ),
+                              IconButton(
+                                icon: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    setState(() => _imageCtrl.clear()),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 28),
 
-              // Prize Type
+              // Settings Section
+              _buildSectionTitle(
+                'Event Settings',
+                PhosphorIcons.slidersHorizontal(),
+                isDark,
+              ),
+              _buildCard(
+                isDark: isDark,
+                child: Column(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          PhosphorIcons.calendarBlank(PhosphorIconsStyle.fill),
+                          color: AppTheme.primaryColor,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(
+                        _endsAt != null
+                            ? DateFormat(
+                                'MMM d, yyyy • h:mm a',
+                              ).format(_endsAt!)
+                            : l10n.selectEndDate,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: _endsAt != null
+                              ? (isDark ? Colors.white : Colors.black87)
+                              : (isDark ? Colors.white54 : Colors.black54),
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          l10n.endDateDesc,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: _pickEndDate,
+                    ),
+                    const Divider(height: 32),
+                    _buildField(
+                      controller: _maxEntriesCtrl,
+                      label: l10n.maxEntries,
+                      icon: PhosphorIcons.usersThree(),
+                      isDark: isDark,
+                      keyboardType: TextInputType.number,
+                      helperText: l10n.maxEntriesHint,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: _winnerCountCtrl,
+                      label: l10n.winnerCount,
+                      icon: PhosphorIcons.trophy(),
+                      isDark: isDark,
+                      keyboardType: TextInputType.number,
+                      helperText: l10n.winnerCountHint,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return null;
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 1) return l10n.invalidNumber;
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Interactive Entry Section
+              _buildSectionTitle(
+                'Interactive Entry',
+                PhosphorIcons.chatTeardropText(),
+                isDark,
+              ),
               _buildCard(
                 isDark: isDark,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      l10n.prizeType,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white70 : Colors.black87,
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _requestEntryData
+                              ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                              : (isDark
+                                    ? Colors.white10
+                                    : Colors.black.withValues(alpha: 0.04)),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          PhosphorIcons.textbox(PhosphorIconsStyle.fill),
+                          color: _requestEntryData
+                              ? AppTheme.primaryColor
+                              : (isDark ? Colors.white54 : Colors.black54),
+                          size: 20,
+                        ),
                       ),
+                      title: Text(
+                        l10n.requestEntryData,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          l10n.requestEntryDataSub,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                      ),
+                      value: _requestEntryData,
+                      onChanged: (v) => setState(() => _requestEntryData = v),
+                      activeColor: Colors.white,
+                      activeTrackColor: AppTheme.primaryColor,
                     ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      children: ['account', 'subscription', 'code', 'other']
-                          .map(
-                            (type) => ChoiceChip(
-                              label: Text(_prizeLabel(type, l10n)),
-                              selected: _prizeType == type,
-                              onSelected: (_) =>
-                                  setState(() => _prizeType = type),
-                              selectedColor: AppTheme.primaryColor.withValues(
-                                alpha: 0.2,
-                              ),
-                              labelStyle: TextStyle(
-                                color: _prizeType == type
-                                    ? AppTheme.primaryColor
-                                    : (isDark
-                                          ? Colors.white70
-                                          : Colors.black54),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
+                    if (_requestEntryData) ...[
+                      const SizedBox(height: 16),
+                      _buildField(
+                        controller: _entryFieldCtrl,
+                        label: l10n.entryFieldLabel,
+                        icon: PhosphorIcons.question(),
+                        isDark: isDark,
+                        helperText: l10n.entryFieldLabelHint,
+                        validator: (v) {
+                          if (_requestEntryData &&
+                              (v == null || v.trim().isEmpty)) {
+                            return l10n.required;
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
 
-              // End date
-              _buildCard(
-                isDark: isDark,
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    PhosphorIcons.calendarBlank(),
-                    color: AppTheme.primaryColor,
-                  ),
-                  title: Text(
-                    _endsAt != null
-                        ? DateFormat('MMM d, yyyy • h:mm a').format(_endsAt!)
-                        : l10n.selectEndDate,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: _endsAt != null
-                          ? (isDark ? Colors.white : Colors.black87)
-                          : (isDark ? Colors.white38 : Colors.black38),
-                    ),
-                  ),
-                  subtitle: Text(l10n.endDateDesc),
-                  trailing: Icon(PhosphorIcons.caretRight(), size: 18),
-                  onTap: _pickEndDate,
+              if (!isEdit) ...[
+                const SizedBox(height: 28),
+                _buildSectionTitle(
+                  'Notifications',
+                  PhosphorIcons.bell(),
+                  isDark,
                 ),
-              ),
-              const SizedBox(height: 16),
-
-              // Max entries
-              _buildField(
-                controller: _maxEntriesCtrl,
-                label: l10n.maxEntries,
-                icon: PhosphorIcons.usersThree(),
-                isDark: isDark,
-                keyboardType: TextInputType.number,
-                helperText: l10n.maxEntriesHint,
-              ),
-              const SizedBox(height: 16),
-
-              // Notification toggle (only for new giveaways)
-              if (!isEdit)
                 _buildCard(
                   isDark: isDark,
                   child: SwitchListTile(
@@ -418,63 +608,72 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                             : (isDark
                                   ? Colors.white10
                                   : Colors.black.withValues(alpha: 0.04)),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        PhosphorIcons.bellRinging(),
+                        PhosphorIcons.bellRinging(PhosphorIconsStyle.fill),
                         color: _sendNotification
                             ? AppTheme.primaryColor
-                            : (isDark ? Colors.white38 : Colors.black38),
-                        size: 22,
+                            : (isDark ? Colors.white54 : Colors.black54),
+                        size: 20,
                       ),
                     ),
                     title: Text(
                       l10n.eventSendNotif,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
+                        fontSize: 15,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
-                    subtitle: Text(
-                      l10n.eventSendNotifSub,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white38 : Colors.black45,
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        l10n.eventSendNotifSub,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
                       ),
                     ),
                     value: _sendNotification,
                     onChanged: (v) => setState(() => _sendNotification = v),
-                    activeColor: AppTheme.primaryColor,
+                    activeColor: Colors.white,
+                    activeTrackColor: AppTheme.primaryColor,
                   ),
                 ),
+              ],
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 48),
 
               // Save button
               ElevatedButton(
                 onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE11D48),
+                  backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  elevation: 4,
+                  shadowColor: AppTheme.primaryColor.withValues(alpha: 0.4),
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 24,
+                        height: 24,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: 2.5,
                           color: Colors.white,
                         ),
                       )
                     : Text(
                         isEdit ? l10n.save : l10n.createGiveaway,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                           fontSize: 16,
+                          letterSpacing: 0.5,
                         ),
                       ),
               ),
@@ -499,6 +698,27 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
     }
   }
 
+  Widget _buildSectionTitle(String title, IconData icon, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, left: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppTheme.primaryColor),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              letterSpacing: 0.5,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildField({
     required TextEditingController controller,
     required String label,
@@ -514,22 +734,30 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      style: TextStyle(
+        color: isDark ? Colors.white : Colors.black87,
+        fontWeight: FontWeight.w500,
+      ),
+      cursorColor: AppTheme.primaryColor,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white54 : Colors.black54,
+          fontWeight: FontWeight.w500,
+        ),
         helperText: helperText,
         helperStyle: TextStyle(
           color: isDark ? Colors.white38 : Colors.black38,
-          fontSize: 11,
+          fontSize: 12,
         ),
         prefixIcon: Icon(
           icon,
           size: 20,
-          color: isDark ? Colors.white54 : Colors.black54,
+          color: AppTheme.primaryColor.withValues(alpha: 0.8),
         ),
         filled: true,
         fillColor: isDark
-            ? Colors.white.withValues(alpha: 0.04)
+            ? Colors.white.withValues(alpha: 0.03)
             : Colors.black.withValues(alpha: 0.02),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -547,6 +775,14 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppTheme.errorColor, width: 2),
+        ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 20,
           vertical: 18,
@@ -559,19 +795,20 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
+        color: isDark ? AppTheme.darkCard.withValues(alpha: 0.6) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
+              ? Colors.white.withValues(alpha: 0.08)
               : Colors.black.withValues(alpha: 0.05),
         ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: child,

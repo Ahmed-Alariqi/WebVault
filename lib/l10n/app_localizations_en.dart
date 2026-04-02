@@ -688,12 +688,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String daysLeft(String days) {
-    return 'days left';
+    return '${days}d left';
   }
 
   @override
   String hoursLeft(String hours) {
-    return 'hours left';
+    return '${hours}h left';
   }
 
   @override
@@ -2971,7 +2971,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get winnerSelected => 'Winner has been selected!';
 
   @override
-  String get minutesLeft => 'min left';
+  String get daysLeftLabel => 'days left';
+
+  @override
+  String get hoursLeftLabel => 'hours left';
+
+  @override
+  String get minutesLeftLabel => 'min left';
 
   @override
   String get maxLabel => 'Max';
@@ -2999,6 +3005,47 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get congratulations => 'Congratulations to the winner!';
+
+  @override
+  String get winners => 'Winners';
+
+  @override
+  String get winnerCount => 'Winner Count';
+
+  @override
+  String get winnerCountHint => 'Number of winners to draw (default 1)';
+
+  @override
+  String get invalidNumber => 'Invalid number';
+
+  @override
+  String get redraw => 'Re-draw';
+
+  @override
+  String get redrawConfirm =>
+      'Current winners will be cleared and a new draw will be performed. Continue?';
+
+  @override
+  String get requestEntryData => 'Request Data from Participants';
+
+  @override
+  String get requestEntryDataSub =>
+      'Enable a field to collect data from participants';
+
+  @override
+  String get entryFieldLabel => 'Field Label';
+
+  @override
+  String get entryFieldLabelHint => 'e.g. Your email address';
+
+  @override
+  String get entryValue => 'Submitted Value';
+
+  @override
+  String get enterYourValue => 'Enter your value';
+
+  @override
+  String get valueRequired => 'Please enter the required value to participate';
 
   @override
   String get notFound => 'Not found';
@@ -3066,4 +3113,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchImage => 'Search Image';
+
+  @override
+  String get failedToEnterGiveaway =>
+      'Failed to enter the giveaway. Please try again or check your connection.';
 }
