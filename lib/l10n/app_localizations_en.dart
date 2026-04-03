@@ -3117,4 +3117,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get failedToEnterGiveaway =>
       'Failed to enter the giveaway. Please try again or check your connection.';
+
+  @override
+  String get usernameRequired => 'Username is required';
+
+  @override
+  String get usernameTooShort => 'At least 3 characters';
+
+  @override
+  String get usernameTaken => 'Username already taken';
+
+  @override
+  String get usernameInvalid => 'Letters, numbers & underscores only';
+
+  @override
+  String get usernameAvailable => 'Username available';
+
+  @override
+  String get checkingUsername => 'Checking...';
+
+  @override
+  String get fullNameRequired => 'Full name is required';
+
+  @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get passwordResetSent => 'Password reset email sent';
+
+  @override
+  String get signOutConfirm => 'Are you sure you want to sign out?';
+
+  @override
+  String get profileUpdated => 'Profile updated successfully';
+
+  @override
+  String get noChanges => 'No changes to save';
+
+  @override
+  String get accountActions => 'Account';
+
+  @override
+  String get messageUser => 'Message User';
+
+  @override
+  String get startingChat => 'Starting chat...';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get messageAdmin => 'Send a message to site administrators';
 }

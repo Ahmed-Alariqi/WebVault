@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -6,7 +7,10 @@ import 'package:go_router/go_router.dart';
 import 'dart:ui' as ui;
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/username_check_provider.dart';
 import '../../l10n/app_localizations.dart';
+
+enum _UsernameStatus { idle, checking, available, taken, tooShort, invalid }
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -28,6 +32,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   String? _error;
   bool _success = false;
 
+  // Username validation
+  Timer? _usernameDebounce;
+  _UsernameStatus _usernameStatus = _UsernameStatus.idle;
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -35,7 +43,122 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
+    _usernameDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onUsernameChanged(String value) {
+    _usernameDebounce?.cancel();
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) {
+      setState(() => _usernameStatus = _UsernameStatus.idle);
+      return;
+    }
+    if (trimmed.length < 3) {
+      setState(() => _usernameStatus = _UsernameStatus.tooShort);
+      return;
+    }
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(trimmed)) {
+      setState(() => _usernameStatus = _UsernameStatus.invalid);
+      return;
+    }
+
+    setState(() => _usernameStatus = _UsernameStatus.checking);
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final isAvailable = await ref.read(
+          usernameAvailableProvider((
+            username: trimmed,
+            currentUserId: null,
+          )).future,
+        );
+        if (mounted && _usernameCtrl.text.trim() == trimmed) {
+          setState(() {
+            _usernameStatus = isAvailable
+                ? _UsernameStatus.available
+                : _UsernameStatus.taken;
+          });
+        }
+      } catch (_) {
+        if (mounted) setState(() => _usernameStatus = _UsernameStatus.idle);
+      }
+    });
+  }
+
+  Widget _buildUsernameStatus(AppLocalizations l10n, bool isDark) {
+    if (_usernameStatus == _UsernameStatus.idle) return const SizedBox.shrink();
+
+    IconData icon;
+    Color color;
+    String text;
+
+    switch (_usernameStatus) {
+      case _UsernameStatus.checking:
+        return Padding(
+          padding: const EdgeInsets.only(top: 6, left: 4),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.checkingUsername,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        );
+      case _UsernameStatus.available:
+        icon = Icons.check_circle_outline;
+        color = Colors.green;
+        text = l10n.usernameAvailable;
+        break;
+      case _UsernameStatus.taken:
+        icon = Icons.cancel_outlined;
+        color = AppTheme.errorColor;
+        text = l10n.usernameTaken;
+        break;
+      case _UsernameStatus.tooShort:
+        icon = Icons.info_outline;
+        color = Colors.orange;
+        text = l10n.usernameTooShort;
+        break;
+      case _UsernameStatus.invalid:
+        icon = Icons.info_outline;
+        color = Colors.orange;
+        text = l10n.usernameInvalid;
+        break;
+      case _UsernameStatus.idle:
+        return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 200.ms);
   }
 
   double _passwordStrength() {
@@ -71,6 +194,36 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Block if username is taken
+    if (_usernameStatus == _UsernameStatus.taken) {
+      setState(() => _error = AppLocalizations.of(context)!.usernameTaken);
+      return;
+    }
+
+    // Wait for the check to complete if it's currently checking
+    if (_usernameStatus == _UsernameStatus.checking) {
+      setState(() => _loading = true);
+      while (_usernameStatus == _UsernameStatus.checking) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (!mounted) return;
+      }
+      if (_usernameStatus == _UsernameStatus.taken) {
+        setState(() {
+          _loading = false;
+          _error = AppLocalizations.of(context)!.usernameTaken;
+        });
+        return;
+      }
+    }
+
+    if (_usernameStatus == _UsernameStatus.idle ||
+        _usernameStatus == _UsernameStatus.invalid ||
+        _usernameStatus == _UsernameStatus.tooShort) {
+      // the validator would have caught it, but just in case
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -82,9 +235,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text,
         fullName: _nameCtrl.text.trim(),
-        username: _usernameCtrl.text.trim().isEmpty
-            ? null
-            : _usernameCtrl.text.trim(),
+        username: _usernameCtrl.text.trim(),
       );
       if (mounted) setState(() => _success = true);
     } catch (e) {
@@ -359,11 +510,30 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 14),
                 _buildField(
                   _usernameCtrl,
-                  AppLocalizations.of(context)!.usernameOptional,
+                  AppLocalizations.of(context)!.username,
                   AppLocalizations.of(context)!.usernameHint,
                   PhosphorIcons.at(),
                   isDark,
+                  onChanged: (v) {
+                    _onUsernameChanged(v);
+                  },
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return AppLocalizations.of(context)!.usernameRequired;
+                    }
+                    if (v.trim().length < 3) {
+                      return AppLocalizations.of(context)!.usernameTooShort;
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v.trim())) {
+                      return AppLocalizations.of(context)!.usernameInvalid;
+                    }
+                    if (_usernameStatus == _UsernameStatus.taken) {
+                      return AppLocalizations.of(context)!.usernameTaken;
+                    }
+                    return null;
+                  },
                 ),
+                _buildUsernameStatus(AppLocalizations.of(context)!, isDark),
                 const SizedBox(height: 14),
                 _buildField(
                   _emailCtrl,
@@ -542,14 +712,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     bool obscure = false,
     Widget? suffixIcon,
     String? Function(String?)? validator,
+    ValueChanged<String>? onChanged,
   }) {
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
       obscureText: obscure,
       validator: validator,
-      onChanged: (_) {
+      onChanged: (v) {
         if (ctrl == _passwordCtrl) setState(() {});
+        onChanged?.call(v);
       },
       style: TextStyle(color: isDark ? Colors.white : Colors.black87),
       decoration: InputDecoration(

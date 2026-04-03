@@ -53,6 +53,7 @@ import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/welcome_splash_screen.dart';
 import '../../domain/models/advertisement.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../features/discover/advertisement_detail_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -482,6 +483,14 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final col = state.extra as CollectionModel;
           return CollectionItemsScreen(collection: col);
+        },
+      ),
+      GoRoute(
+        path: '/advertisement-detail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final ad = state.extra as Advertisement;
+          return AdvertisementDetailScreen(advertisement: ad);
         },
       ),
       GoRoute(

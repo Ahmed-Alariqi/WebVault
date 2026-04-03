@@ -3103,4 +3103,56 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get failedToEnterGiveaway =>
       'فشل الدخول في المسابقة! حاول مرة أخرى أو تأكد من الاتصال.';
+
+  @override
+  String get usernameRequired => 'اسم المستخدم مطلوب';
+
+  @override
+  String get usernameTooShort => '3 أحرف على الأقل';
+
+  @override
+  String get usernameTaken => 'اسم المستخدم مستخدم بالفعل';
+
+  @override
+  String get usernameInvalid => 'أحرف وأرقام وشرطات سفلية فقط';
+
+  @override
+  String get usernameAvailable => 'اسم المستخدم متاح';
+
+  @override
+  String get checkingUsername => 'جاري التحقق...';
+
+  @override
+  String get fullNameRequired => 'الاسم الكامل مطلوب';
+
+  @override
+  String get changePassword => 'تغيير كلمة المرور';
+
+  @override
+  String get passwordResetSent => 'تم إرسال رابط تغيير كلمة المرور';
+
+  @override
+  String get signOutConfirm => 'هل أنت متأكد من تسجيل الخروج؟';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف الشخصي بنجاح';
+
+  @override
+  String get noChanges => 'لا توجد تغييرات للحفظ';
+
+  @override
+  String get accountActions => 'الحساب';
+
+  @override
+  String get messageUser => 'مراسلة المستخدم';
+
+  @override
+  String get startingChat => 'جاري بدء المحادثة...';
+
+  @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get messageAdmin =>
+      'أرسل رسالة إلى إدارة التطبيق لحل أي مشكلة أوالإستفسار';
 }

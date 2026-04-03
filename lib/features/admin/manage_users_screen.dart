@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:go_router/go_router.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/providers/chat_providers.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
@@ -52,6 +54,30 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
             ref.read(adminUsersPaginatedProvider.notifier).reset();
           }
         });
+  }
+
+  Future<void> _messageUser(String userId) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context)!.startingChat),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+    try {
+      final convId = await getOrCreateConversation(userId);
+      if (mounted) {
+        context.push('/admin/chats/$convId');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AppLocalizations.of(context)!.error}: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteUser(String userId, String email) async {
@@ -319,8 +345,26 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                               if (value == 'delete') {
                                 _deleteUser(user['id'], user['email']);
                               }
+                              if (value == 'message') {
+                                _messageUser(user['id']);
+                              }
                             },
                             itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'message',
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      PhosphorIcons.chatTeardropText(),
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(context)!.messageUser,
+                                    ),
+                                  ],
+                                ),
+                              ),
                               PopupMenuItem(
                                 value: 'edit',
                                 child: Row(

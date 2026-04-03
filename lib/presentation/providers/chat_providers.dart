@@ -149,6 +149,27 @@ final conversationByIdProvider = FutureProvider.family
 /// Wait, Admin user management fetches users via `admin-user-actions`.
 /// We can use the existing profiles table directly if email is stored there or just use `full_name`.
 
+/// Finds or creates a conversation for a specific user.
+/// Used by admin to initiate a chat with any user.
+Future<String> getOrCreateConversation(String userId) async {
+  final existing = await _supabase
+      .from('conversations')
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+  if (existing != null) {
+    return existing['id'] as String;
+  }
+
+  final newConv = await _supabase
+      .from('conversations')
+      .insert({'user_id': userId})
+      .select('id')
+      .single();
+  return newConv['id'] as String;
+}
+
 Future<void> userSendMessage(String conversationId, String content) async {
   final userId = _supabase.auth.currentUser?.id;
   if (userId == null) return;

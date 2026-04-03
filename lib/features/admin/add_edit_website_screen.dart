@@ -1184,8 +1184,6 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                         : Colors.black38,
                                   ),
                                 ),
-                                const SizedBox(height: 16),
-                                _buildCollectionsSection(context, isDark),
                                 const SizedBox(height: 32),
                                 // Upload video button
                                 InkWell(
@@ -1396,6 +1394,12 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             ],
                           ),
                         )
+                        .animate()
+                        .fadeIn(delay: 150.ms, duration: 400.ms)
+                        .slideY(begin: 0.1),
+
+                    // ── Collections Section (Independent) ──
+                    _buildCollectionsSection(context, isDark)
                         .animate()
                         .fadeIn(delay: 150.ms, duration: 400.ms)
                         .slideY(begin: 0.1),

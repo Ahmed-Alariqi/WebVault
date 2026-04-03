@@ -127,7 +127,9 @@ final adminWebsitesPaginatedProvider =
       return AdminWebsitesPaginatedNotifier(ref);
     });
 
-// --------------- Paginated Admin Users (client-side, 15/page) ---------------
+// --------------- Paginated Admin Users (client-side, 20/page) ---------------
+
+const int kAdminUsersPageSize = 20;
 
 class AdminUsersPaginatedNotifier
     extends StateNotifier<PaginatedAdminState<Map<String, dynamic>>> {
@@ -149,11 +151,11 @@ class AdminUsersPaginatedNotifier
       _allUsers = data.map((e) => e as Map<String, dynamic>).toList();
 
       // Show first page
-      final firstPage = _allUsers.take(kAdminPageSize).toList();
+      final firstPage = _allUsers.take(kAdminUsersPageSize).toList();
       state = PaginatedAdminState<Map<String, dynamic>>(
         items: firstPage,
         isLoading: false,
-        hasMore: _allUsers.length > kAdminPageSize,
+        hasMore: _allUsers.length > kAdminUsersPageSize,
         isInitialLoad: false,
       );
     } catch (e) {
@@ -165,7 +167,10 @@ class AdminUsersPaginatedNotifier
   void loadMore() {
     if (state.isLoading || !state.hasMore) return;
     final currentLen = state.items.length;
-    final nextBatch = _allUsers.skip(currentLen).take(kAdminPageSize).toList();
+    final nextBatch = _allUsers
+        .skip(currentLen)
+        .take(kAdminUsersPageSize)
+        .toList();
 
     state = state.copyWith(
       items: [...state.items, ...nextBatch],

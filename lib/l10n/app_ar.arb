@@ -1124,5 +1124,23 @@
   "upload": "رفع",
   "searchImage": "بحث صورة",
   "required": "مطلوب",
-  "failedToEnterGiveaway": "فشل الدخول في المسابقة! حاول مرة أخرى أو تأكد من الاتصال."
+  "failedToEnterGiveaway": "فشل الدخول في المسابقة! حاول مرة أخرى أو تأكد من الاتصال.",
+
+  "usernameRequired": "اسم المستخدم مطلوب",
+  "usernameTooShort": "3 أحرف على الأقل",
+  "usernameTaken": "اسم المستخدم مستخدم بالفعل",
+  "usernameInvalid": "أحرف وأرقام وشرطات سفلية فقط",
+  "usernameAvailable": "اسم المستخدم متاح",
+  "checkingUsername": "جاري التحقق...",
+  "fullNameRequired": "الاسم الكامل مطلوب",
+  "changePassword": "تغيير كلمة المرور",
+  "passwordResetSent": "تم إرسال رابط تغيير كلمة المرور",
+  "signOutConfirm": "هل أنت متأكد من تسجيل الخروج؟",
+  "profileUpdated": "تم تحديث الملف الشخصي بنجاح",
+  "noChanges": "لا توجد تغييرات للحفظ",
+  "accountActions": "الحساب",
+  "messageUser": "مراسلة المستخدم",
+  "startingChat": "جاري بدء المحادثة...",
+  "profile": "الملف الشخصي",
+  "messageAdmin": "أرسل رسالة إلى إدارة التطبيق لحل أي مشكلة أوالإستفسار"
 }

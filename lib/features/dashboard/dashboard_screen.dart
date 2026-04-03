@@ -1394,7 +1394,7 @@ class _ProfilePreviewSheet extends ConsumerWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         context.pop();
-                        context.push('/settings');
+                        context.push('/profile');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
@@ -1405,9 +1405,9 @@ class _ProfilePreviewSheet extends ConsumerWidget {
                         ),
                         elevation: 0,
                       ),
-                      icon: Icon(PhosphorIcons.gear(), size: 20),
+                      icon: Icon(PhosphorIcons.user(), size: 20),
                       label: Text(
-                        AppLocalizations.of(context)!.manageSettings,
+                        AppLocalizations.of(context)!.profile,
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -1434,9 +1434,9 @@ class _ProfilePreviewSheet extends ConsumerWidget {
                         ),
                       ),
                       icon: Icon(PhosphorIcons.signOut(), size: 20),
-                      label: const Text(
-                        'Sign Out',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      label: Text(
+                        AppLocalizations.of(context)!.signOut,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),

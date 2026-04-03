@@ -5917,6 +5917,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to enter the giveaway. Please try again or check your connection.'**
   String get failedToEnterGiveaway;
+
+  /// No description provided for @usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get usernameRequired;
+
+  /// No description provided for @usernameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'At least 3 characters'**
+  String get usernameTooShort;
+
+  /// No description provided for @usernameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'Username already taken'**
+  String get usernameTaken;
+
+  /// No description provided for @usernameInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters, numbers & underscores only'**
+  String get usernameInvalid;
+
+  /// No description provided for @usernameAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Username available'**
+  String get usernameAvailable;
+
+  /// No description provided for @checkingUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking...'**
+  String get checkingUsername;
+
+  /// No description provided for @fullNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Full name is required'**
+  String get fullNameRequired;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Password'**
+  String get changePassword;
+
+  /// No description provided for @passwordResetSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Password reset email sent'**
+  String get passwordResetSent;
+
+  /// No description provided for @signOutConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to sign out?'**
+  String get signOutConfirm;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdated;
+
+  /// No description provided for @noChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No changes to save'**
+  String get noChanges;
+
+  /// No description provided for @accountActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountActions;
+
+  /// No description provided for @messageUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Message User'**
+  String get messageUser;
+
+  /// No description provided for @startingChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting chat...'**
+  String get startingChat;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @messageAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a message to site administrators'**
+  String get messageAdmin;
 }
 
 class _AppLocalizationsDelegate

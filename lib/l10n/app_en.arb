@@ -1390,5 +1390,23 @@
   "upload": "Upload",
   "searchImage": "Search Image",
   "required": "Required",
-  "failedToEnterGiveaway": "Failed to enter the giveaway. Please try again or check your connection."
+  "failedToEnterGiveaway": "Failed to enter the giveaway. Please try again or check your connection.",
+
+  "usernameRequired": "Username is required",
+  "usernameTooShort": "At least 3 characters",
+  "usernameTaken": "Username already taken",
+  "usernameInvalid": "Letters, numbers & underscores only",
+  "usernameAvailable": "Username available",
+  "checkingUsername": "Checking...",
+  "fullNameRequired": "Full name is required",
+  "changePassword": "Change Password",
+  "passwordResetSent": "Password reset email sent",
+  "signOutConfirm": "Are you sure you want to sign out?",
+  "profileUpdated": "Profile updated successfully",
+  "noChanges": "No changes to save",
+  "accountActions": "Account",
+  "messageUser": "Message User",
+  "startingChat": "Starting chat...",
+  "profile": "Profile",
+  "messageAdmin": "Send a message to site administrators"
 }
