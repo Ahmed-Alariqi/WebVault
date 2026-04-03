@@ -123,7 +123,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
 
       // Logged in but on auth route — redirect to dashboard
+      // EXCEPT during OTP recovery flow (user needs to stay on /forgot-password)
       if (isLoggedIn && onAuthRoute) {
+        if (location == '/forgot-password' &&
+            ForgotPasswordScreen.isRecoveryInProgress) {
+          return null; // Stay on forgot-password during recovery
+        }
         return '/dashboard';
       }
 

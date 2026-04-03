@@ -2003,7 +2003,7 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPassword.
   ///
   /// In en, this message translates to:
-  /// **'Forgot Password?'**
+  /// **'Forgot password?'**
   String get forgotPassword;
 
   /// No description provided for @useBiometrics.
@@ -4079,25 +4079,25 @@ abstract class AppLocalizations {
   /// No description provided for @forgotPasswordEmailSent.
   ///
   /// In en, this message translates to:
-  /// **'Email Sent!'**
+  /// **'Code Sent!'**
   String get forgotPasswordEmailSent;
 
   /// No description provided for @forgotPasswordInstructions.
   ///
   /// In en, this message translates to:
-  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  /// **'Enter your email address and we\'ll send you a verification code to reset your password.'**
   String get forgotPasswordInstructions;
 
   /// No description provided for @forgotPasswordCheckEmail.
   ///
   /// In en, this message translates to:
-  /// **'Check your email for a password reset link.'**
+  /// **'We sent an 8-digit code to your email. Enter it below.'**
   String get forgotPasswordCheckEmail;
 
   /// No description provided for @forgotPasswordSendButton.
   ///
   /// In en, this message translates to:
-  /// **'Send Reset Link'**
+  /// **'ReSend Code'**
   String get forgotPasswordSendButton;
 
   /// No description provided for @forgotPasswordBackToSignIn.
@@ -4117,6 +4117,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to send reset email'**
   String get forgotPasswordFailed;
+
+  /// No description provided for @otpVerifyButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Code'**
+  String get otpVerifyButton;
+
+  /// No description provided for @otpInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid verification code'**
+  String get otpInvalidCode;
+
+  /// No description provided for @enterOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification Code'**
+  String get enterOtp;
+
+  /// No description provided for @enterOtpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 8-digit code'**
+  String get enterOtpHint;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New Password'**
+  String get newPassword;
+
+  /// No description provided for @confirmNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm New Password'**
+  String get confirmNewPassword;
+
+  /// No description provided for @updatePasswordButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Password'**
+  String get updatePasswordButton;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters'**
+  String get passwordTooShort;
+
+  /// No description provided for @passwordUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated successfully!'**
+  String get passwordUpdatedSuccess;
+
+  /// No description provided for @passwordUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update password'**
+  String get passwordUpdateFailed;
+
+  /// No description provided for @usernameCooldownError.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only change your username once every 30 days.'**
+  String get usernameCooldownError;
+
+  /// No description provided for @usernameNextChangeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Next change allowed: {date}'**
+  String usernameNextChangeDate(Object date);
 
   /// No description provided for @notifBodyOffer.
   ///

@@ -1024,7 +1024,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rememberMe => 'Remember me';
 
   @override
-  String get forgotPassword => 'Forgot Password?';
+  String get forgotPassword => 'Forgot password?';
 
   @override
   String get useBiometrics => 'Use Biometrics';
@@ -2137,18 +2137,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPasswordTitle => 'Reset Password';
 
   @override
-  String get forgotPasswordEmailSent => 'Email Sent!';
+  String get forgotPasswordEmailSent => 'Code Sent!';
 
   @override
   String get forgotPasswordInstructions =>
-      'Enter your email address and we\'ll send you a link to reset your password.';
+      'Enter your email address and we\'ll send you a verification code to reset your password.';
 
   @override
   String get forgotPasswordCheckEmail =>
-      'Check your email for a password reset link.';
+      'We sent an 8-digit code to your email. Enter it below.';
 
   @override
-  String get forgotPasswordSendButton => 'Send Reset Link';
+  String get forgotPasswordSendButton => 'ReSend Code';
 
   @override
   String get forgotPasswordBackToSignIn => 'Back to Sign In';
@@ -2158,6 +2158,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgotPasswordFailed => 'Failed to send reset email';
+
+  @override
+  String get otpVerifyButton => 'Verify Code';
+
+  @override
+  String get otpInvalidCode => 'Invalid verification code';
+
+  @override
+  String get enterOtp => 'Verification Code';
+
+  @override
+  String get enterOtpHint => 'Enter 8-digit code';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmNewPassword => 'Confirm New Password';
+
+  @override
+  String get updatePasswordButton => 'Update Password';
+
+  @override
+  String get passwordMismatch => 'Passwords do not match';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get passwordUpdatedSuccess => 'Password updated successfully!';
+
+  @override
+  String get passwordUpdateFailed => 'Failed to update password';
+
+  @override
+  String get usernameCooldownError =>
+      'You can only change your username once every 30 days.';
+
+  @override
+  String usernameNextChangeDate(Object date) {
+    return 'Next change allowed: $date';
+  }
 
   @override
   String get notifBodyOffer => '🔥 New offer available! Check it out now.';

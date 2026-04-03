@@ -90,10 +90,28 @@ class AuthService {
     await _client.auth.signOut();
   }
 
-  // --------------- Password Reset ---------------
+  // --------------- Password Reset (OTP) ---------------
 
+  /// Step 1: Send recovery OTP email
   Future<void> resetPassword(String email) async {
     await _client.auth.resetPasswordForEmail(email);
+  }
+
+  /// Step 2: Verify the 6-digit OTP token from the email
+  Future<void> verifyRecoveryOtp(String email, String token) async {
+    final res = await _client.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.recovery,
+    );
+    if (res.session == null) {
+      throw const AuthException('OTP verification failed');
+    }
+  }
+
+  /// Step 3: Update the password (user must be authenticated via OTP first)
+  Future<void> updatePassword(String newPassword) async {
+    await _client.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   // --------------- Profile ---------------
@@ -130,6 +148,7 @@ class AuthService {
     String? username,
     String? avatarUrl,
     String? onesignalPlayerId,
+    bool updateUsernameTimestamp = false,
   }) async {
     final user = currentUser;
     if (user == null) return;
@@ -140,6 +159,9 @@ class AuthService {
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
     if (onesignalPlayerId != null) {
       updates['onesignal_player_id'] = onesignalPlayerId;
+    }
+    if (updateUsernameTimestamp) {
+      updates['username_changed_at'] = DateTime.now().toUtc().toIso8601String();
     }
 
     if (updates.isNotEmpty) {

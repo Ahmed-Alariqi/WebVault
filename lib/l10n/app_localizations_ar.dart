@@ -2135,18 +2135,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forgotPasswordTitle => 'إعادة تعيين كلمة المرور';
 
   @override
-  String get forgotPasswordEmailSent => 'تم إرسال البريد!';
+  String get forgotPasswordEmailSent => 'تم إرسال الرمز!';
 
   @override
   String get forgotPasswordInstructions =>
-      'أدخل عنوان بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة مرورك.';
+      'أدخل عنوان بريدك الإلكتروني وسنرسل لك رمز تحقق لإعادة تعيين كلمة مرورك.';
 
   @override
   String get forgotPasswordCheckEmail =>
-      'تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.';
+      'أرسلنا رمزاً مكوناً من 8 أرقام إلى بريدك الإلكتروني. أدخله أدناه.';
 
   @override
-  String get forgotPasswordSendButton => 'إرسال الرابط';
+  String get forgotPasswordSendButton => ' إعادةإرسال الرمز';
 
   @override
   String get forgotPasswordBackToSignIn => 'العودة لتسجيل الدخول';
@@ -2156,6 +2156,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get forgotPasswordFailed => 'فشل إرسال بريد إعادة التعيين';
+
+  @override
+  String get otpVerifyButton => 'تحقق من الرمز';
+
+  @override
+  String get otpInvalidCode => 'رمز التحقق غير صالح';
+
+  @override
+  String get enterOtp => 'رمز التحقق';
+
+  @override
+  String get enterOtpHint => 'أدخل الرمز المكون من 8 أرقام';
+
+  @override
+  String get newPassword => 'كلمة المرور الجديدة';
+
+  @override
+  String get confirmNewPassword => 'تأكيد كلمة المرور الجديدة';
+
+  @override
+  String get updatePasswordButton => 'تحديث كلمة المرور';
+
+  @override
+  String get passwordMismatch => 'كلمات المرور غير متطابقة';
+
+  @override
+  String get passwordTooShort => 'يجب أن تتكون كلمة المرور من 6 أحرف على الأقل';
+
+  @override
+  String get passwordUpdatedSuccess => 'تم تحديث كلمة المرور بنجاح!';
+
+  @override
+  String get passwordUpdateFailed => 'فشل تحديث كلمة المرور';
+
+  @override
+  String get usernameCooldownError =>
+      'يمكنك تغيير اسم المستخدم مرة واحدة فقط كل 30 يوماً.';
+
+  @override
+  String usernameNextChangeDate(Object date) {
+    return 'التغيير القادم مسموح في: $date';
+  }
 
   @override
   String get notifBodyOffer => '🔥 عرض جديد متاح! تحقق منه الآن.';

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -891,15 +892,60 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final l10n = AppLocalizations.of(context)!;
+    final newUsername = _usernameCtrl.text.trim();
+    final usernameChanged =
+        newUsername != _originalUsername && newUsername.isNotEmpty;
+
+    // ─── Username cooldown check ───
+    if (usernameChanged) {
+      final profile = ref.read(userProfileProvider).valueOrNull;
+      final changedAtRaw = profile?['username_changed_at'];
+      if (changedAtRaw != null) {
+        final changedAt = DateTime.parse(changedAtRaw as String);
+        final nextAllowed = changedAt.add(const Duration(days: 30));
+        if (DateTime.now().toUtc().isBefore(nextAllowed)) {
+          final dateStr =
+              '${nextAllowed.year}-${nextAllowed.month.toString().padLeft(2, '0')}-${nextAllowed.day.toString().padLeft(2, '0')}';
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.usernameCooldownError),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.usernameNextChangeDate(dateStr),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.orange.shade800,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+      }
+    }
+
     setState(() => _loading = true);
 
     try {
       final authService = ref.read(authServiceProvider);
       await authService.updateProfile(
         fullName: _nameCtrl.text.trim(),
-        username: _usernameCtrl.text.trim().isEmpty
-            ? null
-            : _usernameCtrl.text.trim(),
+        username: newUsername.isEmpty ? null : newUsername,
+        updateUsernameTimestamp: usernameChanged,
       );
       ref.invalidate(userProfileProvider);
 
@@ -915,7 +961,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 const Icon(Icons.check_circle, color: Colors.white, size: 20),
                 const SizedBox(width: 10),
-                Text(AppLocalizations.of(context)!.profileUpdated),
+                Text(l10n.profileUpdated),
               ],
             ),
             backgroundColor: Colors.green,
@@ -944,37 +990,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _changePassword() async {
     final user = SupabaseConfig.client.auth.currentUser;
     if (user?.email == null) return;
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Step 1: Send OTP
     try {
       final authService = ref.read(authServiceProvider);
       await authService.resetPassword(user!.email!);
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.email_outlined, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                Flexible(
-                  child: Text(AppLocalizations.of(context)!.passwordResetSent),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.blue,
+            content: Text(l10n.forgotPasswordFailed),
+            backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
           ),
         );
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
-      }
+      return;
     }
+
+    if (!mounted) return;
+
+    // Step 2: Show OTP + New Password bottom sheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _ChangePasswordSheet(
+        email: user!.email!,
+        isDark: isDark,
+        l10n: l10n,
+        ref: ref,
+      ),
+    );
   }
 
   Future<void> _confirmSignOut() async {
@@ -1028,3 +1077,342 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
 /// Username validation states
 enum _UsernameStatus { idle, checking, available, taken, tooShort, invalid }
+
+/// Bottom sheet for OTP-verified password change
+class _ChangePasswordSheet extends StatefulWidget {
+  final String email;
+  final bool isDark;
+  final AppLocalizations l10n;
+  final WidgetRef ref;
+
+  const _ChangePasswordSheet({
+    required this.email,
+    required this.isDark,
+    required this.l10n,
+    required this.ref,
+  });
+
+  @override
+  State<_ChangePasswordSheet> createState() => _ChangePasswordSheetState();
+}
+
+class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
+  final _otpCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  bool _otpVerified = false;
+  bool _obscure1 = true;
+  bool _obscure2 = true;
+
+  @override
+  void dispose() {
+    _otpCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _verifyOtp() async {
+    if (_otpCtrl.text.trim().length != 8) {
+      setState(() => _error = widget.l10n.otpInvalidCode);
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final authService = widget.ref.read(authServiceProvider);
+      await authService.verifyRecoveryOtp(widget.email, _otpCtrl.text.trim());
+      setState(() => _otpVerified = true);
+    } catch (_) {
+      setState(() => _error = widget.l10n.otpInvalidCode);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _updatePassword() async {
+    if (_passwordCtrl.text.length < 6) {
+      setState(() => _error = widget.l10n.passwordTooShort);
+      return;
+    }
+    if (_passwordCtrl.text != _confirmCtrl.text) {
+      setState(() => _error = widget.l10n.passwordMismatch);
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final authService = widget.ref.read(authServiceProvider);
+      await authService.updatePassword(_passwordCtrl.text);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Flexible(child: Text(widget.l10n.passwordUpdatedSuccess)),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      setState(() => _error = widget.l10n.passwordUpdateFailed);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final l10n = widget.l10n;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Title
+            Text(
+              _otpVerified ? l10n.newPassword : l10n.enterOtp,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _otpVerified ? '' : l10n.forgotPasswordCheckEmail,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white54 : Colors.black45,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Error
+            if (_error != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.errorColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(
+                    color: AppTheme.errorColor,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+
+            if (!_otpVerified) ...[
+              // OTP input
+              TextFormField(
+                controller: _otpCtrl,
+                keyboardType: TextInputType.number,
+                maxLength: 8,
+                textAlign: TextAlign.center,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 8,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  counterText: '',
+                  hintText: '• • • • • •',
+                  hintStyle: TextStyle(
+                    color: isDark ? Colors.white24 : Colors.black26,
+                    letterSpacing: 8,
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.03),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppTheme.primaryColor,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildSheetButton(
+                label: l10n.otpVerifyButton,
+                onPressed: _loading ? null : _verifyOtp,
+              ),
+            ] else ...[
+              // New Password
+              _sheetPasswordField(
+                controller: _passwordCtrl,
+                label: l10n.newPassword,
+                obscure: _obscure1,
+                toggle: () => setState(() => _obscure1 = !_obscure1),
+                isDark: isDark,
+              ),
+              const SizedBox(height: 16),
+              _sheetPasswordField(
+                controller: _confirmCtrl,
+                label: l10n.confirmNewPassword,
+                obscure: _obscure2,
+                toggle: () => setState(() => _obscure2 = !_obscure2),
+                isDark: isDark,
+              ),
+              const SizedBox(height: 24),
+              _buildSheetButton(
+                label: l10n.updatePasswordButton,
+                onPressed: _loading ? null : _updatePassword,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sheetPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscure,
+    required VoidCallback toggle,
+    required bool isDark,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(
+          PhosphorIcons.lock(),
+          size: 20,
+          color: isDark ? Colors.white38 : Colors.black38,
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
+            size: 20,
+            color: isDark ? Colors.white38 : Colors.black38,
+          ),
+          onPressed: toggle,
+        ),
+        filled: true,
+        fillColor: isDark
+            ? Colors.white.withValues(alpha: 0.06)
+            : Colors.black.withValues(alpha: 0.03),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: AppTheme.primaryColor,
+            width: 1.5,
+          ),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSheetButton({
+    required String label,
+    required VoidCallback? onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withValues(alpha: 0.4),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+          child: _loading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
