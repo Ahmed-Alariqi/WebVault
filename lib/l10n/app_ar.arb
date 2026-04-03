@@ -502,7 +502,10 @@
   "notifTypeGeneral": "عام",
   "notifTypeAnnouncement": "إعلان",
   "notifTypeUpdate": "تحديث",
-  "notifTypeAlert": "تنبيه",
+  "notifAlert": "تنبيه",
+  "notifTypeNewItem": "عنصر جديد",
+  "notifTypeGiveaway": "مسابقة",
+  "notifTypePoll": "تصويت",
   "notifFailed": "فشل: {error}",
 
   "chatFailedUpload": "فشل رفع الصورة",

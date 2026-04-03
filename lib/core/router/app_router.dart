@@ -62,6 +62,8 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(Ref ref) {
     SupabaseConfig.client.auth.onAuthStateChange.listen((_) {
+      // Skip notifying during OTP recovery to prevent auto-redirect
+      if (ForgotPasswordScreen.isRecoveryInProgress) return;
       notifyListeners();
     });
 

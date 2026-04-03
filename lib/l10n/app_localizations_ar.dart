@@ -1627,6 +1627,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifAlert => 'تنبيه';
 
   @override
+  String get notifTypeNewItem => 'عنصر جديد';
+
+  @override
+  String get notifTypeGiveaway => 'مسابقة';
+
+  @override
+  String get notifTypePoll => 'تصويت';
+
+  @override
   String notifFailed(String error) {
     return 'فشل: $error';
   }
@@ -2155,7 +2164,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forgotPasswordEmptyEmail => 'الرجاء إدخال البريد الإلكتروني';
 
   @override
-  String get forgotPasswordFailed => 'فشل إرسال بريد إعادة التعيين';
+  String get forgotPasswordFailed =>
+      'فشل إرسال بريد إعادة التعيين. حاول لاحقا بعد ساعة';
 
   @override
   String get otpVerifyButton => 'تحقق من الرمز';

@@ -3128,6 +3128,24 @@ abstract class AppLocalizations {
   /// **'Alert'**
   String get notifAlert;
 
+  /// No description provided for @notifTypeNewItem.
+  ///
+  /// In en, this message translates to:
+  /// **'New Item'**
+  String get notifTypeNewItem;
+
+  /// No description provided for @notifTypeGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaway'**
+  String get notifTypeGiveaway;
+
+  /// No description provided for @notifTypePoll.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll'**
+  String get notifTypePoll;
+
   /// No description provided for @notifFailed.
   ///
   /// In en, this message translates to:

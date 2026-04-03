@@ -74,12 +74,33 @@ class NotificationDetailsDialog extends ConsumerWidget {
     }
   }
 
+  String _getLocalizedType(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (type.toLowerCase()) {
+      case 'alert':
+        return l10n.notifAlert;
+      case 'update':
+        return l10n.notifTypeUpdate;
+      case 'announcement':
+        return l10n.notifTypeAnnouncement;
+      case 'new_item':
+        return l10n.notifTypeNewItem;
+      case 'giveaway':
+        return l10n.notifTypeGiveaway;
+      case 'poll':
+        return l10n.notifTypePoll;
+      default:
+        return l10n.notifTypeGeneral;
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = _getTypeColor(notification.type);
     final l10n = AppLocalizations.of(context)!;
     final timeAgo = _formatTimeAgo(context, notification.createdAt);
+    final typeLabel = _getLocalizedType(context, notification.type);
 
     return Dialog(
           backgroundColor: Colors.transparent,
@@ -205,11 +226,7 @@ class NotificationDetailsDialog extends ConsumerWidget {
                             // Badges row
                             Row(
                               children: [
-                                _badge(
-                                  notification.type.toUpperCase(),
-                                  color,
-                                  isDark,
-                                ),
+                                _badge(typeLabel.toUpperCase(), color, isDark),
                                 const SizedBox(width: 8),
                                 Text(
                                   timeAgo,

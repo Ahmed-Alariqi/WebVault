@@ -281,6 +281,9 @@ class _OriginalPostDetail extends ConsumerWidget {
       orElse: () => post,
     );
     final authorNameAsync = ref.watch(profileNameProvider(currentPost.userId));
+    final currentUser = ref.watch(currentUserProvider);
+    final isOwner = currentUser?.id == currentPost.userId;
+    final isAdmin = ref.watch(isAdminProvider).valueOrNull == true;
 
     return GestureDetector(
       onLongPress: () => _showReactionPicker(context, ref, currentPost.id),
@@ -310,54 +313,246 @@ class _OriginalPostDetail extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    authorNameAsync.when(
-                      data: (name) => Text(
-                        name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : Colors.black,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      authorNameAsync.when(
+                        data: (name) => Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : Colors.black,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        loading: () => Container(
+                          width: 100,
+                          height: 16,
+                          color: isDark ? Colors.white10 : Colors.black12,
+                        ),
+                        error: (_, _) => const Text('User'),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _getLocalizedCategory(
+                                context,
+                                post.category,
+                              ).toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            DateFormat(
+                              'MMM d, yy • h:mm a',
+                            ).format(post.createdAt),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.white54 : Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (isOwner || isAdmin)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isOwner)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: GestureDetector(
+                            onTap: () async {
+                              final canEdit =
+                                  DateTime.now()
+                                      .difference(post.createdAt)
+                                      .inMinutes <=
+                                  15;
+                              if (!canEdit) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.communityEditTimeExpired,
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+                              final controller = TextEditingController(
+                                text: post.content,
+                              );
+                              final result = await showDialog<String>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  backgroundColor: isDark
+                                      ? AppTheme.darkCard
+                                      : Colors.white,
+                                  title: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.communityEditPost,
+                                  ),
+                                  content: TextField(
+                                    controller: controller,
+                                    maxLines: 5,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.cancel,
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(
+                                        c,
+                                        controller.text.trim(),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.primaryColor,
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.save,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (result != null &&
+                                  result.isNotEmpty &&
+                                  result != post.content) {
+                                await ref
+                                    .read(
+                                      communityPostsPaginatedProvider.notifier,
+                                    )
+                                    .editPost(post.id, result);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                PhosphorIcons.pencilSimple(),
+                                size: 16,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      GestureDetector(
+                        onTap: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              backgroundColor: isDark
+                                  ? AppTheme.darkCard
+                                  : Colors.white,
+                              title: Text(
+                                AppLocalizations.of(context)!.deletePostTitle,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              content: Text(
+                                AppLocalizations.of(context)!.deletePostContent,
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(c, false),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.cancelLabel,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(c, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.errorColor,
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.deleteLabel,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            await ref
+                                .read(communityPostsPaginatedProvider.notifier)
+                                .deletePost(post.id);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.errorColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            PhosphorIcons.trash(),
+                            size: 16,
+                            color: AppTheme.errorColor,
+                          ),
                         ),
                       ),
-                      loading: () => Container(
-                        width: 100,
-                        height: 16,
-                        color: isDark ? Colors.white10 : Colors.black12,
-                      ),
-                      error: (_, _) => const Text('User'),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      DateFormat('MMM d, yyyy • h:mm a').format(post.createdAt),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? Colors.white54 : Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    post.category.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -481,6 +676,20 @@ class _OriginalPostDetail extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _getLocalizedCategory(BuildContext context, String category) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (category.toLowerCase()) {
+      case 'tip':
+        return l10n.categoryTip;
+      case 'question':
+        return l10n.categoryQuestion;
+      case 'resource':
+        return l10n.categoryResource;
+      default:
+        return l10n.categoryGeneral;
+    }
   }
 }
 

@@ -761,6 +761,9 @@
   "notifTypeAnnouncement": "Announcement",
   "notifTypeUpdate": "Update",
   "notifAlert": "Alert",
+  "notifTypeNewItem": "New Item",
+  "notifTypeGiveaway": "Giveaway",
+  "notifTypePoll": "Poll",
   "notifFailed": "Failed: {error}",
   "@notifFailed": {
     "placeholders": {

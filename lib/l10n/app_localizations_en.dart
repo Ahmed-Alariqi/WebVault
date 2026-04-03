@@ -1626,6 +1626,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifAlert => 'Alert';
 
   @override
+  String get notifTypeNewItem => 'New Item';
+
+  @override
+  String get notifTypeGiveaway => 'Giveaway';
+
+  @override
+  String get notifTypePoll => 'Poll';
+
+  @override
   String notifFailed(String error) {
     return 'Failed: $error';
   }

@@ -540,7 +540,10 @@ class _CommunityPostCard extends ConsumerWidget {
                         Row(
                           children: [
                             Text(
-                              post.category.toUpperCase(),
+                              _getLocalizedCategory(
+                                context,
+                                post.category,
+                              ).toUpperCase(),
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -592,131 +595,187 @@ class _CommunityPostCard extends ConsumerWidget {
                       ),
                     ),
                   if (isOwner || isAdmin)
-                    PopupMenuButton<String>(
-                      icon: Icon(
-                        PhosphorIcons.dotsThree(),
-                        color: isDark ? Colors.white54 : Colors.black54,
-                      ),
-                      color: isDark ? AppTheme.darkCard : Colors.white,
-                      onSelected: (value) async {
-                        if (value == 'delete') {
-                          await ref
-                              .read(communityPostsPaginatedProvider.notifier)
-                              .deletePost(post.id);
-                        } else if (value == 'edit') {
-                          final canEdit =
-                              DateTime.now()
-                                  .difference(post.createdAt)
-                                  .inMinutes <=
-                              15;
-                          if (!canEdit) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isOwner)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: GestureDetector(
+                              onTap: () async {
+                                final canEdit =
+                                    DateTime.now()
+                                        .difference(post.createdAt)
+                                        .inMinutes <=
+                                    15;
+                                if (!canEdit) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.communityEditTimeExpired,
+                                      ),
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                final controller = TextEditingController(
+                                  text: post.content,
+                                );
+                                final result = await showDialog<String>(
+                                  context: context,
+                                  builder: (c) => AlertDialog(
+                                    backgroundColor: isDark
+                                        ? AppTheme.darkCard
+                                        : Colors.white,
+                                    title: Text(
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.communityEditPost,
+                                    ),
+                                    content: TextField(
+                                      controller: controller,
+                                      maxLines: 5,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                      decoration: InputDecoration(
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(c),
+                                        child: Text(
+                                          AppLocalizations.of(context)!.cancel,
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () => Navigator.pop(
+                                          c,
+                                          controller.text.trim(),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              AppTheme.primaryColor,
+                                        ),
+                                        child: Text(
+                                          AppLocalizations.of(context)!.save,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (result != null &&
+                                    result.isNotEmpty &&
+                                    result != post.content) {
+                                  await ref
+                                      .read(
+                                        communityPostsPaginatedProvider
+                                            .notifier,
+                                      )
+                                      .editPost(post.id, result);
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  PhosphorIcons.pencilSimple(),
+                                  size: 16,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        GestureDetector(
+                          onTap: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                backgroundColor: isDark
+                                    ? AppTheme.darkCard
+                                    : Colors.white,
+                                title: Text(
+                                  AppLocalizations.of(context)!.deletePostTitle,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                ),
                                 content: Text(
                                   AppLocalizations.of(
                                     context,
-                                  )!.communityEditTimeExpired,
+                                  )!.deletePostContent,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black87,
+                                  ),
                                 ),
-                                backgroundColor: Colors.orange,
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.cancelLabel,
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black54,
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.errorColor,
+                                    ),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.deleteLabel,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
-                            return;
-                          }
-                          final controller = TextEditingController(
-                            text: post.content,
-                          );
-                          final result = await showDialog<String>(
-                            context: context,
-                            builder: (c) => AlertDialog(
-                              backgroundColor: isDark
-                                  ? AppTheme.darkCard
-                                  : Colors.white,
-                              title: Text(
-                                AppLocalizations.of(context)!.communityEditPost,
-                              ),
-                              content: TextField(
-                                controller: controller,
-                                maxLines: 5,
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(c),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.cancel,
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      Navigator.pop(c, controller.text.trim()),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryColor,
-                                  ),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.save,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ],
+                            if (confirm == true) {
+                              await ref
+                                  .read(
+                                    communityPostsPaginatedProvider.notifier,
+                                  )
+                                  .deletePost(post.id);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.errorColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          );
-                          if (result != null &&
-                              result.isNotEmpty &&
-                              result != post.content) {
-                            await ref
-                                .read(communityPostsPaginatedProvider.notifier)
-                                .editPost(post.id, result);
-                          }
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        if (isOwner)
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  PhosphorIcons.pencilSimple(),
-                                  color: AppTheme.primaryColor,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.communityEditPost,
-                                  style: const TextStyle(
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                              ],
+                            child: Icon(
+                              PhosphorIcons.trash(),
+                              size: 16,
+                              color: AppTheme.errorColor,
                             ),
                           ),
-                        if (isOwner || isAdmin)
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  PhosphorIcons.trash(),
-                                  color: AppTheme.errorColor,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Delete',
-                                  style: TextStyle(color: AppTheme.errorColor),
-                                ),
-                              ],
-                            ),
-                          ),
+                        ),
                       ],
                     ),
                 ],
@@ -874,6 +933,20 @@ class _CommunityPostCard extends ConsumerWidget {
         ),
       ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.1),
     );
+  }
+
+  String _getLocalizedCategory(BuildContext context, String category) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (category.toLowerCase()) {
+      case 'tip':
+        return l10n.categoryTip;
+      case 'question':
+        return l10n.categoryQuestion;
+      case 'resource':
+        return l10n.categoryResource;
+      default:
+        return l10n.categoryGeneral;
+    }
   }
 
   Color _getCategoryColor(String category) {

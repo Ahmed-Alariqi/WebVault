@@ -337,65 +337,61 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                                 ),
                             ],
                           ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                _showUserDialog(user: user);
-                              }
-                              if (value == 'delete') {
-                                _deleteUser(user['id'], user['email']);
-                              }
-                              if (value == 'message') {
-                                _messageUser(user['id']);
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              PopupMenuItem(
-                                value: 'message',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      PhosphorIcons.chatTeardropText(),
-                                      size: 20,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GestureDetector(
+                                onTap: () => _messageUser(user['id']),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.1,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      AppLocalizations.of(context)!.messageUser,
-                                    ),
-                                  ],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    PhosphorIcons.chatTeardropText(),
+                                    size: 16,
+                                    color: AppTheme.primaryColor,
+                                  ),
                                 ),
                               ),
-                              PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit, size: 20),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.editChangeRole,
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () => _showUserDialog(user: user),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.amber.shade700.withValues(
+                                      alpha: 0.1,
                                     ),
-                                  ],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    PhosphorIcons.pencilSimple(),
+                                    size: 16,
+                                    color: Colors.amber.shade700,
+                                  ),
                                 ),
                               ),
-                              PopupMenuItem(
-                                value: 'delete',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.delete,
-                                      size: 20,
-                                      color: Colors.red,
+                              const SizedBox(width: 6),
+                              GestureDetector(
+                                onTap: () =>
+                                    _deleteUser(user['id'], user['email']),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.errorColor.withValues(
+                                      alpha: 0.1,
                                     ),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.deleteUserTitle,
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ],
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    PhosphorIcons.trash(),
+                                    size: 16,
+                                    color: AppTheme.errorColor,
+                                  ),
                                 ),
                               ),
                             ],

@@ -294,8 +294,9 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
                     ),
                   ),
                 // Close button
-                Positioned(
-                  right: 8,
+                Positioned.directional(
+                  textDirection: Directionality.of(context),
+                  end: 8,
                   top: 8,
                   child: IconButton(
                     icon: const Icon(
