@@ -4,7 +4,7 @@
   "account": "Account",
   "myProfile": "My Profile",
   "viewAndEditProfile": "View and edit your profile",
-  "adminDashboard": "Admin Dashboard",
+  "adminDashboard": "Dashboard",
   "manageContentAndUsers": "Manage content and users",
   "appearance": "Appearance",
   "system": "System",
@@ -1423,5 +1423,7 @@
   "messageUser": "Message User",
   "startingChat": "Starting chat...",
   "profile": "Profile",
-  "messageAdmin": "Send a message to site administrators"
+  "messageAdmin": "Send a message to site administrators",
+  "enteredGiveawaySuccess": "Entered successfully! Best of luck.",
+  "votedPollSuccess": "Voted successfully! Thank you for participating."
 }

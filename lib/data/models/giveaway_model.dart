@@ -50,6 +50,15 @@ class Giveaway {
   bool get hasEntryField =>
       entryFieldLabel != null && entryFieldLabel!.isNotEmpty;
 
+  bool get shouldDisplay {
+    if (isActive) return true;
+    final now = DateTime.now();
+    if (status == 'drawn' && winnerAnnouncedAt != null) {
+      return now.difference(winnerAnnouncedAt!) <= const Duration(days: 1);
+    }
+    return now.difference(endsAt) <= const Duration(days: 1);
+  }
+
   Duration get timeRemaining => endsAt.difference(DateTime.now());
 
   Giveaway copyWith({
@@ -112,20 +121,20 @@ class Giveaway {
       imageUrl: json['image_url'] as String?,
       prizeType: json['prize_type'] as String? ?? 'other',
       startsAt: json['starts_at'] != null
-          ? DateTime.parse(json['starts_at'])
+          ? DateTime.parse(json['starts_at']).toLocal()
           : null,
-      endsAt: DateTime.parse(json['ends_at']),
+      endsAt: DateTime.parse(json['ends_at']).toLocal(),
       maxEntries: json['max_entries'] as int?,
       status: json['status'] as String? ?? 'active',
       winnerId: json['winner_id'] as String?,
       winnerIds: ids,
       winnerCount: json['winner_count'] as int? ?? 1,
       winnerAnnouncedAt: json['winner_announced_at'] != null
-          ? DateTime.parse(json['winner_announced_at'])
+          ? DateTime.parse(json['winner_announced_at']).toLocal()
           : null,
       entryFieldLabel: json['entry_field_label'] as String?,
       createdBy: json['created_by'] as String?,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
       entryCount: entryCount,
       hasEntered: hasEntered,
     );
@@ -137,14 +146,14 @@ class Giveaway {
       'description': description,
       'image_url': imageUrl,
       'prize_type': prizeType,
-      'starts_at': startsAt?.toIso8601String(),
-      'ends_at': endsAt.toIso8601String(),
+      'starts_at': startsAt?.toUtc().toIso8601String(),
+      'ends_at': endsAt.toUtc().toIso8601String(),
       'max_entries': maxEntries,
       'status': status,
       'winner_id': winnerId,
       'winner_ids': winnerIds,
       'winner_count': winnerCount,
-      'winner_announced_at': winnerAnnouncedAt?.toIso8601String(),
+      'winner_announced_at': winnerAnnouncedAt?.toUtc().toIso8601String(),
       'entry_field_label': entryFieldLabel,
     };
   }
@@ -181,7 +190,7 @@ class GiveawayEntry {
       id: json['id'] as String,
       giveawayId: json['giveaway_id'] as String,
       userId: json['user_id'] as String,
-      enteredAt: DateTime.parse(json['entered_at']),
+      enteredAt: DateTime.parse(json['entered_at']).toLocal(),
       userName: name,
       userEmail: email,
       entryValue: json['entry_value'] as String?,

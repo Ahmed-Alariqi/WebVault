@@ -35,6 +35,13 @@ class Poll {
   bool get isActive => status == 'active' && DateTime.now().isBefore(endsAt);
   bool get isEnded => !isActive;
   bool get hasVoted => userVotes.isNotEmpty;
+
+  bool get shouldDisplay {
+    if (isActive) return true;
+    final now = DateTime.now();
+    return now.difference(endsAt) <= const Duration(days: 1);
+  }
+
   Duration get timeRemaining => endsAt.difference(DateTime.now());
 
   double votePercentage(int optionIndex) {
@@ -105,11 +112,11 @@ class Poll {
       description: json['description'] as String?,
       imageUrl: json['image_url'] as String?,
       options: opts,
-      endsAt: DateTime.parse(json['ends_at']),
+      endsAt: DateTime.parse(json['ends_at']).toLocal(),
       status: json['status'] as String? ?? 'active',
       allowMultiple: json['allow_multiple'] as bool? ?? false,
       createdBy: json['created_by'] as String?,
-      createdAt: DateTime.parse(json['created_at']),
+      createdAt: DateTime.parse(json['created_at']).toLocal(),
       voteCounts: voteCounts,
       totalVotes: totalVotes,
       userVotes: userVotes,
@@ -122,7 +129,7 @@ class Poll {
       'description': description,
       'image_url': imageUrl,
       'options': options,
-      'ends_at': endsAt.toIso8601String(),
+      'ends_at': endsAt.toUtc().toIso8601String(),
       'status': status,
       'allow_multiple': allowMultiple,
     };

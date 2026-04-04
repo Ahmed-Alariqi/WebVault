@@ -21,7 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewAndEditProfile => 'View and edit your profile';
 
   @override
-  String get adminDashboard => 'Admin Dashboard';
+  String get adminDashboard => 'Dashboard';
 
   @override
   String get manageContentAndUsers => 'Manage content and users';
@@ -3219,4 +3219,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageAdmin => 'Send a message to site administrators';
+
+  @override
+  String get enteredGiveawaySuccess => 'Entered successfully! Best of luck.';
+
+  @override
+  String get votedPollSuccess =>
+      'Voted successfully! Thank you for participating.';
 }

@@ -400,67 +400,157 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
                       ),
                       const SizedBox(height: 14),
 
-                      // Action button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: g.hasEntered || g.isFull || _entering
-                              ? null
-                              : () {
-                                  if (g.entryFieldLabel != null &&
-                                      g.entryFieldLabel!.isNotEmpty) {
-                                    _showEntryDataModal();
-                                  } else {
-                                    _submitEntry();
-                                  }
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: const Color(0xFFE11D48),
-                            disabledBackgroundColor: Colors.white.withValues(
-                              alpha: 0.6,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            elevation: 0,
+                      // Winner Details (If drawn)
+                      if (g.isDrawn && g.winnerIds.isNotEmpty) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
                           ),
-                          child: _entering
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF10B981,
+                            ).withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: const Color(
+                                0xFF10B981,
+                              ).withValues(alpha: 0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.emoji_events,
+                                    color: Color(0xFF10B981),
+                                    size: 18,
                                   ),
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      g.hasEntered
-                                          ? PhosphorIcons.checkCircle(
-                                              PhosphorIconsStyle.fill,
-                                            )
-                                          : PhosphorIcons.sparkle(
-                                              PhosphorIconsStyle.fill,
-                                            ),
-                                      size: 18,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.drawn,
+                                    style: const TextStyle(
+                                      color: Color(0xFF10B981),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      g.hasEntered
-                                          ? l10n.alreadyEntered
-                                          : l10n.enterGiveaway,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              ...g.winnerIds.map(
+                                (wId) => Consumer(
+                                  builder: (context, ref, _) {
+                                    final nameAsync = ref.watch(
+                                      winnerNameProvider(wId),
+                                    );
+                                    return nameAsync.when(
+                                      data: (name) => Text(
+                                        name,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      loading: () => const SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white70,
+                                              ),
+                                        ),
+                                      ),
+                                      error: (_, _) => const Text(
+                                        '?',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    );
+                                  },
                                 ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ] else ...[
+                        // Action button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed:
+                                (!g.isActive ||
+                                    g.hasEntered ||
+                                    g.isFull ||
+                                    _entering)
+                                ? null
+                                : () {
+                                    if (g.entryFieldLabel != null &&
+                                        g.entryFieldLabel!.isNotEmpty) {
+                                      _showEntryDataModal();
+                                    } else {
+                                      _submitEntry();
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFFE11D48),
+                              disabledBackgroundColor: Colors.white.withValues(
+                                alpha: 0.6,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: _entering
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        !g.isActive
+                                            ? PhosphorIcons.xCircle(
+                                                PhosphorIconsStyle.fill,
+                                              )
+                                            : g.hasEntered
+                                            ? PhosphorIcons.checkCircle(
+                                                PhosphorIconsStyle.fill,
+                                              )
+                                            : PhosphorIcons.sparkle(
+                                                PhosphorIconsStyle.fill,
+                                              ),
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        !g.isActive
+                                            ? l10n.ended
+                                            : g.hasEntered
+                                            ? l10n.alreadyEntered
+                                            : l10n.enterGiveaway,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

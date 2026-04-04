@@ -118,192 +118,266 @@ class _AdvertisementDetailScreenState
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-      body: CustomScrollView(
-        slivers: [
-          // App bar with image
-          SliverAppBar(
-            expandedHeight: 250,
-            pinned: true,
-            backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    ad.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _gradientBg(),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          isDark ? AppTheme.darkBg : AppTheme.lightBg,
-                        ],
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              // Hero Image with sleek gradient
+              SliverAppBar(
+                expandedHeight: 320,
+                pinned: true,
+                stretch: true,
+                backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                leading: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: InkWell(
+                    onTap: () => Navigator.pop(context),
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.black : Colors.white)
+                            .withValues(alpha: 0.3),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 20,
                       ),
                     ),
                   ),
-                ],
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  stretchModes: const [
+                    StretchMode.zoomBackground,
+                    StretchMode.blurBackground,
+                  ],
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Hero(
+                        tag: 'ad_image_${ad.id}',
+                        child: Image.network(
+                          ad.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _gradientBg(),
+                        ),
+                      ),
+                      // Premium sleek dual-gradient overlay
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withValues(alpha: 0.6),
+                              Colors.transparent,
+                              isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                            ],
+                            stops: const [0.0, 0.5, 1.0],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
+
+              // Content Details
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 120),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title
+                      if (ad.textContent != null && ad.textContent!.isNotEmpty)
+                        Text(
+                              ad.textContent!,
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : Colors.black87,
+                                height: 1.3,
+                                letterSpacing: -0.5,
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(duration: 500.ms)
+                            .slideY(begin: 0.2, curve: Curves.easeOutQuart),
+
+                      const SizedBox(height: 32),
+
+                      // Instructions Card (Flutter Quill)
+                      if (_doc.toPlainText().trim().isNotEmpty) ...[
+                        Text(
+                          l10n.adDetailInstructions,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                        ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1),
+                        const SizedBox(height: 16),
+                        Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.03)
+                                    : Colors.black.withValues(alpha: 0.02),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.05),
+                                ),
+                              ),
+                              child: DefaultTextStyle(
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  height: 1.8,
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.9)
+                                      : Colors.black87,
+                                ),
+                                child: QuillEditor.basic(
+                                  controller: _quillController,
+                                  config: const QuillEditorConfig(
+                                    showCursor: false,
+                                    scrollable: false,
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(delay: 300.ms)
+                            .slideY(begin: 0.1, curve: Curves.easeOutQuart),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          // Content
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (ad.textContent != null && ad.textContent!.isNotEmpty)
-                    Text(
-                      ad.textContent!,
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : Colors.black87,
-                        height: 1.2,
-                      ),
-                    ).animate().fadeIn().slideX(begin: -0.1),
-
-                  const SizedBox(height: 24),
-
-                  // Quill Editor for Instructions
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: isDark ? AppTheme.darkCard : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+          // Floating Action Bottom Bar
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                    (isDark ? AppTheme.darkBg : AppTheme.lightBg).withValues(
+                      alpha: 0.9,
                     ),
-                    child: DefaultTextStyle(
-                      style: TextStyle(
-                        fontSize: 16,
-                        height: 1.6,
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.85)
-                            : Colors.black87,
-                      ),
-                      child: QuillEditor.basic(
-                        controller: _quillController,
-                        config: const QuillEditorConfig(
-                          showCursor: false,
-                          scrollable: false,
-                        ),
-                      ),
+                    (isDark ? AppTheme.darkBg : AppTheme.lightBg).withValues(
+                      alpha: 0.0,
                     ),
-                  ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
-
-                  const SizedBox(
-                    height: 120,
-                  ), // Padding for the floating button
-                ],
+                  ],
+                  stops: const [0.2, 0.7, 1.0],
+                ),
               ),
+              child: _buildActionButton(ad, buttonText)
+                  .animate()
+                  .fadeIn(delay: 500.ms)
+                  .slideY(begin: 0.5, curve: Curves.easeOutBack),
             ),
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: () {
-              _handleDetailCardAction();
-            },
-            style:
-                ElevatedButton.styleFrom(
-                  backgroundColor: ad.detailCardActionType == 'whatsapp'
-                      ? const Color(0xFF25D366)
-                      : ad.detailCardActionType == 'telegram'
-                      ? const Color(0xFF0088CC)
-                      : ad.detailCardActionType == 'external_link'
-                      ? Colors.grey[800]
-                      : AppTheme.primaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 8,
-                  shadowColor:
-                      (ad.detailCardActionType == 'whatsapp'
-                              ? const Color(0xFF25D366)
-                              : ad.detailCardActionType == 'telegram'
-                              ? const Color(0xFF0088CC)
-                              : ad.detailCardActionType == 'external_link'
-                              ? Colors.grey[800]!
-                              : AppTheme.primaryColor)
-                          .withValues(alpha: 0.4),
-                ).copyWith(
-                  backgroundColor: ad.detailCardActionType == 'support_chat'
-                      ? null
-                      : null,
-                  backgroundBuilder: ad.detailCardActionType == 'support_chat'
-                      ? (ctx, states, child) => Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppTheme.primaryColor,
-                                const Color(0xFF7C4DFF),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: child,
-                        )
-                      : null,
-                ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  ad.detailCardActionType == 'whatsapp'
-                      ? Icons.chat
-                      : ad.detailCardActionType == 'telegram'
-                      ? Icons.send
-                      : ad.detailCardActionType == 'external_link'
-                      ? Icons.open_in_browser
-                      : Icons.support_agent_rounded,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  buttonText,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
+    );
+  }
+
+  Widget _buildActionButton(Advertisement ad, String buttonText) {
+    Color baseColor;
+    IconData iconData;
+
+    switch (ad.detailCardActionType) {
+      case 'whatsapp':
+        baseColor = const Color(0xFF25D366);
+        iconData = Icons.chat;
+        break;
+      case 'telegram':
+        baseColor = const Color(0xFF0088CC);
+        iconData = Icons.send;
+        break;
+      case 'external_link':
+        baseColor = Colors.grey[800]!;
+        iconData = Icons.open_in_browser;
+        break;
+      case 'support_chat':
+      default:
+        baseColor = AppTheme.primaryColor;
+        iconData = Icons.support_agent_rounded;
+        break;
+    }
+
+    final isSupport = ad.detailCardActionType == 'support_chat';
+
+    return Container(
+      width: double.infinity,
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-        ).animate().fadeIn(delay: 400.ms).scale(begin: const Offset(0.9, 0.9)),
+        ],
+        gradient: isSupport
+            ? LinearGradient(
+                colors: [AppTheme.primaryColor, const Color(0xFF7C4DFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+      ),
+      child: ElevatedButton(
+        onPressed: _handleDetailCardAction,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isSupport ? Colors.transparent : baseColor,
+          foregroundColor: Colors.white,
+          shadowColor: Colors
+              .transparent, // Disable native shadow to use container shadow
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          padding: EdgeInsets.zero,
+        ),
+        child: Ink(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(iconData, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                buttonText,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

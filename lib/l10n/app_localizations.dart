@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminDashboard.
   ///
   /// In en, this message translates to:
-  /// **'Admin Dashboard'**
+  /// **'Dashboard'**
   String get adminDashboard;
 
   /// No description provided for @manageContentAndUsers.
@@ -6115,6 +6115,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send a message to site administrators'**
   String get messageAdmin;
+
+  /// No description provided for @enteredGiveawaySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Entered successfully! Best of luck.'**
+  String get enteredGiveawaySuccess;
+
+  /// No description provided for @votedPollSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Voted successfully! Thank you for participating.'**
+  String get votedPollSuccess;
 }
 
 class _AppLocalizationsDelegate

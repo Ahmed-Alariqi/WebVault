@@ -297,6 +297,24 @@ class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
                                                   : null,
                                             );
                                             if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.enteredGiveawaySuccess,
+                                                  ),
+                                                  backgroundColor:
+                                                      AppTheme.successColor,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  duration: const Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
                                               Navigator.of(context).pop();
                                             }
                                           } catch (e) {
@@ -605,14 +623,15 @@ class PollDetailDialog extends ConsumerStatefulWidget {
 }
 
 class _PollDetailDialogState extends ConsumerState<PollDetailDialog> {
-  int? _selectedIndex;
+  Set<int> _selectedIndexes = {};
   bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
-    final poll = widget.poll;
+    final updatedPoll = ref.watch(pollByIdProvider(widget.poll.id)).value;
+    final poll = updatedPoll ?? widget.poll;
 
     final isActive = poll.isActive;
     final color = isActive ? AppTheme.accentColor : Colors.grey;
@@ -759,11 +778,18 @@ class _PollDetailDialogState extends ConsumerState<PollDetailDialog> {
                               final option = entry.value;
                               final count = poll.voteCounts[i] ?? 0;
                               final pct = poll.votePercentage(i);
-                              final isSelected = poll.userVotes.contains(i);
+                              final isSelected =
+                                  poll.userVotes.contains(i) ||
+                                  (!poll.hasVoted &&
+                                      _selectedIndexes.contains(i));
                               final showResults =
-                                  poll.hasVoted || poll.isEnded || !isActive;
+                                  poll.hasVoted ||
+                                  poll.isEnded ||
+                                  !isActive ||
+                                  (!poll.hasVoted &&
+                                      _selectedIndexes.isNotEmpty);
                               final isUpdating =
-                                  _selectedIndex == i && _isSubmitting;
+                                  _selectedIndexes.contains(i) && _isSubmitting;
 
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
@@ -773,24 +799,20 @@ class _PollDetailDialogState extends ConsumerState<PollDetailDialog> {
                                           !isActive ||
                                           _isSubmitting
                                       ? null
-                                      : () async {
+                                      : () {
                                           setState(() {
-                                            _selectedIndex = i;
-                                            _isSubmitting = true;
-                                          });
-                                          try {
-                                            if (isSelected) {
-                                              await unvotePoll(poll.id, i, ref);
+                                            if (poll.allowMultiple) {
+                                              if (_selectedIndexes.contains(
+                                                i,
+                                              )) {
+                                                _selectedIndexes.remove(i);
+                                              } else {
+                                                _selectedIndexes.add(i);
+                                              }
                                             } else {
-                                              await votePoll(poll.id, i, ref);
+                                              _selectedIndexes = {i};
                                             }
-                                          } catch (_) {}
-                                          if (mounted) {
-                                            setState(() {
-                                              _isSubmitting = false;
-                                              _selectedIndex = null;
-                                            });
-                                          }
+                                          });
                                         },
                                   child: AnimatedContainer(
                                     duration: 400.ms,
@@ -943,6 +965,96 @@ class _PollDetailDialogState extends ConsumerState<PollDetailDialog> {
                                 ),
                               );
                             }),
+
+                            // Vote Button
+                            if (_selectedIndexes.isNotEmpty &&
+                                !poll.hasVoted &&
+                                isActive) ...[
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isSubmitting
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            _isSubmitting = true;
+                                          });
+                                          try {
+                                            for (final idx
+                                                in _selectedIndexes) {
+                                              await votePoll(poll.id, idx, ref);
+                                            }
+                                            if (mounted && context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    AppLocalizations.of(
+                                                      context,
+                                                    )!.votedPollSuccess,
+                                                  ),
+                                                  backgroundColor:
+                                                      AppTheme.successColor,
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  duration: const Duration(
+                                                    seconds: 2,
+                                                  ),
+                                                ),
+                                              );
+                                              Future.delayed(
+                                                const Duration(
+                                                  milliseconds: 1200,
+                                                ),
+                                                () {
+                                                  if (mounted &&
+                                                      context.mounted) {
+                                                    Navigator.of(context).pop();
+                                                  }
+                                                },
+                                              );
+                                            }
+                                          } catch (_) {}
+                                          if (mounted) {
+                                            setState(() {
+                                              _isSubmitting = false;
+                                              // keeping selectedIndexes so user can see their vote while delayed
+                                            });
+                                          }
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppTheme.accentColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: _isSubmitting
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          l10n.pollLabel,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),

@@ -58,32 +58,38 @@ final activeGiveawayProvider = FutureProvider<Giveaway?>((ref) async {
   final response = await _supabase
       .from('giveaways')
       .select()
-      .eq('status', 'active')
       .order('created_at', ascending: false)
-      .limit(1);
+      .limit(5);
 
   if ((response as List).isEmpty) return null;
-  final json = response.first;
-  final gId = json['id'] as String;
 
-  final countResp = await _supabase
-      .from('giveaway_entries')
-      .select('id')
-      .eq('giveaway_id', gId);
-  final count = (countResp as List).length;
+  for (final json in response) {
+    final tempG = Giveaway.fromJson(json);
+    if (!tempG.shouldDisplay) continue;
 
-  bool entered = false;
-  if (uid != null) {
-    final check = await _supabase
+    final gId = json['id'] as String;
+
+    final countResp = await _supabase
         .from('giveaway_entries')
         .select('id')
-        .eq('giveaway_id', gId)
-        .eq('user_id', uid);
-    entered = (check as List).isNotEmpty;
+        .eq('giveaway_id', gId);
+    final count = (countResp as List).length;
+
+    bool entered = false;
+    if (uid != null) {
+      final check = await _supabase
+          .from('giveaway_entries')
+          .select('id')
+          .eq('giveaway_id', gId)
+          .eq('user_id', uid);
+      entered = (check as List).isNotEmpty;
+    }
+
+    final g = Giveaway.fromJson(json, entryCount: count, hasEntered: entered);
+    if (g.shouldDisplay) return g;
   }
 
-  final g = Giveaway.fromJson(json, entryCount: count, hasEntered: entered);
-  return g.isActive ? g : null;
+  return null;
 });
 
 /// Single giveaway by ID
@@ -261,15 +267,21 @@ final activePollProvider = FutureProvider<Poll?>((ref) async {
   final response = await _supabase
       .from('polls')
       .select()
-      .eq('status', 'active')
       .order('created_at', ascending: false)
-      .limit(1);
+      .limit(5);
 
   if ((response as List).isEmpty) return null;
-  final json = response.first;
-  final pId = json['id'] as String;
-  final poll = await _enrichPoll(json, pId, uid);
-  return poll.isActive ? poll : null;
+
+  for (final json in response) {
+    final tempP = Poll.fromJson(json);
+    if (!tempP.shouldDisplay) continue;
+
+    final pId = json['id'] as String;
+    final poll = await _enrichPoll(json, pId, uid);
+    if (poll.shouldDisplay) return poll;
+  }
+
+  return null;
 });
 
 /// Single poll by ID

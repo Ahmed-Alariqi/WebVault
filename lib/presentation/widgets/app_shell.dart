@@ -61,7 +61,7 @@ class _AppShellState extends ConsumerState<AppShell> {
         break;
       case 4:
         if (isAdmin) {
-          context.go('/admin');
+          context.push('/admin');
         } else {
           context.go('/community');
         }

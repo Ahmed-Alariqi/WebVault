@@ -99,7 +99,7 @@ class _EditPollSheetState extends ConsumerState<EditPollSheet> {
             ? null
             : _descCtrl.text.trim(),
         'options': options,
-        'ends_at': _endsAt!.toIso8601String(),
+        'ends_at': _endsAt!.toUtc().toIso8601String(),
         'allow_multiple': _allowMultiple,
       };
 

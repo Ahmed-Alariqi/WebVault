@@ -86,7 +86,7 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
             ? null
             : _imageCtrl.text.trim(),
         'prize_type': _prizeType,
-        'ends_at': _endsAt!.toIso8601String(),
+        'ends_at': _endsAt!.toUtc().toIso8601String(),
         'max_entries': _maxEntriesCtrl.text.trim().isEmpty
             ? null
             : int.tryParse(_maxEntriesCtrl.text.trim()),

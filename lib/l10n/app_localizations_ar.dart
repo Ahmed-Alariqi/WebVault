@@ -3207,4 +3207,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get messageAdmin =>
       'أرسل رسالة إلى إدارة التطبيق لحل أي مشكلة أوالإستفسار';
+
+  @override
+  String get enteredGiveawaySuccess =>
+      'تم الاشتراك بالمسابقة بنجاح! حظاً موفقاً.';
+
+  @override
+  String get votedPollSuccess => 'تم التصويت بنجاح! شكراً لمشاركتك.';
 }

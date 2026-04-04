@@ -360,11 +360,24 @@ class _EditAdvertisementSheetState
       children: [
         const SizedBox(height: 16),
         // ── Instructions (Rich Text) ──
-        CustomQuillEditor(
-          controller: _detailInstructionsController,
-          label: l10n.adDetailInstructions,
-          helperText: l10n.adDetailInstructionsHint,
-          height: 150.0,
+        _buildCard(
+          isDark: isDark,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSectionHeader(
+                l10n.adDetailInstructions,
+                PhosphorIcons.article(),
+                isDark,
+              ),
+              CustomQuillEditor(
+                controller: _detailInstructionsController,
+                label: '',
+                helperText: l10n.adDetailInstructionsHint,
+                height: 150.0,
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         _buildTextField(

@@ -128,7 +128,6 @@ class _CustomQuillEditorState extends State<CustomQuillEditor> {
                       showSearchButton: false,
                       showSubscript: false,
                       showSuperscript: false,
-                        
                     ),
                   ),
                 ),
@@ -143,7 +142,10 @@ class _CustomQuillEditorState extends State<CustomQuillEditor> {
                 },
                 child: Container(
                   height: widget.height,
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.02)
