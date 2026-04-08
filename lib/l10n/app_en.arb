@@ -1521,5 +1521,7 @@
   "referralCampaignDetails": "Campaign Details",
   "referralSettings": "Settings",
   "referralActive": "Active",
-  "referralVisibleSub": "Show to users in profile"
+  "referralVisibleSub": "Show to users in profile",
+  "nothingToDiscover": "Nothing to discover yet",
+  "checkBackDiscover": "Check back soon for trending content!"
 }

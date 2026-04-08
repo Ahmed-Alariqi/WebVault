@@ -160,7 +160,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
             ).animate().fadeIn().slideY(begin: 0.2, end: 0),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
             // Identity Section
             ModernFormWidgets.sectionHeader(
@@ -212,7 +212,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
             ).animate().fadeIn(delay: 200.ms),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Organization Section
             ModernFormWidgets.sectionHeader(
@@ -245,18 +245,6 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
                     : AppTheme.lightTextPrimary,
               ),
               items: [
-                DropdownMenuItem<String?>(
-                  value: null,
-                  child: Text(
-                    AppLocalizations.of(context)!.cancel,
-                    style: TextStyle(
-                      color: isDark
-                          ? AppTheme.darkTextSecondary
-                          : AppTheme.lightTextSecondary,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
                 ...folders.map(
                   (folder) => DropdownMenuItem<String?>(
                     value: folder.id,
@@ -300,7 +288,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
             ).animate().fadeIn(delay: 300.ms),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Details Section
             ModernFormWidgets.sectionHeader(
@@ -326,7 +314,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
               ),
             ).animate().fadeIn(delay: 350.ms),
 
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
 
             // Action Button
             ModernFormWidgets.gradientButton(

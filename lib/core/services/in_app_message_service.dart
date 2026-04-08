@@ -238,104 +238,120 @@ class InAppMessageService {
                     ),
 
                   // Content
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    title,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    message,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      height: 1.5,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          message,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15,
-                            height: 1.5,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                          const SizedBox(height: 32),
 
-                        // Action Buttons
-                        if (actionUrl != null &&
-                            actionUrl.isNotEmpty &&
-                            actionText != null)
-                          SizedBox(
-                            width: double.infinity,
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final uri = Uri.tryParse(actionUrl);
-                                if (uri != null && await canLaunchUrl(uri)) {
-                                  await launchUrl(
-                                    uri,
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                }
-                                if (isDismissible) {
-                                  dismissedIds.add(messageId);
-                                  await box.put(_dismissedKey, dismissedIds);
+                          // Action Buttons
+                          if (actionUrl != null &&
+                              actionUrl.isNotEmpty &&
+                              actionText != null)
+                            SizedBox(
+                              width: double.infinity,
+                              height: 54,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  final uri = Uri.tryParse(actionUrl);
+                                  if (uri != null && await canLaunchUrl(uri)) {
+                                    await launchUrl(
+                                      uri,
+                                      mode: LaunchMode.externalApplication,
+                                    );
+                                  }
+                                  if (isDismissible) {
+                                    dismissedIds.add(messageId);
+                                    await box.put(_dismissedKey, dismissedIds);
+                                    if (ctx.mounted) Navigator.pop(ctx);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryColor,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  actionText,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          const SizedBox(height: 12),
+
+                          // Dismiss Button
+                          if (isDismissible)
+                            SizedBox(
+                              width: double.infinity,
+                              height: 50,
+                              child: TextButton(
+                                onPressed: () async {
+                                  if (!showEveryTime) {
+                                    dismissedIds.add(messageId);
+                                    await box.put(_dismissedKey, dismissedIds);
+                                  }
                                   if (ctx.mounted) Navigator.pop(ctx);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: isDark
+                                      ? Colors.white54
+                                      : Colors.black54,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                                 ),
-                                elevation: 0,
-                              ),
-                              child: Text(
-                                actionText,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 12),
-
-                        // Dismiss Button
-                        if (isDismissible)
-                          SizedBox(
-                            width: double.infinity,
-                            height: 50,
-                            child: TextButton(
-                              onPressed: () async {
-                                if (!showEveryTime) {
-                                  dismissedIds.add(messageId);
-                                  await box.put(_dismissedKey, dismissedIds);
-                                }
-                                if (ctx.mounted) Navigator.pop(ctx);
-                              },
-                              style: TextButton.styleFrom(
-                                foregroundColor: isDark
-                                    ? Colors.white54
-                                    : Colors.black54,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: Text(
-                                AppLocalizations.of(context)!.dismissButton,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                child: Text(
+                                  AppLocalizations.of(context)!.dismissButton,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],

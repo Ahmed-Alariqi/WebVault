@@ -250,6 +250,38 @@ Future<void> markConversationReadByUser(String conversationId) async {
       .eq('id', conversationId);
 }
 
+Future<void> deleteMessage(String messageId, String conversationId) async {
+  await _supabase.from('messages').delete().eq('id', messageId);
+
+  // Optionally update conversation last_message if the deleted one was the last
+  // But for simple implementation, we can skip it or fetch and update.
+  // Let's just update the last_message to something like "Message deleted" or generic
+  // or just leave it since the stream will refresh the UI.
+}
+
+Future<void> updateMessage(
+  String messageId,
+  String conversationId,
+  String newContent,
+) async {
+  await _supabase
+      .from('messages')
+      .update({
+        'content': newContent,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      })
+      .eq('id', messageId);
+
+  // Sync with conversation last_message
+  await _supabase
+      .from('conversations')
+      .update({
+        'last_message': newContent,
+        'last_message_at': DateTime.now().toUtc().toIso8601String(),
+      })
+      .eq('id', conversationId);
+}
+
 Future<void> markConversationReadByAdmin(String conversationId) async {
   await _supabase
       .from('conversations')

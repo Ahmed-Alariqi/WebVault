@@ -74,7 +74,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
 
     // Check format first
-    if (trimmed.length < 3) {
+    if (trimmed.length < 5) {
       setState(() => _usernameStatus = _UsernameStatus.tooShort);
       return;
     }

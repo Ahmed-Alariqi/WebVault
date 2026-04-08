@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/giveaway_model.dart';
 import '../../data/models/poll_model.dart';
 import '../../presentation/providers/events_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../features/profile/referral_share_screen.dart';
 
 // ════════════════════════════════════════
 //  GIVEAWAY DETAIL DIALOG
@@ -54,507 +54,573 @@ class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
         : l10n.ended;
 
     return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 400),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
           ),
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 400),
-            decoration: BoxDecoration(
-              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white10
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  spreadRadius: -5,
-                  offset: const Offset(0, 15),
-                ),
-              ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 30,
+              spreadRadius: -5,
+              offset: const Offset(0, 15),
             ),
-            child: Stack(
+          ],
+        ),
+        child: Stack(
+          children: [
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Header Image
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(28),
-                      ),
-                      child:
-                          giveaway.imageUrl != null &&
-                              giveaway.imageUrl!.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: giveaway.imageUrl!,
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              placeholder: (_, _) => Container(
-                                height: 200,
-                                color: color.withValues(alpha: 0.1),
-                                child: const Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              ),
-                              errorWidget: (_, _, _) => _iconHeader(color),
-                            )
-                          : _iconHeader(color),
-                    ),
+                // Header Image
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
+                  ),
+                  child:
+                      giveaway.imageUrl != null && giveaway.imageUrl!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: giveaway.imageUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => Container(
+                            height: 200,
+                            color: color.withValues(alpha: 0.1),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (_, _, _) => _iconHeader(color),
+                        )
+                      : _iconHeader(color),
+                ),
 
-                    // Content Body
-                    Flexible(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                // Content Body
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          giveaway.title,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : Colors.black87,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
                           children: [
-                            Text(
-                              giveaway.title,
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: isDark ? Colors.white : Colors.black87,
-                                letterSpacing: -0.5,
-                              ),
+                            _badge(statusLabel, color, isDark),
+                            const SizedBox(width: 8),
+                            _badge(
+                              _prizeLabel(giveaway.prizeType, l10n),
+                              AppTheme.accentColor,
+                              isDark,
                             ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                _badge(statusLabel, color, isDark),
-                                const SizedBox(width: 8),
-                                _badge(
-                                  _prizeLabel(giveaway.prizeType, l10n),
-                                  AppTheme.accentColor,
-                                  isDark,
-                                ),
-                              ],
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        if (giveaway.description != null &&
+                            giveaway.description!.isNotEmpty) ...[
+                          Divider(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.06),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            giveaway.description!,
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.6,
+                              color: isDark ? Colors.white70 : Colors.black54,
                             ),
-                            const SizedBox(height: 16),
-                            if (giveaway.description != null &&
-                                giveaway.description!.isNotEmpty) ...[
-                              Divider(
-                                color: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withValues(alpha: 0.06),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                giveaway.description!,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  height: 1.6,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.black54,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
+                          ),
+                          const SizedBox(height: 16),
+                        ],
 
-                            // Stats Row
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.04)
-                                    : Colors.black.withValues(alpha: 0.02),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.06)
-                                      : Colors.black.withValues(alpha: 0.04),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  _stat(
-                                    PhosphorIcons.users(),
-                                    '${giveaway.entryCount}',
-                                    l10n.entries,
-                                    isDark,
-                                  ),
-                                  Container(
-                                    width: 1,
-                                    height: 32,
-                                    color: isDark
-                                        ? Colors.white10
-                                        : Colors.black12,
-                                  ),
-                                  _stat(
-                                    PhosphorIcons.clockCountdown(),
-                                    _timeValue(giveaway.endsAt),
-                                    isActive ? l10n.timeLeft : l10n.ended,
-                                    isDark,
-                                  ),
-                                ],
-                              ),
+                        // Stats Row
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.04)
+                                : Colors.black.withValues(alpha: 0.02),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.06)
+                                  : Colors.black.withValues(alpha: 0.04),
                             ),
-                            const SizedBox(height: 20),
-
-                            // Entry value field
-                            if (isActive &&
-                                giveaway.hasEntryField &&
-                                !giveaway.hasEntered) ...[
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 4,
-                                  bottom: 8,
-                                ),
-                                child: Text(
-                                  giveaway.entryFieldLabel!,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
+                          ),
+                          child: Row(
+                            children: [
+                              _stat(
+                                PhosphorIcons.users(),
+                                '${giveaway.entryCount}',
+                                l10n.entries,
+                                isDark,
                               ),
                               Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
+                                width: 1,
+                                height: 32,
+                                color: isDark ? Colors.white10 : Colors.black12,
+                              ),
+                              _stat(
+                                PhosphorIcons.clockCountdown(),
+                                _timeValue(giveaway.endsAt),
+                                isActive ? l10n.timeLeft : l10n.ended,
+                                isDark,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Entry value field
+                        if (isActive &&
+                            giveaway.hasEntryField &&
+                            !giveaway.hasEntered) ...[
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, bottom: 8),
+                            child: Text(
+                              giveaway.entryFieldLabel!,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.04)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: TextField(
+                              controller: _entryCtrl,
+                              onChanged: (_) => setState(() {}),
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              cursorColor: AppTheme.primaryColor,
+                              decoration: InputDecoration(
+                                hintText: l10n.enterYourValue,
+                                hintStyle: TextStyle(
                                   color: isDark
-                                      ? Colors.white.withValues(alpha: 0.04)
-                                      : Colors.black.withValues(alpha: 0.03),
-                                  borderRadius: BorderRadius.circular(16),
+                                      ? Colors.white38
+                                      : Colors.black38,
                                 ),
-                                child: TextField(
-                                  controller: _entryCtrl,
-                                  onChanged: (_) => setState(() {}),
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                    fontWeight: FontWeight.w500,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none,
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(
+                                    color: AppTheme.primaryColor,
+                                    width: 2,
                                   ),
-                                  cursorColor: AppTheme.primaryColor,
-                                  decoration: InputDecoration(
-                                    hintText: l10n.enterYourValue,
-                                    hintStyle: TextStyle(
-                                      color: isDark
-                                          ? Colors.white38
-                                          : Colors.black38,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      borderSide: const BorderSide(
-                                        color: AppTheme.primaryColor,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 16,
-                                    ),
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                      ),
-                                      child: Icon(
-                                        PhosphorIcons.textbox(),
-                                        size: 20,
-                                        color: AppTheme.primaryColor.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                      ),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Icon(
+                                    PhosphorIcons.textbox(),
+                                    size: 20,
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.8,
                                     ),
                                   ),
                                 ),
                               ),
-                            ],
+                            ),
+                          ),
+                        ],
 
-                            // Enter button
-                            if (isActive)
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: giveaway.hasEntered || _isEntering
-                                      ? null
-                                      : (giveaway.hasEntryField &&
-                                            _entryCtrl.text.trim().isEmpty)
-                                      ? null
-                                      : () async {
-                                          setState(() => _isEntering = true);
-                                          try {
-                                            await enterGiveaway(
-                                              giveaway.id,
-                                              ref,
-                                              entryValue: giveaway.hasEntryField
-                                                  ? _entryCtrl.text.trim()
-                                                  : null,
-                                            );
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    AppLocalizations.of(
-                                                      context,
-                                                    )!.enteredGiveawaySuccess,
-                                                  ),
-                                                  backgroundColor:
-                                                      AppTheme.successColor,
-                                                  behavior:
-                                                      SnackBarBehavior.floating,
-                                                  duration: const Duration(
-                                                    seconds: 2,
-                                                  ),
-                                                ),
-                                              );
-                                              Navigator.of(context).pop();
-                                            }
-                                          } catch (e) {
-                                            if (context.mounted) {
-                                              final eStr = e.toString();
-                                              if (eStr.contains(
-                                                'referrals_required_',
-                                              )) {
-                                                final countStr = eStr
-                                                    .split(
-                                                      'referrals_required_',
-                                                    )
-                                                    .last
-                                                    .replaceAll(
-                                                      RegExp(r'[^0-9]'),
-                                                      '',
-                                                    );
-                                                final count =
-                                                    int.tryParse(countStr) ?? 0;
-                                                ScaffoldMessenger.of(
+                        // Enter button
+                        if (isActive)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: giveaway.hasEntered || _isEntering
+                                  ? null
+                                  : (giveaway.hasEntryField &&
+                                        _entryCtrl.text.trim().isEmpty)
+                                  ? null
+                                  : () async {
+                                      setState(() => _isEntering = true);
+                                      try {
+                                        await enterGiveaway(
+                                          giveaway.id,
+                                          ref,
+                                          entryValue: giveaway.hasEntryField
+                                              ? _entryCtrl.text.trim()
+                                              : null,
+                                        );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                AppLocalizations.of(
                                                   context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'عذراً، يتطلب الدخول إكمال ($count) إحالة ناجحة أولاً.',
+                                                )!.enteredGiveawaySuccess,
+                                              ),
+                                              backgroundColor:
+                                                  AppTheme.successColor,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            ),
+                                          );
+                                          Navigator.of(context).pop();
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          final eStr = e.toString();
+                                          if (eStr.contains(
+                                            'referrals_required_',
+                                          )) {
+                                            final countStr = eStr
+                                                .split('referrals_required_')
+                                                .last
+                                                .replaceAll(
+                                                  RegExp(r'[^0-9]'),
+                                                  '',
+                                                );
+                                            final count =
+                                                int.tryParse(countStr) ?? 0;
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                backgroundColor: isDark
+                                                    ? AppTheme.darkCard
+                                                    : Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.all(24),
+                                                content: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            16,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: AppTheme
+                                                            .errorColor
+                                                            .withValues(
+                                                              alpha: 0.1,
+                                                            ),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: Icon(
+                                                        PhosphorIcons.lockKey(
+                                                          PhosphorIconsStyle
+                                                              .fill,
+                                                        ),
+                                                        color:
+                                                            AppTheme.errorColor,
+                                                        size: 32,
+                                                      ),
                                                     ),
-                                                    backgroundColor:
-                                                        AppTheme.errorColor,
-                                                    behavior: SnackBarBehavior
-                                                        .floating,
-                                                    duration: const Duration(
-                                                      seconds: 4,
+                                                    const SizedBox(height: 20),
+                                                    Text(
+                                                      'عذراً، لا يمكنك المشاركة',
+                                                      style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: isDark
+                                                            ? Colors.white
+                                                            : Colors.black87,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
-                                                    action: SnackBarAction(
-                                                      label: 'الذهاب للإحالات',
-                                                      textColor: Colors.white,
-                                                      onPressed: () {
-                                                        if (context.mounted) {
+                                                    const SizedBox(height: 12),
+                                                    Text(
+                                                      'يتطلب الدخول في هذه الجائزة الحصول على ($count) إحالة ناجحة أولاً. يمكنك دعوة أصدقائك للوفاء بالشروط.',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: isDark
+                                                            ? Colors.white70
+                                                            : Colors.black54,
+                                                        height: 1.5,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                    const SizedBox(height: 24),
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: ElevatedButton(
+                                                        onPressed: () {
                                                           Navigator.pop(
                                                             context,
-                                                          );
-                                                          context.push(
-                                                            '/profile',
-                                                          );
-                                                        }
-                                                      },
-                                                    ),
-                                                  ),
-                                                );
-                                              } else {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      AppLocalizations.of(
+                                                          ); // Close dialog
+                                                          Navigator.pop(
                                                             context,
-                                                          )!.failedToEnterGiveaway ??
-                                                          'Failed to enter.',
+                                                          ); // Close details page
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                              builder: (_) =>
+                                                                  const ReferralShareScreen(),
+                                                            ),
+                                                          );
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                          backgroundColor:
+                                                              AppTheme
+                                                                  .primaryColor,
+                                                          foregroundColor:
+                                                              Colors.white,
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                vertical: 14,
+                                                              ),
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  16,
+                                                                ),
+                                                          ),
+                                                        ),
+                                                        child: const Text(
+                                                          'الذهاب لصفحة الإحالات',
+                                                        ),
+                                                      ),
                                                     ),
-                                                    backgroundColor:
-                                                        AppTheme.errorColor,
-                                                  ),
-                                                );
-                                              }
-                                            }
-                                            setState(() => _isEntering = false);
-                                          }
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: giveaway.hasEntered
-                                        ? (isDark
-                                              ? Colors.white10
-                                              : Colors.black12)
-                                        : AppTheme.primaryColor,
-                                    foregroundColor: giveaway.hasEntered
-                                        ? (isDark
-                                              ? Colors.white38
-                                              : Colors.black38)
-                                        : Colors.white,
-                                    disabledBackgroundColor: isDark
-                                        ? Colors.white.withValues(alpha: 0.06)
-                                        : Colors.black.withValues(alpha: 0.06),
-                                    disabledForegroundColor: isDark
-                                        ? Colors.white38
-                                        : Colors.black38,
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  icon: _isEntering
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : Icon(
-                                          giveaway.hasEntered
-                                              ? PhosphorIcons.checkCircle(
-                                                  PhosphorIconsStyle.fill,
-                                                )
-                                              : PhosphorIcons.ticket(
-                                                  PhosphorIconsStyle.fill,
+                                                    const SizedBox(height: 12),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                            context,
+                                                          ),
+                                                      child: Text(
+                                                        'إلغاء',
+                                                        style: TextStyle(
+                                                          color: isDark
+                                                              ? Colors.white54
+                                                              : Colors.black45,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                          size: 20,
-                                        ),
-                                  label: Text(
-                                    giveaway.hasEntered
-                                        ? l10n.alreadyEntered
-                                        : l10n.enterGiveaway,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.2,
+                                              ),
+                                            );
+                                          } else {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.failedToEnterGiveaway,
+                                                ),
+                                                backgroundColor:
+                                                    AppTheme.errorColor,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                        setState(() => _isEntering = false);
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: giveaway.hasEntered
+                                    ? (isDark ? Colors.white10 : Colors.black12)
+                                    : AppTheme.primaryColor,
+                                foregroundColor: giveaway.hasEntered
+                                    ? (isDark ? Colors.white38 : Colors.black38)
+                                    : Colors.white,
+                                disabledBackgroundColor: isDark
+                                    ? Colors.white.withValues(alpha: 0.06)
+                                    : Colors.black.withValues(alpha: 0.06),
+                                disabledForegroundColor: isDark
+                                    ? Colors.white38
+                                    : Colors.black38,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              icon: _isEntering
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Icon(
+                                      giveaway.hasEntered
+                                          ? PhosphorIcons.checkCircle(
+                                              PhosphorIconsStyle.fill,
+                                            )
+                                          : PhosphorIcons.ticket(
+                                              PhosphorIconsStyle.fill,
+                                            ),
+                                      size: 20,
                                     ),
-                                  ),
+                              label: Text(
+                                giveaway.hasEntered
+                                    ? l10n.alreadyEntered
+                                    : l10n.enterGiveaway,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
                                 ),
                               ),
+                            ),
+                          ),
 
-                            // Winners (multiple)
-                            if (isDrawn && giveaway.winnerIds.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.successColor.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: AppTheme.successColor.withValues(
-                                      alpha: 0.2,
-                                    ),
-                                  ),
+                        // Winners (multiple)
+                        if (isDrawn && giveaway.winnerIds.isNotEmpty) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.successColor.withValues(
+                                alpha: 0.08,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppTheme.successColor.withValues(
+                                  alpha: 0.2,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          PhosphorIcons.trophy(
-                                            PhosphorIconsStyle.fill,
-                                          ),
-                                          color: AppTheme.successColor,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          '${l10n.winners} (${giveaway.winnerIds.length})',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppTheme.successColor,
-                                          ),
-                                        ),
-                                      ],
+                                    Icon(
+                                      PhosphorIcons.trophy(
+                                        PhosphorIconsStyle.fill,
+                                      ),
+                                      color: AppTheme.successColor,
+                                      size: 24,
                                     ),
-                                    const SizedBox(height: 8),
-                                    ...giveaway.winnerIds.map(
-                                      (wId) => Consumer(
-                                        builder: (ctx, cRef, _) {
-                                          final nameAsync = cRef.watch(
-                                            winnerNameProvider(wId),
-                                          );
-                                          return nameAsync.when(
-                                            data: (name) => Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 3,
-                                                  ),
-                                              child: Text(
-                                                '\u2022 $name',
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: isDark
-                                                      ? Colors.white60
-                                                      : Colors.black54,
-                                                ),
-                                              ),
-                                            ),
-                                            loading: () => const SizedBox(
-                                              height: 14,
-                                              width: 14,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 1.5,
-                                              ),
-                                            ),
-                                            error: (_, _) =>
-                                                const SizedBox.shrink(),
-                                          );
-                                        },
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      '${l10n.winners} (${giveaway.winnerIds.length})',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.successColor,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Close button
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                                const SizedBox(height: 8),
+                                ...giveaway.winnerIds.map(
+                                  (wId) => Consumer(
+                                    builder: (ctx, cRef, _) {
+                                      final nameAsync = cRef.watch(
+                                        winnerNameProvider(wId),
+                                      );
+                                      return nameAsync.when(
+                                        data: (name) => Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 3,
+                                          ),
+                                          child: Text(
+                                            '\u2022 $name',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: isDark
+                                                  ? Colors.white60
+                                                  : Colors.black54,
+                                            ),
+                                          ),
+                                        ),
+                                        loading: () => const SizedBox(
+                                          height: 14,
+                                          width: 14,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 1.5,
+                                          ),
+                                        ),
+                                        error: (_, _) =>
+                                            const SizedBox.shrink(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 300.ms)
-        .scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack);
+
+            // Close button
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.close, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.9, 0.9), curve: Curves.easeOutBack);
   }
 
   Widget _iconHeader(Color color) {

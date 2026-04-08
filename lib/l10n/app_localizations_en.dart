@@ -3502,4 +3502,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get referralVisibleSub => 'Show to users in profile';
+
+  @override
+  String get nothingToDiscover => 'Nothing to discover yet';
+
+  @override
+  String get checkBackDiscover => 'Check back soon for trending content!';
 }

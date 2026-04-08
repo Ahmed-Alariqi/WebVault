@@ -1250,5 +1250,7 @@
   "referralCampaignDetails": "تفاصيل الحملة",
   "referralSettings": "الإعدادات",
   "referralActive": "نشطة",
-  "referralVisibleSub": "إظهار للمستخدمين في الملف الشخصي"
+  "referralVisibleSub": "إظهار للمستخدمين في الملف الشخصي",
+  "nothingToDiscover": "لا يوجد شيء لاكتشافه بعد",
+  "checkBackDiscover": "عد قريباً لرؤية المحتوى الرائج!"
 }

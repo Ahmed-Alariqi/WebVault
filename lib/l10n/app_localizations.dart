@@ -6643,6 +6643,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show to users in profile'**
   String get referralVisibleSub;
+
+  /// No description provided for @nothingToDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to discover yet'**
+  String get nothingToDiscover;
+
+  /// No description provided for @checkBackDiscover.
+  ///
+  /// In en, this message translates to:
+  /// **'Check back soon for trending content!'**
+  String get checkBackDiscover;
 }
 
 class _AppLocalizationsDelegate

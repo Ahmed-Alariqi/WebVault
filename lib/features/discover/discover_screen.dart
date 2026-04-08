@@ -1805,7 +1805,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ).animate().fadeIn().scale(),
           const SizedBox(height: 24),
           Text(
-            'Nothing to discover yet',
+            AppLocalizations.of(context)!.nothingToDiscover,
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w700,
@@ -1816,7 +1816,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Check back soon for trending content!',
+            AppLocalizations.of(context)!.checkBackDiscover,
             style: TextStyle(
               fontSize: 15,
               color: isDark

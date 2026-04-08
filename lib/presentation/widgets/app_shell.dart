@@ -505,13 +505,129 @@ class _AppShellState extends ConsumerState<AppShell> {
       body: Stack(
         children: [
           widget.child,
-          // Support Chat Bubble Overlay
+          // Support Chat Bubble Overlay for Users OR Admin Message Alert for Admins
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
             left: 20,
             right: 20,
             child: Consumer(
               builder: (context, ref, child) {
+                final isAdmin =
+                    ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
+
+                if (isAdmin) {
+                  final adminUnreadCount = ref.watch(
+                    adminTotalUnreadCountProvider,
+                  );
+                  if (adminUnreadCount <= 0 || _isChatBubbleDismissed) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
+                    builder: (context, value, child) {
+                      return Transform.translate(
+                        offset: Offset(0, -60 * (1 - value)),
+                        child: Opacity(
+                          opacity: value.clamp(0.0, 1.0),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _isChatBubbleDismissed = true);
+                        context.push('/admin/user-chats');
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.amber.shade700,
+                              Colors.amber.shade900,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.amber.withValues(alpha: 0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Colors.white24,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                PhosphorIconsRegular.usersThree,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'رسائل المستخدمين',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'لديك ($adminUnreadCount) محادثات بانتظار الرد',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() => _isChatBubbleDismissed = true);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white24,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                // Normal user chat bubble logic
                 final unreadCount =
                     ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
                 if (unreadCount <= 0 || _isChatBubbleDismissed) {

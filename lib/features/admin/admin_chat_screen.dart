@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../data/models/chat_model.dart';
 
 class AdminChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -292,7 +293,10 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                   ],
-                                  Flexible(
+                                  GestureDetector(
+                                    onLongPress: isMe
+                                        ? () => _showActionMenu(context, msg)
+                                        : null,
                                     child: Container(
                                       constraints: BoxConstraints(
                                         maxWidth:
@@ -550,6 +554,173 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  void _showActionMenu(BuildContext context, MessageModel message) {
+    if (message.content.startsWith('[IMAGE] ')) return; // Skip for images
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: Icon(
+                  PhosphorIcons.pencilLine(),
+                  color: AppTheme.primaryColor,
+                ),
+                title: Text(l10n.edit),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showEditDialog(message);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  PhosphorIcons.trash(),
+                  color: AppTheme.errorColor,
+                ),
+                title: Text(l10n.delete),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDelete(message);
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showEditDialog(MessageModel message) {
+    final editCtrl = TextEditingController(text: message.content);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.edit),
+        content: TextField(
+          controller: editCtrl,
+          maxLines: 5,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.grey[100],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newContent = editCtrl.text.trim();
+              if (newContent.isNotEmpty && newContent != message.content) {
+                try {
+                  await updateMessage(
+                    message.id,
+                    message.conversationId,
+                    newContent,
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Edit failed: $e')));
+                  }
+                }
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(MessageModel message) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.deleteMessageTitle),
+        content: Text(l10n.deleteMessageContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await deleteMessage(message.id, message.conversationId);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(l10n.deleteLabel)));
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(l10n.delete),
+          ),
+        ],
       ),
     );
   }

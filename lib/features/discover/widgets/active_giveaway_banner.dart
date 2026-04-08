@@ -8,6 +8,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../data/models/giveaway_model.dart';
 import '../../../presentation/providers/events_providers.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../profile/referral_share_screen.dart';
 
 class ActiveGiveawayBanner extends ConsumerWidget {
   const ActiveGiveawayBanner({super.key});
@@ -63,19 +64,92 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
               .last
               .replaceAll(RegExp(r'[^0-9]'), '');
           final count = int.tryParse(countStr) ?? 0;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'عذراً، يتطلب الدخول إكمال ($count) إحالة ناجحة أولاً.',
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? const Color(0xFF1F2937)
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-              backgroundColor: const Color(0xFFE11D48),
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'الذهاب للإحالات',
-                textColor: Colors.white,
-                onPressed: () {
-                  if (mounted) context.push('/profile');
-                },
+              contentPadding: const EdgeInsets.all(24),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE11D48).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      PhosphorIconsRegular.lockKey,
+                      color: Color(0xFFE11D48),
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'عذراً، لا يمكنك المشاركة',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'يتطلب الدخول في هذه الجائزة الحصول على ($count) إحالة ناجحة أولاً. يمكنك دعوة أصدقائك للإشتراك بالمسابقة.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : Colors.black54,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close dialog
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ReferralShareScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE11D48),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text('الذهاب لصفحة الإحالات'),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'إلغاء',
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white54
+                            : Colors.black45,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           );

@@ -3487,4 +3487,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get referralVisibleSub => 'إظهار للمستخدمين في الملف الشخصي';
+
+  @override
+  String get nothingToDiscover => 'لا يوجد شيء لاكتشافه بعد';
+
+  @override
+  String get checkBackDiscover => 'عد قريباً لرؤية المحتوى الرائج!';
 }
