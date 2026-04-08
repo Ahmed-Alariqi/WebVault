@@ -521,8 +521,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     if (v == null || v.trim().isEmpty) {
                       return AppLocalizations.of(context)!.usernameRequired;
                     }
-                    if (v.trim().length < 3) {
+                    if (v.trim().length < 5) {
                       return AppLocalizations.of(context)!.usernameTooShort;
+                    }
+                    if (v.trim().length > 10) {
+                      return AppLocalizations.of(context)!.usernameTooLong;
+                    }
+                    if (RegExp(r'^\d+$').hasMatch(v.trim())) {
+                      return AppLocalizations.of(context)!.usernameNumbersOnly;
                     }
                     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v.trim())) {
                       return AppLocalizations.of(context)!.usernameInvalid;

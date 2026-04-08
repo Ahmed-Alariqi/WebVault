@@ -143,11 +143,40 @@ Future<void> enterGiveaway(
   String? entryValue,
 }) async {
   final uid = _supabase.auth.currentUser!.id;
+
+  // 1. Check if giveaway requires referrals
+  final campaignRes = await _supabase
+      .from('referral_campaigns')
+      .select('id, required_referrals')
+      .eq('reward_giveaway_id', giveawayId)
+      .eq('is_active', true)
+      .maybeSingle();
+
+  if (campaignRes != null) {
+    final requiredReferrals = (campaignRes['required_referrals'] as num)
+        .toInt();
+
+    // Count confirmed referrals where this user is the referrer
+    final countRes = await _supabase
+        .from('referrals')
+        .select('id')
+        .eq('referrer_id', uid)
+        .eq('campaign_id', campaignRes['id'])
+        .eq('status', 'confirmed');
+
+    final confirmedCount = (countRes as List).length;
+    if (confirmedCount < requiredReferrals) {
+      throw 'referrals_required_$requiredReferrals';
+    }
+  }
+
+  // 2. Insert entry
   final data = <String, dynamic>{'giveaway_id': giveawayId, 'user_id': uid};
   if (entryValue != null && entryValue.isNotEmpty) {
     data['entry_value'] = entryValue;
   }
   await _supabase.from('giveaway_entries').insert(data);
+
   ref.invalidate(giveawaysProvider);
   ref.invalidate(activeGiveawayProvider);
   ref.invalidate(giveawayByIdProvider(giveawayId));

@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/collection_model.dart';
 import '../../presentation/providers/admin_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -17,8 +18,12 @@ class CollectionItemsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
-    final itemsAsync = ref.watch(collectionItemsProvider(collection.id));
     final color = Color(collection.colorValue);
+
+    // Check eligibility for referral-exclusive collections
+    final eligibilityAsync = collection.isReferralExclusive == true
+        ? ref.watch(isEligibleForCollectionProvider(collection.id))
+        : const AsyncValue.data(true);
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
@@ -99,52 +104,126 @@ class CollectionItemsScreen extends ConsumerWidget {
               ),
             ),
 
-          // Items Grid
-          itemsAsync.when(
+          // Items Grid or Lock Screen
+          eligibilityAsync.when(
             loading: () => const SliverFillRemaining(
               child: Center(child: CircularProgressIndicator()),
             ),
-            error: (e, _) =>
-                SliverFillRemaining(child: Center(child: Text('Error: $e'))),
-            data: (items) {
-              if (items.isEmpty) {
+            error: (e, _) => SliverFillRemaining(
+              child: Center(child: Text('Error verifying access: $e')),
+            ),
+            data: (isEligible) {
+              if (!isEligible) {
                 return SliverFillRemaining(
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          PhosphorIcons.folder(),
-                          size: 64,
-                          color: isDark ? Colors.white24 : Colors.black12,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          loc.noItemsInCollection,
-                          style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.black38,
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            PhosphorIcons.lockKey(PhosphorIconsStyle.fill),
+                            size: 64,
+                            color: color,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Text(
+                            'المجموعة مقفلة', // Collection Locked
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'هذه المجموعة حصرية وتتطلب تحقيق عدد معين من الإحالات الناجحة لفتحها.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back),
+                            label: const Text('رجوع'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: color,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
               }
 
-              return SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.9,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (ctx, i) => _buildItemCard(ctx, items[i], isDark, color),
-                    childCount: items.length,
-                  ),
+              // Access granted -> Show actual items
+              final itemsAsync = ref.watch(
+                collectionItemsProvider(collection.id),
+              );
+
+              return itemsAsync.when(
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
                 ),
+                error: (e, _) => SliverFillRemaining(
+                  child: Center(child: Text('Error: $e')),
+                ),
+                data: (items) {
+                  if (items.isEmpty) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              PhosphorIcons.folder(),
+                              size: 64,
+                              color: isDark ? Colors.white24 : Colors.black12,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              loc.noItemsInCollection,
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black38,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.9,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      delegate: SliverChildBuilderDelegate(
+                        (ctx, i) =>
+                            _buildItemCard(ctx, items[i], isDark, color),
+                        childCount: items.length,
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),

@@ -565,7 +565,7 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                       ),
                       value: _requestEntryData,
                       onChanged: (v) => setState(() => _requestEntryData = v),
-                      activeColor: Colors.white,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: AppTheme.primaryColor,
                     ),
                     if (_requestEntryData) ...[
@@ -638,7 +638,7 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
                     ),
                     value: _sendNotification,
                     onChanged: (v) => setState(() => _sendNotification = v),
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: AppTheme.primaryColor,
                   ),
                 ),

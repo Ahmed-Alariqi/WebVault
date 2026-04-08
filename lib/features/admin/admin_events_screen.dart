@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import 'edit_giveaway_sheet.dart';
 import 'edit_poll_sheet.dart';
 import '../../presentation/providers/chat_providers.dart';
+import 'admin_referrals_tab.dart';
 
 class AdminEventsScreen extends ConsumerStatefulWidget {
   const AdminEventsScreen({super.key});
@@ -28,7 +29,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -196,6 +197,16 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen>
                           ],
                         ),
                       ),
+                      Tab(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(PhosphorIcons.usersThree(), size: 18),
+                            const SizedBox(width: 6),
+                            Text(l10n.referralTabTitle),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -208,6 +219,7 @@ class _AdminEventsScreenState extends ConsumerState<AdminEventsScreen>
           children: [
             _GiveawaysTab(isDark: isDark),
             _PollsTab(isDark: isDark),
+            AdminReferralsTab(isDark: isDark),
           ],
         ),
       ),
@@ -605,7 +617,7 @@ class _GiveawayCard extends ConsumerWidget {
                                   padding: EdgeInsets.symmetric(vertical: 3),
                                   child: Text('...'),
                                 ),
-                                error: (_, __) => const SizedBox(),
+                                error: (_, _) => const SizedBox(),
                               );
                             },
                           ),
@@ -925,7 +937,7 @@ class _GiveawayCard extends ConsumerWidget {
                             controller: scrollCtrl,
                             padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
                             itemCount: entries.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (_, i) {
                               final entry = entries[i];

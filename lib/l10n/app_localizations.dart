@@ -6023,8 +6023,20 @@ abstract class AppLocalizations {
   /// No description provided for @usernameTooShort.
   ///
   /// In en, this message translates to:
-  /// **'At least 3 characters'**
+  /// **'At least 5 characters'**
   String get usernameTooShort;
+
+  /// No description provided for @usernameTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Max 10 characters'**
+  String get usernameTooLong;
+
+  /// No description provided for @usernameNumbersOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot be numbers only'**
+  String get usernameNumbersOnly;
 
   /// No description provided for @usernameTaken.
   ///
@@ -6127,6 +6139,510 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voted successfully! Thank you for participating.'**
   String get votedPollSuccess;
+
+  /// No description provided for @referralTabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Referrals'**
+  String get referralTabTitle;
+
+  /// No description provided for @referralCampaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaigns'**
+  String get referralCampaigns;
+
+  /// No description provided for @referralNoCampaigns.
+  ///
+  /// In en, this message translates to:
+  /// **'No referral campaigns yet'**
+  String get referralNoCampaigns;
+
+  /// No description provided for @referralCreateCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Campaign'**
+  String get referralCreateCampaign;
+
+  /// No description provided for @referralEditCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Campaign'**
+  String get referralEditCampaign;
+
+  /// No description provided for @referralActiveCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get referralActiveCampaign;
+
+  /// No description provided for @referralInactiveCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get referralInactiveCampaign;
+
+  /// No description provided for @referralExpiredCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get referralExpiredCampaign;
+
+  /// No description provided for @referralCampaignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Title'**
+  String get referralCampaignTitle;
+
+  /// No description provided for @referralCampaignDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get referralCampaignDesc;
+
+  /// No description provided for @referralRequiredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Required Referrals'**
+  String get referralRequiredCount;
+
+  /// No description provided for @referralRewardType.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward Type'**
+  String get referralRewardType;
+
+  /// No description provided for @referralRewardNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No reward'**
+  String get referralRewardNone;
+
+  /// No description provided for @referralRewardGiveawayEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaway entry'**
+  String get referralRewardGiveawayEntry;
+
+  /// No description provided for @referralRewardGiveawayBoost.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra giveaway entries'**
+  String get referralRewardGiveawayBoost;
+
+  /// No description provided for @referralRewardCollectionAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection access'**
+  String get referralRewardCollectionAccess;
+
+  /// No description provided for @referralRewardCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom reward'**
+  String get referralRewardCustom;
+
+  /// No description provided for @referralSelectGiveaway.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Giveaway'**
+  String get referralSelectGiveaway;
+
+  /// No description provided for @referralSelectCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Collection'**
+  String get referralSelectCollection;
+
+  /// No description provided for @referralRewardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward Description'**
+  String get referralRewardDescription;
+
+  /// No description provided for @referralRewardDescHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Premium account, paid course...'**
+  String get referralRewardDescHint;
+
+  /// No description provided for @referralReferredReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Referred User Reward'**
+  String get referralReferredReward;
+
+  /// No description provided for @referralReferredRewardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Also reward the referred friend'**
+  String get referralReferredRewardDesc;
+
+  /// No description provided for @referralReferredRewardDescHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Your friend also enters the giveaway!'**
+  String get referralReferredRewardDescHint;
+
+  /// No description provided for @referralEndsAt.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date (optional)'**
+  String get referralEndsAt;
+
+  /// No description provided for @referralCampaignCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign created!'**
+  String get referralCampaignCreated;
+
+  /// No description provided for @referralCampaignUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign updated!'**
+  String get referralCampaignUpdated;
+
+  /// No description provided for @referralCampaignDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign deleted'**
+  String get referralCampaignDeleted;
+
+  /// No description provided for @referralDeleteCampaignConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this campaign? This cannot be undone.'**
+  String get referralDeleteCampaignConfirm;
+
+  /// No description provided for @referralStatsTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get referralStatsTotal;
+
+  /// No description provided for @referralStatsConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get referralStatsConfirmed;
+
+  /// No description provided for @referralStatsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get referralStatsPending;
+
+  /// No description provided for @referralStatsRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get referralStatsRejected;
+
+  /// No description provided for @referralTopReferrers.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Referrers'**
+  String get referralTopReferrers;
+
+  /// No description provided for @referralCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get referralCompleted;
+
+  /// No description provided for @referralRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} remaining'**
+  String referralRemaining(int count);
+
+  /// No description provided for @referralAllReferrals.
+  ///
+  /// In en, this message translates to:
+  /// **'All Referrals'**
+  String get referralAllReferrals;
+
+  /// No description provided for @referralConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get referralConfirm;
+
+  /// No description provided for @referralReject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get referralReject;
+
+  /// No description provided for @referralRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral rejected'**
+  String get referralRejected;
+
+  /// No description provided for @referralConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral confirmed'**
+  String get referralConfirmed;
+
+  /// No description provided for @referralStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get referralStatusPending;
+
+  /// No description provided for @referralStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get referralStatusConfirmed;
+
+  /// No description provided for @referralStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get referralStatusRejected;
+
+  /// No description provided for @referralShareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share App'**
+  String get referralShareTitle;
+
+  /// No description provided for @referralShareSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the app & get rewards!'**
+  String get referralShareSubtitle;
+
+  /// No description provided for @referralShareDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Refer {count} friends and get {reward}'**
+  String referralShareDesc(int count, String reward);
+
+  /// No description provided for @referralYourCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Referral Code'**
+  String get referralYourCode;
+
+  /// No description provided for @referralCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get referralCopyCode;
+
+  /// No description provided for @referralShareCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get referralShareCode;
+
+  /// No description provided for @referralCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied!'**
+  String get referralCodeCopied;
+
+  /// No description provided for @referralYourProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Progress'**
+  String get referralYourProgress;
+
+  /// No description provided for @referralSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/{total} successful referrals'**
+  String referralSuccessful(int count, int total);
+
+  /// No description provided for @referralYourReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Reward'**
+  String get referralYourReward;
+
+  /// No description provided for @referralFriendReward.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Friend\'s Reward'**
+  String get referralFriendReward;
+
+  /// No description provided for @referralYourReferrals.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Referrals'**
+  String get referralYourReferrals;
+
+  /// No description provided for @referralNoReferrals.
+  ///
+  /// In en, this message translates to:
+  /// **'No referrals yet. Share your code!'**
+  String get referralNoReferrals;
+
+  /// No description provided for @referralHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works?'**
+  String get referralHowItWorks;
+
+  /// No description provided for @referralStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your invite code with friends'**
+  String get referralStep1;
+
+  /// No description provided for @referralStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Your friend signs up and enters the code'**
+  String get referralStep2;
+
+  /// No description provided for @referralStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'The system verifies the invite within the specified period'**
+  String get referralStep3;
+
+  /// No description provided for @referralStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete {count} referrals = 🎁'**
+  String referralStep4(int count);
+
+  /// No description provided for @referralValidationWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Invites that do not meet the conditions (completing profile & using app) will not be counted.'**
+  String get referralValidationWarning;
+
+  /// No description provided for @referralClaimMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, I have completed the referral requirements and would like to claim my reward: {reward}'**
+  String referralClaimMessage(String reward);
+
+  /// No description provided for @referralEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Were you invited by a friend?'**
+  String get referralEnterCode;
+
+  /// No description provided for @referralEnterCodeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the referral code to help them'**
+  String get referralEnterCodeDesc;
+
+  /// No description provided for @referralEnterCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code here...'**
+  String get referralEnterCodeHint;
+
+  /// No description provided for @referralSubmitCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get referralSubmitCode;
+
+  /// No description provided for @referralSkipCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get referralSkipCode;
+
+  /// No description provided for @referralCodeSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Referral code applied successfully!'**
+  String get referralCodeSuccess;
+
+  /// No description provided for @referralCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid code. Please check and try again.'**
+  String get referralCodeInvalid;
+
+  /// No description provided for @referralCodeSelfError.
+  ///
+  /// In en, this message translates to:
+  /// **'You can\'t use your own code!'**
+  String get referralCodeSelfError;
+
+  /// No description provided for @referralCodeAlreadyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already applied a referral code.'**
+  String get referralCodeAlreadyUsed;
+
+  /// No description provided for @referralCodeNoCampaign.
+  ///
+  /// In en, this message translates to:
+  /// **'No active referral campaign at this time.'**
+  String get referralCodeNoCampaign;
+
+  /// No description provided for @referralCodeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again later.'**
+  String get referralCodeError;
+
+  /// No description provided for @referralExclusiveCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusive Content'**
+  String get referralExclusiveCollection;
+
+  /// No description provided for @referralExclusiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This collection is available only to users who completed referrals for campaign \"{campaign}\"'**
+  String referralExclusiveDesc(String campaign);
+
+  /// No description provided for @referralShareNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the app now'**
+  String get referralShareNow;
+
+  /// No description provided for @referralVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'Visible'**
+  String get referralVisible;
+
+  /// No description provided for @referralHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get referralHidden;
+
+  /// No description provided for @referralCampaignDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Details'**
+  String get referralCampaignDetails;
+
+  /// No description provided for @referralSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get referralSettings;
+
+  /// No description provided for @referralActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get referralActive;
+
+  /// No description provided for @referralVisibleSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Show to users in profile'**
+  String get referralVisibleSub;
 }
 
 class _AppLocalizationsDelegate

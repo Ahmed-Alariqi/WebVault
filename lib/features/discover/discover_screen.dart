@@ -677,6 +677,25 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           ),
                         ),
 
+                        // Lock Badge for Exclusive Collections
+                        if (col.isReferralExclusive)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                PhosphorIcons.lockKey(),
+                                size: 14,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+
                         // Content (Icon and Title)
                         Padding(
                           padding: const EdgeInsets.all(12),

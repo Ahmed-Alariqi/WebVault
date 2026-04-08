@@ -10,8 +10,6 @@ import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/website_model.dart';
-import '../../data/models/giveaway_model.dart';
-import '../../data/models/poll_model.dart';
 import 'website_details_dialog.dart';
 import 'event_detail_dialogs.dart';
 import '../../presentation/providers/events_providers.dart';

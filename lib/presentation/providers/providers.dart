@@ -14,6 +14,7 @@ import '../../data/models/folder_model.dart';
 import '../../data/models/clipboard_item_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/services/backup_service.dart';
+import '../../core/services/analytics_service.dart';
 
 // ============================================================
 // Repository providers
@@ -167,6 +168,8 @@ class PagesNotifier extends StateNotifier<List<PageModel>> {
   Future<void> addPage(PageModel page) async {
     await _repo.save(page);
     refresh();
+    // Track for referral activity verification
+    AnalyticsService.trackPageAdd();
   }
 
   Future<void> updatePage(PageModel page) async {
@@ -365,6 +368,8 @@ class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
   Future<void> addItem(ClipboardItemModel item) async {
     await _repo.saveItem(item);
     refresh();
+    // Track for referral activity verification
+    AnalyticsService.trackClipboardAdd();
   }
 
   Future<void> updateItem(ClipboardItemModel item) async {

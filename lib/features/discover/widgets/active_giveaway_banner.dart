@@ -56,9 +56,37 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        final eStr = e.toString();
+        if (eStr.contains('referrals_required_')) {
+          final countStr = eStr
+              .split('referrals_required_')
+              .last
+              .replaceAll(RegExp(r'[^0-9]'), '');
+          final count = int.tryParse(countStr) ?? 0;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'عذراً، يتطلب الدخول إكمال ($count) إحالة ناجحة أولاً.',
+              ),
+              backgroundColor: const Color(0xFFE11D48),
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'الذهاب للإحالات',
+                textColor: Colors.white,
+                onPressed: () {
+                  if (mounted) context.push('/profile');
+                },
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $eStr'),
+              backgroundColor: const Color(0xFFE11D48),
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -234,7 +262,7 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
                       ? CachedNetworkImage(
                           imageUrl: g.imageUrl!,
                           fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
+                          placeholder: (_, _) => Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,
@@ -243,7 +271,7 @@ class _BannerContentState extends ConsumerState<_BannerContent> {
                               ),
                             ),
                           ),
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             decoration: const BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topLeft,

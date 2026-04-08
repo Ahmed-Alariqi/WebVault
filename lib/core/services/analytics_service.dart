@@ -64,4 +64,14 @@ class AnalyticsService {
       debugPrint('Analytics error (item_view): $e');
     }
   }
+
+  /// Triggers when a user saves text to clipboard.
+  static Future<void> trackClipboardAdd() async {
+    await _logActivity('clipboard_add');
+  }
+
+  /// Triggers when a user saves a new page/website.
+  static Future<void> trackPageAdd() async {
+    await _logActivity('page_add');
+  }
 }

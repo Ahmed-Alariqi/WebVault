@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/giveaway_model.dart';
 import '../../data/models/poll_model.dart';
@@ -97,14 +98,14 @@ class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
                               height: 200,
                               width: double.infinity,
                               fit: BoxFit.cover,
-                              placeholder: (_, __) => Container(
+                              placeholder: (_, _) => Container(
                                 height: 200,
                                 color: color.withValues(alpha: 0.1),
                                 child: const Center(
                                   child: CircularProgressIndicator(),
                                 ),
                               ),
-                              errorWidget: (_, __, ___) => _iconHeader(color),
+                              errorWidget: (_, _, _) => _iconHeader(color),
                             )
                           : _iconHeader(color),
                     ),
@@ -319,20 +320,67 @@ class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
                                             }
                                           } catch (e) {
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    AppLocalizations.of(
-                                                          context,
-                                                        )!.failedToEnterGiveaway ??
-                                                        'Failed to enter, please try again.',
+                                              final eStr = e.toString();
+                                              if (eStr.contains(
+                                                'referrals_required_',
+                                              )) {
+                                                final countStr = eStr
+                                                    .split(
+                                                      'referrals_required_',
+                                                    )
+                                                    .last
+                                                    .replaceAll(
+                                                      RegExp(r'[^0-9]'),
+                                                      '',
+                                                    );
+                                                final count =
+                                                    int.tryParse(countStr) ?? 0;
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      'عذراً، يتطلب الدخول إكمال ($count) إحالة ناجحة أولاً.',
+                                                    ),
+                                                    backgroundColor:
+                                                        AppTheme.errorColor,
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    duration: const Duration(
+                                                      seconds: 4,
+                                                    ),
+                                                    action: SnackBarAction(
+                                                      label: 'الذهاب للإحالات',
+                                                      textColor: Colors.white,
+                                                      onPressed: () {
+                                                        if (context.mounted) {
+                                                          Navigator.pop(
+                                                            context,
+                                                          );
+                                                          context.push(
+                                                            '/profile',
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
                                                   ),
-                                                  backgroundColor:
-                                                      Colors.redAccent,
-                                                ),
-                                              );
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      AppLocalizations.of(
+                                                            context,
+                                                          )!.failedToEnterGiveaway ??
+                                                          'Failed to enter.',
+                                                    ),
+                                                    backgroundColor:
+                                                        AppTheme.errorColor,
+                                                  ),
+                                                );
+                                              }
                                             }
                                             setState(() => _isEntering = false);
                                           }
@@ -463,7 +511,7 @@ class _GiveawayDetailDialogState extends ConsumerState<GiveawayDetailDialog> {
                                                 strokeWidth: 1.5,
                                               ),
                                             ),
-                                            error: (_, __) =>
+                                            error: (_, _) =>
                                                 const SizedBox.shrink(),
                                           );
                                         },

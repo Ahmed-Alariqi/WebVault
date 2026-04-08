@@ -599,111 +599,105 @@ class _CommunityPostCard extends ConsumerWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (isOwner)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: GestureDetector(
-                              onTap: () async {
-                                final canEdit =
-                                    DateTime.now()
-                                        .difference(post.createdAt)
-                                        .inMinutes <=
-                                    15;
-                                if (!canEdit) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.communityEditTimeExpired,
-                                      ),
-                                      backgroundColor: Colors.orange,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                final controller = TextEditingController(
-                                  text: post.content,
-                                );
-                                final result = await showDialog<String>(
-                                  context: context,
-                                  builder: (c) => AlertDialog(
-                                    backgroundColor: isDark
-                                        ? AppTheme.darkCard
-                                        : Colors.white,
-                                    title: Text(
+                          GestureDetector(
+                            onTap: () async {
+                              final canEdit =
+                                  DateTime.now()
+                                      .difference(post.createdAt)
+                                      .inMinutes <=
+                                  15;
+                              if (!canEdit) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
                                       AppLocalizations.of(
                                         context,
-                                      )!.communityEditPost,
+                                      )!.communityEditTimeExpired,
                                     ),
-                                    content: TextField(
-                                      controller: controller,
-                                      maxLines: 5,
-                                      style: TextStyle(
-                                        color: isDark
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                      decoration: InputDecoration(
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(c),
-                                        child: Text(
-                                          AppLocalizations.of(context)!.cancel,
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () => Navigator.pop(
-                                          c,
-                                          controller.text.trim(),
-                                        ),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              AppTheme.primaryColor,
-                                        ),
-                                        child: Text(
-                                          AppLocalizations.of(context)!.save,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                    backgroundColor: Colors.orange,
                                   ),
                                 );
-                                if (result != null &&
-                                    result.isNotEmpty &&
-                                    result != post.content) {
-                                  await ref
-                                      .read(
-                                        communityPostsPaginatedProvider
-                                            .notifier,
-                                      )
-                                      .editPost(post.id, result);
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.1,
+                                return;
+                              }
+                              final controller = TextEditingController(
+                                text: post.content,
+                              );
+                              final result = await showDialog<String>(
+                                context: context,
+                                builder: (c) => AlertDialog(
+                                  backgroundColor: isDark
+                                      ? AppTheme.darkCard
+                                      : Colors.white,
+                                  title: Text(
+                                    AppLocalizations.of(
+                                      context,
+                                    )!.communityEditPost,
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
+                                  content: TextField(
+                                    controller: controller,
+                                    maxLines: 5,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    decoration: InputDecoration(
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(c),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.cancel,
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.pop(
+                                        c,
+                                        controller.text.trim(),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppTheme.primaryColor,
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context)!.save,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                child: Icon(
-                                  PhosphorIcons.pencilSimple(),
-                                  size: 16,
-                                  color: AppTheme.primaryColor,
+                              );
+                              if (result != null &&
+                                  result.isNotEmpty &&
+                                  result != post.content) {
+                                await ref
+                                    .read(
+                                      communityPostsPaginatedProvider.notifier,
+                                    )
+                                    .editPost(post.id, result);
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withValues(
+                                  alpha: 0.05,
                                 ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                PhosphorIcons.pencilSimple(),
+                                size: 16,
+                                color: AppTheme.primaryColor,
                               ),
                             ),
                           ),
+                        if (isOwner) const SizedBox(width: 8),
                         GestureDetector(
                           onTap: () async {
                             final confirm = await showDialog<bool>(
@@ -764,9 +758,11 @@ class _CommunityPostCard extends ConsumerWidget {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppTheme.errorColor.withValues(alpha: 0.1),
+                              color: AppTheme.errorColor.withValues(
+                                alpha: 0.05,
+                              ),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(

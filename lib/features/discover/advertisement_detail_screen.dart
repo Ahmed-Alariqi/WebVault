@@ -164,7 +164,7 @@ class _AdvertisementDetailScreenState
                         child: Image.network(
                           ad.imageUrl,
                           fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _gradientBg(),
+                          errorBuilder: (_, _, _) => _gradientBg(),
                         ),
                       ),
                       // Premium sleek dual-gradient overlay

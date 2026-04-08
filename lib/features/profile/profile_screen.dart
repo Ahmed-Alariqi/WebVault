@@ -10,7 +10,10 @@ import '../../core/supabase_config.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/username_check_provider.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../l10n/app_localizations.dart';
+import 'package:share_plus/share_plus.dart';
+import 'referral_share_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -34,10 +37,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   String _originalUsername = '';
   bool _initialized = false;
 
+  final _referralCodeCtrl = TextEditingController();
+  bool _submittingReferral = false;
+  String? _referralErrorMsg;
+
   @override
   void dispose() {
     _nameCtrl.dispose();
     _usernameCtrl.dispose();
+    _referralCodeCtrl.dispose();
     _usernameDebounce?.cancel();
     super.dispose();
   }
@@ -133,7 +141,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     loading: () => const Center(
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
-                    error: (_, __) => _buildHeroContent(null, user, isDark),
+                    error: (_, _) => _buildHeroContent(null, user, isDark),
                   ),
                 ),
               ),
@@ -341,6 +349,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           const SizedBox(height: 12),
 
+          // ─── Referral Input Section (24 hours window) ───
+          _buildReferralInputCard(isDark, profile, l10n),
+
+          const SizedBox(height: 12),
+
+          // ─── Referral Share Section ───
+          _buildReferralCard(isDark, l10n),
+
+          const SizedBox(height: 12),
+
           // ─── Account Section ───
           _buildAccountSection(isDark, l10n),
 
@@ -411,7 +429,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               isDark: isDark,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return l10n.usernameRequired;
-                if (v.trim().length < 3) return l10n.usernameTooShort;
+                if (v.trim().length < 5) return l10n.usernameTooShort;
+                if (v.trim().length > 10) return l10n.usernameTooLong;
+                if (RegExp(r'^\d+$').hasMatch(v.trim()))
+                  return l10n.usernameNumbersOnly;
                 if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v.trim())) {
                   return l10n.usernameInvalid;
                 }
@@ -564,6 +585,180 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
         ),
       ),
+    );
+  }
+
+  // ─── Referral Share Card ───
+  Widget _buildReferralCard(bool isDark, AppLocalizations l10n) {
+    final campaignAsync = ref.watch(activeReferralCampaignProvider);
+    return campaignAsync.when(
+      data: (campaign) {
+        if (campaign == null || !campaign.isVisible) {
+          return GestureDetector(
+            onTap: () {
+              final text = l10n.localeName.startsWith('ar')
+                  ? 'أهلاً! 👋\n\nاكتشفت تطبيق WebVault وصراحةً غيّر طريقتي بحفظ الروابط والملاحظات — كل شي منظّم ومرتّب بمكان واحد 🔖✨\n\nإذا حسيت إنه بيفيدك، جربه وشارك الفائدة 🚀\n\nحمّل التطبيق من هنا:\nhttps://webvault.app/download'
+                  : 'Hello! 👋\n\nI discovered the WebVault app and it really changed how I save links and notes — everything is organized in one place 🔖✨\n\nIf you think it might be useful, try it out 🚀\n\nDownload the app here:\nhttps://webvault.app/download';
+              Share.share(text);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.15),
+                    AppTheme.accentColor.withValues(alpha: 0.08),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
+                      color: AppTheme.primaryColor,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.localeName.startsWith('ar')
+                              ? 'شارك الفائدة 💡'
+                              : 'Share the app 💡',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.localeName.startsWith('ar')
+                              ? 'هل تعرف أحداً قد يستفيد من التطبيق؟ ساعده يكتشف WebVault ✨'
+                              : 'Know someone who could use the app? Help them discover WebVault ✨',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: isDark ? Colors.white38 : Colors.black26,
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
+        }
+        final hasUsername = _originalUsername.isNotEmpty;
+
+        return GestureDetector(
+          onTap: () {
+            if (!hasUsername) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'يرجى حفظ اسم المستخدم الخاص بك أولاً لتمكين إنشاء و مشاركة كود الإحالة.',
+                  ),
+                  backgroundColor: Colors.orange,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ReferralShareScreen()),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: hasUsername
+                    ? [
+                        AppTheme.primaryColor.withValues(alpha: 0.15),
+                        AppTheme.accentColor.withValues(alpha: 0.08),
+                      ]
+                    : [
+                        Colors.grey.withValues(alpha: 0.15),
+                        Colors.grey.withValues(alpha: 0.08),
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: hasUsername
+                    ? AppTheme.primaryColor.withValues(alpha: 0.25)
+                    : Colors.grey.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+                    color: AppTheme.primaryColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.referralShareTitle,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.referralShareSubtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white54 : Colors.black45,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: isDark ? Colors.white38 : Colors.black26,
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
+      },
+      loading: () => const SizedBox(),
+      error: (_, _) => const SizedBox(),
     );
   }
 
@@ -1018,7 +1213,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ChangePasswordSheet(
-        email: user!.email!,
+        email: user.email!,
         isDark: isDark,
         l10n: l10n,
         ref: ref,
@@ -1072,6 +1267,217 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final authService = ref.read(authServiceProvider);
       await authService.signOut();
     }
+  }
+
+  // ─── Referral Input Card (24h window) ───
+  Widget _buildReferralInputCard(
+    bool isDark,
+    Map<String, dynamic>? profile,
+    AppLocalizations l10n,
+  ) {
+    if (profile == null) return const SizedBox();
+    final referredBy = profile['referred_by'] as String?;
+    if (referredBy != null) return const SizedBox();
+
+    final authUser = SupabaseConfig.client.auth.currentUser;
+    if (authUser == null || authUser.createdAt.isEmpty) return const SizedBox();
+
+    if (DateTime.now().difference(DateTime.parse(authUser.createdAt)).inHours >=
+        24) {
+      return const SizedBox();
+    }
+
+    final campaignAsync = ref.watch(activeReferralCampaignProvider);
+    return campaignAsync.when(
+      data: (campaign) {
+        if (campaign == null || !campaign.isVisible) return const SizedBox();
+
+        String rewardText = '';
+        switch (campaign.referredRewardType) {
+          case 'giveaway_entry':
+            rewardText =
+                'تذكرة دخول مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
+            break;
+          case 'giveaway_boost':
+            rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
+            break;
+          case 'collection_access':
+            rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
+            break;
+          case 'custom':
+          default:
+            rewardText = campaign.referredRewardDescription?.isNotEmpty == true
+                ? campaign.referredRewardDescription!
+                : 'مزايا حصرية 🎁';
+        }
+        final String dynamicDesc = 'أدخل الكود الآن واحصل على:\n$rewardText';
+
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    PhosphorIcons.gift(PhosphorIconsStyle.fill),
+                    color: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'هل تمتلك رمز دعوة؟',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                dynamicDesc,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.5,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _referralCodeCtrl,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: l10n.referralEnterCodeHint,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white30 : Colors.black26,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _submittingReferral
+                        ? null
+                        : () async {
+                            final code = _referralCodeCtrl.text.trim();
+                            if (code.isEmpty) return;
+                            setState(() {
+                              _submittingReferral = true;
+                              _referralErrorMsg = null;
+                            });
+                            try {
+                              final result = await submitReferralCode(
+                                code,
+                                ref,
+                              );
+                              if (result == null && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(l10n.referralCodeSuccess),
+                                    backgroundColor: AppTheme.successColor,
+                                  ),
+                                );
+                              } else {
+                                if (mounted) {
+                                  setState(() => _referralErrorMsg = result);
+                                }
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                setState(
+                                  () => _referralErrorMsg = 'حدث خطأ غير متوقع',
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _submittingReferral = false);
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
+                    ),
+                    child: _submittingReferral
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            l10n.referralSubmitCode,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                  ),
+                ],
+              ),
+              if (_referralErrorMsg != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    _referralErrorMsg == 'invalid'
+                        ? 'رمز دعوة غير صحيح'
+                        : _referralErrorMsg == 'self'
+                        ? 'لا يمكنك استخدام رمزك الخاص'
+                        : 'حدث خطأ. حاول مجددا',
+                    style: const TextStyle(
+                      color: AppTheme.errorColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.05);
+      },
+      loading: () => const SizedBox(),
+      error: (_, _) => const SizedBox(),
+    );
   }
 }
 

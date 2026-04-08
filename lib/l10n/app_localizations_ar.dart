@@ -3160,7 +3160,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get usernameRequired => 'اسم المستخدم مطلوب';
 
   @override
-  String get usernameTooShort => '3 أحرف على الأقل';
+  String get usernameTooShort => '5 أحرف على الأقل';
+
+  @override
+  String get usernameTooLong => '10 أحرف كحد أقصى';
+
+  @override
+  String get usernameNumbersOnly => 'لا يمكن أن يتكون من أرقام فقط';
 
   @override
   String get usernameTaken => 'اسم المستخدم مستخدم بالفعل';
@@ -3214,4 +3220,271 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get votedPollSuccess => 'تم التصويت بنجاح! شكراً لمشاركتك.';
+
+  @override
+  String get referralTabTitle => 'الدعوات';
+
+  @override
+  String get referralCampaigns => 'الحملات';
+
+  @override
+  String get referralNoCampaigns => 'لا توجد حملات دعوات بعد';
+
+  @override
+  String get referralCreateCampaign => 'إنشاء حملة';
+
+  @override
+  String get referralEditCampaign => 'تعديل الحملة';
+
+  @override
+  String get referralActiveCampaign => 'نشطة';
+
+  @override
+  String get referralInactiveCampaign => 'غير نشطة';
+
+  @override
+  String get referralExpiredCampaign => 'منتهية';
+
+  @override
+  String get referralCampaignTitle => 'عنوان الحملة';
+
+  @override
+  String get referralCampaignDesc => 'الوصف (اختياري)';
+
+  @override
+  String get referralRequiredCount => 'عدد الإحالات المطلوبة';
+
+  @override
+  String get referralRewardType => 'نوع المكافأة';
+
+  @override
+  String get referralRewardNone => 'بدون مكافأة';
+
+  @override
+  String get referralRewardGiveawayEntry => 'دخول سحب';
+
+  @override
+  String get referralRewardGiveawayBoost => 'إدخالات إضافية بالسحب';
+
+  @override
+  String get referralRewardCollectionAccess => 'وصول لمجموعة مميزة';
+
+  @override
+  String get referralRewardCustom => 'مكافأة مخصصة';
+
+  @override
+  String get referralSelectGiveaway => 'اختر السحب';
+
+  @override
+  String get referralSelectCollection => 'اختر المجموعة';
+
+  @override
+  String get referralRewardDescription => 'وصف المكافأة';
+
+  @override
+  String get referralRewardDescHint => 'مثلاً: حساب منصة مدفوعة، كورس مجاني...';
+
+  @override
+  String get referralReferredReward => 'مكافأة المدعو';
+
+  @override
+  String get referralReferredRewardDesc => 'مكافأة الصديق المدعو أيضاً';
+
+  @override
+  String get referralReferredRewardDescHint => 'مثلاً: صديقك أيضاً يدخل السحب!';
+
+  @override
+  String get referralEndsAt => 'تاريخ الانتهاء (اختياري)';
+
+  @override
+  String get referralCampaignCreated => 'تم إنشاء الحملة!';
+
+  @override
+  String get referralCampaignUpdated => 'تم تحديث الحملة!';
+
+  @override
+  String get referralCampaignDeleted => 'تم حذف الحملة';
+
+  @override
+  String get referralDeleteCampaignConfirm =>
+      'حذف هذه الحملة؟ لا يمكن التراجع.';
+
+  @override
+  String get referralStatsTotal => 'إجمالي';
+
+  @override
+  String get referralStatsConfirmed => 'مؤكدة';
+
+  @override
+  String get referralStatsPending => 'معلقة';
+
+  @override
+  String get referralStatsRejected => 'مرفوضة';
+
+  @override
+  String get referralTopReferrers => 'أكثر المُحيلين';
+
+  @override
+  String get referralCompleted => 'مكتمل';
+
+  @override
+  String referralRemaining(int count) {
+    return 'متبقي $count';
+  }
+
+  @override
+  String get referralAllReferrals => 'جميع الإحالات';
+
+  @override
+  String get referralConfirm => 'تأكيد';
+
+  @override
+  String get referralReject => 'رفض';
+
+  @override
+  String get referralRejected => 'تم رفض الإحالة';
+
+  @override
+  String get referralConfirmed => 'تم تأكيد الإحالة';
+
+  @override
+  String get referralStatusPending => 'معلقة';
+
+  @override
+  String get referralStatusConfirmed => 'مؤكدة';
+
+  @override
+  String get referralStatusRejected => 'مرفوضة';
+
+  @override
+  String get referralShareTitle => 'شارك التطبيق';
+
+  @override
+  String get referralShareSubtitle => 'شارك التطبيق واحصل على مزايا!';
+
+  @override
+  String referralShareDesc(int count, String reward) {
+    return 'أحِل $count أصدقاء واحصل على $reward';
+  }
+
+  @override
+  String get referralYourCode => 'كود الدعوة الخاص بك';
+
+  @override
+  String get referralCopyCode => 'نسخ';
+
+  @override
+  String get referralShareCode => 'مشاركة';
+
+  @override
+  String get referralCodeCopied => 'تم نسخ الكود!';
+
+  @override
+  String get referralYourProgress => 'تقدّمك';
+
+  @override
+  String referralSuccessful(int count, int total) {
+    return '$count/$total إحالات ناجحة';
+  }
+
+  @override
+  String get referralYourReward => 'مكافأتك';
+
+  @override
+  String get referralFriendReward => 'مكافأة صديقك';
+
+  @override
+  String get referralYourReferrals => 'إحالاتك';
+
+  @override
+  String get referralNoReferrals => 'لا توجد إحالات بعد. شارك كودك!';
+
+  @override
+  String get referralHowItWorks => 'كيف تعمل؟';
+
+  @override
+  String get referralStep1 => 'شارك كود الدعوة مع أصدقائك';
+
+  @override
+  String get referralStep2 => 'يسجّل صديقك حساب جديد ويُدخل الكود';
+
+  @override
+  String get referralStep3 =>
+      'يراجع النظام صحة الدعوة تلقائياً خلال الفترة المحددة';
+
+  @override
+  String referralStep4(int count) {
+    return 'أكمل $count إحالات = 🎁';
+  }
+
+  @override
+  String get referralValidationWarning =>
+      'الدعوات غير المستوفاة للشروط (المزيفة) لن تُحتسب كإحالة.';
+
+  @override
+  String referralClaimMessage(String reward) {
+    return 'مرحباً، لقد أكملت متطلبات الإحالة وأريد المطالبة بجائزتي: $reward';
+  }
+
+  @override
+  String get referralEnterCode => 'هل تمت دعوتك من صديق؟';
+
+  @override
+  String get referralEnterCodeDesc => 'أدخل كود الدعوة لمساعدته';
+
+  @override
+  String get referralEnterCodeHint => 'أدخل الكود هنا...';
+
+  @override
+  String get referralSubmitCode => 'تأكيد';
+
+  @override
+  String get referralSkipCode => 'تخطي';
+
+  @override
+  String get referralCodeSuccess => 'تم تطبيق كود الدعوة بنجاح!';
+
+  @override
+  String get referralCodeInvalid => 'كود غير صالح. تحقق وحاول مرة أخرى.';
+
+  @override
+  String get referralCodeSelfError => 'لا يمكنك استخدام كودك الخاص!';
+
+  @override
+  String get referralCodeAlreadyUsed => 'لقد استخدمت كود دعوة من قبل.';
+
+  @override
+  String get referralCodeNoCampaign => 'لا توجد حملة دعوات نشطة حالياً.';
+
+  @override
+  String get referralCodeError => 'حدث خطأ. حاول لاحقاً.';
+
+  @override
+  String get referralExclusiveCollection => 'محتوى حصري';
+
+  @override
+  String referralExclusiveDesc(String campaign) {
+    return 'هذه المجموعة متاحة فقط للأشخاص الذين أكملوا إحالات حملة \"$campaign\" بنجاح';
+  }
+
+  @override
+  String get referralShareNow => 'شارك التطبيق الآن';
+
+  @override
+  String get referralVisible => 'مرئية';
+
+  @override
+  String get referralHidden => 'مخفية';
+
+  @override
+  String get referralCampaignDetails => 'تفاصيل الحملة';
+
+  @override
+  String get referralSettings => 'الإعدادات';
+
+  @override
+  String get referralActive => 'نشطة';
+
+  @override
+  String get referralVisibleSub => 'إظهار للمستخدمين في الملف الشخصي';
 }

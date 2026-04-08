@@ -4,9 +4,16 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/in_app_message_service.dart';
+import '../../core/supabase_config.dart';
+import '../../core/constants.dart';
+import '../../data/models/referral_model.dart';
+import '../../presentation/providers/chat_providers.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:ui';
+import 'dart:async';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -21,13 +28,420 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   void initState() {
     super.initState();
-    // Check for in-app messages globally — fires on first app entry,
-    // regardless of which tab the user is on.
+    // Check for in-app messages globally
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         InAppMessageService.checkAndShowMessage(context);
+        _checkReferralCodeRequirement();
+        _checkPendingReferralActivity();
+        _checkCommunityBadge();
       }
     });
+  }
+
+  // Used to prevent showing the dialog multiple times in one session
+  static bool _hasCheckedReferral = false;
+  bool _isChatBubbleDismissed = false;
+  DateTime? _lastCommunityVisit;
+  bool _hasNewCommunityPosts = false;
+  StreamSubscription? _latestPostSub;
+
+  @override
+  void dispose() {
+    _latestPostSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkCommunityBadge() async {
+    final box = Hive.box(kSettingsBox);
+    final lastVisitStr = box.get('last_community_visit') as String?;
+    if (lastVisitStr != null) {
+      _lastCommunityVisit = DateTime.tryParse(lastVisitStr);
+    }
+
+    // Subscribe to the latest community post
+    _latestPostSub = SupabaseConfig.client
+        .from('community_posts')
+        .stream(primaryKey: ['id'])
+        .map((data) {
+          if (data.isEmpty) return null;
+          // Find the newest post
+          data.sort((a, b) => b['created_at'].compareTo(a['created_at']));
+          return DateTime.parse(data.first['created_at']);
+        })
+        .listen((latestPostDate) {
+          if (latestPostDate == null) return;
+          if (_lastCommunityVisit == null ||
+              latestPostDate.isAfter(_lastCommunityVisit!)) {
+            if (mounted && !_hasNewCommunityPosts) {
+              setState(() => _hasNewCommunityPosts = true);
+            }
+          }
+        });
+  }
+
+  Future<void> _checkReferralCodeRequirement() async {
+    if (_hasCheckedReferral || !mounted) return;
+    _hasCheckedReferral = true;
+
+    try {
+      // 1. Check if user profile is less than 24 hours old
+      final profile = await ref.read(userProfileProvider.future);
+      if (profile == null) return;
+      if (profile['referred_by'] != null) return;
+
+      final createdAtStr = profile['created_at']?.toString();
+      if (createdAtStr == null) return;
+      final createdAt = DateTime.tryParse(createdAtStr);
+      if (createdAt == null) return;
+
+      final diff = DateTime.now().difference(createdAt);
+      if (diff.inHours >= 24) return;
+
+      // 2. Check if a campaign exists
+      final campaign = await ref.read(activeReferralCampaignProvider.future);
+      if (campaign == null) return;
+
+      if (mounted) {
+        _showReferralCodeDialog(campaign);
+      }
+    } catch (_) {
+      // Ignore errors silently for background checks
+    }
+  }
+
+  /// Check if the current user has a pending referral that can be confirmed
+  /// via activity verification. Only runs if an active campaign exists.
+  static bool _hasCheckedActivity = false;
+
+  Future<void> _checkPendingReferralActivity() async {
+    if (_hasCheckedActivity || !mounted) return;
+    _hasCheckedActivity = true;
+
+    try {
+      // Gate: only check if an active campaign exists
+      final campaign = await ref.read(activeReferralCampaignProvider.future);
+      if (campaign == null) return;
+
+      await checkReferralActivityAndConfirm(ref);
+    } catch (_) {
+      // Fail silently
+    }
+  }
+
+  Future<void> _showReferralCodeDialog(ReferralCampaign campaign) async {
+    if (!mounted) return;
+
+    final codeCtrl = TextEditingController();
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    bool submitting = false;
+    String? errorMsg;
+
+    String rewardText = '';
+    switch (campaign.referredRewardType) {
+      case 'giveaway_entry':
+        rewardText =
+            'تذكرة انضمام مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
+        break;
+      case 'giveaway_boost':
+        rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
+        break;
+      case 'collection_access':
+        rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
+        break;
+      case 'custom':
+      default:
+        rewardText = campaign.referredRewardDescription?.isNotEmpty == true
+            ? campaign.referredRewardDescription!
+            : 'مزايا حصرية 🎁';
+    }
+    final String dynamicDesc = 'أدخل الكود الآن واحصل على:\n$rewardText';
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkCard : Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                    blurRadius: 40,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 24,
+                      horizontal: 20,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor.withValues(alpha: 0.8),
+                          AppTheme.primaryColor,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(28),
+                        topRight: Radius.circular(28),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            PhosphorIcons.gift(PhosphorIconsStyle.fill),
+                            size: 40,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'هل تمتلك رمز دعوة؟',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Description
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      dynamicDesc,
+                      style: TextStyle(
+                        fontSize: 15,
+                        height: 1.6,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Text Field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: TextField(
+                      controller: codeCtrl,
+                      autofocus: true,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: l10n.referralEnterCodeHint,
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white30 : Colors.black26,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0,
+                          fontSize: 16,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 18,
+                          horizontal: 20,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: AppTheme.primaryColor,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (errorMsg != null) ...[
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        errorMsg!,
+                        style: const TextStyle(
+                          color: AppTheme.errorColor,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 28),
+
+                  // Action Buttons
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton(
+                          onPressed: submitting
+                              ? null
+                              : () async {
+                                  final code = codeCtrl.text.trim();
+                                  if (code.isEmpty) return;
+
+                                  setDialogState(() {
+                                    submitting = true;
+                                    errorMsg = null;
+                                  });
+
+                                  try {
+                                    final result = await submitReferralCode(
+                                      code,
+                                      ref,
+                                    );
+                                    if (result == null &&
+                                        dialogContext.mounted) {
+                                      Navigator.pop(dialogContext);
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              l10n.referralCodeSuccess,
+                                            ),
+                                            backgroundColor:
+                                                AppTheme.successColor,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      setDialogState(() {
+                                        submitting = false;
+                                        errorMsg = _errorMessage(result, l10n);
+                                      });
+                                    }
+                                  } catch (e) {
+                                    setDialogState(() {
+                                      submitting = false;
+                                      errorMsg = l10n.referralCodeError;
+                                    });
+                                  }
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: submitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  l10n.referralSubmitCode,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(dialogContext);
+                          },
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            l10n.referralSkipCode,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white54 : Colors.black45,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  String _errorMessage(String? result, AppLocalizations l10n) {
+    switch (result) {
+      case 'invalid':
+        return l10n.referralCodeInvalid;
+      case 'self':
+        return l10n.referralCodeSelfError;
+      case 'already_used':
+        return l10n.referralCodeAlreadyUsed;
+      case 'no_campaign':
+        return l10n.referralCodeNoCampaign;
+      default:
+        return l10n.referralCodeError;
+    }
   }
 
   static int _calculateSelectedIndex(BuildContext context, bool isAdmin) {
@@ -63,6 +477,15 @@ class _AppShellState extends ConsumerState<AppShell> {
         if (isAdmin) {
           context.push('/admin');
         } else {
+          // Clear badge when tapped
+          if (_hasNewCommunityPosts) {
+            setState(() => _hasNewCommunityPosts = false);
+            _lastCommunityVisit = DateTime.now().toUtc();
+            Hive.box(kSettingsBox).put(
+              'last_community_visit',
+              _lastCommunityVisit!.toIso8601String(),
+            );
+          }
           context.go('/community');
         }
         break;
@@ -79,9 +502,131 @@ class _AppShellState extends ConsumerState<AppShell> {
     final selectedIndex = _calculateSelectedIndex(context, isAdmin);
 
     return Scaffold(
-      // extendBody is false by default, which ensures the body ends ABOVE the nav bar
-      // instead of flowing underneath and getting covered by it.
-      body: widget.child,
+      body: Stack(
+        children: [
+          widget.child,
+          // Support Chat Bubble Overlay
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 20,
+            right: 20,
+            child: Consumer(
+              builder: (context, ref, child) {
+                final unreadCount =
+                    ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
+                if (unreadCount <= 0 || _isChatBubbleDismissed) {
+                  return const SizedBox.shrink();
+                }
+
+                return TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.elasticOut,
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                      offset: Offset(0, -60 * (1 - value)),
+                      child: Opacity(
+                        opacity: value.clamp(0.0, 1.0),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _isChatBubbleDismissed = true);
+                      context.push('/chat');
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            AppTheme.primaryColor,
+                            AppTheme.primaryColor.withValues(alpha: 0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                            blurRadius: 16,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Colors.white24,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.chat_bubble_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)!.chatSupport,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.chatNew(unreadCount),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() => _isChatBubbleDismissed = true);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.white24,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
@@ -221,18 +766,42 @@ class _AppShellState extends ConsumerState<AppShell> {
           mainAxisSize: MainAxisSize.min,
           children: [
             /// Animated Icon
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, anim) =>
-                  ScaleTransition(scale: anim, child: child),
-              child: Icon(
-                isSelected ? icon : inactiveIcon,
-                key: ValueKey(isSelected), // Forces swap animation
-                size: 24,
-                color: isSelected
-                    ? AppTheme.primaryColor
-                    : (isDark ? Colors.white60 : Colors.black54),
-              ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (child, anim) =>
+                      ScaleTransition(scale: anim, child: child),
+                  child: Icon(
+                    isSelected ? icon : inactiveIcon,
+                    key: ValueKey(isSelected), // Forces swap animation
+                    size: 24,
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : (isDark ? Colors.white60 : Colors.black54),
+                  ),
+                ),
+                if (!isAdmin && index == 4 && _hasNewCommunityPosts)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF1E1E1E)
+                              : Colors.white,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
 

@@ -9,6 +9,7 @@ class CollectionModel {
   final int colorValue;
   final int sortOrder;
   final bool isActive;
+  final bool isReferralExclusive;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,6 +27,7 @@ class CollectionModel {
     this.colorValue = 4282339765,
     this.sortOrder = 0,
     this.isActive = true,
+    this.isReferralExclusive = false,
     required this.createdAt,
     required this.updatedAt,
     this.items = const [],
@@ -54,6 +56,7 @@ class CollectionModel {
       colorValue: (json['color_value'] ?? 0x3F51B5) | 0xFF000000,
       sortOrder: json['sort_order'] ?? 0,
       isActive: json['is_active'] ?? true,
+      isReferralExclusive: json['is_referral_exclusive'] ?? false,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       items: parsedItems,
@@ -68,6 +71,7 @@ class CollectionModel {
     'color_value': colorValue & 0xFFFFFF,
     'sort_order': sortOrder,
     'is_active': isActive,
+    'is_referral_exclusive': isReferralExclusive,
   };
 
   CollectionModel copyWith({
@@ -77,6 +81,7 @@ class CollectionModel {
     int? colorValue,
     int? sortOrder,
     bool? isActive,
+    bool? isReferralExclusive,
     List<WebsiteModel>? items,
     int? itemCount,
   }) {
@@ -88,6 +93,7 @@ class CollectionModel {
       colorValue: colorValue ?? this.colorValue,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
+      isReferralExclusive: isReferralExclusive ?? this.isReferralExclusive,
       createdAt: createdAt,
       updatedAt: updatedAt,
       items: items ?? this.items,

@@ -3173,7 +3173,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get usernameRequired => 'Username is required';
 
   @override
-  String get usernameTooShort => 'At least 3 characters';
+  String get usernameTooShort => 'At least 5 characters';
+
+  @override
+  String get usernameTooLong => 'Max 10 characters';
+
+  @override
+  String get usernameNumbersOnly => 'Cannot be numbers only';
 
   @override
   String get usernameTaken => 'Username already taken';
@@ -3226,4 +3232,274 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get votedPollSuccess =>
       'Voted successfully! Thank you for participating.';
+
+  @override
+  String get referralTabTitle => 'Referrals';
+
+  @override
+  String get referralCampaigns => 'Campaigns';
+
+  @override
+  String get referralNoCampaigns => 'No referral campaigns yet';
+
+  @override
+  String get referralCreateCampaign => 'Create Campaign';
+
+  @override
+  String get referralEditCampaign => 'Edit Campaign';
+
+  @override
+  String get referralActiveCampaign => 'Active';
+
+  @override
+  String get referralInactiveCampaign => 'Inactive';
+
+  @override
+  String get referralExpiredCampaign => 'Expired';
+
+  @override
+  String get referralCampaignTitle => 'Campaign Title';
+
+  @override
+  String get referralCampaignDesc => 'Description (optional)';
+
+  @override
+  String get referralRequiredCount => 'Required Referrals';
+
+  @override
+  String get referralRewardType => 'Reward Type';
+
+  @override
+  String get referralRewardNone => 'No reward';
+
+  @override
+  String get referralRewardGiveawayEntry => 'Giveaway entry';
+
+  @override
+  String get referralRewardGiveawayBoost => 'Extra giveaway entries';
+
+  @override
+  String get referralRewardCollectionAccess => 'Collection access';
+
+  @override
+  String get referralRewardCustom => 'Custom reward';
+
+  @override
+  String get referralSelectGiveaway => 'Select Giveaway';
+
+  @override
+  String get referralSelectCollection => 'Select Collection';
+
+  @override
+  String get referralRewardDescription => 'Reward Description';
+
+  @override
+  String get referralRewardDescHint => 'e.g. Premium account, paid course...';
+
+  @override
+  String get referralReferredReward => 'Referred User Reward';
+
+  @override
+  String get referralReferredRewardDesc => 'Also reward the referred friend';
+
+  @override
+  String get referralReferredRewardDescHint =>
+      'e.g. Your friend also enters the giveaway!';
+
+  @override
+  String get referralEndsAt => 'End Date (optional)';
+
+  @override
+  String get referralCampaignCreated => 'Campaign created!';
+
+  @override
+  String get referralCampaignUpdated => 'Campaign updated!';
+
+  @override
+  String get referralCampaignDeleted => 'Campaign deleted';
+
+  @override
+  String get referralDeleteCampaignConfirm =>
+      'Delete this campaign? This cannot be undone.';
+
+  @override
+  String get referralStatsTotal => 'Total';
+
+  @override
+  String get referralStatsConfirmed => 'Confirmed';
+
+  @override
+  String get referralStatsPending => 'Pending';
+
+  @override
+  String get referralStatsRejected => 'Rejected';
+
+  @override
+  String get referralTopReferrers => 'Top Referrers';
+
+  @override
+  String get referralCompleted => 'Completed';
+
+  @override
+  String referralRemaining(int count) {
+    return '$count remaining';
+  }
+
+  @override
+  String get referralAllReferrals => 'All Referrals';
+
+  @override
+  String get referralConfirm => 'Confirm';
+
+  @override
+  String get referralReject => 'Reject';
+
+  @override
+  String get referralRejected => 'Referral rejected';
+
+  @override
+  String get referralConfirmed => 'Referral confirmed';
+
+  @override
+  String get referralStatusPending => 'Pending';
+
+  @override
+  String get referralStatusConfirmed => 'Confirmed';
+
+  @override
+  String get referralStatusRejected => 'Rejected';
+
+  @override
+  String get referralShareTitle => 'Share App';
+
+  @override
+  String get referralShareSubtitle => 'Share the app & get rewards!';
+
+  @override
+  String referralShareDesc(int count, String reward) {
+    return 'Refer $count friends and get $reward';
+  }
+
+  @override
+  String get referralYourCode => 'Your Referral Code';
+
+  @override
+  String get referralCopyCode => 'Copy';
+
+  @override
+  String get referralShareCode => 'Share';
+
+  @override
+  String get referralCodeCopied => 'Code copied!';
+
+  @override
+  String get referralYourProgress => 'Your Progress';
+
+  @override
+  String referralSuccessful(int count, int total) {
+    return '$count/$total successful referrals';
+  }
+
+  @override
+  String get referralYourReward => 'Your Reward';
+
+  @override
+  String get referralFriendReward => 'Your Friend\'s Reward';
+
+  @override
+  String get referralYourReferrals => 'Your Referrals';
+
+  @override
+  String get referralNoReferrals => 'No referrals yet. Share your code!';
+
+  @override
+  String get referralHowItWorks => 'How it works?';
+
+  @override
+  String get referralStep1 => 'Share your invite code with friends';
+
+  @override
+  String get referralStep2 => 'Your friend signs up and enters the code';
+
+  @override
+  String get referralStep3 =>
+      'The system verifies the invite within the specified period';
+
+  @override
+  String referralStep4(int count) {
+    return 'Complete $count referrals = 🎁';
+  }
+
+  @override
+  String get referralValidationWarning =>
+      'Invites that do not meet the conditions (completing profile & using app) will not be counted.';
+
+  @override
+  String referralClaimMessage(String reward) {
+    return 'Hello, I have completed the referral requirements and would like to claim my reward: $reward';
+  }
+
+  @override
+  String get referralEnterCode => 'Were you invited by a friend?';
+
+  @override
+  String get referralEnterCodeDesc => 'Enter the referral code to help them';
+
+  @override
+  String get referralEnterCodeHint => 'Enter code here...';
+
+  @override
+  String get referralSubmitCode => 'Confirm';
+
+  @override
+  String get referralSkipCode => 'Skip';
+
+  @override
+  String get referralCodeSuccess => 'Referral code applied successfully!';
+
+  @override
+  String get referralCodeInvalid => 'Invalid code. Please check and try again.';
+
+  @override
+  String get referralCodeSelfError => 'You can\'t use your own code!';
+
+  @override
+  String get referralCodeAlreadyUsed =>
+      'You have already applied a referral code.';
+
+  @override
+  String get referralCodeNoCampaign =>
+      'No active referral campaign at this time.';
+
+  @override
+  String get referralCodeError => 'Something went wrong. Try again later.';
+
+  @override
+  String get referralExclusiveCollection => 'Exclusive Content';
+
+  @override
+  String referralExclusiveDesc(String campaign) {
+    return 'This collection is available only to users who completed referrals for campaign \"$campaign\"';
+  }
+
+  @override
+  String get referralShareNow => 'Share the app now';
+
+  @override
+  String get referralVisible => 'Visible';
+
+  @override
+  String get referralHidden => 'Hidden';
+
+  @override
+  String get referralCampaignDetails => 'Campaign Details';
+
+  @override
+  String get referralSettings => 'Settings';
+
+  @override
+  String get referralActive => 'Active';
+
+  @override
+  String get referralVisibleSub => 'Show to users in profile';
 }
