@@ -1523,5 +1523,19 @@
   "referralActive": "Active",
   "referralVisibleSub": "Show to users in profile",
   "nothingToDiscover": "Nothing to discover yet",
-  "checkBackDiscover": "Check back soon for trending content!"
+  "checkBackDiscover": "Check back soon for trending content!",
+
+  "imageSearchTitle": "Image Search",
+  "imageSearchHint": "Tap or long-press any image to select it",
+  "imageSearchSelect": "Use Image",
+  "imageSearchPasteUrl": "Paste URL",
+  "imageSearchNoValidUrl": "No valid image URL found in clipboard",
+  "imageSearchLoading": "Loading images...",
+  "imageSearchInstruction": "Browse images, then tap or long-press to select one",
+  "imageSearchBottomHint": "Tap any image to select it",
+  "imageSearchUseThis": "Use this image?",
+  "imageSearchConfirmDesc": "This image will be set as the cover",
+  "imageSearchPreviewFail": "Preview not available",
+  "imageSearchImageReady": "Image selected",
+  "imageSearchTapToConfirm": "Tap 'Use Image' to confirm"
 }

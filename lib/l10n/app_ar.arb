@@ -1252,5 +1252,19 @@
   "referralActive": "نشطة",
   "referralVisibleSub": "إظهار للمستخدمين في الملف الشخصي",
   "nothingToDiscover": "لا يوجد شيء لاكتشافه بعد",
-  "checkBackDiscover": "عد قريباً لرؤية المحتوى الرائج!"
+  "checkBackDiscover": "عد قريباً لرؤية المحتوى الرائج!",
+
+  "imageSearchTitle": "بحث عن صورة",
+  "imageSearchHint": "انقر أو اضغط مطولاً على أي صورة لاختيارها",
+  "imageSearchSelect": "استخدام الصورة",
+  "imageSearchPasteUrl": "لصق رابط",
+  "imageSearchNoValidUrl": "لم يتم العثور على رابط صورة صالح في الحافظة",
+  "imageSearchLoading": "جاري تحميل الصور...",
+  "imageSearchInstruction": "تصفح الصور، ثم انقر أو اضغط مطولاً لاختيار واحدة",
+  "imageSearchBottomHint": "انقر على أي صورة لاختيارها",
+  "imageSearchUseThis": "استخدام هذه الصورة؟",
+  "imageSearchConfirmDesc": "سيتم تعيين هذه الصورة كصورة الغلاف",
+  "imageSearchPreviewFail": "المعاينة غير متاحة",
+  "imageSearchImageReady": "تم تحديد الصورة",
+  "imageSearchTapToConfirm": "اضغط 'استخدام الصورة' للتأكيد"
 }

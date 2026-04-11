@@ -3493,4 +3493,45 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get checkBackDiscover => 'عد قريباً لرؤية المحتوى الرائج!';
+
+  @override
+  String get imageSearchTitle => 'بحث عن صورة';
+
+  @override
+  String get imageSearchHint => 'انقر أو اضغط مطولاً على أي صورة لاختيارها';
+
+  @override
+  String get imageSearchSelect => 'استخدام الصورة';
+
+  @override
+  String get imageSearchPasteUrl => 'لصق رابط';
+
+  @override
+  String get imageSearchNoValidUrl =>
+      'لم يتم العثور على رابط صورة صالح في الحافظة';
+
+  @override
+  String get imageSearchLoading => 'جاري تحميل الصور...';
+
+  @override
+  String get imageSearchInstruction =>
+      'تصفح الصور، ثم انقر أو اضغط مطولاً لاختيار واحدة';
+
+  @override
+  String get imageSearchBottomHint => 'انقر على أي صورة لاختيارها';
+
+  @override
+  String get imageSearchUseThis => 'استخدام هذه الصورة؟';
+
+  @override
+  String get imageSearchConfirmDesc => 'سيتم تعيين هذه الصورة كصورة الغلاف';
+
+  @override
+  String get imageSearchPreviewFail => 'المعاينة غير متاحة';
+
+  @override
+  String get imageSearchImageReady => 'تم تحديد الصورة';
+
+  @override
+  String get imageSearchTapToConfirm => 'اضغط \'استخدام الصورة\' للتأكيد';
 }

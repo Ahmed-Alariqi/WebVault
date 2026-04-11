@@ -6655,6 +6655,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check back soon for trending content!'**
   String get checkBackDiscover;
+
+  /// No description provided for @imageSearchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Search'**
+  String get imageSearchTitle;
+
+  /// No description provided for @imageSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap or long-press any image to select it'**
+  String get imageSearchHint;
+
+  /// No description provided for @imageSearchSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Image'**
+  String get imageSearchSelect;
+
+  /// No description provided for @imageSearchPasteUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste URL'**
+  String get imageSearchPasteUrl;
+
+  /// No description provided for @imageSearchNoValidUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid image URL found in clipboard'**
+  String get imageSearchNoValidUrl;
+
+  /// No description provided for @imageSearchLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading images...'**
+  String get imageSearchLoading;
+
+  /// No description provided for @imageSearchInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse images, then tap or long-press to select one'**
+  String get imageSearchInstruction;
+
+  /// No description provided for @imageSearchBottomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any image to select it'**
+  String get imageSearchBottomHint;
+
+  /// No description provided for @imageSearchUseThis.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this image?'**
+  String get imageSearchUseThis;
+
+  /// No description provided for @imageSearchConfirmDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This image will be set as the cover'**
+  String get imageSearchConfirmDesc;
+
+  /// No description provided for @imageSearchPreviewFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview not available'**
+  String get imageSearchPreviewFail;
+
+  /// No description provided for @imageSearchImageReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Image selected'**
+  String get imageSearchImageReady;
+
+  /// No description provided for @imageSearchTapToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap \'Use Image\' to confirm'**
+  String get imageSearchTapToConfirm;
 }
 
 class _AppLocalizationsDelegate

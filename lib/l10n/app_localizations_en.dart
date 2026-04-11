@@ -3508,4 +3508,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkBackDiscover => 'Check back soon for trending content!';
+
+  @override
+  String get imageSearchTitle => 'Image Search';
+
+  @override
+  String get imageSearchHint => 'Tap or long-press any image to select it';
+
+  @override
+  String get imageSearchSelect => 'Use Image';
+
+  @override
+  String get imageSearchPasteUrl => 'Paste URL';
+
+  @override
+  String get imageSearchNoValidUrl => 'No valid image URL found in clipboard';
+
+  @override
+  String get imageSearchLoading => 'Loading images...';
+
+  @override
+  String get imageSearchInstruction =>
+      'Browse images, then tap or long-press to select one';
+
+  @override
+  String get imageSearchBottomHint => 'Tap any image to select it';
+
+  @override
+  String get imageSearchUseThis => 'Use this image?';
+
+  @override
+  String get imageSearchConfirmDesc => 'This image will be set as the cover';
+
+  @override
+  String get imageSearchPreviewFail => 'Preview not available';
+
+  @override
+  String get imageSearchImageReady => 'Image selected';
+
+  @override
+  String get imageSearchTapToConfirm => 'Tap \'Use Image\' to confirm';
 }

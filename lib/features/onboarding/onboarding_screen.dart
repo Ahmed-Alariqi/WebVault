@@ -34,48 +34,54 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   int _currentPage = 0;
 
   final List<_OnboardingPage> _pages = const [
-    // Screen 1 — المشكلة
-    _OnboardingPage(
-      title: 'الإنترنت مليء بالأشياء المفيدة…\nلكن يصعب العثور عليها',
-      description:
-          'كم مرة وجدت مواقع مفيدة، أدوات رائعة، أو مفاتيح مهمة ثم لم تستطع العثور عليها لاحقًا؟\nزاد تك يجمع كل ذلك لك.',
-      imagePath: 'assets/onboarding/onboarding_1.png',
-    ),
-    // Screen 2 — المستكشف
-    _OnboardingPage(
-      title: 'اكتشف أدوات مفيدة كل يوم',
-      description:
-          'مستكشف متجدد يضم أدوات، مواقع، كورسات وعروض يتم تحديثها باستمرار في مكان واحد.',
-      imagePath: 'assets/onboarding/onboarding_2.png',
-    ),
-    // Screen 3 — الحفظ والتنظيم
-    _OnboardingPage(
-      title: 'احفظ كل ما يهمك',
-      description:
-          'احفظ مواقع، أدوات، مفاتيح تفعيل، كلمات مرور أو أي نص مهم. ونظمها بسهولة داخل مجلداتك الخاصة.',
-      imagePath: 'assets/onboarding/onboarding_3.png',
-    ),
-    // Screen 4 — الحافظة الذكية
-    _OnboardingPage(
-      title: 'استرجع بسرعة وانسخ بذكاء',
-      description:
-          'افتح الحافظة لنسخ النصوص المحفوظة فورًا دون مغادرة تطبيقك، وفعّل وضع النسخ التلقائي.',
-      imagePath: 'assets/onboarding/onboarding_4.png',
-    ),
-    // Screen 5 — المجتمع
-    _OnboardingPage(
-      title: 'مجتمع يشارك المعرفة',
-      description:
-          'ناقش الأدوات، شارك تجاربك، واحصل على اقتراحات من المستخدمين واقترح أدوات جديدة.',
-      imagePath: 'assets/onboarding/onboarding_5.png',
-    ),
-    // Screen 6 — الشاشة الأخيرة
-    _OnboardingPage(
-      title: 'لا تفقد اهتماماتك مرة أخرى',
-      description: 'زاد تك هو مساحتك الخاصة لحفظ كل ما يهمك على الإنترنت.',
-      imagePath: 'assets/onboarding/onboarding_6.png',
-    ),
-  ];
+  // Screen 1 — المشكلة
+  _OnboardingPage(
+    title: 'كل شيء مفيد… يضيع بسهولة',
+    description:
+        'روابط، أدوات، مفاتيح API، أكواد، ومصادر تمر عليك يوميًا… لكن الوصول لها لاحقًا ليس دائمًا سهل.\n\nزاد التقني يجمعها لك في مكان واحد.',
+    imagePath: 'assets/onboarding/onboarding_1.png',
+  ),
+
+  // Screen 2 — المستكشف
+  _OnboardingPage(
+    title: 'اكتشف ما يفيدك فعلًا',
+    description:
+        'أفضل الأدوات، المواقع، الكورسات، والعروض التقنية — مختارة بعناية بعيدًا عن التشتت والتكرار.',
+    imagePath: 'assets/onboarding/onboarding_2.png',
+  ),
+
+  // Screen 3 — الحفظ والتنظيم
+  _OnboardingPage(
+    title: 'احفظ كل ما تحتاجه',
+    description:
+        'من روابطك المهمة إلى مفاتيح API، الأكواد، الحسابات، وأي قيمة تستخدمها… كل شيء منظم وسهل الوصول.',
+    imagePath: 'assets/onboarding/onboarding_3.png',
+  ),
+
+  // Screen 4 — الحافظة الذكية
+  _OnboardingPage(
+    title: 'احفظ من أي مكان… فورًا',
+    description:
+        'حدد أي نص أو قيمة وشاركها مباشرة إلى زاد التقني.\nبدون خطوات معقدة، وبدون مغادرة ما تعمل عليه.',
+    imagePath: 'assets/onboarding/onboarding_4.png',
+  ),
+
+  // Screen 5 — المجتمع
+  _OnboardingPage(
+    title: 'لست وحدك في رحلتك التقنية',
+    description:
+        'مجتمع تقني يشارك الأدوات، الخبرات، والتجارب — لتتعلم أسرع وتبقى دائمًا في المقدمة.',
+    imagePath: 'assets/onboarding/onboarding_5.png',
+  ),
+
+  // Screen 6 — الشاشة الأخيرة
+  _OnboardingPage(
+    title: 'كل ما تحتاجه… في مكان واحد',
+    description:
+        'زاد التقني هو مركزك الذكي لتنظيم كل ما يهمك على الإنترنت والوصول إليه في أي وقت.',
+    imagePath: 'assets/onboarding/onboarding_6.png',
+  ),
+];
 
   @override
   void initState() {
