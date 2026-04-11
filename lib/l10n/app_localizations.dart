@@ -6733,6 +6733,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap \'Use Image\' to confirm'**
   String get imageSearchTapToConfirm;
+
+  /// No description provided for @aiAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Assistant'**
+  String get aiAssistant;
+
+  /// No description provided for @aiUnderstandMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Understand More AI'**
+  String get aiUnderstandMore;
+
+  /// No description provided for @aiContextLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Item context loaded'**
+  String get aiContextLoaded;
+
+  /// No description provided for @aiReadingSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading source...'**
+  String get aiReadingSource;
+
+  /// No description provided for @aiSuggestWhat.
+  ///
+  /// In en, this message translates to:
+  /// **'What is this tool?'**
+  String get aiSuggestWhat;
+
+  /// No description provided for @aiSuggestHow.
+  ///
+  /// In en, this message translates to:
+  /// **'How to start?'**
+  String get aiSuggestHow;
+
+  /// No description provided for @aiSuggestFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Key features'**
+  String get aiSuggestFeatures;
+
+  /// No description provided for @aiSuggestUse.
+  ///
+  /// In en, this message translates to:
+  /// **'How to use it?'**
+  String get aiSuggestUse;
+
+  /// No description provided for @aiSuggestFit.
+  ///
+  /// In en, this message translates to:
+  /// **'Is it right for me?'**
+  String get aiSuggestFit;
+
+  /// No description provided for @aiSuggestSimplify.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain simply'**
+  String get aiSuggestSimplify;
+
+  /// No description provided for @aiTypeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Type your question...'**
+  String get aiTypeMessage;
+
+  /// No description provided for @aiErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong, try again'**
+  String get aiErrorGeneric;
+
+  /// No description provided for @aiThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking...'**
+  String get aiThinking;
+
+  /// No description provided for @aiPoweredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Powered by AI'**
+  String get aiPoweredBy;
 }
 
 class _AppLocalizationsDelegate

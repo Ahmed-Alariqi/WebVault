@@ -18,6 +18,7 @@ import '../../utils/clipboard_helper.dart';
 import '../../utils/text_utils.dart';
 import '../../core/services/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../features/ai_assistant/ai_chat_overlay.dart';
 
 class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
@@ -30,10 +31,45 @@ class WebsiteDetailsDialog extends ConsumerStatefulWidget {
 }
 
 class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
+  final ScrollController _scrollController = ScrollController();
+  bool _isFabTextVisible = true;
+
   @override
   void initState() {
     super.initState();
     AnalyticsService.trackItemView(widget.site.id);
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+
+    final maxScrollExtent = _scrollController.position.maxScrollExtent;
+    final currentOffset = _scrollController.offset;
+
+    // Expand if we are at top/bottom or area doesn't scroll much
+    if (maxScrollExtent <= 0 ||
+        currentOffset >= maxScrollExtent - 20 ||
+        currentOffset <= 20) {
+      if (!_isFabTextVisible) {
+        setState(() {
+          _isFabTextVisible = true;
+        });
+      }
+    } else {
+      if (_isFabTextVisible) {
+        setState(() {
+          _isFabTextVisible = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _openUrl(String url, {bool inApp = true}) async {
@@ -247,6 +283,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     // Content Body
                     Flexible(
                       child: SingleChildScrollView(
+                        controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -592,20 +629,26 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                           bottom: Radius.circular(28),
                         ),
                       ),
-                      child: _buildDialogActions(
-                        context,
-                        ref,
-                        widget.site,
-                        isDark,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Original action buttons
+                          _buildDialogActions(
+                            context,
+                            ref,
+                            widget.site,
+                            isDark,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
 
                 // Close Button Overlay with Glassmorphism
-                Positioned(
+                PositionedDirectional(
                   top: 12,
-                  right: 12,
+                  end: 12,
                   child: GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: ClipRRect(
@@ -629,6 +672,112 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                         ),
                       ),
                     ),
+                  ),
+                ),
+
+                // Floating AI Assistant Button (Bottom Center Pill)
+                Positioned(
+                  bottom: 95,
+                  left: 0,
+                  right: 0,
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child:
+                        GestureDetector(
+                              onTap: () {
+                                final route = ModalRoute.of(context);
+                                final topEntry =
+                                    route?.overlayEntries.lastOrNull ??
+                                    route?.overlayEntries.last;
+                                AiChatOverlay.show(
+                                  context,
+                                  widget.site,
+                                  above: topEntry,
+                                );
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutQuart,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: _isFabTextVisible ? 16 : 10,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF7C3AED),
+                                      Color(0xFF3B82F6),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF7C3AED,
+                                      ).withValues(alpha: 0.25),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                          PhosphorIcons.sparkle(
+                                            PhosphorIconsStyle.fill,
+                                          ),
+                                          color: Colors.white,
+                                          size: 14,
+                                        )
+                                        .animate(
+                                          onPlay: (c) =>
+                                              c.repeat(reverse: true),
+                                        )
+                                        .scale(
+                                          begin: const Offset(0.9, 0.9),
+                                          end: const Offset(1.1, 1.1),
+                                          duration: 1000.ms,
+                                        ),
+
+                                    // Animate text visibility width
+                                    AnimatedSize(
+                                      duration: const Duration(
+                                        milliseconds: 300,
+                                      ),
+                                      curve: Curves.easeOutQuart,
+                                      child: _isFabTextVisible
+                                          ? Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  AppLocalizations.of(
+                                                    context,
+                                                  )!.aiUnderstandMore,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(delay: 400.ms)
+                            .slideY(begin: 0.2, end: 0, delay: 400.ms),
                   ),
                 ),
               ],

@@ -3548,4 +3548,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get imageSearchTapToConfirm => 'Tap \'Use Image\' to confirm';
+
+  @override
+  String get aiAssistant => 'AI Assistant';
+
+  @override
+  String get aiUnderstandMore => 'Understand More AI';
+
+  @override
+  String get aiContextLoaded => 'Item context loaded';
+
+  @override
+  String get aiReadingSource => 'Reading source...';
+
+  @override
+  String get aiSuggestWhat => 'What is this tool?';
+
+  @override
+  String get aiSuggestHow => 'How to start?';
+
+  @override
+  String get aiSuggestFeatures => 'Key features';
+
+  @override
+  String get aiSuggestUse => 'How to use it?';
+
+  @override
+  String get aiSuggestFit => 'Is it right for me?';
+
+  @override
+  String get aiSuggestSimplify => 'Explain simply';
+
+  @override
+  String get aiTypeMessage => 'Type your question...';
+
+  @override
+  String get aiErrorGeneric => 'Something went wrong, try again';
+
+  @override
+  String get aiThinking => 'Thinking...';
+
+  @override
+  String get aiPoweredBy => 'Powered by AI';
 }

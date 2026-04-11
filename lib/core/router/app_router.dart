@@ -54,6 +54,7 @@ import '../../features/onboarding/welcome_splash_screen.dart';
 import '../../domain/models/advertisement.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../features/discover/advertisement_detail_screen.dart';
+import '../../features/ai_assistant/ai_chat_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -517,6 +518,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/pin-setup',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const PinLockScreen(isSetup: true),
+      ),
+      // ---- AI Assistant Chat ----
+      GoRoute(
+        path: '/ai-chat',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final site = state.extra as WebsiteModel;
+          return AiChatScreen(site: site);
+        },
       ),
     ],
   );

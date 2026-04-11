@@ -214,7 +214,7 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
                                   ),
                                 );
                               },
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, _, _) => Container(
                                 height: 140,
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.05)
@@ -762,7 +762,7 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
             width: 44,
             height: 44,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Container(
+            errorBuilder: (_, _, _) => Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(

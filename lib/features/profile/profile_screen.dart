@@ -431,8 +431,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 if (v == null || v.trim().isEmpty) return l10n.usernameRequired;
                 if (v.trim().length < 5) return l10n.usernameTooShort;
                 if (v.trim().length > 10) return l10n.usernameTooLong;
-                if (RegExp(r'^\d+$').hasMatch(v.trim()))
+                if (RegExp(r'^\d+$').hasMatch(v.trim())) {
                   return l10n.usernameNumbersOnly;
+                }
                 if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(v.trim())) {
                   return l10n.usernameInvalid;
                 }

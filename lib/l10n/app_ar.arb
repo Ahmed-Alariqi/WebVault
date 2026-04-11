@@ -1266,5 +1266,20 @@
   "imageSearchConfirmDesc": "سيتم تعيين هذه الصورة كصورة الغلاف",
   "imageSearchPreviewFail": "المعاينة غير متاحة",
   "imageSearchImageReady": "تم تحديد الصورة",
-  "imageSearchTapToConfirm": "اضغط 'استخدام الصورة' للتأكيد"
+  "imageSearchTapToConfirm": "اضغط 'استخدام الصورة' للتأكيد",
+
+  "aiAssistant": "مساعد زاد الذكي",
+  "aiUnderstandMore": "افهم أكثر AI",
+  "aiContextLoaded": "تم تحميل سياق العنصر",
+  "aiReadingSource": "جاري قراءة المصدر...",
+  "aiSuggestWhat": "ما هذه الأداة؟",
+  "aiSuggestHow": "كيف أبدأ؟",
+  "aiSuggestFeatures": "أهم الميزات",
+  "aiSuggestUse": "كيف أستخدمها؟",
+  "aiSuggestFit": "هل تناسبني؟",
+  "aiSuggestSimplify": "اشرحها ببساطة",
+  "aiTypeMessage": "اكتب سؤالك...",
+  "aiErrorGeneric": "حدث خطأ، حاول مرة أخرى",
+  "aiThinking": "جاري التفكير...",
+  "aiPoweredBy": "مدعوم بالذكاء الاصطناعي"
 }

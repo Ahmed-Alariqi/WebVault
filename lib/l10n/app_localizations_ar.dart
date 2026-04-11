@@ -3534,4 +3534,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get imageSearchTapToConfirm => 'اضغط \'استخدام الصورة\' للتأكيد';
+
+  @override
+  String get aiAssistant => 'مساعد زاد الذكي';
+
+  @override
+  String get aiUnderstandMore => 'افهم أكثر AI';
+
+  @override
+  String get aiContextLoaded => 'تم تحميل سياق العنصر';
+
+  @override
+  String get aiReadingSource => 'جاري قراءة المصدر...';
+
+  @override
+  String get aiSuggestWhat => 'ما هذه الأداة؟';
+
+  @override
+  String get aiSuggestHow => 'كيف أبدأ؟';
+
+  @override
+  String get aiSuggestFeatures => 'أهم الميزات';
+
+  @override
+  String get aiSuggestUse => 'كيف أستخدمها؟';
+
+  @override
+  String get aiSuggestFit => 'هل تناسبني؟';
+
+  @override
+  String get aiSuggestSimplify => 'اشرحها ببساطة';
+
+  @override
+  String get aiTypeMessage => 'اكتب سؤالك...';
+
+  @override
+  String get aiErrorGeneric => 'حدث خطأ، حاول مرة أخرى';
+
+  @override
+  String get aiThinking => 'جاري التفكير...';
+
+  @override
+  String get aiPoweredBy => 'مدعوم بالذكاء الاصطناعي';
 }

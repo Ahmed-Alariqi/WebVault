@@ -1,0 +1,58 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../core/supabase_config.dart';
+import '../models/ai_chat_model.dart';
+import '../models/website_model.dart';
+import '../../core/utils/text_utils.dart';
+
+/// Service to communicate with the AI Assistant Edge Function
+class AiAssistantService {
+  /// Send a message to the AI assistant and get a response
+  static Future<String> sendMessage({
+    required WebsiteModel item,
+    required List<AiChatMessage> chatHistory,
+  }) async {
+    // Build item context
+    final itemContext = {
+      'title': item.title,
+      'description': TextUtils.getPlainTextFromDescription(item.description),
+      'url': item.url,
+      'tags': item.tags,
+      'content_type': item.contentType,
+      'pricing_model': item.pricingModel,
+    };
+
+    // Build messages array (only user and assistant messages)
+    final messages = chatHistory
+        .where((m) => !m.isLoading)
+        .map((m) => m.toApiMessage())
+        .toList();
+
+    final url = '${SupabaseConfig.url}/functions/v1/ai-assistant';
+
+    final response = await http
+        .post(
+          Uri.parse(url),
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SupabaseConfig.anonKey,
+          },
+          body: jsonEncode({'item_context': itemContext, 'messages': messages}),
+        )
+        .timeout(const Duration(seconds: 60));
+
+    if (response.statusCode != 200) {
+      String errorMsg = 'AI assistant request failed';
+      try {
+        final errorBody = jsonDecode(response.body);
+        if (errorBody is Map && errorBody['error'] != null) {
+          errorMsg = errorBody['error'].toString();
+        }
+      } catch (_) {}
+      throw Exception(errorMsg);
+    }
+
+    final data = jsonDecode(response.body);
+    return data['content'] as String? ?? '';
+  }
+}

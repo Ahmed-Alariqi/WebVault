@@ -1537,5 +1537,20 @@
   "imageSearchConfirmDesc": "This image will be set as the cover",
   "imageSearchPreviewFail": "Preview not available",
   "imageSearchImageReady": "Image selected",
-  "imageSearchTapToConfirm": "Tap 'Use Image' to confirm"
+  "imageSearchTapToConfirm": "Tap 'Use Image' to confirm",
+
+  "aiAssistant": "AI Assistant",
+  "aiUnderstandMore": "Understand More AI",
+  "aiContextLoaded": "Item context loaded",
+  "aiReadingSource": "Reading source...",
+  "aiSuggestWhat": "What is this tool?",
+  "aiSuggestHow": "How to start?",
+  "aiSuggestFeatures": "Key features",
+  "aiSuggestUse": "How to use it?",
+  "aiSuggestFit": "Is it right for me?",
+  "aiSuggestSimplify": "Explain simply",
+  "aiTypeMessage": "Type your question...",
+  "aiErrorGeneric": "Something went wrong, try again",
+  "aiThinking": "Thinking...",
+  "aiPoweredBy": "Powered by AI"
 }

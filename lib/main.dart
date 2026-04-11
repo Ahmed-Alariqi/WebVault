@@ -33,6 +33,7 @@ Future<void> main() async {
   await Hive.openBox(kSettingsBox);
   await Hive.openBox(kDiscoverCacheBox);
   await Hive.openBox(kSyncQueueBox);
+  await Hive.openBox('ai_chats');
 
   // ── Share Intent handling ──
   // Channel for communicating with native Android code
