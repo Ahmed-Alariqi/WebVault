@@ -23,8 +23,9 @@ class CodeElementBuilder extends MarkdownElementBuilder {
 
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
-    if (!element.textContent.contains('\n'))
+    if (!element.textContent.contains('\n')) {
       return null; // Inline code uses default style
+    }
     var language = 'dart';
     if (element.attributes['class'] != null) {
       String lg = element.attributes['class'] as String;
@@ -55,17 +56,8 @@ class CodeElementBuilder extends MarkdownElementBuilder {
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final WebsiteModel site;
-  final bool isPipMode;
-  final VoidCallback? onToggleScrn;
-  final VoidCallback? onClose;
 
-  const AiChatScreen({
-    super.key,
-    required this.site,
-    this.isPipMode = false,
-    this.onToggleScrn,
-    this.onClose,
-  });
+  const AiChatScreen({super.key, required this.site});
 
   @override
   ConsumerState<AiChatScreen> createState() => _AiChatScreenState();
@@ -193,8 +185,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isDark
-              ? [const Color(0xFF1A1A3E), const Color(0xFF0F0F2A)]
-              : [const Color(0xFF4A3FA8), const Color(0xFF3F51B5)],
+              ? [AppTheme.darkSurface, AppTheme.darkBg]
+              : [
+                  AppTheme.primaryColor,
+                  AppTheme.primaryColor.withValues(alpha: 0.8),
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -213,17 +208,15 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             children: [
               // Back / Close button
               GestureDetector(
-                onTap: widget.onClose ?? () => Navigator.of(context).pop(),
+                onTap: () => Navigator.of(context).pop(),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    widget.onClose != null
-                        ? Icons.close_rounded
-                        : Icons.arrow_back_rounded,
+                  child: const Icon(
+                    Icons.arrow_back_rounded,
                     color: Colors.white,
                     size: 20,
                   ),
@@ -237,8 +230,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C3AED), Color(0xFF3B82F6)],
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -263,27 +256,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                 ),
               ),
               const Spacer(),
-              // Expand/Collapse PIP button
-              if (widget.onToggleScrn != null) ...[
-                GestureDetector(
-                  onTap: widget.onToggleScrn,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      widget.isPipMode
-                          ? PhosphorIcons.cornersOut()
-                          : PhosphorIcons.cornersIn(),
-                      color: Colors.white70,
-                      size: 18,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
               // Clear chat button
               GestureDetector(
                 onTap: () =>
@@ -406,7 +378,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     Icon(
                           PhosphorIcons.scan(),
                           size: 64,
-                          color: const Color(0xFF3B82F6),
+                          color: AppTheme.accentColor,
                         )
                         .animate(onPlay: (c) => c.repeat(reverse: true))
                         .slideY(begin: -0.3, end: 0.3, duration: 1000.ms)
@@ -433,7 +405,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                 height: 16,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.accentColor,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -487,97 +461,6 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       loc.aiSuggestSimplify,
     ];
 
-    if (widget.isPipMode) {
-      return SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF7C3AED), Color(0xFF3B82F6)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Icon(
-                PhosphorIcons.robot(PhosphorIconsStyle.fill),
-                color: Colors.white,
-                size: 28,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              loc.aiAssistant,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: isDark
-                    ? AppTheme.darkTextPrimary
-                    : AppTheme.lightTextPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              loc.aiPoweredBy,
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            // Fewer suggestions in PIP Mode
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: suggestions
-                  .take(3)
-                  .map(
-                    (q) => GestureDetector(
-                      onTap: () => _sendMessage(q),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.06)
-                              : Colors.black.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.08)
-                                : Colors.black.withValues(alpha: 0.06),
-                          ),
-                        ),
-                        child: Text(
-                          q,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark
-                                ? AppTheme.darkTextPrimary
-                                : AppTheme.lightTextPrimary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-        ),
-      );
-    }
-
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
@@ -587,15 +470,15 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFF3B82F6)],
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor, AppTheme.accentColor],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -666,7 +549,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                           Icon(
                             PhosphorIcons.sparkle(),
                             size: 14,
-                            color: const Color(0xFF7C3AED),
+                            color: AppTheme.primaryColor,
                           ),
                           const SizedBox(width: 8),
                           Flexible(
@@ -734,8 +617,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isUser
-                  ? const Color(0xFF7C3AED)
-                  : (isDark ? const Color(0xFF1E1E3A) : Colors.white),
+                  ? AppTheme.primaryColor
+                  : (isDark ? AppTheme.darkSurface : Colors.white),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(18),
                 topRight: const Radius.circular(18),
@@ -752,7 +635,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isUser
-                      ? const Color(0xFF7C3AED).withValues(alpha: 0.2)
+                      ? AppTheme.primaryColor.withValues(alpha: 0.2)
                       : Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
@@ -791,7 +674,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E1E3A) : Colors.white,
+          color: isDark ? AppTheme.darkSurface : Colors.white,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(18),
             topRight: Radius.circular(18),
@@ -823,7 +706,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           width: 8,
           height: 8,
           decoration: BoxDecoration(
-            color: const Color(0xFF7C3AED),
+            color: AppTheme.primaryColor,
             shape: BoxShape.circle,
           ),
         )
@@ -921,8 +804,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               decoration: BoxDecoration(
                 gradient: isLoading
                     ? null
-                    : const LinearGradient(
-                        colors: [Color(0xFF7C3AED), Color(0xFF3B82F6)],
+                    : LinearGradient(
+                        colors: [AppTheme.primaryColor, AppTheme.accentColor],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -934,7 +817,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     ? null
                     : [
                         BoxShadow(
-                          color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -1081,7 +964,7 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
           fontSize: 14,
         ),
         code: TextStyle(
-          color: const Color(0xFF7C3AED),
+          color: AppTheme.primaryColor,
           backgroundColor: widget.isDark
               ? Colors.white.withValues(alpha: 0.06)
               : Colors.black.withValues(alpha: 0.04),
@@ -1097,14 +980,14 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
             color: widget.isDark ? Colors.white10 : Colors.black12,
           ),
         ),
-        a: const TextStyle(
-          color: Color(0xFF3B82F6),
+        a: TextStyle(
+          color: AppTheme.accentColor,
           decoration: TextDecoration.underline,
         ),
         blockquoteDecoration: BoxDecoration(
           border: Border(
             left: BorderSide(
-              color: const Color(0xFF7C3AED).withValues(alpha: 0.5),
+              color: AppTheme.primaryColor.withValues(alpha: 0.5),
               width: 3,
             ),
           ),

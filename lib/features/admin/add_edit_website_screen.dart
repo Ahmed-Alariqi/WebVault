@@ -18,6 +18,9 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
+import '../../data/models/ai_content_result.dart';
+import '../../data/models/category_model.dart';
+import 'widgets/ai_content_prep_sheet.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
@@ -55,6 +58,67 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   bool _showVideoSection = false;
   bool _isUploadingVideo = false;
   double _videoUploadProgress = 0;
+
+  // ── AI Content Prep ──
+  Future<void> _openAiContentPrep(List<CategoryModel> categories) async {
+    final result = await showModalBottomSheet<AiContentResult>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        minChildSize: 0.8,
+        maxChildSize: 0.8,
+        builder: (_, scrollCtrl) => AiContentPrepSheet(
+          categories: categories,
+          contentTypes: _contentTypeValues.toList(),
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        _titleCtrl.text = result.title;
+        _tagsCtrl.text = result.tags.join(', ');
+        if (_contentTypeValues.contains(result.contentType)) {
+          _contentType = result.contentType;
+        }
+        // Match category by name
+        final matched = categories.where((c) => c.name == result.categoryName);
+        if (matched.isNotEmpty) {
+          _selectedCategoryId = matched.first.id;
+        }
+        // Auto-fill URL if extracted
+        if (result.sourceUrl.isNotEmpty && _urlCtrl.text.isEmpty) {
+          _urlCtrl.text = result.sourceUrl;
+        }
+        // Set rich description in Quill
+        if (result.description.isNotEmpty) {
+          final doc = Document();
+          final lines = result.description.split('\n');
+          int offset = 0;
+          for (int i = 0; i < lines.length; i++) {
+            final line = lines[i];
+            if (line.trim().isEmpty) {
+              doc.insert(offset, '\n');
+              offset += 1;
+              continue;
+            }
+            // Section headers (lines ending with :) → insert as bold
+            if (line.trim().endsWith(':') && !line.trim().startsWith('•')) {
+              doc.insert(offset, '${line.trim()}\n');
+              doc.format(offset, line.trim().length, Attribute.bold);
+              offset += line.trim().length + 1;
+            } else {
+              doc.insert(offset, '${line.trim()}\n');
+              offset += line.trim().length + 1;
+            }
+          }
+          _quillController.document = doc;
+        }
+      });
+    }
+  }
 
   static const _contentTypeValues = [
     'website',
@@ -790,6 +854,102 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         ],
                       ),
                     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1),
+
+                    // ── AI Content Prep Button ──
+                    if (widget.existing == null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: GestureDetector(
+                          onTap: () {
+                            final categoriesAsync = ref.read(
+                              adminCategoriesProvider,
+                            );
+                            categoriesAsync.whenData((cats) {
+                              _openAiContentPrep(cats);
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(
+                                    0xFF7C3AED,
+                                  ).withValues(alpha: 0.12),
+                                  const Color(
+                                    0xFF3B82F6,
+                                  ).withValues(alpha: 0.08),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: const Color(
+                                  0xFF7C3AED,
+                                ).withValues(alpha: 0.25),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF7C3AED),
+                                        Color(0xFF3B82F6),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Icon(
+                                    PhosphorIcons.sparkle(
+                                      PhosphorIconsStyle.fill,
+                                    ),
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'مساعد تجهيز المحتوى',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: isDark
+                                              ? AppTheme.darkTextPrimary
+                                              : AppTheme.lightTextPrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        'أدخل رابط أو نص وسيُعبّئ النموذج تلقائياً',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: isDark
+                                              ? AppTheme.darkTextSecondary
+                                              : AppTheme.lightTextSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  PhosphorIcons.caretLeft(),
+                                  color: const Color(0xFF7C3AED),
+                                  size: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.15),
+                      ),
 
                     // ── Basic Info Section ──
                     _buildCard(

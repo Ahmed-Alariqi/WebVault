@@ -18,7 +18,7 @@ import '../../utils/clipboard_helper.dart';
 import '../../utils/text_utils.dart';
 import '../../core/services/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
-import '../../features/ai_assistant/ai_chat_overlay.dart';
+import '../../features/ai_assistant/ai_chat_screen.dart';
 
 class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
@@ -677,7 +677,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
                 // Floating AI Assistant Button (Bottom Center Pill)
                 Positioned(
-                  bottom: 95,
+                  bottom: 100,
                   left: 0,
                   right: 0,
                   child: Align(
@@ -685,14 +685,11 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     child:
                         GestureDetector(
                               onTap: () {
-                                final route = ModalRoute.of(context);
-                                final topEntry =
-                                    route?.overlayEntries.lastOrNull ??
-                                    route?.overlayEntries.last;
-                                AiChatOverlay.show(
-                                  context,
-                                  widget.site,
-                                  above: topEntry,
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AiChatScreen(site: widget.site),
+                                  ),
                                 );
                               },
                               child: AnimatedContainer(
