@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -19,7 +20,8 @@ import '../../l10n/app_localizations.dart';
 
 class CodeElementBuilder extends MarkdownElementBuilder {
   final bool isDark;
-  CodeElementBuilder(this.isDark);
+  final BuildContext context;
+  CodeElementBuilder(this.isDark, this.context);
 
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
@@ -33,22 +35,118 @@ class CodeElementBuilder extends MarkdownElementBuilder {
         language = lg.substring(9);
       }
     }
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF282C34) : const Color(0xFFFAFAFA),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: HighlightView(
-          element.textContent.trim(),
-          language: language,
-          theme: isDark ? atomOneDarkTheme : githubTheme,
-          padding: const EdgeInsets.all(12),
-          textStyle: const TextStyle(fontFamily: 'monospace', fontSize: 13),
+    final codeText = element.textContent.trim();
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF282C34) : const Color(0xFFFAFAFA),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.08),
+          ),
         ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── Code block header: language + copy ──
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : Colors.black.withValues(alpha: 0.03),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  topRight: Radius.circular(10),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    language,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white38 : Colors.black38,
+                    ),
+                  ),
+                  const Spacer(),
+                  _CopyCodeButton(code: codeText, isDark: isDark),
+                ],
+              ),
+            ),
+            // ── Code body ──
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: HighlightView(
+                  codeText,
+                  language: language,
+                  theme: isDark ? atomOneDarkTheme : githubTheme,
+                  padding: const EdgeInsets.all(12),
+                  textStyle: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Small copy button used inside code blocks
+class _CopyCodeButton extends StatefulWidget {
+  final String code;
+  final bool isDark;
+  const _CopyCodeButton({required this.code, required this.isDark});
+
+  @override
+  State<_CopyCodeButton> createState() => _CopyCodeButtonState();
+}
+
+class _CopyCodeButtonState extends State<_CopyCodeButton> {
+  bool _copied = false;
+
+  void _copy() {
+    Clipboard.setData(ClipboardData(text: widget.code));
+    setState(() => _copied = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _copy,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: _copied
+            ? Icon(
+                Icons.check_rounded,
+                key: const ValueKey('check'),
+                size: 14,
+                color: Colors.green,
+              )
+            : Icon(
+                Icons.copy_rounded,
+                key: const ValueKey('copy'),
+                size: 14,
+                color: widget.isDark ? Colors.white38 : Colors.black38,
+              ),
       ),
     );
   }
@@ -651,13 +749,30 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                       height: 1.5,
                     ),
                   )
-                : _TypewriterMarkdown(
-                    content: msg.content,
-                    isDark: isDark,
-                    animate:
-                        index ==
-                        ref.read(aiChatProvider(widget.site)).messages.length -
-                            1,
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _TypewriterMarkdown(
+                        content: msg.content,
+                        isDark: isDark,
+                        animate:
+                            index ==
+                            ref
+                                    .read(aiChatProvider(widget.site))
+                                    .messages
+                                    .length -
+                                1,
+                      ),
+                      const SizedBox(height: 6),
+                      // ── Copy entire reply button ──
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: _CopyReplyButton(
+                          text: msg.content,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         )
@@ -923,7 +1038,7 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
           launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
         }
       },
-      builders: {'code': CodeElementBuilder(widget.isDark)},
+      builders: {'code': CodeElementBuilder(widget.isDark, context)},
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
           color: widget.isDark
@@ -991,6 +1106,80 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
               width: 3,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Copy-entire-reply button shown at the bottom of AI responses
+class _CopyReplyButton extends StatefulWidget {
+  final String text;
+  final bool isDark;
+  const _CopyReplyButton({required this.text, required this.isDark});
+
+  @override
+  State<_CopyReplyButton> createState() => _CopyReplyButtonState();
+}
+
+class _CopyReplyButtonState extends State<_CopyReplyButton> {
+  bool _copied = false;
+
+  void _copy() {
+    Clipboard.setData(ClipboardData(text: widget.text));
+    setState(() => _copied = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _copy,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: _copied
+              ? Row(
+                  key: const ValueKey('copied'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.check_rounded,
+                      size: 13,
+                      color: Colors.green.shade400,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'تم النسخ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.green.shade400,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  key: const ValueKey('copy'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.copy_rounded,
+                      size: 13,
+                      color: widget.isDark ? Colors.white24 : Colors.black26,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'نسخ',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: widget.isDark ? Colors.white24 : Colors.black26,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

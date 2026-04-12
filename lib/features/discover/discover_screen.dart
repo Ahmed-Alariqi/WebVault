@@ -744,45 +744,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
-  // ── Full Screen Image Viewer ──
-  void _showFullImage(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.9),
-      builder: (ctx) => Stack(
-        children: [
-          Positioned.fill(
-            child: InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.contain,
-                placeholder: (_, _) => const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-                errorWidget: (_, _, _) => const Center(
-                  child: Icon(Icons.error, color: Colors.white, size: 48),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            right: 16,
-            child: Material(
-              color: Colors.transparent,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 32),
-                onPressed: () => Navigator.pop(ctx),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ── Section Builder ──
   Widget _buildSection(
     BuildContext context,
@@ -965,10 +926,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     width: double.infinity,
                     child: GestureDetector(
                       onTap: () {
-                        if (site.imageUrl != null &&
-                            site.imageUrl!.isNotEmpty) {
-                          _showFullImage(context, site.imageUrl!);
-                        }
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => WebsiteDetailsDialog(site: site),
+                        );
                       },
                       child: site.imageUrl != null && site.imageUrl!.isNotEmpty
                           ? CachedNetworkImage(
@@ -1280,22 +1241,36 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
-                          if (TextUtils.getPlainTextFromDescription(
-                                    site.description,
-                                  ).length >
-                                  50 &&
-                              !site.hasCopyableValue)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                'Read more...',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                          // ── Universal "tap for details" hint ──
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  PhosphorIcons.arrowSquareOut(),
+                                  size: 10,
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 3),
+                                Text(
+                                  AppLocalizations.of(context)!.discoverTitle ==
+                                          'المستكشف'
+                                      ? 'اضغط للتفاصيل'
+                                      : 'Tap for details',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.primaryColor.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+                          ),
                         ],
                       ),
                     ),
