@@ -2501,9 +2501,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminAdvertisementsSubtitle => 'Moving ad panels';
 
   @override
-  String get settingsFixNotifications => 'Fix Notifications';
-
-  @override
   String get notifRecentNotifications => 'Recent Notifications';
 
   @override
@@ -2523,36 +2520,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifDelete => 'Delete';
 
   @override
-  String get notifStatusRegistered =>
-      'Device is registered. Tap to send a test notification.';
-
-  @override
-  String get notifStatusNotRegistered =>
-      'Device not registered. Tap to restart with VPN.';
-
-  @override
-  String get notifTestSent =>
-      'Test notification sent! You should receive it shortly.';
-
-  @override
-  String get notifTestFailed => 'Failed to send test notification';
-
-  @override
-  String get notifRestartingApp =>
-      'Restarting app to re-register for notifications...';
-
-  @override
   String get notifLoadMore => 'Load More';
-
-  @override
-  String get notifFixDialogTitle => 'Enable Notifications';
-
-  @override
-  String get notifFixDialogBody =>
-      'Please make sure you have a VPN turned on first, then tap \'Restart Now\' to restart the app. The app must be reopened with VPN active to register for notifications.';
-
-  @override
-  String get notifRestartNow => 'Restart Now';
 
   @override
   String get roleLabel => 'Role';

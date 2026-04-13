@@ -862,7 +862,7 @@
   "adminAdvertisementsTitle": "الإعلانات",
   "adminAdvertisementsSubtitle": "اللوحات الإعلانية المتحركة",
 
-  "settingsFixNotifications": "إصلاح الإشعارات",
+
 
   "notifRecentNotifications": "الإشعارات الأخيرة",
   "notifNoRecent": "لم يتم العثور على إشعارات أخيرة.",
@@ -871,15 +871,9 @@
   "notifCancel": "إلغاء",
   "notifDelete": "حذف",
 
-  "notifStatusRegistered": "الجهاز مسجّل. اضغط لإرسال إشعار تجريبي.",
-  "notifStatusNotRegistered": "الجهاز غير مسجّل. اضغط لإعادة التشغيل مع VPN.",
-  "notifTestSent": "تم إرسال إشعار تجريبي! ستستقبله قريباً.",
-  "notifTestFailed": "فشل إرسال الإشعار التجريبي",
-  "notifRestartingApp": "جارِ إعادة تشغيل التطبيق لتسجيل الإشعارات...",
+
   "notifLoadMore": "عرض المزيد",
-  "notifFixDialogTitle": "تفعيل الإشعارات",
-  "notifFixDialogBody": "تأكد أولاً من تشغيل VPN، ثم اضغط 'إعادة التشغيل الآن' لإعادة تشغيل التطبيق. يجب إعادة فتح التطبيق أثناء تشغيل VPN لتسجيل الإشعارات.",
-  "notifRestartNow": "إعادة التشغيل الآن",
+
 
   "roleLabel": "الدور",
   "roleContentCreator": "منشئ محتوى",

@@ -2496,9 +2496,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get adminAdvertisementsSubtitle => 'اللوحات الإعلانية المتحركة';
 
   @override
-  String get settingsFixNotifications => 'إصلاح الإشعارات';
-
-  @override
   String get notifRecentNotifications => 'الإشعارات الأخيرة';
 
   @override
@@ -2517,34 +2514,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifDelete => 'حذف';
 
   @override
-  String get notifStatusRegistered => 'الجهاز مسجّل. اضغط لإرسال إشعار تجريبي.';
-
-  @override
-  String get notifStatusNotRegistered =>
-      'الجهاز غير مسجّل. اضغط لإعادة التشغيل مع VPN.';
-
-  @override
-  String get notifTestSent => 'تم إرسال إشعار تجريبي! ستستقبله قريباً.';
-
-  @override
-  String get notifTestFailed => 'فشل إرسال الإشعار التجريبي';
-
-  @override
-  String get notifRestartingApp =>
-      'جارِ إعادة تشغيل التطبيق لتسجيل الإشعارات...';
-
-  @override
   String get notifLoadMore => 'عرض المزيد';
-
-  @override
-  String get notifFixDialogTitle => 'تفعيل الإشعارات';
-
-  @override
-  String get notifFixDialogBody =>
-      'تأكد أولاً من تشغيل VPN، ثم اضغط \'إعادة التشغيل الآن\' لإعادة تشغيل التطبيق. يجب إعادة فتح التطبيق أثناء تشغيل VPN لتسجيل الإشعارات.';
-
-  @override
-  String get notifRestartNow => 'إعادة التشغيل الآن';
 
   @override
   String get roleLabel => 'الدور';

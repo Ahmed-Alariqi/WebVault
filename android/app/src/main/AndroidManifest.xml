@@ -9,7 +9,7 @@
     <application
         android:label="Zaad Tech"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon"
+        android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
@@ -58,7 +58,7 @@
         <service
             android:name=".ClipboardTileService"
             android:label="ZaadTech Clipboard"
-            android:icon="@mipmap/launcher_icon"
+            android:icon="@mipmap/ic_launcher"
             android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -97,7 +97,7 @@
         <!-- Firebase Cloud Messaging: custom notification small icon -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_stat_notification" />
+            android:resource="@drawable/ic_stat_notification_icon" />
 
         <!-- Firebase Cloud Messaging: default notification channel -->
         <meta-data

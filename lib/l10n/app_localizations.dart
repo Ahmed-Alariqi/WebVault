@@ -4736,12 +4736,6 @@ abstract class AppLocalizations {
   /// **'Moving ad panels'**
   String get adminAdvertisementsSubtitle;
 
-  /// No description provided for @settingsFixNotifications.
-  ///
-  /// In en, this message translates to:
-  /// **'Fix Notifications'**
-  String get settingsFixNotifications;
-
   /// No description provided for @notifRecentNotifications.
   ///
   /// In en, this message translates to:
@@ -4778,59 +4772,11 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get notifDelete;
 
-  /// No description provided for @notifStatusRegistered.
-  ///
-  /// In en, this message translates to:
-  /// **'Device is registered. Tap to send a test notification.'**
-  String get notifStatusRegistered;
-
-  /// No description provided for @notifStatusNotRegistered.
-  ///
-  /// In en, this message translates to:
-  /// **'Device not registered. Tap to restart with VPN.'**
-  String get notifStatusNotRegistered;
-
-  /// No description provided for @notifTestSent.
-  ///
-  /// In en, this message translates to:
-  /// **'Test notification sent! You should receive it shortly.'**
-  String get notifTestSent;
-
-  /// No description provided for @notifTestFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to send test notification'**
-  String get notifTestFailed;
-
-  /// No description provided for @notifRestartingApp.
-  ///
-  /// In en, this message translates to:
-  /// **'Restarting app to re-register for notifications...'**
-  String get notifRestartingApp;
-
   /// No description provided for @notifLoadMore.
   ///
   /// In en, this message translates to:
   /// **'Load More'**
   String get notifLoadMore;
-
-  /// No description provided for @notifFixDialogTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Enable Notifications'**
-  String get notifFixDialogTitle;
-
-  /// No description provided for @notifFixDialogBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Please make sure you have a VPN turned on first, then tap \'Restart Now\' to restart the app. The app must be reopened with VPN active to register for notifications.'**
-  String get notifFixDialogBody;
-
-  /// No description provided for @notifRestartNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart Now'**
-  String get notifRestartNow;
 
   /// No description provided for @roleLabel.
   ///
