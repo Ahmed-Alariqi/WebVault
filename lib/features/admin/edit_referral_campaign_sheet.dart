@@ -8,6 +8,7 @@ import '../../presentation/providers/events_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../core/supabase_config.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 // ═══════════════════════════════════════════
 //  CREATE / EDIT REFERRAL CAMPAIGN
@@ -653,9 +654,7 @@ class _EditReferralCampaignSheetState
               .eq('id', _rewardCollectionId!);
         }
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.referralCampaignUpdated)));
+          AdminUIUtils.showSuccess(context, l10n.referralCampaignUpdated);
           Navigator.pop(context);
         }
       } else {
@@ -667,17 +666,13 @@ class _EditReferralCampaignSheetState
               .eq('id', _rewardCollectionId!);
         }
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(l10n.referralCampaignCreated)));
+          AdminUIUtils.showSuccess(context, l10n.referralCampaignCreated);
           Navigator.pop(context);
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        AdminUIUtils.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) setState(() => _saving = false);

@@ -18,6 +18,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 import '../../data/models/ai_content_result.dart';
 import '../../data/models/category_model.dart';
 import 'widgets/ai_content_prep_sheet.dart';
@@ -268,17 +269,17 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
   Future<void> _save() async {
     if (_titleCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.formTitleRequired),
-        ),
+      AdminUIUtils.showWarning(
+        context,
+        AppLocalizations.of(context)!.formTitleRequired,
       );
       return;
     }
 
     if (_contentType == 'website' && _urlCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.formUrlRequired)),
+      AdminUIUtils.showWarning(
+        context,
+        AppLocalizations.of(context)!.formUrlRequired,
       );
       return;
     }
@@ -386,15 +387,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
 
       if (mounted) {
         context.pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.existing == null
-                  ? AppLocalizations.of(context)!.formPublishedSuccess
-                  : AppLocalizations.of(context)!.formUpdatedSuccess,
-            ),
-            backgroundColor: Colors.green.shade600,
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          widget.existing == null
+              ? AppLocalizations.of(context)!.formPublishedSuccess
+              : AppLocalizations.of(context)!.formUpdatedSuccess,
         );
       }
     } catch (e) {
@@ -407,16 +404,17 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
             errStr.contains('clientexception') ||
             errStr.contains('network is unreachable');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOffline
-                  ? AppLocalizations.of(context)!.formOfflineError
-                  : AppLocalizations.of(context)!.formSaveError(e.toString()),
-            ),
-            backgroundColor: isOffline ? Colors.orange : Colors.red.shade600,
-          ),
-        );
+        if (isOffline) {
+          AdminUIUtils.showWarning(
+            context,
+            AppLocalizations.of(context)!.formOfflineError,
+          );
+        } else {
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(context)!.formSaveError(e.toString()),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -1029,27 +1027,15 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                               setState(() {
                                                 _imgCtrl.text = url;
                                               });
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showSuccess(
                                                 context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Image uploaded successfully!',
-                                                  ),
-                                                  backgroundColor: Colors.green,
-                                                ),
+                                                AppLocalizations.of(context)!.notifImgUploadSuccess,
                                               );
                                             } else if (context.mounted &&
                                                 _uploadProgress > 0) {
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showError(
                                                 context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Upload failed. Try again.',
-                                                  ),
-                                                  backgroundColor: Colors.red,
-                                                ),
+                                                AppLocalizations.of(context)!.notifImgUploadFail,
                                               );
                                             }
                                           } finally {
@@ -1373,27 +1359,15 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                               setState(() {
                                                 _videoUrlCtrl.text = url;
                                               });
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showSuccess(
                                                 context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Video uploaded!',
-                                                  ),
-                                                  backgroundColor: Colors.green,
-                                                ),
+                                                AppLocalizations.of(context)!.formVideoUploaded,
                                               );
                                             } else if (context.mounted &&
                                                 _videoUploadProgress > 0) {
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showError(
                                                 context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Upload failed or video too large (max 50MB).',
-                                                  ),
-                                                  backgroundColor: Colors.red,
-                                                ),
+                                                AppLocalizations.of(context)!.formVideoUploadError,
                                               );
                                             }
                                           } finally {

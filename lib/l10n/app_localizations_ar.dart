@@ -643,6 +643,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addBtn => 'إضافة';
 
   @override
+  String get categoryAdded => 'تم إضافة التصنيف بنجاح';
+
+  @override
+  String get categoryUpdated => 'تم تحديث التصنيف بنجاح';
+
+  @override
+  String get categoryDeleted => 'تم حذف التصنيف بنجاح';
+
+  @override
   String get manageItemsTitle => 'إدارة العناصر';
 
   @override
@@ -1472,6 +1481,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get formVideoUrlLabel => 'رابط الفيديو (أو الصق الرابط)';
 
   @override
+  String get formVideoUploaded => 'تم رفع الفيديو!';
+
+  @override
+  String get formVideoUploadError =>
+      'فشل الرفع أو حجم الفيديو كبير جداً (الأقصى 50MB).';
+
+  @override
   String get formActionPromptHeader => 'محتوى التلقين';
 
   @override
@@ -1639,6 +1655,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String notifFailed(String error) {
     return 'فشل: $error';
   }
+
+  @override
+  String get notifMessageContent => 'محتوى الرسالة';
+
+  @override
+  String get notifMediaDestination => 'الوسائط والوجهة';
+
+  @override
+  String get notifActionDestination => 'وجهة الإجراء';
+
+  @override
+  String get notifNoLink => 'بدون رابط';
+
+  @override
+  String get notifDiscoverItem => 'عنصر اكتشاف';
+
+  @override
+  String get notifExternalUrl => 'رابط خارجي';
+
+  @override
+  String get notifSelectDiscoverItem => 'اختر عنصر اكتشاف';
+
+  @override
+  String get notifConfiguration => 'الإعدادات';
+
+  @override
+  String get notifDeleteAll => 'حذف الكل';
+
+  @override
+  String get notifDeleteAllTitle => 'حذف جميع التنبيهات؟';
+
+  @override
+  String get notifDeleteAllConfirm =>
+      'هل أنت متأكد من رغبتك في حذف جميع التنبيهات؟ لا يمكن التراجع عن هذا الإجراء.';
 
   @override
   String get chatFailedUpload => 'فشل رفع الصورة';
@@ -3190,6 +3240,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get votedPollSuccess => 'تم التصويت بنجاح! شكراً لمشاركتك.';
+
+  @override
+  String get giveawayCreated => 'تم إنشاء المسابقة بنجاح';
+
+  @override
+  String get giveawayUpdated => 'تم تحديث المسابقة بنجاح';
+
+  @override
+  String get pollCreated => 'تم إنشاء الاستطلاع بنجاح';
+
+  @override
+  String get pollUpdated => 'تم تحديث الاستطلاع بنجاح';
 
   @override
   String get referralTabTitle => 'الدعوات';

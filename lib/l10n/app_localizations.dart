@@ -1298,6 +1298,24 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get addBtn;
 
+  /// No description provided for @categoryAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Category added successfully'**
+  String get categoryAdded;
+
+  /// No description provided for @categoryUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Category updated successfully'**
+  String get categoryUpdated;
+
+  /// No description provided for @categoryDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Category deleted successfully'**
+  String get categoryDeleted;
+
   /// No description provided for @manageItemsTitle.
   ///
   /// In en, this message translates to:
@@ -2828,6 +2846,18 @@ abstract class AppLocalizations {
   /// **'Video URL (or paste link)'**
   String get formVideoUrlLabel;
 
+  /// No description provided for @formVideoUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Video uploaded!'**
+  String get formVideoUploaded;
+
+  /// No description provided for @formVideoUploadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed or video too large (max 50MB).'**
+  String get formVideoUploadError;
+
   /// No description provided for @formActionPromptHeader.
   ///
   /// In en, this message translates to:
@@ -3151,6 +3181,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed: {error}'**
   String notifFailed(String error);
+
+  /// No description provided for @notifMessageContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Message Content'**
+  String get notifMessageContent;
+
+  /// No description provided for @notifMediaDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Media & Destination'**
+  String get notifMediaDestination;
+
+  /// No description provided for @notifActionDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Action Destination'**
+  String get notifActionDestination;
+
+  /// No description provided for @notifNoLink.
+  ///
+  /// In en, this message translates to:
+  /// **'No Link'**
+  String get notifNoLink;
+
+  /// No description provided for @notifDiscoverItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover Item'**
+  String get notifDiscoverItem;
+
+  /// No description provided for @notifExternalUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'External URL'**
+  String get notifExternalUrl;
+
+  /// No description provided for @notifSelectDiscoverItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a Discover Item'**
+  String get notifSelectDiscoverItem;
+
+  /// No description provided for @notifConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration'**
+  String get notifConfiguration;
+
+  /// No description provided for @notifDeleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All'**
+  String get notifDeleteAll;
+
+  /// No description provided for @notifDeleteAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All Notifications?'**
+  String get notifDeleteAllTitle;
+
+  /// No description provided for @notifDeleteAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete ALL notifications? This cannot be undone.'**
+  String get notifDeleteAllConfirm;
 
   /// No description provided for @chatFailedUpload.
   ///
@@ -6085,6 +6181,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Voted successfully! Thank you for participating.'**
   String get votedPollSuccess;
+
+  /// No description provided for @giveawayCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaway created successfully'**
+  String get giveawayCreated;
+
+  /// No description provided for @giveawayUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Giveaway updated successfully'**
+  String get giveawayUpdated;
+
+  /// No description provided for @pollCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll created successfully'**
+  String get pollCreated;
+
+  /// No description provided for @pollUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Poll updated successfully'**
+  String get pollUpdated;
 
   /// No description provided for @referralTabTitle.
   ///

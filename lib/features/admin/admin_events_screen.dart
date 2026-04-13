@@ -14,6 +14,7 @@ import 'edit_giveaway_sheet.dart';
 import 'edit_poll_sheet.dart';
 import '../../presentation/providers/chat_providers.dart';
 import 'admin_referrals_tab.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class AdminEventsScreen extends ConsumerStatefulWidget {
   const AdminEventsScreen({super.key});
@@ -1165,17 +1166,9 @@ class _GiveawayCard extends ConsumerWidget {
                                               Navigator.pop(
                                                 ctx,
                                               ); // pop using modal context
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showSuccess(
                                                 rootContext,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    l10n.startingChat,
-                                                  ),
-                                                  duration: const Duration(
-                                                    seconds: 1,
-                                                  ),
-                                                ),
+                                                l10n.startingChat,
                                               );
                                               try {
                                                 final convId =
@@ -1189,16 +1182,9 @@ class _GiveawayCard extends ConsumerWidget {
                                                 }
                                               } catch (e) {
                                                 if (rootContext.mounted) {
-                                                  ScaffoldMessenger.of(
+                                                  AdminUIUtils.showError(
                                                     rootContext,
-                                                  ).showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(
-                                                        '${l10n.error}: $e',
-                                                      ),
-                                                      backgroundColor:
-                                                          Colors.red,
-                                                    ),
+                                                    '${l10n.error}: $e',
                                                   );
                                                 }
                                               }
@@ -1268,16 +1254,12 @@ class _GiveawayCard extends ConsumerWidget {
 
     if (context.mounted) {
       if (winners.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${l10n.winnerSelected} (${winners.length}) 🎉'),
-            backgroundColor: const Color(0xFF10B981),
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          '${l10n.winnerSelected} (${winners.length}) 🎉',
         );
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(l10n.noEntries)));
+        AdminUIUtils.showInfo(context, l10n.noEntries);
       }
     }
   }
@@ -1322,11 +1304,9 @@ class _GiveawayCard extends ConsumerWidget {
     );
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${l10n.winnerSelected} (${winners.length}) 🔄'),
-          backgroundColor: AppTheme.accentColor,
-        ),
+      AdminUIUtils.showSuccess(
+        context,
+        '${l10n.winnerSelected} (${winners.length}) 🔄',
       );
     }
   }

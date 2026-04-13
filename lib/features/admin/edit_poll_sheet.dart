@@ -7,6 +7,7 @@ import '../../data/models/poll_model.dart';
 import '../../presentation/providers/events_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class EditPollSheet extends ConsumerStatefulWidget {
   final Poll? poll;
@@ -70,11 +71,10 @@ class _EditPollSheetState extends ConsumerState<EditPollSheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _endsAt == null) {
-      if (_endsAt == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.selectEndDate)),
+        AdminUIUtils.showWarning(
+          context,
+          AppLocalizations.of(context)!.selectEndDate,
         );
-      }
       return;
     }
 
@@ -84,8 +84,9 @@ class _EditPollSheetState extends ConsumerState<EditPollSheet> {
         .toList();
 
     if (options.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.minTwoOptions)),
+      AdminUIUtils.showWarning(
+        context,
+        AppLocalizations.of(context)!.minTwoOptions,
       );
       return;
     }
@@ -123,15 +124,16 @@ class _EditPollSheetState extends ConsumerState<EditPollSheet> {
         await updatePoll(widget.poll!.id, data, ref);
       }
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        AdminUIUtils.showSuccess(
+          context,
+          widget.poll == null ? l10n.pollCreated : l10n.pollUpdated,
+        );
+        Navigator.pop(context);
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        AdminUIUtils.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -9,6 +9,7 @@ import '../../presentation/providers/admin_providers.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class AdminSuggestionsScreen extends ConsumerWidget {
   const AdminSuggestionsScreen({super.key});
@@ -148,14 +149,10 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                                     .read(suggestionRepositoryProvider)
                                     .rejectSuggestion(item.id);
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.suggestionRejected,
-                                      ),
-                                    ),
+                                  AdminUIUtils.showSuccess(
+                                    context,
+                                    AppLocalizations.of(context)!
+                                        .suggestionRejected,
                                   );
                                   final _ = ref.refresh(
                                     adminSuggestionsProvider,
@@ -163,13 +160,10 @@ class AdminSuggestionsScreen extends ConsumerWidget {
                                 }
                               } catch (e) {
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.errorMessage(e.toString()),
-                                      ),
+                                  AdminUIUtils.showError(
+                                    context,
+                                    AppLocalizations.of(context)!.errorMessage(
+                                      e.toString(),
                                     ),
                                   );
                                 }

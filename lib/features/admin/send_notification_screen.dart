@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../core/services/imagekit_service.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 import '../../data/models/notification_model.dart';
 import 'widgets/discover_item_picker_sheet.dart';
 import '../../data/models/website_model.dart';
@@ -123,24 +124,9 @@ class _SendNotificationScreenState
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white),
-                const SizedBox(width: 10),
-                Text(
-                  AppLocalizations.of(context)!.notifSent,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          AppLocalizations.of(context)!.notifSent,
         );
       }
     } catch (e) {
@@ -153,16 +139,17 @@ class _SendNotificationScreenState
             errStr.contains('clientexception') ||
             errStr.contains('network is unreachable');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOffline
-                  ? AppLocalizations.of(context)!.formOfflineError
-                  : AppLocalizations.of(context)!.notifFailed(e.toString()),
-            ),
-            backgroundColor: isOffline ? Colors.orange : Colors.red,
-          ),
-        );
+        if (isOffline) {
+          AdminUIUtils.showWarning(
+            context,
+            AppLocalizations.of(context)!.formOfflineError,
+          );
+        } else {
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(context)!.notifFailed(e.toString()),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -247,7 +234,7 @@ class _SendNotificationScreenState
   Widget _buildMessageCard(bool isDark) {
     return _buildCard(
       isDark,
-      title: 'Message Content',
+      title: AppLocalizations.of(context)!.notifMessageContent,
       icon: PhosphorIcons.chatText(PhosphorIconsStyle.fill),
       children: [
         _field(_titleCtrl, AppLocalizations.of(context)!.notifTitle, isDark),
@@ -383,11 +370,11 @@ class _SendNotificationScreenState
   Widget _buildMediaDestinationCard(bool isDark) {
     return _buildCard(
       isDark,
-      title: 'Media & Destination',
+      title: AppLocalizations.of(context)!.notifMediaDestination,
       icon: PhosphorIcons.paperPlaneTilt(PhosphorIconsStyle.fill),
       children: [
         Text(
-          'Action Destination',
+          AppLocalizations.of(context)!.notifActionDestination,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -435,22 +422,19 @@ class _SendNotificationScreenState
                                 }
                               },
                             );
-                            if (url != null && context.mounted) {
+                            if (!mounted) return;
+                            if (url != null) {
                               setState(() {
                                 _imageUrlCtrl.text = url;
                               });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Image uploaded successfully!'),
-                                  backgroundColor: Colors.green,
-                                ),
+                              AdminUIUtils.showSuccess(
+                                context,
+                                AppLocalizations.of(context)!.notifImgUploadSuccess,
                               );
-                            } else if (context.mounted && _uploadProgress > 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Upload failed. Try again.'),
-                                  backgroundColor: Colors.red,
-                                ),
+                            } else if (_uploadProgress > 0) {
+                              AdminUIUtils.showError(
+                                context,
+                                AppLocalizations.of(context)!.notifImgUploadFail,
                               );
                             }
                           } finally {
@@ -592,13 +576,13 @@ class _SendNotificationScreenState
 
   Widget _buildDestinationSelector(bool isDark) {
     final opts = [
-      {'val': 'none', 'label': 'No Link', 'icon': PhosphorIcons.prohibit()},
+      {'val': 'none', 'label': AppLocalizations.of(context)!.notifNoLink, 'icon': PhosphorIcons.prohibit()},
       {
         'val': 'item',
-        'label': 'Discover Item',
+        'label': AppLocalizations.of(context)!.notifDiscoverItem,
         'icon': PhosphorIcons.appWindow(),
       },
-      {'val': 'url', 'label': 'External URL', 'icon': PhosphorIcons.link()},
+      {'val': 'url', 'label': AppLocalizations.of(context)!.notifExternalUrl, 'icon': PhosphorIcons.link()},
     ];
 
     return Wrap(
@@ -672,7 +656,7 @@ class _SendNotificationScreenState
         child: OutlinedButton.icon(
           onPressed: () => _showDiscoverItemPicker(context, isDark),
           icon: Icon(PhosphorIcons.magnifyingGlass(), size: 18),
-          label: const Text('Select a Discover Item'),
+          label: Text(AppLocalizations.of(context)!.notifSelectDiscoverItem),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppTheme.primaryColor,
             side: BorderSide(
@@ -766,7 +750,7 @@ class _SendNotificationScreenState
   Widget _buildSettingsCard(bool isDark) {
     return _buildCard(
       isDark,
-      title: 'Configuration',
+      title: AppLocalizations.of(context)!.notifConfiguration,
       icon: PhosphorIcons.sliders(PhosphorIconsStyle.fill),
       children: [
         Text(
@@ -961,9 +945,9 @@ class _SendNotificationScreenState
               TextButton.icon(
                 onPressed: () => _confirmDeleteAll(context, ref),
                 icon: Icon(PhosphorIcons.trash(), size: 16, color: Colors.red),
-                label: const Text(
-                  'Delete All',
-                  style: TextStyle(color: Colors.red),
+                label: Text(
+                  AppLocalizations.of(context)!.notifDeleteAll,
+                  style: const TextStyle(color: Colors.red),
                 ),
               ),
           ],
@@ -1131,20 +1115,20 @@ class _SendNotificationScreenState
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        title: const Text('Delete All Notifications?'),
-        content: const Text(
-          'Are you sure you want to delete ALL notifications? This cannot be undone.',
+        title: Text(AppLocalizations.of(context)!.notifDeleteAllTitle),
+        content: Text(
+          AppLocalizations.of(context)!.notifDeleteAllConfirm,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.notifCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Delete All',
-              style: TextStyle(color: Colors.redAccent),
+            child: Text(
+              AppLocalizations.of(context)!.notifDeleteAll,
+              style: const TextStyle(color: Colors.redAccent),
             ),
           ),
         ],

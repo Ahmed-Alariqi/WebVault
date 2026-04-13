@@ -11,6 +11,7 @@ import '../../data/models/clipboard_item_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ClipboardScreen extends ConsumerStatefulWidget {
   const ClipboardScreen({super.key});
@@ -159,25 +160,10 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                   PhosphorIcons.info(PhosphorIconsStyle.fill),
                   color: AppTheme.primaryColor,
                 ),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AppLocalizations.of(context)!.localSaveNotice,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor:
-                          isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                },
+                onPressed: () => AdminUIUtils.showInfo(
+                  context,
+                  AppLocalizations.of(context)!.localSaveNotice,
+                ),
               ),
             ),
             IconButton(

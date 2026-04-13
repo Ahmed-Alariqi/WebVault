@@ -284,6 +284,9 @@
   "editCategory": "Edit Category",
   "categoryName": "Category Name",
   "addBtn": "Add",
+  "categoryAdded": "Category added successfully",
+  "categoryUpdated": "Category updated successfully",
+  "categoryDeleted": "Category deleted successfully",
 
   "manageItemsTitle": "Manage Items",
   "noItemsYet": "No items yet",
@@ -691,6 +694,8 @@
   "formUploadingVideo": "Uploading Video...",
   "formUploadVideoDevice": "Upload Video from Device",
   "formVideoUrlLabel": "Video URL (or paste link)",
+  "formVideoUploaded": "Video uploaded!",
+  "formVideoUploadError": "Upload failed or video too large (max 50MB).",
   
   "formActionPromptHeader": "Prompt Content",
   "formActionOfferHeader": "Offer Details",
@@ -772,6 +777,17 @@
       }
     }
   },
+  "notifMessageContent": "Message Content",
+  "notifMediaDestination": "Media & Destination",
+  "notifActionDestination": "Action Destination",
+  "notifNoLink": "No Link",
+  "notifDiscoverItem": "Discover Item",
+  "notifExternalUrl": "External URL",
+  "notifSelectDiscoverItem": "Select a Discover Item",
+  "notifConfiguration": "Configuration",
+  "notifDeleteAll": "Delete All",
+  "notifDeleteAllTitle": "Delete All Notifications?",
+  "notifDeleteAllConfirm": "Are you sure you want to delete ALL notifications? This cannot be undone.",
 
   "chatFailedUpload": "Failed to upload image",
   "chatError": "Error: {error}",
@@ -1421,6 +1437,10 @@
   "messageAdmin": "Send a message to site administrators",
   "enteredGiveawaySuccess": "Entered successfully! Best of luck.",
   "votedPollSuccess": "Voted successfully! Thank you for participating.",
+  "giveawayCreated": "Giveaway created successfully",
+  "giveawayUpdated": "Giveaway updated successfully",
+  "pollCreated": "Poll created successfully",
+  "pollUpdated": "Poll updated successfully",
 
   "referralTabTitle": "Referrals",
   "referralCampaigns": "Campaigns",

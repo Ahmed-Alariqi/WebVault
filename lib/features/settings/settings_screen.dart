@@ -8,6 +8,7 @@ import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,19 +32,10 @@ class SettingsScreen extends ConsumerWidget {
             triggerMode: TooltipTriggerMode.tap,
             child: IconButton(
               icon: Icon(PhosphorIcons.info(PhosphorIconsStyle.fill), color: AppTheme.primaryColor),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      AppLocalizations.of(context)!.localSaveNotice,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
+              onPressed: () => AdminUIUtils.showInfo(
+                context,
+                AppLocalizations.of(context)!.localSaveNotice,
+              ),
             ),
           ),
           const SizedBox(width: 8),

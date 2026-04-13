@@ -8,6 +8,7 @@ import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ManageUserChatsScreen extends ConsumerWidget {
   const ManageUserChatsScreen({super.key});
@@ -105,25 +106,19 @@ class ManageUserChatsScreen extends ConsumerWidget {
                           try {
                             await deleteConversation(conv.id);
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(context)!.chatDeleted,
-                                  ),
-                                ),
+                              AdminUIUtils.showSuccess(
+                                context,
+                                AppLocalizations.of(context)!.chatDeleted,
                               );
                             }
                             ref.invalidate(adminConversationsStreamProvider);
                             return true;
                           } catch (e) {
                             if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.chatDeleteFailed(e.toString()),
-                                  ),
+                              AdminUIUtils.showError(
+                                context,
+                                AppLocalizations.of(context)!.chatDeleteFailed(
+                                  e.toString(),
                                 ),
                               );
                             }

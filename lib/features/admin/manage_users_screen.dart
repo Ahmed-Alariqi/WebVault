@@ -12,6 +12,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../presentation/providers/chat_providers.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ManageUsersScreen extends ConsumerStatefulWidget {
   const ManageUsersScreen({super.key});
@@ -57,11 +58,9 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
   }
 
   Future<void> _messageUser(String userId) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.startingChat),
-        duration: const Duration(seconds: 1),
-      ),
+    AdminUIUtils.showInfo(
+      context,
+      AppLocalizations.of(context)!.startingChat,
     );
     try {
       final convId = await getOrCreateConversation(userId);
@@ -70,11 +69,9 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${AppLocalizations.of(context)!.error}: $e'),
-            backgroundColor: Colors.red,
-          ),
+        AdminUIUtils.showError(
+          context,
+          '${AppLocalizations.of(context)!.error}: $e',
         );
       }
     }
@@ -104,9 +101,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
       try {
         await adminDeleteUser(userId);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.userDeleted)),
-          );
+          AdminUIUtils.showSuccess(context, AppLocalizations.of(context)!.userDeleted);
           ref.read(adminUsersPaginatedProvider.notifier).reset();
         }
       } catch (e) {
@@ -123,16 +118,17 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
               errStr.contains('fetch failed') ||
               errStr.contains('offline');
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isOffline
-                    ? 'You are offline. Please check your internet connection.'
-                    : '${AppLocalizations.of(context)!.error}: $e',
-              ),
-              backgroundColor: isOffline ? Colors.orange : Colors.red,
-            ),
-          );
+          if (isOffline) {
+            AdminUIUtils.showWarning(
+              context,
+              AppLocalizations.of(context)!.formOfflineError,
+            );
+          } else {
+            AdminUIUtils.showError(
+              context,
+              '${AppLocalizations.of(context)!.error}: $e',
+            );
+          }
         }
       }
     }
@@ -513,14 +509,11 @@ class _UserDialogState extends State<_UserDialog> {
       }
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEditing
-                  ? AppLocalizations.of(context)!.userUpdated
-                  : AppLocalizations.of(context)!.userCreated,
-            ),
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          _isEditing
+              ? AppLocalizations.of(context)!.userUpdated
+              : AppLocalizations.of(context)!.userCreated,
         );
       }
     } catch (e) {
@@ -537,16 +530,17 @@ class _UserDialogState extends State<_UserDialog> {
             errStr.contains('fetch failed') ||
             errStr.contains('offline');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOffline
-                  ? 'You are offline. Please check your internet connection.'
-                  : '${AppLocalizations.of(context)!.error}: $e',
-            ),
-            backgroundColor: isOffline ? Colors.orange : Colors.red,
-          ),
-        );
+        if (isOffline) {
+          AdminUIUtils.showWarning(
+            context,
+            AppLocalizations.of(context)!.formOfflineError,
+          );
+        } else {
+          AdminUIUtils.showError(
+            context,
+            '${AppLocalizations.of(context)!.error}: $e',
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

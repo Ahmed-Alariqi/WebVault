@@ -10,6 +10,7 @@ import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../data/models/chat_model.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class AdminChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -76,21 +77,17 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
           _scrollToBottom();
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(AppLocalizations.of(context)!.chatFailedUpload),
-              ),
+            AdminUIUtils.showError(
+              context,
+              AppLocalizations.of(context)!.chatFailedUpload,
             );
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.chatError(e.toString()),
-              ),
-            ),
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(context)!.chatError(e.toString()),
           );
         }
       } finally {
@@ -662,9 +659,7 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
                   if (context.mounted) Navigator.pop(context);
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Edit failed: $e')));
+                    AdminUIUtils.showError(context, 'Edit failed: $e');
                   }
                 }
               } else {
@@ -706,9 +701,10 @@ class _AdminChatScreenState extends ConsumerState<AdminChatScreen> {
               await deleteMessage(message.id, message.conversationId);
               if (context.mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(
+                AdminUIUtils.showSuccess(
                   context,
-                ).showSnackBar(SnackBar(content: Text(l10n.deleteLabel)));
+                  l10n.deleteLabel,
+                );
               }
             },
             style: ElevatedButton.styleFrom(

@@ -8,6 +8,7 @@ import '../../core/supabase_config.dart';
 import '../../presentation/providers/referral_providers.dart';
 import '../../data/models/referral_model.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 import 'edit_referral_campaign_sheet.dart';
 
 // ═══════════════════════════════════════════
@@ -387,9 +388,10 @@ class _CampaignCard extends ConsumerWidget {
         if (confirm == true) {
           await deleteReferralCampaign(campaign.id, ref);
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l10n.referralCampaignDeleted)),
-            );
+          AdminUIUtils.showSuccess(
+            context,
+            l10n.referralCampaignDeleted,
+          );
           }
         }
         break;
@@ -773,14 +775,9 @@ class _CampaignDetailsSheet extends ConsumerWidget {
                                           onPressed: () async {
                                             await approveReferral(r.id, ref);
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showSuccess(
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    l10n.referralConfirmed,
-                                                  ),
-                                                ),
+                                                l10n.referralConfirmed,
                                               );
                                             }
                                           },
@@ -800,14 +797,9 @@ class _CampaignDetailsSheet extends ConsumerWidget {
                                           onPressed: () async {
                                             await rejectReferral(r.id, ref);
                                             if (context.mounted) {
-                                              ScaffoldMessenger.of(
+                                              AdminUIUtils.showSuccess(
                                                 context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    l10n.referralRejected,
-                                                  ),
-                                                ),
+                                                l10n.referralRejected,
                                               );
                                             }
                                           },

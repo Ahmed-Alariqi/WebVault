@@ -598,8 +598,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           return GestureDetector(
             onTap: () {
               final text = l10n.localeName.startsWith('ar')
-                  ? 'أهلاً! 👋\n\nاكتشفت تطبيق WebVault وصراحةً غيّر طريقتي بحفظ الروابط والملاحظات — كل شي منظّم ومرتّب بمكان واحد 🔖✨\n\nإذا حسيت إنه بيفيدك، جربه وشارك الفائدة 🚀\n\nحمّل التطبيق من هنا:\nhttps://webvault.app/download'
-                  : 'Hello! 👋\n\nI discovered the WebVault app and it really changed how I save links and notes — everything is organized in one place 🔖✨\n\nIf you think it might be useful, try it out 🚀\n\nDownload the app here:\nhttps://webvault.app/download';
+                  ? '''لو أنت تقني… فأكيد عندك هذا الصداع اليومي 🤯
+روابط مهمة، أدوات، مفاتيح API، أكواد، حسابات… وكلها ضايعة بين المتصفح، الملاحظات، والتطبيقات!
+
+الحل؟ 🔥
+تطبيق زاد التقني — المكان اللي يجمع كل شي مهم لك في مكان واحد بذكاء 👇
+
+🔖 احفظ أي موقع أو أداة مفيدة إلى التطبيق بنقرة.
+🔐 خزّن مفاتيحك المهمة (API، أكواد، حسابات…) بشكل منظم وآمن.
+🤖 مساعد ذكي (AI) لشرح وتلخيص أي أداة أو موقع وفهمه بعمق بضغطة زر.
+⚡ أرسل أي نص أو قيمة مباشرة للحافظة من أي مكان دون فتح التطبيق عبر مشاركتها معه.
+📲 افتح الحافظة فورًا من زر مختصر في مركز التحكم وانسخ أي قيمة محفوظة بسرعة.
+🧭 استكشف أفضل الأدوات، المصادر، الكورسات، والعروض المختارة بعناية والمحدثة باستمرار.
+💬 مجتمع تقني حي لتبادل المعرفة والخبرات.
+
+كل شيء تحتاجه كـ تقني… صار بمكان واحد 👌
+
+⬇️ حمّل التطبيق الآن:
+https://webvault.app/download
+
+جرب زاد التقني الآن… ورتب الفوضى التي تعيشها يومياً في مكان واحد 🚀'''
+                  : '''Are you a tech enthusiast? End the daily chaos of lost links and tools! 🤯
+
+The solution? 🔥
+Zad Tech App — Everything you need in one smart place 👇
+
+🔖 Save any website or tool with one click.
+🔐 Store API keys and accounts securely and organized.
+🤖 AI Assistant to explain and summarize any tool instantly.
+⚡ Send text to your clipboard from anywhere without opening the app.
+🧭 Explore curated tools, courses, and resources.
+💬 Join a vibrant community to exchange knowledge.
+
+Everything you need as a techie, all in one place 👌
+
+⬇️ Download now:
+https://webvault.app/download
+
+Try Zad Tech now and organize your daily workflow! 🚀''';
               Share.share(text);
             },
             child: Container(

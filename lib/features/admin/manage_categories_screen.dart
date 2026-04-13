@@ -8,6 +8,7 @@ import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ManageCategoriesScreen extends ConsumerWidget {
   const ManageCategoriesScreen({super.key});
@@ -170,6 +171,12 @@ class ManageCategoriesScreen extends ConsumerWidget {
                       ),
                       onPressed: () async {
                         await adminDeleteCategory(cat.id);
+                        if (context.mounted) {
+                          AdminUIUtils.showSuccess(
+                            context,
+                            AppLocalizations.of(context)!.categoryDeleted,
+                          );
+                        }
                         ref.invalidate(adminCategoriesProvider);
                         ref.invalidate(categoriesProvider);
                       },
@@ -386,7 +393,15 @@ class ManageCategoriesScreen extends ConsumerWidget {
 
                   ref.invalidate(adminCategoriesProvider);
                   ref.invalidate(categoriesProvider);
-                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (ctx.mounted) {
+                    AdminUIUtils.showSuccess(
+                      context,
+                      existing == null
+                          ? AppLocalizations.of(context)!.categoryAdded
+                          : AppLocalizations.of(context)!.categoryUpdated,
+                    );
+                    Navigator.pop(ctx);
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,

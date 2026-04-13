@@ -10,6 +10,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 // Provides the list of ALL advertisements for the admin (including inactive ones)
 final adminAdvertisementsProvider =
@@ -103,27 +104,16 @@ class _AdCard extends ConsumerWidget {
 
       if (context.mounted) {
         ref.invalidate(adminAdvertisementsProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              newValue
-                  ? AppLocalizations.of(context)!.adActivated
-                  : AppLocalizations.of(context)!.adHiddenMsg,
-            ),
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          newValue
+              ? AppLocalizations.of(context)!.adActivated
+              : AppLocalizations.of(context)!.adHiddenMsg,
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error: $e',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AdminUIUtils.showError(context, 'Error: $e');
       }
     }
   }
@@ -157,21 +147,11 @@ class _AdCard extends ConsumerWidget {
           .eq('id', ad.id);
       if (context.mounted) {
         ref.invalidate(adminAdvertisementsProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.adDeleted)),
-        );
+        AdminUIUtils.showSuccess(context, AppLocalizations.of(context)!.adDeleted);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error deleting: $e',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AdminUIUtils.showError(context, 'Error deleting: $e');
       }
     }
   }

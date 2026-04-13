@@ -642,6 +642,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addBtn => 'Add';
 
   @override
+  String get categoryAdded => 'Category added successfully';
+
+  @override
+  String get categoryUpdated => 'Category updated successfully';
+
+  @override
+  String get categoryDeleted => 'Category deleted successfully';
+
+  @override
   String get manageItemsTitle => 'Manage Items';
 
   @override
@@ -1471,6 +1480,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get formVideoUrlLabel => 'Video URL (or paste link)';
 
   @override
+  String get formVideoUploaded => 'Video uploaded!';
+
+  @override
+  String get formVideoUploadError =>
+      'Upload failed or video too large (max 50MB).';
+
+  @override
   String get formActionPromptHeader => 'Prompt Content';
 
   @override
@@ -1638,6 +1654,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifFailed(String error) {
     return 'Failed: $error';
   }
+
+  @override
+  String get notifMessageContent => 'Message Content';
+
+  @override
+  String get notifMediaDestination => 'Media & Destination';
+
+  @override
+  String get notifActionDestination => 'Action Destination';
+
+  @override
+  String get notifNoLink => 'No Link';
+
+  @override
+  String get notifDiscoverItem => 'Discover Item';
+
+  @override
+  String get notifExternalUrl => 'External URL';
+
+  @override
+  String get notifSelectDiscoverItem => 'Select a Discover Item';
+
+  @override
+  String get notifConfiguration => 'Configuration';
+
+  @override
+  String get notifDeleteAll => 'Delete All';
+
+  @override
+  String get notifDeleteAllTitle => 'Delete All Notifications?';
+
+  @override
+  String get notifDeleteAllConfirm =>
+      'Are you sure you want to delete ALL notifications? This cannot be undone.';
 
   @override
   String get chatFailedUpload => 'Failed to upload image';
@@ -3200,6 +3250,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get votedPollSuccess =>
       'Voted successfully! Thank you for participating.';
+
+  @override
+  String get giveawayCreated => 'Giveaway created successfully';
+
+  @override
+  String get giveawayUpdated => 'Giveaway updated successfully';
+
+  @override
+  String get pollCreated => 'Poll created successfully';
+
+  @override
+  String get pollUpdated => 'Poll updated successfully';
 
   @override
   String get referralTabTitle => 'Referrals';

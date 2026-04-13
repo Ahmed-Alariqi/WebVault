@@ -10,6 +10,7 @@ import '../../core/services/imagekit_service.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ManageInAppMessagesScreen extends ConsumerStatefulWidget {
   const ManageInAppMessagesScreen({super.key});
@@ -47,10 +48,9 @@ class _ManageInAppMessagesScreenState
 
   Future<void> _saveMessage() async {
     if (_titleCtrl.text.trim().isEmpty || _messageCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.titleMessageRequired),
-        ),
+      AdminUIUtils.showWarning(
+        context,
+        AppLocalizations.of(context)!.titleMessageRequired,
       );
       return;
     }
@@ -92,14 +92,11 @@ class _ManageInAppMessagesScreenState
       ref.invalidate(adminInAppMessagesProvider);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _editingId != null
-                  ? AppLocalizations.of(context)!.campaignUpdated
-                  : AppLocalizations.of(context)!.campaignCreated,
-            ),
-          ),
+        AdminUIUtils.showSuccess(
+          context,
+          _editingId != null
+              ? AppLocalizations.of(context)!.campaignUpdated
+              : AppLocalizations.of(context)!.campaignCreated,
         );
       }
     } catch (e) {
@@ -112,16 +109,17 @@ class _ManageInAppMessagesScreenState
             errStr.contains('clientexception') ||
             errStr.contains('network is unreachable');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOffline
-                  ? AppLocalizations.of(context)!.offlineWarningDetails
-                  : AppLocalizations.of(context)!.failedWarning(e.toString()),
-            ),
-            backgroundColor: isOffline ? Colors.orange : Colors.red,
-          ),
-        );
+        if (isOffline) {
+          AdminUIUtils.showWarning(
+            context,
+            AppLocalizations.of(context)!.offlineWarningDetails,
+          );
+        } else {
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(context)!.failedWarning(e.toString()),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -378,18 +376,19 @@ class _ManageInAppMessagesScreenState
             errStr.contains('clientexception') ||
             errStr.contains('network is unreachable');
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isOffline
-                  ? AppLocalizations.of(context)!.offlineWarningDetails
-                  : AppLocalizations.of(
-                      context,
-                    )!.failedToUpdateStatus(e.toString()),
-            ),
-            backgroundColor: isOffline ? Colors.orange : Colors.red,
-          ),
-        );
+        if (isOffline) {
+          AdminUIUtils.showWarning(
+            context,
+            AppLocalizations.of(context)!.offlineWarningDetails,
+          );
+        } else {
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(
+              context,
+            )!.failedToUpdateStatus(e.toString()),
+          );
+        }
       }
     }
   }
@@ -428,18 +427,19 @@ class _ManageInAppMessagesScreenState
               errStr.contains('clientexception') ||
               errStr.contains('network is unreachable');
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isOffline
-                    ? AppLocalizations.of(context)!.offlineWarningDetails
-                    : AppLocalizations.of(
-                        context,
-                      )!.deleteFailedWarning(e.toString()),
-              ),
-              backgroundColor: isOffline ? Colors.orange : Colors.red,
-            ),
-          );
+          if (isOffline) {
+            AdminUIUtils.showWarning(
+              context,
+              AppLocalizations.of(context)!.offlineWarningDetails,
+            );
+          } else {
+            AdminUIUtils.showError(
+              context,
+              AppLocalizations.of(
+                context,
+              )!.deleteFailedWarning(e.toString()),
+            );
+          }
         }
       }
     }
@@ -552,32 +552,22 @@ class _ManageInAppMessagesScreenState
                                           setState(() {
                                             _imageUrlCtrl.text = url;
                                           });
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                AppLocalizations.of(
-                                                  context,
-                                                )!.imageUploadedSuccessfully,
-                                              ),
-                                              backgroundColor: Colors.green,
-                                            ),
-                                          );
+                                          if (context.mounted) {
+                                            AdminUIUtils.showSuccess(
+                                              context,
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.imageUploadedSuccessfully,
+                                            );
+                                          }
                                         } else if (context.mounted &&
                                             _uploadProgress > 0) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                AppLocalizations.of(
-                                                  context,
-                                                )!.uploadFailed,
-                                              ),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
+                                            AdminUIUtils.showError(
+                                              context,
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.uploadFailed,
+                                            );
                                         }
                                       } finally {
                                         if (mounted) {

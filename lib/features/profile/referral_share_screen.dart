@@ -738,34 +738,42 @@ class _ReferralShareScreenState extends ConsumerState<ReferralShareScreen> {
     ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1);
   }
 
-  /// Compose and share a creative, viral message
   void _shareViralMessage(ReferralCampaign campaign) {
     final code = _myCode?.code ?? '';
-    // TODO: Replace with real download link when app is published
     const appLink = 'https://webvault.app/download';
 
     // Build the reward mention for the referred user
     String rewardMention = '';
     if (campaign.referredRewardDescription != null &&
         campaign.referredRewardDescription!.isNotEmpty) {
-      rewardMention =
-          '\n🎁 وعند انضمامك، ستحصل على: ${campaign.referredRewardDescription}';
+      rewardMention = campaign.referredRewardDescription!;
     }
 
-    // Creative, natural Arabic share message
-    final message =
-        '''
-أهلاً! 👋
+    final message = '''
+لو أنت تقني… فأكيد عندك هذا الصداع اليومي 🤯
+روابط مهمة، أدوات، مفاتيح API، أكواد، حسابات… وكلها ضايعة بين المتصفح، الملاحظات، والتطبيقات!
 
-اكتشفت تطبيق WebVault وصراحةً غيّر طريقتي بحفظ الروابط والملاحظات — كل شي منظّم ومرتّب بمكان واحد 🔖✨
-$rewardMention
-جرّبه بنفسك وادخل كود الدعوة:
+الحل؟ 🔥
+تطبيق زاد التقني — المكان اللي يجمع كل شي مهم لك في مكان واحد بذكاء 👇
+
+🔖 احفظ أي موقع أو أداة مفيدة إلى التطبيق بنقرة.
+🔐 خزّن مفاتيحك المهمة (API، أكواد، حسابات…) بشكل منظم وآمن.
+🤖 مساعد ذكي (AI) لشرح وتلخيص أي أداة أو موقع وفهمه بعمق بضغطة زر.
+⚡ أرسل أي نص أو قيمة مباشرة للحافظة من أي مكان دون فتح التطبيق عبر مشاركتها معه.
+📲 افتح الحافظة فورًا من زر مختصر في مركز التحكم وانسخ أي قيمة محفوظة بسرعة.
+🧭 استكشف أفضل الأدوات، المصادر، الكورسات، والعروض المختارة بعناية والمحدثة باستمرار.
+💬 مجتمع تقني حي لتبادل المعرفة والخبرات.
+
+كل شيء تحتاجه كـ تقني… صار بمكان واحد 👌
+${rewardMention.isNotEmpty ? '\n🎁 مكافأة انضمام حصرية لك: $rewardMention' : ''}
+
+✨ استخدم كود الدعوة واحصل على امتيازات حصرية 🎁:
 📌 $code
 
-حمّل التطبيق من هنا:
+⬇️ حمّل التطبيق :
 $appLink
 
-أعدك ما بتندم! 🚀''';
+جرب زاد التقني الآن… ورتب الفوضى التي تعيشها يومياً بمكان واحد 🚀''';
 
     Share.share(message);
   }

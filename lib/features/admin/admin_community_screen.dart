@@ -11,6 +11,7 @@ import '../../presentation/providers/community_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class AdminCommunityScreen extends ConsumerStatefulWidget {
   const AdminCommunityScreen({super.key});
@@ -90,22 +91,16 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
         await SupabaseConfig.client.rpc('wipe_community_chat');
         if (mounted) {
           ref.read(communityPostsPaginatedProvider.notifier).reset();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context)!.chatWipedSuccess),
-              backgroundColor: AppTheme.primaryColor,
-            ),
+          AdminUIUtils.showSuccess(
+            context,
+            AppLocalizations.of(context)!.chatWipedSuccess,
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.chatWipedFailed(e.toString()),
-              ),
-              backgroundColor: AppTheme.errorColor,
-            ),
+          AdminUIUtils.showError(
+            context,
+            AppLocalizations.of(context)!.chatWipedFailed(e.toString()),
           );
         }
       } finally {
@@ -123,13 +118,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
       ref.read(communityPostsPaginatedProvider.notifier).reset();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.pinPostFailed(e.toString()),
-            ),
-            backgroundColor: AppTheme.errorColor,
-          ),
+        AdminUIUtils.showError(
+          context,
+          AppLocalizations.of(context)!.pinPostFailed(e.toString()),
         );
       }
     }
@@ -177,15 +168,9 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
               ref.invalidate(communityWelcomeMessageProvider);
               if (c.mounted) Navigator.pop(c);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.communityWelcomeMessageSaved,
-                    ),
-                    backgroundColor: AppTheme.primaryColor,
-                  ),
+                AdminUIUtils.showSuccess(
+                  context,
+                  AppLocalizations.of(context)!.communityWelcomeMessageSaved,
                 );
               }
             },
@@ -243,14 +228,10 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                   );
                   ref.invalidate(bannedUsersProvider);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.communityMuted,
-                        ),
-                        backgroundColor: Colors.orange,
-                      ),
-                    );
+                  AdminUIUtils.showSuccess(
+                    context,
+                    AppLocalizations.of(context)!.communityMuted,
+                  );
                   }
                 },
               ),
@@ -270,14 +251,10 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                   );
                   ref.invalidate(bannedUsersProvider);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.communityMuted,
-                        ),
-                        backgroundColor: Colors.deepOrange,
-                      ),
-                    );
+                  AdminUIUtils.showSuccess(
+                    context,
+                    AppLocalizations.of(context)!.communityMuted,
+                  );
                   }
                 },
               ),
@@ -298,14 +275,10 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                   );
                   ref.invalidate(bannedUsersProvider);
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context)!.communityBanned,
-                        ),
-                        backgroundColor: AppTheme.errorColor,
-                      ),
-                    );
+                  AdminUIUtils.showSuccess(
+                    context,
+                    AppLocalizations.of(context)!.communityBanned,
+                  );
                   }
                 },
               ),
@@ -415,15 +388,10 @@ class _AdminCommunityScreenState extends ConsumerState<AdminCommunityScreen> {
                                 await unbanCommunityUser(user['id'] as String);
                                 ref.invalidate(bannedUsersProvider);
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        )!.communityUnbanned,
-                                      ),
-                                      backgroundColor: AppTheme.primaryColor,
-                                    ),
+                                  AdminUIUtils.showSuccess(
+                                    context,
+                                    AppLocalizations.of(context)!
+                                        .communityUnbanned,
                                   );
                                 }
                               },

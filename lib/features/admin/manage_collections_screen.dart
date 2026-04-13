@@ -9,6 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'widgets/google_image_search_sheet.dart';
 import 'widgets/discover_item_picker_sheet.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ManageCollectionsScreen extends ConsumerStatefulWidget {
   const ManageCollectionsScreen({super.key});
@@ -237,9 +238,7 @@ class _ManageCollectionsScreenState
               await adminDeleteCollection(col.id);
               ref.invalidate(adminCollectionsProvider);
               if (mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(loc.collectionDeleted)));
+                AdminUIUtils.showSuccess(context, loc.collectionDeleted);
               }
             },
             child: Text(
@@ -654,9 +653,7 @@ class _ManageCollectionsScreenState
                         ref.invalidate(adminCollectionsProvider);
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(loc.collectionSaved)),
-                          );
+                          AdminUIUtils.showSuccess(context, loc.collectionSaved);
                         }
                       },
                       child: Text(
@@ -887,13 +884,7 @@ class _ManageCollectionsScreenState
                                     );
                                     ref.invalidate(adminCollectionsProvider);
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(loc.itemRemoved),
-                                        ),
-                                      );
+                                      AdminUIUtils.showSuccess(context, loc.itemRemoved);
                                     }
                                   },
                                 ),
@@ -940,9 +931,7 @@ class _ManageCollectionsScreenState
                   ref.invalidate(collectionItemsProvider(col.id));
                   ref.invalidate(adminCollectionsProvider);
                   if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(loc.itemAdded)));
+                    AdminUIUtils.showSuccess(context, loc.itemAdded);
                   }
                 },
               );

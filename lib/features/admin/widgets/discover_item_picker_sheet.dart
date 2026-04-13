@@ -88,7 +88,7 @@ class _DiscoverItemPickerSheetState
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Select Discover Item',
+                  AppLocalizations.of(context)!.notifSelectDiscoverItem,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -103,7 +103,7 @@ class _DiscoverItemPickerSheetState
                 child: TextField(
                   controller: _searchCtrl,
                   decoration: InputDecoration(
-                    hintText: 'Search...',
+                    hintText: '${AppLocalizations.of(context)!.search}...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: isDark
@@ -162,7 +162,7 @@ class _DiscoverItemPickerSheetState
                                     )
                                     .loadMore();
                               },
-                              child: const Text('Load More'),
+                              child: Text(AppLocalizations.of(context)!.notifLoadMore),
                             ),
                           );
                         }

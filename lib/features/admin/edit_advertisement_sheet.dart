@@ -15,6 +15,7 @@ import '../../data/models/website_model.dart';
 import 'widgets/google_image_search_sheet.dart';
 import 'widgets/discover_item_picker_sheet.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class EditAdvertisementSheet extends ConsumerStatefulWidget {
   final Advertisement? ad; // If null, creating new ad
@@ -165,10 +166,9 @@ class _EditAdvertisementSheetState
 
   Future<void> _save() async {
     if (_imageController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context)!.adEnterImageError),
-        ),
+      AdminUIUtils.showWarning(
+        context,
+        AppLocalizations.of(context)!.adEnterImageError,
       );
       return;
     }
@@ -220,20 +220,13 @@ class _EditAdvertisementSheetState
 
       if (mounted) {
         Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.adSavedSuccess)),
-        );
+        AdminUIUtils.showSuccess(context, AppLocalizations.of(context)!.adSavedSuccess);
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.adSaveError(e.toString()),
-            ),
-          ),
+        AdminUIUtils.showError(
+          context,
+          AppLocalizations.of(context)!.adSaveError(e.toString()),
         );
-      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -744,17 +737,12 @@ class _EditAdvertisementSheetState
                                       } catch (e) {
                                         if (mounted) {
                                           setState(() => _isUploading = false);
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                AppLocalizations.of(
-                                                  context,
-                                                )!.uploadFailed,
-                                              ),
-                                            ),
-                                          );
+                                            AdminUIUtils.showError(
+                                              context,
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.uploadFailed,
+                                            );
                                         }
                                       }
                                     },

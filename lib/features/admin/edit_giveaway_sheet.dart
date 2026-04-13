@@ -9,6 +9,7 @@ import '../../presentation/providers/events_providers.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'widgets/google_image_search_sheet.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class EditGiveawaySheet extends ConsumerStatefulWidget {
   final Giveaway? giveaway;
@@ -66,11 +67,10 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _endsAt == null) {
-      if (_endsAt == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.selectEndDate)),
+        AdminUIUtils.showWarning(
+          context,
+          AppLocalizations.of(context)!.selectEndDate,
         );
-      }
       return;
     }
 
@@ -120,15 +120,16 @@ class _EditGiveawaySheetState extends ConsumerState<EditGiveawaySheet> {
         await updateGiveaway(widget.giveaway!.id, data, ref);
       }
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        AdminUIUtils.showSuccess(
+          context,
+          widget.giveaway == null ? l10n.giveawayCreated : l10n.giveawayUpdated,
+        );
+        Navigator.pop(context);
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
+        AdminUIUtils.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
