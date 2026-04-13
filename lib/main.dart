@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'core/constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
@@ -20,6 +22,19 @@ import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'core/services/analytics_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
+/// Handle background messages (called when app is not in foreground)
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
+    } catch (e) {
+      debugPrint('[FCM] Background init failed: $e');
+    }
+  }
+  debugPrint('[FCM] Background message received: ${message.notification?.title}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,49 +105,90 @@ Future<void> main() async {
   // Initialize Supabase
   await SupabaseConfig.initialize();
 
-  // Initialize OneSignal
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-  OneSignal.initialize(SupabaseConfig.oneSignalAppId);
-
-  // Request push notification permission
-  OneSignal.Notifications.requestPermission(true);
-
-  // Enable push subscription explicitly (OneSignal v5+ requires this)
-  OneSignal.User.pushSubscription.optIn();
-
-  // ── OneSignal registration is now handled by the Fix Notifications button ──
-  // In blocked regions, the user opens VPN and taps "Fix Notifications" in
-  // Settings, which restarts the app so OneSignal can re-register cleanly.
-
   // Create a global container so we can invalidate providers from callbacks
   final container = ProviderContainer();
   final authService = AuthService();
 
-  // ── Monitor push subscription changes ──
-  // This fires when the device first gets a push token,
-  // or when subscription status changes.
-  OneSignal.User.pushSubscription.addObserver((state) {
-    debugPrint('[OneSignal] Push subscription changed:');
-    debugPrint('[OneSignal]   ID: ${state.current.id}');
-    debugPrint('[OneSignal]   Token: ${state.current.token}');
-    debugPrint('[OneSignal]   OptedIn: ${state.current.optedIn}');
+  // ── Initialize Firebase & FCM (replacing OneSignal) ──
+  if (!kIsWeb) {
+    try {
+      await Firebase.initializeApp();
 
-    // Store the subscription ID in the user's profile whenever it's available
-    final subId = state.current.id;
-    final user = SupabaseConfig.client.auth.currentUser;
-    if (subId != null && subId.isNotEmpty && user != null) {
-      authService
-          .updateProfile(onesignalPlayerId: subId)
-          .then((_) {
-            debugPrint('[OneSignal] Stored subscription ID to profile: $subId');
-          })
-          .catchError((e) {
-            debugPrint('[OneSignal] Failed to store sub ID: $e');
-          });
+      // Register background message handler
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+      // Request push notification permission
+      final messaging = FirebaseMessaging.instance;
+      await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+
+      // ── Get and store FCM token ──
+      Future<void> storeFcmToken(String? token) async {
+        if (token == null || token.isEmpty) return;
+        final user = SupabaseConfig.client.auth.currentUser;
+        if (user != null) {
+          try {
+            await authService.updateProfile(fcmToken: token);
+            debugPrint('[FCM] Stored token to profile: ${token.substring(0, 20)}...');
+          } catch (e) {
+            debugPrint('[FCM] Failed to store token: $e');
+          }
+        }
+      }
+
+      try {
+        final token = await messaging.getToken();
+        debugPrint('[FCM] Token: ${token?.substring(0, 20)}...');
+        await storeFcmToken(token);
+      } catch (e) {
+        debugPrint('[FCM] Failed to get token: $e');
+      }
+
+      // ── Monitor token refresh ──
+      messaging.onTokenRefresh.listen((newToken) {
+        debugPrint('[FCM] Token refreshed: ${newToken.substring(0, 20)}...');
+        storeFcmToken(newToken);
+      });
+
+      // ── Foreground notification handling ──
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint(
+          '[FCM] Foreground notification received: ${message.notification?.title}',
+        );
+        // Refresh badge count
+        container.invalidate(notificationCountProvider);
+      });
+
+      // ── Notification tap handler (app was in background) ──
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        debugPrint('[FCM] Notification clicked: ${message.notification?.title}');
+        container.invalidate(notificationCountProvider);
+        // Route to notifications screen
+        final router = container.read(routerProvider);
+        router.go('/notifications');
+      });
+
+      // ── Check if app was opened from a terminated state notification ──
+      final initialMessage = await messaging.getInitialMessage();
+      if (initialMessage != null) {
+        debugPrint('[FCM] App opened from terminated notification');
+        // Will be handled after app is fully built
+        Future.delayed(const Duration(milliseconds: 500), () {
+          container.invalidate(notificationCountProvider);
+          final router = container.read(routerProvider);
+          router.go('/notifications');
+        });
+      }
+    } catch (e) {
+      debugPrint('[Firebase/FCM] Initialization error: $e');
     }
-  });
+  }
 
-  // ── Link Supabase user to OneSignal on auth state changes ──
+  // ── Store FCM token on auth state changes ──
   SupabaseConfig.client.auth.onAuthStateChange.listen((data) async {
     final event = data.event;
     final session = data.session;
@@ -142,59 +198,24 @@ Future<void> main() async {
         event == AuthChangeEvent.initialSession) {
       final userId = session?.user.id;
       if (userId != null) {
-        // Link this device to the Supabase user in OneSignal
-        await OneSignal.login(userId);
-        debugPrint('[OneSignal] Logged in user: $userId');
+        debugPrint('[FCM] User signed in: $userId');
 
-        // Also ensure push subscription is opted in
-        OneSignal.User.pushSubscription.optIn();
-
-        // Tag the user's name so OneSignal can personalize push content
-        final meta = session?.user.userMetadata;
-        final userName =
-            meta?['username'] as String? ??
-            meta?['full_name'] as String? ??
-            meta?['name'] as String? ??
-            session?.user.email ??
-            'there';
-        OneSignal.User.addTagWithKey('user_name', userName);
-        debugPrint('[OneSignal] Tagged user_name=$userName');
-
-        // Try to store the subscription ID right away
-        final subId = OneSignal.User.pushSubscription.id;
-        final token = OneSignal.User.pushSubscription.token;
-        debugPrint('[OneSignal] Current sub ID: $subId, token: $token');
-        if (subId != null && subId.isNotEmpty) {
+        if (!kIsWeb) {
+          // Get and store FCM token for this user
           try {
-            await authService.updateProfile(onesignalPlayerId: subId);
-            debugPrint('[OneSignal] Stored subscription ID: $subId');
+            final token = await FirebaseMessaging.instance.getToken();
+            debugPrint('[FCM] Current token: ${token?.substring(0, 20)}...');
+            if (token != null && token.isNotEmpty) {
+              await authService.updateProfile(fcmToken: token);
+              debugPrint('[FCM] Stored token for user: $userId');
+            }
           } catch (e) {
-            debugPrint('[OneSignal] Failed to store sub ID: $e');
+            debugPrint('[FCM] Failed to store token: $e');
           }
         }
       }
-    } else if (event == AuthChangeEvent.signedOut) {
-      OneSignal.logout();
-      debugPrint('[OneSignal] Logged out');
     }
-  });
-
-  // Show notification in foreground AND refresh badge count
-  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
-    debugPrint(
-      '[OneSignal] Foreground notification received: ${event.notification.title}',
-    );
-    event.notification.display();
-    container.invalidate(notificationCountProvider);
-  });
-
-  // Also refresh count when notification is clicked (user returns from background)
-  OneSignal.Notifications.addClickListener((event) {
-    debugPrint('[OneSignal] Notification clicked: ${event.notification.title}');
-    container.invalidate(notificationCountProvider);
-    // Route to notifications screen
-    final router = container.read(routerProvider);
-    router.go('/notifications');
+    // No logout action needed for FCM (token stays on device)
   });
 
   // Seed dummy data on first launch

@@ -3590,4 +3590,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiPoweredBy => 'Powered by AI';
+
+  @override
+  String get localSaveNotice =>
+      'All settings and data are saved locally on your device for security. We recommend making regular backups.';
 }

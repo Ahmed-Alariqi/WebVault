@@ -3576,4 +3576,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aiPoweredBy => 'مدعوم بالذكاء الاصطناعي';
+
+  @override
+  String get localSaveNotice =>
+      'جميع الإعدادات والبيانات تحفظ محلياً على جهازك للأمان. نوصي بعمل نسخ احتياطية بانتظام.';
 }

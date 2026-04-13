@@ -48,6 +48,7 @@ class _ClipboardSettingsScreenState
                 ),
               ),
             ),
+            actions: const [],
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 AppLocalizations.of(context)!.clipboardSettings,
@@ -129,6 +130,44 @@ class _ClipboardSettingsScreenState
             padding: const EdgeInsets.all(20),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
+                // ── Privacy & Security Notice ─────────────────────────────
+                Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? Colors.amber.withValues(alpha: 0.1) 
+                        : Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark 
+                          ? Colors.amber.withValues(alpha: 0.3) 
+                          : Colors.amber.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                        color: Colors.amber.shade700,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          AppLocalizations.of(context)!.localSaveNotice,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // ── How to Save Text ──────────────────────────────────────
                 _buildSectionHeader(
                   AppLocalizations.of(context)!.howToSave,

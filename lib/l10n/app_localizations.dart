@@ -6817,6 +6817,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Powered by AI'**
   String get aiPoweredBy;
+
+  /// No description provided for @localSaveNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'All settings and data are saved locally on your device for security. We recommend making regular backups.'**
+  String get localSaveNotice;
 }
 
 class _AppLocalizationsDelegate

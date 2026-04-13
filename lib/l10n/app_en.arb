@@ -1552,5 +1552,6 @@
   "aiTypeMessage": "Type your question...",
   "aiErrorGeneric": "Something went wrong, try again",
   "aiThinking": "Thinking...",
-  "aiPoweredBy": "Powered by AI"
+  "aiPoweredBy": "Powered by AI",
+  "localSaveNotice": "All settings and data are saved locally on your device for security. We recommend making regular backups."
 }

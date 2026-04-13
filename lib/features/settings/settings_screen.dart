@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:restart_app/restart_app.dart';
 import '../../core/supabase_config.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -23,7 +23,35 @@ class SettingsScreen extends ConsumerWidget {
     final themeMode = settings['themeMode'] as String? ?? 'system';
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context)!.settings)),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.settings),
+        actions: [
+          Tooltip(
+            message: AppLocalizations.of(context)!.localSaveNotice,
+            textStyle: const TextStyle(fontSize: 12, color: Colors.white),
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            triggerMode: TooltipTriggerMode.tap,
+            child: IconButton(
+              icon: Icon(PhosphorIcons.info(PhosphorIconsStyle.fill), color: AppTheme.primaryColor),
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      AppLocalizations.of(context)!.localSaveNotice,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -596,140 +624,139 @@ class SettingsScreen extends ConsumerWidget {
             isDark: isDark,
             child: StatefulBuilder(
               builder: (context, setLocalState) {
-                // Check OneSignal registration status
-                String? playerId;
-                bool isRegistered = false;
-                try {
-                  playerId = OneSignal.User.pushSubscription.id;
-                  isRegistered = playerId != null && playerId.isNotEmpty;
-                } catch (_) {
-                  isRegistered = false;
-                }
+                // Check FCM registration status
+                return FutureBuilder<String?>(
+                  future: FirebaseMessaging.instance.getToken(),
+                  builder: (context, snapshot) {
+                    final fcmToken = snapshot.data;
+                    final isRegistered = fcmToken != null && fcmToken.isNotEmpty;
 
-                final statusColor = isRegistered
-                    ? Colors.green
-                    : Colors.redAccent;
-                final statusIcon = isRegistered
-                    ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
-                    : PhosphorIcons.warningCircle(PhosphorIconsStyle.fill);
+                    final statusColor = isRegistered
+                        ? Colors.green
+                        : Colors.redAccent;
+                    final statusIcon = isRegistered
+                        ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
+                        : PhosphorIcons.warningCircle(PhosphorIconsStyle.fill);
 
-                return ListTile(
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(child: Icon(statusIcon, color: statusColor)),
-                  ),
-                  title: Text(
-                    AppLocalizations.of(context)!.settingsFixNotifications,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.darkTextPrimary
-                          : AppTheme.lightTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    isRegistered
-                        ? AppLocalizations.of(context)!.notifStatusRegistered
-                        : AppLocalizations.of(
-                            context,
-                          )!.notifStatusNotRegistered,
-                    style: TextStyle(fontSize: 12, color: statusColor),
-                  ),
-                  trailing: isRegistered
-                      ? Icon(
-                          PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
-                          size: 22,
-                          color: Colors.green,
-                        )
-                      : Icon(
-                          PhosphorIcons.arrowClockwise(),
-                          size: 18,
-                          color: isDark ? Colors.white38 : Colors.black26,
+                    return ListTile(
+                      leading: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                  onTap: () async {
-                    if (isRegistered) {
-                      // Already registered — send a test notification
-                      final scaffoldMsg = ScaffoldMessenger.of(context);
-                      try {
-                        await SupabaseConfig.client.functions.invoke(
-                          'self-test-notification',
-                          body: {'player_id': playerId},
-                        );
-                        scaffoldMsg.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              AppLocalizations.of(context)!.notifTestSent,
+                        child: Center(child: Icon(statusIcon, color: statusColor)),
+                      ),
+                      title: Text(
+                        AppLocalizations.of(context)!.settingsFixNotifications,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                      subtitle: Text(
+                        isRegistered
+                            ? AppLocalizations.of(context)!.notifStatusRegistered
+                            : AppLocalizations.of(
+                                context,
+                              )!.notifStatusNotRegistered,
+                        style: TextStyle(fontSize: 12, color: statusColor),
+                      ),
+                      trailing: isRegistered
+                          ? Icon(
+                              PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                              size: 22,
+                              color: Colors.green,
+                            )
+                          : Icon(
+                              PhosphorIcons.arrowClockwise(),
+                              size: 18,
+                              color: isDark ? Colors.white38 : Colors.black26,
                             ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } catch (e) {
-                        scaffoldMsg.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${AppLocalizations.of(context)!.notifTestFailed}: $e',
-                            ),
-                            backgroundColor: AppTheme.errorColor,
-                          ),
-                        );
-                      }
-                    } else {
-                      // Not registered — show confirmation dialog
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          backgroundColor: isDark
-                              ? AppTheme.darkCard
-                              : AppTheme.lightCard,
-                          icon: Icon(
-                            PhosphorIcons.wifiHigh(PhosphorIconsStyle.fill),
-                            color: AppTheme.primaryColor,
-                            size: 40,
-                          ),
-                          title: Text(
-                            AppLocalizations.of(context)!.notifFixDialogTitle,
-                            style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                          content: Text(
-                            AppLocalizations.of(context)!.notifFixDialogBody,
-                            style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black54,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: Text(
-                                AppLocalizations.of(context)!.notifCancel,
+                      onTap: () async {
+                        if (isRegistered) {
+                          // Already registered — send a test notification
+                          final scaffoldMsg = ScaffoldMessenger.of(context);
+                          try {
+                            await SupabaseConfig.client.functions.invoke(
+                              'self-test-notification',
+                              body: {'fcm_token': fcmToken},
+                            );
+                            scaffoldMsg.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  AppLocalizations.of(context)!.notifTestSent,
+                                ),
+                                backgroundColor: Colors.green,
                               ),
-                            ),
-                            FilledButton.icon(
-                              onPressed: () => Navigator.pop(ctx, true),
+                            );
+                          } catch (e) {
+                            scaffoldMsg.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  '${AppLocalizations.of(context)!.notifTestFailed}: $e',
+                                ),
+                                backgroundColor: AppTheme.errorColor,
+                              ),
+                            );
+                          }
+                        } else {
+                          // Not registered — show confirmation dialog
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              backgroundColor: isDark
+                                  ? AppTheme.darkCard
+                                  : AppTheme.lightCard,
                               icon: Icon(
-                                PhosphorIcons.arrowClockwise(),
-                                size: 16,
+                                PhosphorIcons.wifiHigh(PhosphorIconsStyle.fill),
+                                color: AppTheme.primaryColor,
+                                size: 40,
                               ),
-                              label: Text(
-                                AppLocalizations.of(context)!.notifRestartNow,
+                              title: Text(
+                                AppLocalizations.of(context)!.notifFixDialogTitle,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
                               ),
-                              style: FilledButton.styleFrom(
-                                backgroundColor: AppTheme.primaryColor,
+                              content: Text(
+                                AppLocalizations.of(context)!.notifFixDialogBody,
+                                style: TextStyle(
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                ),
                               ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: Text(
+                                    AppLocalizations.of(context)!.notifCancel,
+                                  ),
+                                ),
+                                FilledButton.icon(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  icon: Icon(
+                                    PhosphorIcons.arrowClockwise(),
+                                    size: 16,
+                                  ),
+                                  label: Text(
+                                    AppLocalizations.of(context)!.notifRestartNow,
+                                  ),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                      if (confirm == true) {
-                        Restart.restartApp();
-                      }
-                    }
+                          );
+                          if (confirm == true) {
+                            Restart.restartApp();
+                          }
+                        }
+                      },
+                    );
                   },
                 );
               },

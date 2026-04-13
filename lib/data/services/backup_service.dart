@@ -51,8 +51,9 @@ class BackupService {
       }
 
       final directory = await getTemporaryDirectory();
+      final dateStr = DateTime.now().toIso8601String().split('T')[0];
       final file = File(
-        '${directory.path}/zaadtech_backup_${DateTime.now().millisecondsSinceEpoch}.json',
+        '${directory.path}/zaadtech_backup_$dateStr.json',
       );
       await file.writeAsString(jsonString);
 

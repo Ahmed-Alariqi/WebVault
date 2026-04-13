@@ -147,7 +147,7 @@ class AuthService {
     String? fullName,
     String? username,
     String? avatarUrl,
-    String? onesignalPlayerId,
+    String? fcmToken,
     bool updateUsernameTimestamp = false,
   }) async {
     final user = currentUser;
@@ -157,8 +157,8 @@ class AuthService {
     if (fullName != null) updates['full_name'] = fullName;
     if (username != null) updates['username'] = username;
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
-    if (onesignalPlayerId != null) {
-      updates['onesignal_player_id'] = onesignalPlayerId;
+    if (fcmToken != null) {
+      updates['fcm_token'] = fcmToken;
     }
     if (updateUsernameTimestamp) {
       updates['username_changed_at'] = DateTime.now().toUtc().toIso8601String();

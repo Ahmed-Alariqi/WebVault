@@ -1127,19 +1127,25 @@ class _VideoSectionState extends State<_VideoSection> {
   bool _isInitialized = false;
   bool _hasError = false;
 
-  /// Check if the URL is an external video platform (YouTube, Vimeo, etc.)
   bool get _isExternalVideo {
     final url = widget.videoUrl.toLowerCase();
+    
+    // Direct Facebook video links
+    if (url.contains('fbcdn.net')) return false;
+
     return url.contains('youtube.com') ||
         url.contains('youtu.be') ||
         url.contains('vimeo.com') ||
         url.contains('dailymotion.com') ||
         url.contains('tiktok.com') ||
-        // Not a direct video file
-        (!url.endsWith('.mp4') &&
-            !url.endsWith('.mov') &&
-            !url.endsWith('.webm') &&
-            !url.endsWith('.avi') &&
+        // Generic Facebook web links (not CDN mp4) cannot be played directly
+        (url.contains('facebook.com') && !url.contains('.mp4')) ||
+        url.contains('fb.watch') ||
+        // Not a direct video file (using contains to support query params)
+        (!url.contains('.mp4') &&
+            !url.contains('.mov') &&
+            !url.contains('.webm') &&
+            !url.contains('.avi') &&
             !url.contains('imagekit.io'));
   }
 

@@ -240,7 +240,7 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
   // 1. Insert into DB for history
   await _client.from('notifications').insert(data);
 
-  // 2. Trigger Edge Function to push via OneSignal
+  // 2. Trigger Edge Function to push via FCM
   try {
     final response = await _client.functions.invoke(
       'send-notification',
@@ -253,7 +253,7 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
         'created_by': user?.id,
       },
     );
-    debugPrint('OneSignal push response: ${response.status} ${response.data}');
+    debugPrint('FCM push response: ${response.status} ${response.data}');
     // Log detailed info for debugging
     if (response.data is Map) {
       final data2 = response.data as Map;

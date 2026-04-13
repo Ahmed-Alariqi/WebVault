@@ -6,8 +6,8 @@ class SupabaseConfig {
   static const String anonKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBvZXBvZHRhZ2V5dG56dWNyc21nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMjQyNTgsImV4cCI6MjA4NjgwMDI1OH0.V7km9Yd3_sHLUMnpJq4qh03Soj0SfS0LUblKatjhgnM';
 
-  static const String oneSignalAppId =
-      '488da896-9e12-4b54-ac4c-b766a9358d55'; 
+  // OneSignal App ID removed — now using FCM directly
+  // (see docs/ONESIGNAL_ROLLBACK.md for original value)
 
   /// Initialize the Supabase client
   static Future<void> initialize() async {

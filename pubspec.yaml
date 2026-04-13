@@ -40,8 +40,9 @@ dependencies:
   # Authentication
   local_auth: ^2.3.0
 
-  # Push Notifications
-  onesignal_flutter: ^5.2.12
+  # Push Notifications (FCM Direct — replacing OneSignal)
+  firebase_core: ^3.13.0
+  firebase_messaging: ^15.2.4
 
   # Utilities
   share_plus: ^10.1.4
@@ -93,7 +94,7 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon/app_icon.png"
+  image_path: "assets/app_icon.png"
   min_sdk_android: 21
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  adaptive_icon_foreground: "assets/app_icon.png"

@@ -145,6 +145,41 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               },
             ),
           ] else ...[
+            Tooltip(
+              message: AppLocalizations.of(context)!.localSaveNotice,
+              textStyle: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              triggerMode: TooltipTriggerMode.tap,
+              child: IconButton(
+                icon: Icon(
+                  PhosphorIcons.info(PhosphorIconsStyle.fill),
+                  color: AppTheme.primaryColor,
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context)!.localSaveNotice,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor:
+                          isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
             IconButton(
               icon: Icon(PhosphorIcons.gear()),
               tooltip: 'Clipboard Settings',
@@ -873,6 +908,17 @@ class _ClipboardTile extends ConsumerWidget {
             ),
             ListTile(
               leading: Icon(
+                PhosphorIcons.pencilSimple(),
+                color: AppTheme.primaryColor,
+              ),
+              title: Text(AppLocalizations.of(context)!.edit),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showEditDialog(context, ref, item);
+              },
+            ),
+            ListTile(
+              leading: Icon(
                 PhosphorIcons.arrowBendUpRight(),
                 color: AppTheme.primaryColor,
               ),
@@ -906,7 +952,178 @@ class _ClipboardTile extends ConsumerWidget {
       ),
     );
   }
+
+  void _showEditDialog(
+    BuildContext context,
+    WidgetRef ref,
+    ClipboardItemModel editItem,
+  ) {
+    final labelCtrl = TextEditingController(text: editItem.label);
+    final valueCtrl = TextEditingController(text: editItem.value);
+    var selectedType = editItem.type;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Padding(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                MediaQuery.of(ctx).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.pencilSimple(),
+                        size: 24,
+                        color: AppTheme.primaryColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        AppLocalizations.of(context)!.edit,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppTheme.darkTextPrimary
+                              : AppTheme.lightTextPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Type selector
+                  SizedBox(
+                    height: 40,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: ClipboardItemType.values.length,
+                      separatorBuilder: (_, _a) => const SizedBox(width: 8),
+                      itemBuilder: (_, index) {
+                        final t = ClipboardItemType.values[index];
+                        final isSel = t == selectedType;
+                        final bgColor = isSel
+                            ? AppTheme.primaryColor
+                            : (isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05));
+                        final textColor = isSel
+                            ? Colors.white
+                            : (isDark ? Colors.white70 : Colors.black87);
+                        return GestureDetector(
+                          onTap: () => setModalState(() => selectedType = t),
+                          child: AnimatedContainer(
+                            duration: 200.ms,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSel
+                                    ? AppTheme.primaryColor
+                                    : Colors.transparent,
+                              ),
+                            ),
+                            child: Text(
+                              t.name.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: textColor,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    controller: labelCtrl,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    decoration: ModernFormWidgets.inputDecoration(
+                      context,
+                      label: AppLocalizations.of(context)!.label,
+                      hint: 'e.g. My OTP code',
+                      icon: PhosphorIcons.tag(),
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: valueCtrl,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    maxLines: selectedType == ClipboardItemType.text ||
+                            selectedType == ClipboardItemType.code
+                        ? 3
+                        : 1,
+                    decoration: ModernFormWidgets.inputDecoration(
+                      context,
+                      label: AppLocalizations.of(context)!.value,
+                      hint: AppLocalizations.of(context)!.contentToCopy,
+                      icon: PhosphorIcons.textT(),
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  ModernFormWidgets.gradientButton(
+                    label: AppLocalizations.of(context)!.save,
+                    icon: PhosphorIcons.floppyDisk(),
+                    onPressed: () {
+                      if (valueCtrl.text.trim().isEmpty) return;
+                      final updated = editItem.copyWith(
+                        label: labelCtrl.text.trim().isEmpty
+                            ? valueCtrl.text.trim()
+                            : labelCtrl.text.trim(),
+                        value: valueCtrl.text.trim(),
+                        type: selectedType,
+                      );
+                      ref
+                          .read(clipboardItemsProvider.notifier)
+                          .updateItem(updated);
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
+
 
 class _GroupChip extends StatelessWidget {
   final String label;
