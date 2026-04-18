@@ -1,5 +1,5 @@
 name: test_app
-description: "WebVault Manager - Web Page Management & Smart Clipboard"
+description: "ZaadTech Manager - Web Page Management & Smart Clipboard"
 publish_to: 'none'
 version: 2.0.1+1
 
@@ -72,6 +72,10 @@ dependencies:
   restart_app: ^1.7.3
   flutter_markdown: ^0.7.7+1
   flutter_highlighter: ^0.1.1
+  markdown: ^7.3.0
+
+  # Voice Input (STT — Groq Whisper)
+  record: ^5.2.0
 
 dev_dependencies:
   flutter_test:

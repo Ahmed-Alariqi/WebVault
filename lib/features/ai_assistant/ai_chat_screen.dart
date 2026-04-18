@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/ai_chat_model.dart';
+import '../../data/services/transcription_service.dart';
 import '../../presentation/providers/ai_assistant_providers.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -162,9 +163,14 @@ class AiChatScreen extends ConsumerStatefulWidget {
 }
 
 class _AiChatScreenState extends ConsumerState<AiChatScreen> {
-  final _controller = TextEditingController();
+  final _controller      = TextEditingController();
   final _scrollController = ScrollController();
-  final _focusNode = FocusNode();
+  final _focusNode        = FocusNode();
+
+  // ── Voice input (STT) ────────────────────────────────────────────────
+  final _transcriptionService = TranscriptionService();
+  bool _isRecording    = false; // mic is capturing audio
+  bool _isTranscribing = false; // audio sent to Groq, waiting for text
 
   bool _isScanningMode = true;
   Timer? _scanningTimer;
@@ -187,7 +193,56 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
+    _transcriptionService.dispose(); // release mic resources
     super.dispose();
+  }
+
+  // ── Voice Input Handlers ─────────────────────────────────────────────
+
+  /// Starts microphone recording (called on mic button tap/hold-start).
+  Future<void> _startVoiceInput() async {
+    try {
+      HapticFeedback.mediumImpact();
+      await _transcriptionService.startRecording();
+      if (mounted) setState(() => _isRecording = true);
+    } catch (e) {
+      final msg = e.toString().contains('microphone_permission_denied')
+          ? 'يرجى السماح بالوصول إلى الميكروفون من إعدادات التطبيق.'
+          : 'خطأ في بدء التسجيل: $e';
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
+  /// Stops recording, sends to Groq Whisper and puts text in the input field.
+  Future<void> _stopVoiceInput() async {
+    if (!_isRecording) return;
+    setState(() { _isRecording = false; _isTranscribing = true; });
+    HapticFeedback.lightImpact();
+    try {
+      final text = await _transcriptionService.stopAndTranscribe();
+      if (mounted && text.isNotEmpty) {
+        _controller.text = text;
+        _controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: text.length),
+        );
+        HapticFeedback.selectionClick();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل التحويل: $e'),
+            backgroundColor: Colors.orange.shade700,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isTranscribing = false);
+    }
   }
 
   void _scrollToBottom() {
@@ -206,9 +261,95 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
+    HapticFeedback.lightImpact();
     ref.read(aiChatProvider(widget.site).notifier).sendMessage(text);
     _controller.clear();
     _scrollToBottom();
+  }
+
+  /// Detects whether [text] is primarily Arabic ('ar') or English ('en').
+  String _detectLanguage(String text) {
+    final arabicPattern = RegExp(r'[\u0600-\u06FF]');
+    return arabicPattern.hasMatch(text) ? 'ar' : 'en';
+  }
+
+  /// Generates contextual follow-up suggestion chips based on the AI response.
+  List<String> _generateDynamicSuggestions(
+    String lastAiContent,
+    String lastUserMessage,
+  ) {
+    final lang = _detectLanguage(lastUserMessage);
+    final lower = lastAiContent.toLowerCase();
+    final hasCode = lastAiContent.contains('```');
+    final mentionsInstall = lower.contains('install') ||
+        lower.contains('npm ') ||
+        lower.contains('pip ') ||
+        lower.contains('brew ') ||
+        lower.contains('apt ') ||
+        lower.contains('\u062a\u062b\u0628\u064a\u062a') ||
+        lower.contains('setup');
+    final mentionsUsage = lower.contains('how to use') ||
+        lower.contains('usage') ||
+        lower.contains('run the') ||
+        lower.contains('execute') ||
+        lower.contains('\u0643\u064a\u0641 \u062a\u0633\u062a\u062e\u062f\u0645') ||
+        lower.contains('\u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u0627\u0633\u062a\u062e\u062f\u0627\u0645');
+    final mentionsFeature = lower.contains('feature') ||
+        lower.contains('support') ||
+        lower.contains('capability') ||
+        lower.contains('\u0645\u064a\u0632\u0629') ||
+        lower.contains('\u064a\u062f\u0639\u0645');
+
+    if (lang == 'ar') {
+      if (mentionsInstall && !hasCode) {
+        return ['\u0623\u0639\u0637\u0646\u064a \u0643\u0648\u062f \u0627\u0644\u062a\u062b\u0628\u064a\u062a', '\u0645\u0627 \u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629\u061f', '\u0643\u064a\u0641 \u0623\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u062a\u062b\u0628\u064a\u062a\u061f'];
+      } else if (hasCode) {
+        return ['\u0627\u0634\u0631\u062d \u0627\u0644\u0643\u0648\u062f \u0628\u0634\u0643\u0644 \u0623\u0628\u0633\u0637', '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062e\u0637\u0627\u0621 \u0634\u0627\u0626\u0639\u0629\u061f', '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a \u0647\u0630\u0647 \u0627\u0644\u0623\u062f\u0627\u0629\u061f'];
+      } else if (mentionsUsage) {
+        return ['\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0639\u0645\u0644\u064a', '\u0645\u0627 \u0623\u0647\u0645 \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a\u061f', '\u0645\u0627 \u0627\u0644\u0623\u062e\u0637\u0627\u0621 \u0627\u0644\u0634\u0627\u0626\u0639\u0629\u061f'];
+      } else if (mentionsFeature) {
+        return ['\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f', '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a\u0647\u0627\u061f', '\u0647\u0644 \u062a\u0648\u062c\u062f \u0646\u0633\u062e\u0629 \u0645\u062c\u0627\u0646\u064a\u0629\u061f'];
+      }
+      return ['\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f', '\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0643\u0648\u062f', '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062f\u0627\u0629 \u0628\u062f\u064a\u0644\u0629\u061f'];
+    } else {
+      if (mentionsInstall && !hasCode) {
+        return ['Show me the install code', 'What are the prerequisites?', 'How to verify installation?'];
+      } else if (hasCode) {
+        return ['Explain the code further', 'What are common errors?', 'How do I install this?'];
+      } else if (mentionsUsage) {
+        return ['Give me a practical example', 'What are key settings?', 'What are common pitfalls?'];
+      } else if (mentionsFeature) {
+        return ['How do I use it?', 'How do I install it?', 'Is there a free plan?'];
+      }
+      return ['How do I use it?', 'Show me a code example', 'Is there an alternative?'];
+    }
+  }
+
+  /// Builds the animated follow-up suggestion chips shown after each AI reply.
+  Widget _buildDynamicChips(
+    BuildContext context,
+    bool isDark,
+    List<String> suggestions,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, top: 2),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: suggestions.asMap().entries.map((entry) {
+          final i = entry.key;
+          final label = entry.value;
+          return _SuggestionChip(
+            label: label,
+            isDark: isDark,
+            onTap: () => _sendMessage(label),
+          )
+              .animate()
+              .fadeIn(delay: (i * 90).ms, duration: 220.ms)
+              .slideY(begin: 0.15, end: 0, delay: (i * 90).ms, duration: 220.ms);
+        }).toList(),
+      ),
+    );
   }
 
   @override
@@ -623,48 +764,10 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             children: suggestions.asMap().entries.map((entry) {
               final i = entry.key;
               final q = entry.value;
-              return GestureDetector(
+              return _SuggestionChip(
+                    label: q,
+                    isDark: isDark,
                     onTap: () => _sendMessage(q),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : Colors.black.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.black.withValues(alpha: 0.06),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            PhosphorIcons.sparkle(),
-                            size: 14,
-                            color: AppTheme.primaryColor,
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              q,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? AppTheme.darkTextPrimary
-                                    : AppTheme.lightTextPrimary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   )
                   .animate()
                   .fadeIn(delay: (400 + i * 80).ms)
@@ -682,17 +785,41 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     AiChatState chatState,
   ) {
+    final messages = chatState.messages;
+    final lastIsAssistant = messages.isNotEmpty && !messages.last.isUser;
+    final showDynamicChips = lastIsAssistant && !chatState.isLoading;
+    final chipsIndex = messages.length;
+    final typingIndex = messages.length + (showDynamicChips ? 1 : 0);
+    final totalCount =
+        messages.length + (showDynamicChips ? 1 : 0) + (chatState.isLoading ? 1 : 0);
+
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      itemCount: chatState.messages.length + (chatState.isLoading ? 1 : 0),
+      itemCount: totalCount,
       itemBuilder: (ctx, i) {
-        if (i >= chatState.messages.length) {
-          // Loading indicator
+        // Regular message bubbles
+        if (i < messages.length) {
+          return _buildMessageBubble(context, messages[i], isDark, i);
+        }
+        // Dynamic follow-up chips after last AI reply
+        if (showDynamicChips && i == chipsIndex) {
+          final lastAiMsg = messages.last;
+          final lastUserMsg = messages.lastWhere(
+            (m) => m.isUser,
+            orElse: () => lastAiMsg,
+          );
+          final suggestions = _generateDynamicSuggestions(
+            lastAiMsg.content,
+            lastUserMsg.content,
+          );
+          return _buildDynamicChips(context, isDark, suggestions);
+        }
+        // Typing indicator while loading
+        if (chatState.isLoading && i == typingIndex) {
           return _buildTypingIndicator(isDark);
         }
-        final msg = chatState.messages[i];
-        return _buildMessageBubble(context, msg, isDark, i);
+        return const SizedBox.shrink();
       },
     );
   }
@@ -910,7 +1037,70 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
+
+          // ── Microphone button (Voice Input / STT) ───────────────────
+          GestureDetector(
+            onTap: isLoading
+                ? null
+                : (_isRecording ? _stopVoiceInput : _startVoiceInput),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: _isRecording
+                    ? Colors.red.shade500
+                    : _isTranscribing
+                        ? AppTheme.primaryColor.withValues(alpha: 0.6)
+                        : (isDark
+                            ? Colors.white.withValues(alpha: 0.07)
+                            : Colors.black.withValues(alpha: 0.05)),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isRecording
+                      ? Colors.red.shade400
+                      : (isDark
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.08)),
+                ),
+                boxShadow: _isRecording
+                    ? [
+                        BoxShadow(
+                          color: Colors.red.withValues(alpha: 0.4),
+                          blurRadius: 14,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: _isTranscribing
+                  ? Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppTheme.primaryColor,
+                      ),
+                    )
+                  : Icon(
+                      _isRecording
+                          ? PhosphorIcons.stop(PhosphorIconsStyle.fill)
+                          : PhosphorIcons.microphone(PhosphorIconsStyle.fill),
+                      color: _isRecording
+                          ? Colors.white
+                          : (isDark ? Colors.white60 : Colors.black45),
+                      size: 20,
+                    ),
+            )
+            .animate(target: _isRecording ? 1.0 : 0.0)
+            .scaleXY(begin: 1.0, end: 1.08, duration: 600.ms, curve: Curves.easeInOut)
+            .then()
+            .scaleXY(begin: 1.08, end: 1.0, duration: 600.ms, curve: Curves.easeInOut),
+          ),
+
+          const SizedBox(width: 8),
+
+          // ── Send button ─────────────────────────────────────────────
           GestureDetector(
             onTap: isLoading ? null : () => _sendMessage(_controller.text),
             child: Container(
@@ -1180,6 +1370,90 @@ class _CopyReplyButtonState extends State<_CopyReplyButton> {
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Reusable animated suggestion chip with press effect + haptic
+// ══════════════════════════════════════════════════════════════════
+class _SuggestionChip extends StatefulWidget {
+  final String label;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  const _SuggestionChip({
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  @override
+  State<_SuggestionChip> createState() => _SuggestionChipState();
+}
+
+class _SuggestionChipState extends State<_SuggestionChip> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.93 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: _pressed
+                ? (widget.isDark
+                    ? Colors.white.withValues(alpha: 0.13)
+                    : AppTheme.primaryColor.withValues(alpha: 0.09))
+                : (widget.isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04)),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _pressed
+                  ? AppTheme.primaryColor.withValues(alpha: 0.45)
+                  : (widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.06)),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+                size: 12,
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  widget.label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: widget.isDark
+                        ? AppTheme.darkTextPrimary
+                        : AppTheme.lightTextPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

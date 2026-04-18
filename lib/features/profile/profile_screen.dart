@@ -684,8 +684,8 @@ Try Zad Tech now and organize your daily workflow! 🚀''';
                         const SizedBox(height: 2),
                         Text(
                           l10n.localeName.startsWith('ar')
-                              ? 'هل تعرف أحداً قد يستفيد من التطبيق؟ ساعده يكتشف WebVault ✨'
-                              : 'Know someone who could use the app? Help them discover WebVault ✨',
+                              ? 'هل تعرف أحداً قد يستفيد من التطبيق؟ ساعده يكتشف زاد التقني ✨'
+                              : 'Know someone who could use the app? Help them discover ZaadTech ✨',
                           style: TextStyle(
                             fontSize: 12,
                             color: isDark ? Colors.white54 : Colors.black45,

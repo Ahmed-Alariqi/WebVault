@@ -72,8 +72,7 @@ class _ManageInAppMessagesScreenState
             : _actionTextCtrl.text.trim(),
         'is_dismissible': _campaignMode != 2,
         'show_every_time': _campaignMode != 0,
-        'target_version':
-            (_campaignMode == 2 && _targetVersionCtrl.text.trim().isNotEmpty)
+        'target_version': _targetVersionCtrl.text.trim().isNotEmpty
             ? _targetVersionCtrl.text.trim()
             : null,
         'personalize_name': _personalizeWithName,
@@ -826,14 +825,12 @@ class _ManageInAppMessagesScreenState
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    if (_campaignMode == 2) ...[
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        _targetVersionCtrl,
-                        AppLocalizations.of(context)!.targetVersionOptional,
-                        isDark,
-                      ),
-                    ],
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      _targetVersionCtrl,
+                      AppLocalizations.of(context)!.targetVersionOptional,
+                      isDark,
+                    ),
                     const SizedBox(height: 16),
                     // --- Personalize with user name ---
                     Container(

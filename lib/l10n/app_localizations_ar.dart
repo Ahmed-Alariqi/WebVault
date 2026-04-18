@@ -3612,4 +3612,130 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get localSaveNotice =>
       'جميع الإعدادات والبيانات تحفظ محلياً على جهازك للأمان. نوصي بعمل نسخ احتياطية بانتظام.';
+
+  @override
+  String get tutSkip => 'تخطي';
+
+  @override
+  String get tutNext => 'التالي';
+
+  @override
+  String get tutStart => 'ابدأ';
+
+  @override
+  String get tutClipboardWelcomeTitle => 'مرحباً بك في الحافظة!';
+
+  @override
+  String get tutClipboardWelcomeDesc =>
+      'زاد التقني يساعدك على حفظ نصوصك وروابطك بأمان وسهولة في مكان واحد منظم.';
+
+  @override
+  String get tutClipboardAddTitle => 'إضافة سريعة';
+
+  @override
+  String get tutClipboardAddDesc =>
+      'اضغط هنا لإضافة نص جديد، كود برمجي، أو أي معلومة تريد العودة إليها لاحقاً.';
+
+  @override
+  String get tutClipboardEditTitle => 'تعديل البيانات';
+
+  @override
+  String get tutClipboardEditDesc =>
+      'هل أخطأت في الإدخال؟ لا تقلق، يمكنك الضغط مطولاً على أي عنصر لتعديله في أي وقت.';
+
+  @override
+  String get tutClipboardGroupsTitle => 'التنظيم باستخدام المجموعات';
+
+  @override
+  String get tutClipboardGroupsDesc =>
+      'رتب محفوظاتك في مجموعات (مثل: أكواد، روابط، عمل) ليسهل عليك البحث والوصول إليها.';
+
+  @override
+  String get tutClipboardMultiTitle => 'التحديد والنقل المتعدد';
+
+  @override
+  String get tutClipboardMultiDesc =>
+      'اضغط مطولاً للدخول في وضع التحديد. يمكنك تحديد عدة عناصر ونقلها إلى مجموعة محددة بضغطة واحدة.';
+
+  @override
+  String get tutClipboardDeleteTitle => 'الحذف السريع';
+
+  @override
+  String get tutClipboardDeleteDesc =>
+      'إذا رغبت بحذف عنصر، يمكنك ببساطة سحبه لليسار لإزالته فوراً.';
+
+  @override
+  String get tutPagesWelcomeTitle => 'مواقعك المفضلة';
+
+  @override
+  String get tutPagesWelcomeDesc =>
+      'احفظ صفحات الويب التي تهمك للوصول إليها عبر المتصفح المدمج في أي وقت.';
+
+  @override
+  String get tutPagesAddTitle => 'إضافة صفحة';
+
+  @override
+  String get tutPagesAddDesc => 'احفظ أي رابط جديد من خلال هذا الزر.';
+
+  @override
+  String get tutPagesFoldersTitle => 'تنظيم المجلدات';
+
+  @override
+  String get tutPagesFoldersDesc =>
+      'يمكنك إنشاء مجلدات خاصة لجمع المواقع والخدمات المترابطة معاً.';
+
+  @override
+  String get tutPagesManageTitle => 'إدارة الصفحات';
+
+  @override
+  String get tutPagesManageDesc =>
+      'إذا رغبت بحذف عنصر، يمكنك ببساطة سحبه لليسار لإزالته فوراً.';
+
+  @override
+  String get tutBrowserWelcomeTitle => 'المتصفح المدمج';
+
+  @override
+  String get tutBrowserWelcomeDesc =>
+      'تصفح مواقعك المفضلة بكل أمان مع أدوات زاد التقني المدمجة.';
+
+  @override
+  String get tutBrowserFloatingTitle => 'الحافظة العائمة';
+
+  @override
+  String get tutBrowserFloatingDesc =>
+      'اضغط هنا لفتح الحافظة العائمة ونسخ نصوصك المحفوظة ولصقها في الموقع بسهولة.';
+
+  @override
+  String get tutBrowserSuggestTitle => 'ساهم في المستكشف';
+
+  @override
+  String get tutBrowserSuggestDesc =>
+      'هل وجدت هذا الموقع مفيداً؟ اقترحه للإدارة ليتم نشره للجميع في قسم المستكشف.';
+
+  @override
+  String get tutGotIt => 'فهمت ذلك';
+
+  @override
+  String get notifStatsTitle => 'الإحصائيات';
+
+  @override
+  String get notifStatsTargeted => 'المستهدفين';
+
+  @override
+  String get notifStatsSent => 'بنجاح';
+
+  @override
+  String get notifStatsFailed => 'فشلت';
+
+  @override
+  String get notifStatsSuccessMessage => 'تم الإرسال! التفاصيل:';
+
+  @override
+  String get notifUsersTotal => 'إجمالي المستخدمين';
+
+  @override
+  String get notifUsersActive => 'مفعلي الإشعارات';
+
+  @override
+  String get notifUsersProgress => 'حالة المستخدمين';
 }

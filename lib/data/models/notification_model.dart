@@ -10,6 +10,9 @@ class NotificationModel {
   final DateTime createdAt;
   final bool isRead;
   final bool personalizeWithName;
+  final int sentCount;
+  final int failedCount;
+  final int totalTargeted;
 
   const NotificationModel({
     required this.id,
@@ -22,6 +25,9 @@ class NotificationModel {
     required this.createdAt,
     this.isRead = false,
     this.personalizeWithName = false,
+    this.sentCount = 0,
+    this.failedCount = 0,
+    this.totalTargeted = 0,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +41,9 @@ class NotificationModel {
       createdBy: json['created_by'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       personalizeWithName: json['personalize_name'] == true,
+      sentCount: json['sent_count'] as int? ?? 0,
+      failedCount: json['failed_count'] as int? ?? 0,
+      totalTargeted: json['total_targeted'] as int? ?? 0,
     );
   }
 
@@ -52,6 +61,9 @@ class NotificationModel {
       createdAt: createdAt,
       isRead: isRead,
       personalizeWithName: personalizeWithName,
+      sentCount: sentCount,
+      failedCount: failedCount,
+      totalTargeted: totalTargeted,
     );
   }
 
@@ -62,6 +74,9 @@ class NotificationModel {
       'type': type,
       'image_url': imageUrl,
       'target_url': targetUrl,
+      'sent_count': sentCount,
+      'failed_count': failedCount,
+      'total_targeted': totalTargeted,
     };
   }
 }

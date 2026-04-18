@@ -233,12 +233,13 @@ Future<void> adminDeleteCategory(String id) async {
 
 // --------------- Admin Notifications ---------------
 
-Future<void> adminSendNotification(Map<String, dynamic> data) async {
+Future<Map<String, dynamic>> adminSendNotification(Map<String, dynamic> data) async {
   final user = _client.auth.currentUser;
   data['created_by'] = user?.id;
 
-  // 1. Insert into DB for history
-  await _client.from('notifications').insert(data);
+  // 1. Insert into DB for history and get ID
+  final insertedData = await _client.from('notifications').insert(data).select().single();
+  final notificationId = insertedData['id'];
 
   // 2. Trigger Edge Function to push via FCM
   try {
@@ -253,21 +254,53 @@ Future<void> adminSendNotification(Map<String, dynamic> data) async {
         'created_by': user?.id,
       },
     );
-    debugPrint('FCM push response: ${response.status} ${response.data}');
-    // Log detailed info for debugging
+    
+    int sentCount = 0;
+    int failedCount = 0;
+    int totalTargeted = 0;
+    
     if (response.data is Map) {
-      final data2 = response.data as Map;
-      debugPrint('  Recipients: ${data2['recipients'] ?? 'unknown'}');
-      if (data2['_debug'] != null) {
-        debugPrint('  Debug: ${data2['_debug']}');
-      }
+      final resData = response.data as Map;
+      sentCount = resData['sent_count'] ?? 0;
+      failedCount = resData['failed_count'] ?? 0;
+      totalTargeted = resData['total_targeted'] ?? 0;
+      
+      // Update DB record with the returned counts
+      await _client.from('notifications').update({
+        'sent_count': sentCount,
+        'failed_count': failedCount,
+        'total_targeted': totalTargeted,
+      }).eq('id', notificationId);
     }
+    
+    return {
+      'sent_count': sentCount,
+      'failed_count': failedCount,
+      'total_targeted': totalTargeted,
+    };
   } catch (e) {
     debugPrint('Edge Function invoke failed: $e');
     // Don't swallow - rethrow so admin sees push failed
     rethrow;
   }
 }
+
+// --------------- Admin FCM User Stats ---------------
+
+final adminFCMStatsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final totalUsers = await _client.from('profiles').count(CountOption.exact) as int? ?? 0;
+  final activeFCMResp = await _client
+      .from('profiles')
+      .select('id')
+      .not('fcm_token', 'is', null);
+  
+  final activeFCM = (activeFCMResp as List).length;
+  
+  return {
+    'total': totalUsers,
+    'active': activeFCM,
+  };
+});
 
 // --------------- Admin Notifications CRUD & Pagination ---------------
 

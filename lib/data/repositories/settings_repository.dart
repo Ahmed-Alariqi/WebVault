@@ -55,6 +55,27 @@ class SettingsRepository {
   Future<void> setHasSeenWelcomeScreen(bool value) =>
       _box.put(kHasSeenWelcomeScreen, value);
 
+  // Tutorial
+  bool hasSeenTutorial() =>
+      _box.get(kHasSeenTutorial, defaultValue: false) as bool;
+  Future<void> setHasSeenTutorial(bool value) =>
+      _box.put(kHasSeenTutorial, value);
+
+  bool hasSeenClipboardTutorial() =>
+      _box.get('has_seen_clipboard_tutorial', defaultValue: false) as bool;
+  Future<void> setHasSeenClipboardTutorial(bool value) =>
+      _box.put('has_seen_clipboard_tutorial', value);
+
+  bool hasSeenPagesTutorial() =>
+      _box.get('has_seen_pages_tutorial', defaultValue: false) as bool;
+  Future<void> setHasSeenPagesTutorial(bool value) =>
+      _box.put('has_seen_pages_tutorial', value);
+
+  bool hasSeenBrowserTutorial() =>
+      _box.get('has_seen_browser_tutorial', defaultValue: false) as bool;
+  Future<void> setHasSeenBrowserTutorial(bool value) =>
+      _box.put('has_seen_browser_tutorial', value);
+
   // Get all settings as a map
   Map<String, dynamic> getAllSettings() {
     return {
@@ -65,6 +86,10 @@ class SettingsRepository {
       'autoDeleteDays': getAutoDeleteDays(),
       'isAdvancedCopyEnabled': isAdvancedCopyEnabled(),
       'isFirstLaunch': isFirstLaunch(),
+      'hasSeenTutorial': hasSeenTutorial(),
+      'hasSeenClipboardTutorial': hasSeenClipboardTutorial(),
+      'hasSeenPagesTutorial': hasSeenPagesTutorial(),
+      'hasSeenBrowserTutorial': hasSeenBrowserTutorial(),
       'locale': getLocale(),
     };
   }

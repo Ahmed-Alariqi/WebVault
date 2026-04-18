@@ -10,6 +10,7 @@ import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../clipboard/floating_clipboard.dart';
+import '../../presentation/widgets/tutorial_overlay.dart';
 import '../../utils/clipboard_helper.dart';
 
 class BrowserScreen extends ConsumerStatefulWidget {
@@ -26,11 +27,29 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   double _progress = 0;
   bool _isLoading = true;
   PageModel? _page;
+  final GlobalKey _suggestKey = GlobalKey();
+  final GlobalKey _clipboardKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _initPage();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+  }
+
+  Future<void> _checkTutorial() async {
+    final shouldShow = await TutorialManager.shouldShowSection(TutorialSection.browser);
+    if (mounted && shouldShow) {
+      final l10n = AppLocalizations.of(context)!;
+      TutorialOverlay.show(
+        context,
+        section: TutorialSection.browser,
+        steps: TutorialManager.getBrowserSteps(l10n, _clipboardKey, _suggestKey),
+        onComplete: () {
+          if (mounted) setState(() {});
+        },
+      );
+    }
   }
 
   void _initPage() {
@@ -108,6 +127,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
             tooltip: AppLocalizations.of(context)!.addToFolder,
           ),
           IconButton(
+            key: _suggestKey,
             icon: Icon(PhosphorIcons.paperPlaneTilt(), size: 20),
             onPressed: () => showSuggestionDialog(
               context,
@@ -120,6 +140,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
           Tooltip(
             message: 'Toggle Clipboard (Long press to Quick-Add)',
             child: InkWell(
+              key: _clipboardKey,
               onTap: () {
                 ref
                     .read(clipboardVisibilityProvider.notifier)
@@ -153,20 +174,19 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          // Loading indicator
           if (_isLoading)
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: LinearProgressIndicator(
-                value: _progress > 0 ? _progress : null,
+                value: _progress,
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation(AppTheme.accentColor),
-                minHeight: 3,
+                color: AppTheme.primaryColor,
               ),
             ),
-          // Floating clipboard
+          
+          // Floating Clipboard Integration
           FloatingClipboard(webViewController: _controller),
         ],
       ),

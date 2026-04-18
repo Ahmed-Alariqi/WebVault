@@ -156,6 +156,7 @@ final pagesProvider = StateNotifierProvider<PagesNotifier, List<PageModel>>((
 
 class PagesNotifier extends StateNotifier<List<PageModel>> {
   final PageRepository _repo;
+  PageModel? _lastDeletedPage;
 
   PagesNotifier(this._repo) : super([]) {
     refresh();
@@ -178,8 +179,20 @@ class PagesNotifier extends StateNotifier<List<PageModel>> {
   }
 
   Future<void> deletePage(String id) async {
+    final page = _repo.getById(id);
+    if (page != null) {
+      _lastDeletedPage = page;
+    }
     await _repo.delete(id);
     refresh();
+  }
+
+  void restoreLastPage() {
+    if (_lastDeletedPage != null) {
+      _repo.save(_lastDeletedPage!);
+      refresh();
+      _lastDeletedPage = null;
+    }
   }
 
   Future<void> toggleFavorite(String id) async {
@@ -295,6 +308,7 @@ class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
   final Ref _ref; // Passed internally to check settings provider dynamically
   Timer? _pollingTimer;
   String _lastPolledText = '';
+  ClipboardItemModel? _lastDeletedItem;
 
   ClipboardNotifier(this._repo, this._ref) : super([]) {
     refresh();
@@ -378,8 +392,20 @@ class ClipboardNotifier extends StateNotifier<List<ClipboardItemModel>> {
   }
 
   Future<void> deleteItem(String id) async {
+    final item = _repo.getItemById(id);
+    if (item != null) {
+      _lastDeletedItem = item;
+    }
     await _repo.deleteItem(id);
     refresh();
+  }
+
+  void restoreLastItem() {
+    if (_lastDeletedItem != null) {
+      _repo.saveItem(_lastDeletedItem!);
+      refresh();
+      _lastDeletedItem = null;
+    }
   }
 
   Future<void> togglePin(String id) async {

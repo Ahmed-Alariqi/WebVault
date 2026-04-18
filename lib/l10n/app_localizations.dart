@@ -6889,6 +6889,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All settings and data are saved locally on your device for security. We recommend making regular backups.'**
   String get localSaveNotice;
+
+  /// No description provided for @tutSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tutSkip;
+
+  /// No description provided for @tutNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tutNext;
+
+  /// No description provided for @tutStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get tutStart;
+
+  /// No description provided for @tutClipboardWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Clipboard!'**
+  String get tutClipboardWelcomeTitle;
+
+  /// No description provided for @tutClipboardWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'ZaadTech helps you save your texts and links safely and easily in one organized place.'**
+  String get tutClipboardWelcomeDesc;
+
+  /// No description provided for @tutClipboardAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Add'**
+  String get tutClipboardAddTitle;
+
+  /// No description provided for @tutClipboardAddDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap here to add a new text, code snippet, or any information you want to return to later.'**
+  String get tutClipboardAddDesc;
+
+  /// No description provided for @tutClipboardEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Data'**
+  String get tutClipboardEditTitle;
+
+  /// No description provided for @tutClipboardEditDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Made a mistake? Don\'t worry, you can long-press any item to edit it anytime.'**
+  String get tutClipboardEditDesc;
+
+  /// No description provided for @tutClipboardGroupsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize with Groups'**
+  String get tutClipboardGroupsTitle;
+
+  /// No description provided for @tutClipboardGroupsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange your records into groups (e.g., Codes, Links, Work) to make it easier for you to search and access them.'**
+  String get tutClipboardGroupsDesc;
+
+  /// No description provided for @tutClipboardMultiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Selection & Move'**
+  String get tutClipboardMultiTitle;
+
+  /// No description provided for @tutClipboardMultiDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press to enter selection mode. You can select multiple items and move them to a specific group with one tap.'**
+  String get tutClipboardMultiDesc;
+
+  /// No description provided for @tutClipboardDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Delete'**
+  String get tutClipboardDeleteTitle;
+
+  /// No description provided for @tutClipboardDeleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'If you want to delete an item, you can simply swipe it left to remove it immediately.'**
+  String get tutClipboardDeleteDesc;
+
+  /// No description provided for @tutPagesWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Sites'**
+  String get tutPagesWelcomeTitle;
+
+  /// No description provided for @tutPagesWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the web pages you care about to access them via the built-in browser anytime.'**
+  String get tutPagesWelcomeDesc;
+
+  /// No description provided for @tutPagesAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Page'**
+  String get tutPagesAddTitle;
+
+  /// No description provided for @tutPagesAddDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save any new link using this button.'**
+  String get tutPagesAddDesc;
+
+  /// No description provided for @tutPagesFoldersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organize Folders'**
+  String get tutPagesFoldersTitle;
+
+  /// No description provided for @tutPagesFoldersDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'You can create private folders to group related sites and services together.'**
+  String get tutPagesFoldersDesc;
+
+  /// No description provided for @tutPagesManageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Pages'**
+  String get tutPagesManageTitle;
+
+  /// No description provided for @tutPagesManageDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'If you want to delete an item, you can simply swipe it left to remove it immediately.'**
+  String get tutPagesManageDesc;
+
+  /// No description provided for @tutBrowserWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in Browser'**
+  String get tutBrowserWelcomeTitle;
+
+  /// No description provided for @tutBrowserWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse your favorite sites safely with ZaadTech\'s built-in tools.'**
+  String get tutBrowserWelcomeDesc;
+
+  /// No description provided for @tutBrowserFloatingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating Clipboard'**
+  String get tutBrowserFloatingTitle;
+
+  /// No description provided for @tutBrowserFloatingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap here to open the floating clipboard and copy your saved texts to paste them into the site easily.'**
+  String get tutBrowserFloatingDesc;
+
+  /// No description provided for @tutBrowserSuggestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contribute to Explorer'**
+  String get tutBrowserSuggestTitle;
+
+  /// No description provided for @tutBrowserSuggestDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Found this site useful? Suggest it to the management to be published for everyone in the Explorer section.'**
+  String get tutBrowserSuggestDesc;
+
+  /// No description provided for @tutGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it!'**
+  String get tutGotIt;
+
+  /// No description provided for @notifStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Statistics'**
+  String get notifStatsTitle;
+
+  /// No description provided for @notifStatsTargeted.
+  ///
+  /// In en, this message translates to:
+  /// **'Targeted'**
+  String get notifStatsTargeted;
+
+  /// No description provided for @notifStatsSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get notifStatsSent;
+
+  /// No description provided for @notifStatsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get notifStatsFailed;
+
+  /// No description provided for @notifStatsSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent successfully! Details:'**
+  String get notifStatsSuccessMessage;
+
+  /// No description provided for @notifUsersTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get notifUsersTotal;
+
+  /// No description provided for @notifUsersActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Notifications'**
+  String get notifUsersActive;
+
+  /// No description provided for @notifUsersProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Users Progress'**
+  String get notifUsersProgress;
 }
 
 class _AppLocalizationsDelegate

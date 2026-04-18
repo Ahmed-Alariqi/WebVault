@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore - Deno JSR import not recognized by standard TS server
 import { createClient } from "jsr:@supabase/supabase-js@2";
 // @ts-ignore
 import { initializeApp, cert, getApps } from "npm:firebase-admin@12.0.0/app";
@@ -38,6 +39,20 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
+        const authHeader = req.headers.get("Authorization");
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: "Missing Auth Header" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+        const supabaseAuthClient = createClient(supabaseUrl, supabaseAnonKey);
+        
+        const { data: { user }, error: authError } = await supabaseAuthClient.auth.getUser(authHeader.replace("Bearer ", ""));
+        if (authError || !user) {
+             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+
         const { title, body, type, target_url, image_url, created_by } = await req.json();
 
         if (!initFirebase()) {
@@ -47,8 +62,7 @@ Deno.serve(async (req: Request) => {
             );
         }
 
-        // Initialize Supabase Client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        // Initialize Supabase Admin Client for DB queries
         const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
         const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
@@ -72,7 +86,7 @@ Deno.serve(async (req: Request) => {
 
         // We process in loops to personalize each message with {user_name}
         // Since FCM multicast doesn't support message personalization, we must create an array of messages
-        const messages = users.filter(u => u.fcm_token).map(user => {
+        const messages = users.filter((u: any) => u.fcm_token).map((user: any) => {
             const userName = user.full_name || user.username || 'there';
             
             // Replace placeholder in title and body
@@ -131,7 +145,10 @@ Deno.serve(async (req: Request) => {
         return new Response(
             JSON.stringify({ 
                 success: totalSuccess > 0 || messages.length === 0, 
-                message: `Sent to ${totalSuccess} devices. Failed: ${totalFailure}` 
+                message: `Sent to ${totalSuccess} devices. Failed: ${totalFailure}`,
+                sent_count: totalSuccess,
+                failed_count: totalFailure,
+                total_targeted: messages.length
             }),
             { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );

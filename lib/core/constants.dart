@@ -24,6 +24,7 @@ const String kOfflineQueueCount = 'offline_queue_count';
 const String kAdvancedCopyEnabled = 'advanced_copy_enabled';
 const String kOnboardingCompleted = 'onboarding_completed';
 const String kHasSeenWelcomeScreen = 'has_seen_welcome_screen';
+const String kHasSeenTutorial = 'has_seen_tutorial';
 const String kSplashVersion = 'splash_version';
 // Bump this number whenever you redesign the splash and want all users to see it again
 const int kCurrentSplashVersion = 2;
@@ -32,5 +33,5 @@ const int kCurrentSplashVersion = 2;
 const List<int> kAutoLockOptions = [0, 30, 60, 300, 600];
 
 // App info
-const String kAppName = 'WebVault Manager';
+const String kAppName = 'ZaadTech Manager';
 const String kAppVersion = '2.0.0';

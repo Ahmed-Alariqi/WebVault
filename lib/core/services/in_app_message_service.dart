@@ -27,15 +27,12 @@ class InAppMessageService {
 
       bool isDismissible = response['is_dismissible'] ?? true;
       final String? targetVersionStr = response['target_version'];
-
       if (targetVersionStr != null && targetVersionStr.isNotEmpty) {
         final packageInfo = await PackageInfo.fromPlatform();
         final currentVersion = packageInfo.version;
 
         bool isCurrentLower = _isVersionLower(currentVersion, targetVersionStr);
-        if (isCurrentLower) {
-          isDismissible = false; // Block the app, force update
-        } else {
+        if (!isCurrentLower) {
           // If they meet or exceed the required version, they don't need to see the update message
           return;
         }

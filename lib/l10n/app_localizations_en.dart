@@ -3624,4 +3624,130 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get localSaveNotice =>
       'All settings and data are saved locally on your device for security. We recommend making regular backups.';
+
+  @override
+  String get tutSkip => 'Skip';
+
+  @override
+  String get tutNext => 'Next';
+
+  @override
+  String get tutStart => 'Start';
+
+  @override
+  String get tutClipboardWelcomeTitle => 'Welcome to Clipboard!';
+
+  @override
+  String get tutClipboardWelcomeDesc =>
+      'ZaadTech helps you save your texts and links safely and easily in one organized place.';
+
+  @override
+  String get tutClipboardAddTitle => 'Quick Add';
+
+  @override
+  String get tutClipboardAddDesc =>
+      'Tap here to add a new text, code snippet, or any information you want to return to later.';
+
+  @override
+  String get tutClipboardEditTitle => 'Edit Data';
+
+  @override
+  String get tutClipboardEditDesc =>
+      'Made a mistake? Don\'t worry, you can long-press any item to edit it anytime.';
+
+  @override
+  String get tutClipboardGroupsTitle => 'Organize with Groups';
+
+  @override
+  String get tutClipboardGroupsDesc =>
+      'Arrange your records into groups (e.g., Codes, Links, Work) to make it easier for you to search and access them.';
+
+  @override
+  String get tutClipboardMultiTitle => 'Multi-Selection & Move';
+
+  @override
+  String get tutClipboardMultiDesc =>
+      'Long-press to enter selection mode. You can select multiple items and move them to a specific group with one tap.';
+
+  @override
+  String get tutClipboardDeleteTitle => 'Quick Delete';
+
+  @override
+  String get tutClipboardDeleteDesc =>
+      'If you want to delete an item, you can simply swipe it left to remove it immediately.';
+
+  @override
+  String get tutPagesWelcomeTitle => 'Favorite Sites';
+
+  @override
+  String get tutPagesWelcomeDesc =>
+      'Save the web pages you care about to access them via the built-in browser anytime.';
+
+  @override
+  String get tutPagesAddTitle => 'Add Page';
+
+  @override
+  String get tutPagesAddDesc => 'Save any new link using this button.';
+
+  @override
+  String get tutPagesFoldersTitle => 'Organize Folders';
+
+  @override
+  String get tutPagesFoldersDesc =>
+      'You can create private folders to group related sites and services together.';
+
+  @override
+  String get tutPagesManageTitle => 'Manage Pages';
+
+  @override
+  String get tutPagesManageDesc =>
+      'If you want to delete an item, you can simply swipe it left to remove it immediately.';
+
+  @override
+  String get tutBrowserWelcomeTitle => 'Built-in Browser';
+
+  @override
+  String get tutBrowserWelcomeDesc =>
+      'Browse your favorite sites safely with ZaadTech\'s built-in tools.';
+
+  @override
+  String get tutBrowserFloatingTitle => 'Floating Clipboard';
+
+  @override
+  String get tutBrowserFloatingDesc =>
+      'Tap here to open the floating clipboard and copy your saved texts to paste them into the site easily.';
+
+  @override
+  String get tutBrowserSuggestTitle => 'Contribute to Explorer';
+
+  @override
+  String get tutBrowserSuggestDesc =>
+      'Found this site useful? Suggest it to the management to be published for everyone in the Explorer section.';
+
+  @override
+  String get tutGotIt => 'Got it!';
+
+  @override
+  String get notifStatsTitle => 'Statistics';
+
+  @override
+  String get notifStatsTargeted => 'Targeted';
+
+  @override
+  String get notifStatsSent => 'Sent';
+
+  @override
+  String get notifStatsFailed => 'Failed';
+
+  @override
+  String get notifStatsSuccessMessage => 'Sent successfully! Details:';
+
+  @override
+  String get notifUsersTotal => 'Total Users';
+
+  @override
+  String get notifUsersActive => 'Active Notifications';
+
+  @override
+  String get notifUsersProgress => 'Users Progress';
 }

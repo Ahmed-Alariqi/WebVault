@@ -181,6 +181,33 @@ class _ManageCollectionsScreenState
                               ),
                             ),
                           ),
+                        if (col.isReferralExclusive)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            margin: const EdgeInsets.only(left: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.lock, size: 10, color: Colors.amber),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Premium',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ],
@@ -260,6 +287,7 @@ class _ManageCollectionsScreenState
       text: existing?.coverImageUrl ?? '',
     );
     bool isActive = existing?.isActive ?? true;
+    bool isReferralExclusive = existing?.isReferralExclusive ?? false;
 
     bool isUploading = false;
     double uploadProgress = 0.0;
@@ -608,7 +636,7 @@ class _ManageCollectionsScreenState
                     child: SwitchListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(
-                        isActive ? 'Active Status' : 'Inactive Status',
+                        isActive ? loc.formActive : 'Inactive Status',
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           color: isActive
@@ -619,6 +647,52 @@ class _ManageCollectionsScreenState
                       value: isActive,
                       onChanged: (v) => setSheetState(() => isActive = v),
                       activeThumbColor: Color(selectedColor),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Referral Exclusive (Premium) Switch
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.03)
+                          : Colors.black.withValues(alpha: 0.02),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white10
+                            : Colors.black.withValues(alpha: 0.05),
+                      ),
+                    ),
+                    child: SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(
+                        isReferralExclusive
+                            ? PhosphorIcons.lockKey(PhosphorIconsStyle.fill)
+                            : PhosphorIcons.lockKeyOpen(),
+                        color: isReferralExclusive ? Colors.amber : (isDark ? Colors.white38 : Colors.black38),
+                        size: 20,
+                      ),
+                      title: Text(
+                        loc.referralExclusiveCollection,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: isReferralExclusive
+                              ? Colors.amber
+                              : (isDark ? Colors.white54 : Colors.black54),
+                        ),
+                      ),
+                      subtitle: Text(
+                        isReferralExclusive ? 'Required referrals to unlock' : 'Open for everyone',
+                        style: TextStyle(fontSize: 11, color: isDark ? Colors.white24 : Colors.black26),
+                      ),
+                      value: isReferralExclusive,
+                      onChanged: (v) => setSheetState(() => isReferralExclusive = v),
+                      activeThumbColor: Colors.amber,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -643,6 +717,7 @@ class _ManageCollectionsScreenState
                               ? null
                               : coverCtrl.text.trim(),
                           'is_active': isActive,
+                          'is_referral_exclusive': isReferralExclusive,
                           'color_value': selectedColor & 0xFFFFFF,
                         };
                         if (existing != null) {

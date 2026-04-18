@@ -101,7 +101,7 @@ class _SendNotificationScreenState
         finalUrl = _urlCtrl.text.trim();
       }
 
-      await adminSendNotification({
+      final result = await adminSendNotification({
         'title': _titleCtrl.text.trim(),
         'body': _bodyCtrl.text.trim(),
         'type': _type,
@@ -124,10 +124,8 @@ class _SendNotificationScreenState
       });
 
       if (mounted) {
-        AdminUIUtils.showSuccess(
-          context,
-          AppLocalizations.of(context)!.notifSent,
-        );
+        ref.read(adminNotificationsPaginatedProvider.notifier).reset();
+        _showStatsDialog(result);
       }
     } catch (e) {
       if (mounted) {
@@ -156,6 +154,138 @@ class _SendNotificationScreenState
     }
   }
 
+  void _showStatsDialog(Map<String, dynamic> stats) {
+    final loc = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+                  color: Colors.green,
+                  size: 48,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                loc.notifStatsTitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                loc.notifStatsSuccessMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildDialogStatItem(
+                      loc.notifStatsTargeted,
+                      stats['total_targeted'].toString(),
+                      Colors.blueAccent,
+                      PhosphorIcons.users(),
+                      isDark,
+                    ),
+                    Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black12),
+                    _buildDialogStatItem(
+                      loc.notifStatsSent,
+                      stats['sent_count'].toString(),
+                      Colors.green,
+                      PhosphorIcons.checks(),
+                      isDark,
+                    ),
+                    Container(width: 1, height: 40, color: isDark ? Colors.white10 : Colors.black12),
+                    _buildDialogStatItem(
+                      loc.notifStatsFailed,
+                      stats['failed_count'].toString(),
+                      Colors.redAccent,
+                      PhosphorIcons.warningCircle(),
+                      isDark,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogStatItem(String label, String value, Color color, IconData iconData, bool isDark) {
+    return Column(
+      children: [
+        Icon(iconData, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
+        const SizedBox(height: 4),
+        Text(label, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black54)),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -172,7 +302,10 @@ class _SendNotificationScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _buildMessageCard(isDark).animate().fadeIn().slideY(begin: 0.05),
+            _buildTopStatsBanner(isDark).animate().fadeIn().slideY(begin: 0.05),
+            const SizedBox(height: 20),
+            
+            _buildMessageCard(isDark).animate().fadeIn(delay: 50.ms).slideY(begin: 0.05),
             const SizedBox(height: 20),
 
             _buildMediaDestinationCard(
@@ -1049,6 +1182,26 @@ class _SendNotificationScreenState
                   ),
                 ],
                 const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(PhosphorIcons.users(), size: 14, color: isDark ? Colors.white54 : Colors.black54),
+                    const SizedBox(width: 4),
+                    Text(notif.totalTargeted.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 12),
+                    Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
+                    const SizedBox(width: 12),
+                    Icon(PhosphorIcons.checks(), size: 14, color: Colors.green),
+                    const SizedBox(width: 4),
+                    Text(notif.sentCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 12),
+                    Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
+                    const SizedBox(width: 12),
+                    Icon(PhosphorIcons.warningCircle(), size: 14, color: Colors.redAccent),
+                    const SizedBox(width: 4),
+                    Text(notif.failedCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 Text(
                   DateFormat(
                     'MMM d, yyyy • h:mm a',
@@ -1140,5 +1293,74 @@ class _SendNotificationScreenState
         ref.read(adminNotificationsPaginatedProvider.notifier).reset();
       }
     }
+  }
+
+  Widget _buildTopStatsBanner(bool isDark) {
+    final statsAsync = ref.watch(adminFCMStatsProvider);
+    final loc = AppLocalizations.of(context)!;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.notifUsersProgress,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          statsAsync.when(
+            data: (stats) {
+              final total = stats['total'] ?? 0;
+              final active = stats['active'] ?? 0;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildBannerStatItem(loc.notifUsersTotal, total.toString(), isDark),
+                  Container(width: 1, height: 30, color: isDark ? Colors.white24 : Colors.black12),
+                  _buildBannerStatItem(loc.notifUsersActive, active.toString(), isDark, isHighlight: true),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Text(loc.somethingWentWrong),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBannerStatItem(String label, String value, bool isDark, {bool isHighlight = false}) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: isHighlight ? AppTheme.primaryColor : (isDark ? Colors.white : Colors.black87),
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.white54 : Colors.black54,
+          ),
+        ),
+      ],
+    );
   }
 }
