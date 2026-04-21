@@ -4,6 +4,9 @@ import '../../data/models/ai_chat_model.dart';
 import '../../data/models/website_model.dart';
 import '../../data/services/ai_assistant_service.dart';
 
+/// Provider to temporarily hold extracted browser content for AI chat
+final extractedBrowserContentProvider = StateProvider<String?>((ref) => null);
+
 /// State for an AI chat session
 class AiChatState {
   final List<AiChatMessage> messages;
@@ -66,7 +69,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   }
 
   /// Send a user message and get AI response
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(String content, [String? pageContent]) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
     // Add user message
@@ -88,6 +91,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
       final responseText = await AiAssistantService.sendMessage(
         item: item,
         chatHistory: updatedMessages,
+        pageContent: pageContent,
       );
 
       // Add assistant response
@@ -125,8 +129,19 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   }
 }
 
-/// Family provider — each item gets its own chat session
-final aiChatProvider = StateNotifierProvider.autoDispose
-    .family<AiChatNotifier, AiChatState, WebsiteModel>(
+/// State to control bottom sheet visibility and expanded state
+class AiBottomSheetState {
+  final bool isVisible;
+  final bool isExpanded;
+  const AiBottomSheetState({this.isVisible = false, this.isExpanded = false});
+}
+
+final aiBottomSheetStateProvider = StateProvider<AiBottomSheetState>((ref) => const AiBottomSheetState());
+
+/// Provider to control visibility of the floating AI button
+final aiButtonVisibilityProvider = StateProvider<bool>((ref) => false);
+
+/// Family provider — each item gets its own chat session. Made persistent across show/hide.
+final aiChatProvider = StateNotifierProvider.family<AiChatNotifier, AiChatState, WebsiteModel>(
       (ref, item) => AiChatNotifier(item),
     );

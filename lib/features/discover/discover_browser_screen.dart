@@ -10,7 +10,9 @@ import '../../data/models/website_model.dart';
 import '../../data/models/page_model.dart';
 import '../../core/utils/text_utils.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/page_content_extractor.dart';
 import '../clipboard/floating_clipboard.dart';
+import '../ai_assistant/ai_chat_bottom_sheet.dart';
 import 'package:uuid/uuid.dart';
 
 class DiscoverBrowserScreen extends ConsumerStatefulWidget {
@@ -94,6 +96,64 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
                   onPressed: _saveToPages,
                   tooltip: 'Save to Pages',
                 ),
+                Tooltip(
+                  message: AppLocalizations.of(context)!.browserAiAssistant,
+                  child: InkWell(
+                    onTap: () async {
+                      // Show scanning snackbar
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Row(
+                            children: [
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(AppLocalizations.of(context)!.browserAiScanning),
+                            ],
+                          ),
+                          backgroundColor: AppTheme.primaryColor,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+
+                      try {
+                        // Extract dynamic page content
+                        final contentData = await PageContentExtractor.extractPageData(_controller);
+                        final pageContent = contentData['content'];
+
+                        if (!context.mounted) return;
+                        
+                        // Store extracted content and open bottom sheet
+                        ref.read(extractedBrowserContentProvider.notifier).state = pageContent;
+                        ref.read(aiBottomSheetStateProvider.notifier).state = 
+                            const AiBottomSheetState(isVisible: true, isExpanded: false);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(AppLocalizations.of(context)!.browserAiExtractError),
+                            backgroundColor: AppTheme.errorColor,
+                          ),
+                        );
+                      }
+                    },
+                    customBorder: const CircleBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+                        size: 20,
+                        color: const Color(0xFF8A2BE2),
+                      ),
+                    ),
+                  ),
+                ),
                 IconButton(
                   icon: Icon(PhosphorIcons.cornersOut(), size: 20),
                   onPressed: () => setState(() => _isFullscreen = true),
@@ -150,6 +210,9 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
 
             // Floating clipboard tool (always active)
             FloatingClipboard(webViewController: _controller),
+
+            // AI Chat Bottom Sheet Area
+            AiChatBottomSheet(site: widget.site),
           ],
         ),
       ),

@@ -223,10 +223,12 @@ class _EditAdvertisementSheetState
         AdminUIUtils.showSuccess(context, AppLocalizations.of(context)!.adSavedSuccess);
       }
     } catch (e) {
+      if (mounted) {
         AdminUIUtils.showError(
           context,
           AppLocalizations.of(context)!.adSaveError(e.toString()),
         );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -735,7 +737,7 @@ class _EditAdvertisementSheetState
                                           setState(() => _isUploading = false);
                                         }
                                       } catch (e) {
-                                        if (mounted) {
+                                        if (context.mounted) {
                                           setState(() => _isUploading = false);
                                             AdminUIUtils.showError(
                                               context,

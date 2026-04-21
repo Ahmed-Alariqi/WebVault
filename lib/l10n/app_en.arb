@@ -1604,5 +1604,9 @@
   "notifStatsSuccessMessage": "Sent successfully! Details:",
   "notifUsersTotal": "Total Users",
   "notifUsersActive": "Active Notifications",
-  "notifUsersProgress": "Users Progress"
+  "notifUsersProgress": "Users Progress",
+  "browserAiAssistant": "Page Smart Assistant",
+  "browserAiScanning": "Scanning page...",
+  "browserAiReady": "Assistant ready — ask anything about this page",
+  "browserAiExtractError": "Failed to read page content"
 }

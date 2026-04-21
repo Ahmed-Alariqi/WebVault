@@ -15,6 +15,7 @@ import '../../data/models/clipboard_item_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/services/backup_service.dart';
 import '../../core/services/analytics_service.dart';
+export 'ai_assistant_providers.dart';
 
 // ============================================================
 // Repository providers

@@ -3750,4 +3750,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifUsersProgress => 'Users Progress';
+
+  @override
+  String get browserAiAssistant => 'Page Smart Assistant';
+
+  @override
+  String get browserAiScanning => 'Scanning page...';
+
+  @override
+  String get browserAiReady => 'Assistant ready — ask anything about this page';
+
+  @override
+  String get browserAiExtractError => 'Failed to read page content';
 }

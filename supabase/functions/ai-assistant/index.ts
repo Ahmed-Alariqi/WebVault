@@ -2,7 +2,22 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // Provide Deno global space for typescript IDE
 declare const Deno: any;
 
-const OLLAMA_API_KEY = Deno.env.get('OLLAMA_API_KEY') || '';
+// ==========================================
+// ضع مفاتيح الـ API الخاصة بك هنا داخل هذه القائمة
+// ==========================================
+const HARDCODED_API_KEYS: string[] = [
+    "f34d7786dc994bd799f69d90aec4b9f9.aZr057otPvcQ14zG3H-b_G_b",
+    "3874c11c55a54b07bdf464856bbd3d61.Vb0V59ULNpXf28uQSK24_sfw"
+];
+
+// دمج المفاتيح المكتوبة هنا مع المتوفرة في متغيرات البيئة (إن وجدت)
+const OLLAMA_API_KEYS = [
+    ...HARDCODED_API_KEYS,
+    ...(Deno.env.get('OLLAMA_API_KEYS') || Deno.env.get('OLLAMA_API_KEY') || '')
+        .split(',')
+        .map((k: string) => k.trim())
+        .filter(Boolean)
+];
 const LLM_BASE_URL = Deno.env.get('LLM_BASE_URL') || 'https://ollama.com/api/chat';
 const LLM_MODEL = Deno.env.get('LLM_MODEL') || 'gemini-3-flash-preview:cloud';
 
@@ -118,8 +133,14 @@ async function fetchUrlContent(url: string): Promise<string> {
 }
 
 // ── Build system prompt ──
-function buildSystemPrompt(itemContext: Record<string, unknown>): string {
-    return `${SYSTEM_INSTRUCTION}\n\n=== سياق العنصر الحالي ===\nالعنوان: ${itemContext.title ?? 'غير محدد'}\nالوصف: ${itemContext.description ?? 'لا يوجد وصف'}\nالرابط: ${itemContext.url ?? 'لا يوجد رابط'}\nالتصنيف: ${itemContext.tags ? (itemContext.tags as string[]).join(', ') : 'غير مصنف'}\nالنوع: ${itemContext.content_type ?? 'website'}\n=== نهاية السياق ===\n\nأجب على أسئلة المستخدم بناءً على هذا السياق، أو استخدم الأداة لقراءة الرابط: ${itemContext.url ?? ''}`;
+function buildSystemPrompt(itemContext: Record<string, unknown>, pageContent?: string): string {
+    let baseContext = `${SYSTEM_INSTRUCTION}\n\n=== سياق العنصر الحالي ===\nالعنوان: ${itemContext.title ?? 'غير محدد'}\nالوصف: ${itemContext.description ?? 'لا يوجد وصف'}\nالرابط: ${itemContext.url ?? 'لا يوجد رابط'}\nالتصنيف: ${itemContext.tags ? (itemContext.tags as string[]).join(', ') : 'غير مصنف'}\nالنوع: ${itemContext.content_type ?? 'website'}\n=== نهاية السياق ===\n\nأجب على أسئلة المستخدم بناءً على هذا السياق، أو استخدم الأداة لقراءة الرابط: ${itemContext.url ?? ''}`;
+
+    if (pageContent) {
+        baseContext += `\n\n=== محتوى الصفحة المستخرج مباشرة ===\nهذا هو النص المستخرج من الصفحة الحالية في المتصفح. اعتمد عليه كلياً كمصدرك الأساسي للإجابة على الأسئلة حول هذه الصفحة بدلاً من قراءة الرابط.\nإذا كان الموقع عبارة عن أداة أو مكتبة تقنية، اشرح ما هي، ولماذا هي مفيدة، وما هي طريقة التثبيت، وقدم أمثلة عملية بناءً على المحتوى المتوفر:\n\n${pageContent}\n=== نهاية المحتوى المستخرج ===`;
+    }
+
+    return baseContext;
 }
 
 // ── Main Handler ──
@@ -135,7 +156,7 @@ Deno.serve(async (req: Request) => {
 
     try {
         const body = await req.json();
-        const { item_context, messages } = body;
+        const { item_context, messages, page_content } = body;
 
         if (!messages || !Array.isArray(messages)) {
             return new Response(JSON.stringify({ error: 'messages array is required' }), {
@@ -144,7 +165,7 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const systemPrompt = buildSystemPrompt(item_context ?? {});
+        const systemPrompt = buildSystemPrompt(item_context ?? {}, page_content);
 
         const llmMessages = [
             { role: 'system', content: systemPrompt },
@@ -220,25 +241,45 @@ async function callLLM(
         payload.tools = TOOLS;
     }
 
-    const res = await fetch(LLM_BASE_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${OLLAMA_API_KEY}`,
-        },
-        body: JSON.stringify(payload),
-    });
+    let lastError: Error | null = null;
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`LLM API error ${res.status}: ${errorText}`);
+    if (OLLAMA_API_KEYS.length === 0) {
+        throw new Error("No API keys configured.");
     }
 
-    const data = await res.json();
-    const choice = data.message;
+    for (const key of OLLAMA_API_KEYS) {
+        try {
+            const res = await fetch(LLM_BASE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${key}`,
+                },
+                body: JSON.stringify(payload),
+            });
 
-    return {
-        content: choice?.content ?? null,
-        tool_calls: choice?.tool_calls,
-    };
+            if (!res.ok) {
+                const errorText = await res.text();
+                // Failover on 401 or 429
+                if (res.status === 401 || res.status === 429) {
+                    console.log(`Key ending in ...${key.slice(-4)} failed with ${res.status}. Trying next key...`);
+                    lastError = new Error(`LLM API error ${res.status}: ${errorText}`);
+                    continue;
+                }
+                throw new Error(`LLM API error ${res.status}: ${errorText}`);
+            }
+
+            const data = await res.json();
+            const choice = data.message;
+
+            return {
+                content: choice?.content ?? null,
+                tool_calls: choice?.tool_calls,
+            };
+        } catch (err: any) {
+            lastError = err;
+        }
+    }
+
+    throw lastError || new Error("All API keys failed.");
 }

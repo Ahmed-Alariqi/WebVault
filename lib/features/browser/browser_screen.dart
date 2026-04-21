@@ -9,9 +9,12 @@ import '../../presentation/providers/providers.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/page_model.dart';
 import '../../l10n/app_localizations.dart';
-import '../clipboard/floating_clipboard.dart';
 import '../../presentation/widgets/tutorial_overlay.dart';
 import '../../utils/clipboard_helper.dart';
+import '../../core/utils/page_content_extractor.dart';
+import '../ai_assistant/ai_chat_bottom_sheet.dart';
+import '../clipboard/floating_clipboard.dart';
+import '../../data/models/website_model.dart';
 
 class BrowserScreen extends ConsumerStatefulWidget {
   final String pageId;
@@ -138,6 +141,64 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
             tooltip: AppLocalizations.of(context)!.suggestToAdmin,
           ),
           Tooltip(
+            message: AppLocalizations.of(context)!.browserAiAssistant,
+            child: InkWell(
+              onTap: () async {
+                // Show scanning snackbar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(AppLocalizations.of(context)!.browserAiScanning),
+                      ],
+                    ),
+                    backgroundColor: AppTheme.primaryColor,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+
+                try {
+                  // Extract dynamic page content
+                  final contentData = await PageContentExtractor.extractPageData(_controller);
+                  final pageContent = contentData['content'];
+
+                  if (!context.mounted) return;
+                  
+                  // Store extracted content and open bottom sheet
+                  ref.read(extractedBrowserContentProvider.notifier).state = pageContent;
+                  ref.read(aiBottomSheetStateProvider.notifier).state = 
+                      const AiBottomSheetState(isVisible: true, isExpanded: false);
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.browserAiExtractError),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
+                }
+              },
+              customBorder: const CircleBorder(),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(
+                  PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+                  size: 20,
+                  color: const Color(0xFF8A2BE2),
+                ),
+              ),
+            ),
+          ),
+          Tooltip(
             message: 'Toggle Clipboard (Long press to Quick-Add)',
             child: InkWell(
               key: _clipboardKey,
@@ -185,9 +246,22 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
                 color: AppTheme.primaryColor,
               ),
             ),
-          
           // Floating Clipboard Integration
           FloatingClipboard(webViewController: _controller),
+          // AI Chat Bottom Sheet Area
+          if (_page != null)
+            AiChatBottomSheet(
+              site: WebsiteModel(
+                id: _page!.id,
+                title: _page!.title,
+                url: _page!.url,
+                description: _page!.notes,
+                contentType: 'website',
+                categoryId: _page!.folderId ?? '',
+                createdAt: DateTime.now(),
+                updatedAt: DateTime.now(),
+              ),
+            ),
         ],
       ),
     );

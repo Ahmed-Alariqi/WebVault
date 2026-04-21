@@ -155,8 +155,15 @@ class _CopyCodeButtonState extends State<_CopyCodeButton> {
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final WebsiteModel site;
+  final bool isFromBrowser;
+  final bool showHeader;
 
-  const AiChatScreen({super.key, required this.site});
+  const AiChatScreen({
+    super.key, 
+    required this.site,
+    this.isFromBrowser = false,
+    this.showHeader = true,
+  });
 
   @override
   ConsumerState<AiChatScreen> createState() => _AiChatScreenState();
@@ -262,7 +269,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
     HapticFeedback.lightImpact();
-    ref.read(aiChatProvider(widget.site).notifier).sendMessage(text);
+    
+    final pageContent = widget.isFromBrowser 
+        ? ref.read(extractedBrowserContentProvider)
+        : null;
+        
+    ref.read(aiChatProvider(widget.site).notifier).sendMessage(text, pageContent);
     _controller.clear();
     _scrollToBottom();
   }
@@ -390,8 +402,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: Column(
         children: [
-          // ── Premium Header ──
-          _buildHeader(context, isDark, loc),
+          // ── Premium Header (Hidden in Bottom Sheet) ──
+          if (widget.showHeader)
+            _buildHeader(context, isDark, loc),
           // ── Chat Body ──
           Expanded(
             child: _isScanningMode
@@ -406,6 +419,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             isDark,
             loc,
             chatState.isLoading || _isScanningMode,
+            chatState.messages.isEmpty,
           ),
         ],
       ),
@@ -968,6 +982,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     AppLocalizations loc,
     bool isLoading,
+    bool isChatEmpty,
   ) {
     return Container(
       padding: EdgeInsets.only(
@@ -993,7 +1008,12 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           ),
         ),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.isFromBrowser && !isLoading && isChatEmpty)
+            _buildQuickPrompts(isDark),
+          Row(
         children: [
           Expanded(
             child: Container(
@@ -1136,6 +1156,45 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             ),
           ),
         ],
+      ),
+      ],
+      ),
+    );
+  }
+  // ── Quick Prompts (Chips) ──
+  Widget _buildQuickPrompts(bool isDark) {
+    final prompts = ["لخص هذه الصفحة", "اشرح الفكرة الرئيسية", "استخرج الأكواد البرمجية"];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12, top: 4),
+      child: SizedBox(
+        height: 36,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: prompts.length,
+          separatorBuilder: (context, index) => const SizedBox(width: 8),
+          itemBuilder: (context, index) {
+            return ActionChip(
+              label: Text(
+                prompts[index],
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.05),
+              side: BorderSide.none,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              onPressed: () {
+                _sendMessage(prompts[index]);
+              },
+            );
+          },
+        ),
       ),
     );
   }

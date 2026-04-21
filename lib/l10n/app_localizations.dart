@@ -7117,6 +7117,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Users Progress'**
   String get notifUsersProgress;
+
+  /// No description provided for @browserAiAssistant.
+  ///
+  /// In en, this message translates to:
+  /// **'Page Smart Assistant'**
+  String get browserAiAssistant;
+
+  /// No description provided for @browserAiScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning page...'**
+  String get browserAiScanning;
+
+  /// No description provided for @browserAiReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant ready — ask anything about this page'**
+  String get browserAiReady;
+
+  /// No description provided for @browserAiExtractError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to read page content'**
+  String get browserAiExtractError;
 }
 
 class _AppLocalizationsDelegate

@@ -1334,5 +1334,9 @@
   "notifStatsSuccessMessage": "تم الإرسال! التفاصيل:",
   "notifUsersTotal": "إجمالي المستخدمين",
   "notifUsersActive": "مفعلي الإشعارات",
-  "notifUsersProgress": "حالة المستخدمين"
+  "notifUsersProgress": "حالة المستخدمين",
+  "browserAiAssistant": "مساعد الصفحة الذكي",
+  "browserAiScanning": "جاري قراءة الصفحة...",
+  "browserAiReady": "المساعد جاهز — اسأل أي شيء عن هذه الصفحة",
+  "browserAiExtractError": "تعذر قراءة محتوى الصفحة"
 }

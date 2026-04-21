@@ -75,7 +75,8 @@ dependencies:
   markdown: ^7.3.0
 
   # Voice Input (STT — Groq Whisper)
-  record: ^5.2.0
+  record: ^6.2.0
+  webview_flutter_web: ^0.2.3+4
 
 dev_dependencies:
   flutter_test:

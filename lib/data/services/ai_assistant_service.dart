@@ -11,6 +11,7 @@ class AiAssistantService {
   static Future<String> sendMessage({
     required WebsiteModel item,
     required List<AiChatMessage> chatHistory,
+    String? pageContent,
   }) async {
     // Build item context
     final itemContext = {
@@ -29,6 +30,14 @@ class AiAssistantService {
         .toList();
 
     final url = '${SupabaseConfig.url}/functions/v1/ai-assistant';
+    
+    final Map<String, dynamic> requestBody = {
+      'item_context': itemContext,
+      'messages': messages,
+    };
+    if (pageContent != null && pageContent.isNotEmpty) {
+      requestBody['page_content'] = pageContent;
+    }
 
     final response = await http
         .post(
@@ -37,7 +46,7 @@ class AiAssistantService {
             'Content-Type': 'application/json',
             'apikey': SupabaseConfig.anonKey,
           },
-          body: jsonEncode({'item_context': itemContext, 'messages': messages}),
+          body: jsonEncode(requestBody),
         )
         .timeout(const Duration(seconds: 60));
 

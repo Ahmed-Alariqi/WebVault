@@ -3738,4 +3738,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifUsersProgress => 'حالة المستخدمين';
+
+  @override
+  String get browserAiAssistant => 'مساعد الصفحة الذكي';
+
+  @override
+  String get browserAiScanning => 'جاري قراءة الصفحة...';
+
+  @override
+  String get browserAiReady => 'المساعد جاهز — اسأل أي شيء عن هذه الصفحة';
+
+  @override
+  String get browserAiExtractError => 'تعذر قراءة محتوى الصفحة';
 }
