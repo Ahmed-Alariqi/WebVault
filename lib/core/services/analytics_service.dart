@@ -27,8 +27,6 @@ class AnalyticsService {
 
   /// Triggers on app startup after successful auth or login.
   static Future<void> trackAppOpen() async {
-    // Wait slightly to ensure auth state is settled
-    await Future.delayed(const Duration(seconds: 2));
     final prefs = _supabase.auth.currentSession;
     if (prefs != null) {
       await _logActivity('app_open', {'platform': defaultTargetPlatform.name});

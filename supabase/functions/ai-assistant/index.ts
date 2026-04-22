@@ -133,8 +133,18 @@ async function fetchUrlContent(url: string): Promise<string> {
 }
 
 // ── Build system prompt ──
-function buildSystemPrompt(itemContext: Record<string, unknown>, pageContent?: string): string {
-    let baseContext = `${SYSTEM_INSTRUCTION}\n\n=== سياق العنصر الحالي ===\nالعنوان: ${itemContext.title ?? 'غير محدد'}\nالوصف: ${itemContext.description ?? 'لا يوجد وصف'}\nالرابط: ${itemContext.url ?? 'لا يوجد رابط'}\nالتصنيف: ${itemContext.tags ? (itemContext.tags as string[]).join(', ') : 'غير مصنف'}\nالنوع: ${itemContext.content_type ?? 'website'}\n=== نهاية السياق ===\n\nأجب على أسئلة المستخدم بناءً على هذا السياق، أو استخدم الأداة لقراءة الرابط: ${itemContext.url ?? ''}`;
+function buildSystemPrompt(itemContext: Record<string, unknown>, pageContent?: string, externalContext?: string): string {
+    let baseContext = `${SYSTEM_INSTRUCTION}`;
+
+    // If we have a specific item from the vault
+    if (Object.keys(itemContext).length > 0) {
+        baseContext += `\n\n=== سياق العنصر الحالي ===\nالعنوان: ${itemContext.title ?? 'غير محدد'}\nالوصف: ${itemContext.description ?? 'لا يوجد وصف'}\nالرابط: ${itemContext.url ?? 'لا يوجد رابط'}\nالتصنيف: ${itemContext.tags ? (itemContext.tags as string[]).join(', ') : 'غير مصنف'}\nالنوع: ${itemContext.content_type ?? 'website'}\n=== نهاية السياق ===\n\nأجب على أسئلة المستخدم بناءً على هذا السياق، أو استخدم الأداة لقراءة الرابط: ${itemContext.url ?? ''}`;
+    }
+
+    // If we have external context (from clipboard or share)
+    if (externalContext) {
+        baseContext += `\n\n=== سياق خارجي للمناقشة ===\nلقد أرسل المستخدم لك هذا النص أو الرابط الخارجي للتركيز عليه:\n${externalContext}\n\n=== بناءً على هذا السياق أجب على المستخدم. هام جداً: إذا احتوى السياق الخارجي على رابط (URL) ولم تكن تعرف محتواه، *يجب* عليك فوراً استخدام أداة \`fetch_url_content\` لقرائته ثم الإجابة بناءً على ما قرأته. ===`;
+    }
 
     if (pageContent) {
         baseContext += `\n\n=== محتوى الصفحة المستخرج مباشرة ===\nهذا هو النص المستخرج من الصفحة الحالية في المتصفح. اعتمد عليه كلياً كمصدرك الأساسي للإجابة على الأسئلة حول هذه الصفحة بدلاً من قراءة الرابط.\nإذا كان الموقع عبارة عن أداة أو مكتبة تقنية، اشرح ما هي، ولماذا هي مفيدة، وما هي طريقة التثبيت، وقدم أمثلة عملية بناءً على المحتوى المتوفر:\n\n${pageContent}\n=== نهاية المحتوى المستخرج ===`;
@@ -156,7 +166,7 @@ Deno.serve(async (req: Request) => {
 
     try {
         const body = await req.json();
-        const { item_context, messages, page_content } = body;
+        const { item_context, messages, page_content, external_context } = body;
 
         if (!messages || !Array.isArray(messages)) {
             return new Response(JSON.stringify({ error: 'messages array is required' }), {
@@ -165,7 +175,7 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const systemPrompt = buildSystemPrompt(item_context ?? {}, page_content);
+        const systemPrompt = buildSystemPrompt(item_context ?? {}, page_content, external_context);
 
         const llmMessages = [
             { role: 'system', content: systemPrompt },
@@ -197,6 +207,11 @@ Deno.serve(async (req: Request) => {
 
                     if (!argsUrl && (item_context as any)?.url) {
                         argsUrl = (item_context as any).url as string;
+                    }
+
+                    // Fallback to external_context if it looks like a URL
+                    if (!argsUrl && typeof external_context === 'string' && external_context.startsWith('http')) {
+                        argsUrl = external_context.trim();
                     }
 
                     const content = await fetchUrlContent(argsUrl || 'invalid-url');

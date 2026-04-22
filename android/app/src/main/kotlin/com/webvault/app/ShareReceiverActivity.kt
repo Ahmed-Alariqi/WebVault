@@ -14,8 +14,8 @@ import org.json.JSONObject
  * Share Sheet ("Share → WebVault Clipboard").
  *
  * Saves the shared text to a pending-share queue in SharedPreferences.
- * The Flutter app will pick it up next time it starts or resumes.
- * Does NOT open the main app — works completely silently.
+ * Saves the shared text to a pending-share queue in SharedPreferences,
+ * then opens the main app to the Share Hub UI.
  */
 class ShareReceiverActivity : Activity() {
 
@@ -60,7 +60,13 @@ class ShareReceiverActivity : Activity() {
             if (!sharedText.isNullOrBlank()) {
                 Log.d(TAG, "Received shared text: label=$sharedSubject")
                 enqueueShare(this, sharedText, sharedSubject)
-                Toast.makeText(this, getString(R.string.saved_to_clipboard), Toast.LENGTH_SHORT).show()
+                
+                // Launch the app to the Share Hub deep link
+                val launchIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("webvault-floating://app/share-hub")).apply {
+                    setClass(this@ShareReceiverActivity, FloatingAssistantActivity::class.java)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(launchIntent)
             } else {
                 Log.w(TAG, "Received empty/blank shared text")
             }
@@ -68,6 +74,6 @@ class ShareReceiverActivity : Activity() {
             Log.w(TAG, "Unexpected action=$action or type=$type")
         }
 
-        finish() // Close immediately — no UI, no app launch
+        finish()
     }
 }

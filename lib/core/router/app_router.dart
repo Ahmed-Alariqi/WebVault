@@ -55,6 +55,8 @@ import '../../domain/models/advertisement.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../features/discover/advertisement_detail_screen.dart';
 import '../../features/ai_assistant/ai_chat_screen.dart';
+import '../../features/ai_assistant/zad_share_hub_screen.dart';
+import '../../features/ai_assistant/external_ai_chat_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -526,6 +528,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final site = state.extra as WebsiteModel;
           return AiChatScreen(site: site);
+        },
+      ),
+      // ---- Share Hub & External AI ----
+      GoRoute(
+        path: '/share-hub',
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ZadShareHubScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
+      GoRoute(
+        path: '/external-ai-assistant',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final text = state.extra as String? ?? state.uri.queryParameters['text'] ?? '';
+          return ExternalAiChatScreen(initialText: text);
         },
       ),
     ],

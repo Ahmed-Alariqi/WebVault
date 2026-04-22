@@ -9,19 +9,21 @@ import '../../core/utils/text_utils.dart';
 class AiAssistantService {
   /// Send a message to the AI assistant and get a response
   static Future<String> sendMessage({
-    required WebsiteModel item,
+    WebsiteModel? item,
     required List<AiChatMessage> chatHistory,
     String? pageContent,
+    String? externalUrlOrText,
   }) async {
     // Build item context
-    final itemContext = {
+    // Build item context (if available)
+    final Map<String, dynamic>? itemContext = item != null ? {
       'title': item.title,
       'description': TextUtils.getPlainTextFromDescription(item.description),
       'url': item.url,
       'tags': item.tags,
       'content_type': item.contentType,
       'pricing_model': item.pricingModel,
-    };
+    } : null;
 
     // Build messages array (only user and assistant messages)
     final messages = chatHistory
@@ -32,11 +34,16 @@ class AiAssistantService {
     final url = '${SupabaseConfig.url}/functions/v1/ai-assistant';
     
     final Map<String, dynamic> requestBody = {
-      'item_context': itemContext,
       'messages': messages,
     };
+    if (itemContext != null) {
+      requestBody['item_context'] = itemContext;
+    }
     if (pageContent != null && pageContent.isNotEmpty) {
       requestBody['page_content'] = pageContent;
+    }
+    if (externalUrlOrText != null && externalUrlOrText.isNotEmpty) {
+      requestBody['external_context'] = externalUrlOrText;
     }
 
     final response = await http

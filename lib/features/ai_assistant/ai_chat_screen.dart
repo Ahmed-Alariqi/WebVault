@@ -15,7 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/ai_chat_model.dart';
-import '../../data/services/transcription_service.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../presentation/providers/ai_assistant_providers.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -175,9 +175,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   final _focusNode        = FocusNode();
 
   // ── Voice input (STT) ────────────────────────────────────────────────
-  final _transcriptionService = TranscriptionService();
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
   bool _isRecording    = false; // mic is capturing audio
-  bool _isTranscribing = false; // audio sent to Groq, waiting for text
 
   bool _isScanningMode = true;
   Timer? _scanningTimer;
@@ -200,56 +199,76 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     _controller.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
-    _transcriptionService.dispose(); // release mic resources
+    _speechToText.cancel(); // release mic resources
     super.dispose();
   }
 
   // ── Voice Input Handlers ─────────────────────────────────────────────
 
-  /// Starts microphone recording (called on mic button tap/hold-start).
-  Future<void> _startVoiceInput() async {
-    try {
-      HapticFeedback.mediumImpact();
-      await _transcriptionService.startRecording();
-      if (mounted) setState(() => _isRecording = true);
-    } catch (e) {
-      final msg = e.toString().contains('microphone_permission_denied')
-          ? 'يرجى السماح بالوصول إلى الميكروفون من إعدادات التطبيق.'
-          : 'خطأ في بدء التسجيل: $e';
-      if (mounted) {
+  Future<void> _initSpeech() async {
+    if (!_speechToText.isAvailable) {
+      bool available = await _speechToText.initialize(
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            if (mounted) setState(() => _isRecording = false);
+          }
+        },
+        onError: (errorNotification) {
+          debugPrint('STT Error: $errorNotification');
+          if (mounted) setState(() => _isRecording = false);
+        },
+      );
+      if (!available && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), backgroundColor: Colors.red.shade700),
+          SnackBar(content: Text('التعرف على الصوت غير متاح الآن.'), backgroundColor: Colors.red.shade700),
         );
       }
     }
   }
 
-  /// Stops recording, sends to Groq Whisper and puts text in the input field.
-  Future<void> _stopVoiceInput() async {
-    if (!_isRecording) return;
-    setState(() { _isRecording = false; _isTranscribing = true; });
-    HapticFeedback.lightImpact();
+  /// Starts microphone recording.
+  Future<void> _startVoiceInput() async {
     try {
-      final text = await _transcriptionService.stopAndTranscribe();
-      if (mounted && text.isNotEmpty) {
-        _controller.text = text;
-        _controller.selection = TextSelection.fromPosition(
-          TextPosition(offset: text.length),
+      HapticFeedback.mediumImpact();
+      await _initSpeech();
+      if (_speechToText.isAvailable) {
+        if (mounted) setState(() => _isRecording = true);
+        
+        // Save current input to append to it
+        final currentText = _controller.text;
+        final prefix = currentText.isNotEmpty ? '$currentText ' : '';
+
+        await _speechToText.listen(
+          onResult: (result) {
+            if (mounted) {
+              _controller.text = prefix + result.recognizedWords;
+              _controller.selection = TextSelection.fromPosition(
+                TextPosition(offset: _controller.text.length),
+              );
+            }
+          },
+          localeId: 'ar_SA', // default to Arabic
+          listenOptions: stt.SpeechListenOptions(
+            cancelOnError: true,
+            partialResults: true,
+          ),
         );
-        HapticFeedback.selectionClick();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('فشل التحويل: $e'),
-            backgroundColor: Colors.orange.shade700,
-          ),
+          SnackBar(content: Text('خطأ في بدء التسجيل: $e'), backgroundColor: Colors.red.shade700),
         );
       }
-    } finally {
-      if (mounted) setState(() => _isTranscribing = false);
     }
+  }
+
+  /// Stops recording.
+  Future<void> _stopVoiceInput() async {
+    if (!_isRecording) return;
+    HapticFeedback.lightImpact();
+    await _speechToText.stop();
+    if (mounted) setState(() => _isRecording = false);
   }
 
   void _scrollToBottom() {
@@ -457,25 +476,47 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       child: Column(
         children: [
           // Top row: back + title + clear
-          Row(
+          Stack(
+            alignment: Alignment.center,
             children: [
-              // Back / Close button
-              GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Back / Close button
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.arrow_back_rounded,
-                    color: Colors.white,
-                    size: 20,
+                  // Clear chat button
+                  GestureDetector(
+                    onTap: () =>
+                        ref.read(aiChatProvider(widget.site).notifier).clearChat(),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        PhosphorIcons.trash(),
+                        color: Colors.white70,
+                        size: 18,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
               // AI badge
               Container(
                 padding: const EdgeInsets.symmetric(
@@ -508,52 +549,34 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                   ],
                 ),
               ),
-              const Spacer(),
-              // Clear chat button
-              GestureDetector(
-                onTap: () =>
-                    ref.read(aiChatProvider(widget.site).notifier).clearChat(),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    PhosphorIcons.trash(),
-                    color: Colors.white70,
-                    size: 18,
-                  ),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           // Item context card
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
                 // Item icon
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     PhosphorIcons.globe(PhosphorIconsStyle.fill),
                     color: Colors.white70,
-                    size: 20,
+                    size: 16,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,7 +585,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                         widget.site.title,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
                         ),
                         maxLines: 1,
@@ -582,7 +605,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                               loc.aiContextLoaded,
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.5),
-                                fontSize: 11,
+                                fontSize: 10,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -705,14 +728,21 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     AppLocalizations loc,
   ) {
-    final suggestions = [
-      loc.aiSuggestWhat,
-      loc.aiSuggestHow,
-      loc.aiSuggestFeatures,
-      loc.aiSuggestUse,
-      loc.aiSuggestFit,
-      loc.aiSuggestSimplify,
-    ];
+    final suggestions = widget.isFromBrowser 
+      ? [
+          "لخص هذه الصفحة",
+          "اشرح الفكرة الرئيسية",
+          "ما هي أهم النقاط؟",
+          "هل يوجد روابط أو مصادر هامة؟"
+        ]
+      : [
+          loc.aiSuggestWhat,
+          loc.aiSuggestHow,
+          loc.aiSuggestFeatures,
+          loc.aiSuggestUse,
+          loc.aiSuggestFit,
+          loc.aiSuggestSimplify,
+        ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -1011,8 +1041,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.isFromBrowser && !isLoading && isChatEmpty)
-            _buildQuickPrompts(isDark),
+          // The generic quick prompts above input bar have been removed to save space
+          // and prevent duplication with the welcome screen suggestions.
           Row(
         children: [
           Expanded(
@@ -1071,11 +1101,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               decoration: BoxDecoration(
                 color: _isRecording
                     ? Colors.red.shade500
-                    : _isTranscribing
-                        ? AppTheme.primaryColor.withValues(alpha: 0.6)
-                        : (isDark
-                            ? Colors.white.withValues(alpha: 0.07)
-                            : Colors.black.withValues(alpha: 0.05)),
+                    : (isDark
+                        ? Colors.white.withValues(alpha: 0.07)
+                        : Colors.black.withValues(alpha: 0.05)),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: _isRecording
@@ -1094,23 +1122,15 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                       ]
                     : null,
               ),
-              child: _isTranscribing
-                  ? Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: AppTheme.primaryColor,
-                      ),
-                    )
-                  : Icon(
-                      _isRecording
-                          ? PhosphorIcons.stop(PhosphorIconsStyle.fill)
-                          : PhosphorIcons.microphone(PhosphorIconsStyle.fill),
-                      color: _isRecording
-                          ? Colors.white
-                          : (isDark ? Colors.white60 : Colors.black45),
-                      size: 20,
-                    ),
+              child: Icon(
+                _isRecording
+                    ? PhosphorIcons.stop(PhosphorIconsStyle.fill)
+                    : PhosphorIcons.microphone(PhosphorIconsStyle.fill),
+                color: _isRecording
+                    ? Colors.white
+                    : (isDark ? Colors.white60 : Colors.black45),
+                size: 20,
+              ),
             )
             .animate(target: _isRecording ? 1.0 : 0.0)
             .scaleXY(begin: 1.0, end: 1.08, duration: 600.ms, curve: Curves.easeInOut)
@@ -1161,43 +1181,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       ),
     );
   }
-  // ── Quick Prompts (Chips) ──
-  Widget _buildQuickPrompts(bool isDark) {
-    final prompts = ["لخص هذه الصفحة", "اشرح الفكرة الرئيسية", "استخرج الأكواد البرمجية"];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12, top: 4),
-      child: SizedBox(
-        height: 36,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: prompts.length,
-          separatorBuilder: (context, index) => const SizedBox(width: 8),
-          itemBuilder: (context, index) {
-            return ActionChip(
-              label: Text(
-                prompts[index],
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontFamily: 'Cairo',
-                ),
-              ),
-              backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.black.withValues(alpha: 0.05),
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              onPressed: () {
-                _sendMessage(prompts[index]);
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
+  // _buildQuickPrompts was removed in favor of unified context-aware welcome view
 }
 
 // ── Typewriter Markdown Widget ──

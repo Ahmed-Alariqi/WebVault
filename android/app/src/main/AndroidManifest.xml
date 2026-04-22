@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <application
         android:label="زاد التقني"
         android:name="${applicationName}"
@@ -24,6 +25,9 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <meta-data
+              android:name="io.flutter.embedding.android.TransparencyMode"
+              android:value="transparent" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -35,12 +39,31 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="io.supabase.webvault" android:host="login-callback" />
             </intent-filter>
-            <!-- Deep linking for QS Tile to open specific app routes (e.g. webvault://app/clipboard) -->
+            <!-- Deep linking for QS Tile to open specific app routes (e.g. webvault://app/clipboard, /share-hub, /ai-assistant) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="webvault" android:host="app" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".FloatingAssistantActivity"
+            android:exported="true"
+            android:theme="@style/NormalTheme"
+            android:taskAffinity=":floating"
+            android:excludeFromRecents="true"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.TransparencyMode"
+              android:value="transparent" />
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="webvault-floating" android:host="app" />
             </intent-filter>
         </activity>
 
@@ -59,6 +82,18 @@
             android:name=".ClipboardTileService"
             android:label="ZaadTech Clipboard"
             android:icon="@drawable/ic_clipboard_tile"
+            android:exported="true"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE"/>
+            </intent-filter>
+        </service>
+
+        <!-- Quick Settings Tile for AI Assistant -->
+        <service
+            android:name=".AiAssistantTileService"
+            android:label="مساعد زاد"
+            android:icon="@drawable/ic_ai_tile"
             android:exported="true"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
@@ -116,6 +151,10 @@
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="webvault"/>
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW"/>
+            <data android:scheme="webvault-floating"/>
         </intent>
     </queries>
 </manifest>

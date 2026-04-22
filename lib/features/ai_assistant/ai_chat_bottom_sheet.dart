@@ -119,8 +119,24 @@ class AiChatBottomSheet extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-             // Empty space to balance
-            const SizedBox(width: 32),
+            // Clear Chat Button
+            GestureDetector(
+              onTap: () {
+                 ref.read(aiChatProvider(site).notifier).clearChat();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.red.withOpacity(0.15) : Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  PhosphorIcons.trash(),
+                  size: 16,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
             
             // Drag Indicator Pill
             Container(

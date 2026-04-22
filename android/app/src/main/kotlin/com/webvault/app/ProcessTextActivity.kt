@@ -12,7 +12,7 @@ import android.widget.Toast
  * when a user selects text in any app and long-presses (Copy/Paste/Share/WebVault).
  *
  * Saves the selected text to the pending-share queue (same as ShareReceiverActivity).
- * Does NOT open the main app — works completely silently.
+ * Saves the selected text to the pending-share queue and opens the app to the Share Hub UI.
  */
 class ProcessTextActivity : Activity() {
 
@@ -33,7 +33,12 @@ class ProcessTextActivity : Activity() {
             if (!selectedText.isNullOrBlank()) {
                 Log.d(TAG, "Received selected text: $selectedText")
                 ShareReceiverActivity.enqueueShare(this, selectedText, "Selected text")
-                Toast.makeText(this, getString(R.string.saved_to_clipboard), Toast.LENGTH_SHORT).show()
+                
+                val launchIntent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("webvault-floating://app/share-hub")).apply {
+                    setClass(this@ProcessTextActivity, FloatingAssistantActivity::class.java)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(launchIntent)
             } else {
                 Log.w(TAG, "Received empty/blank selected text")
             }
@@ -41,6 +46,6 @@ class ProcessTextActivity : Activity() {
             Log.w(TAG, "Unexpected action: ${intent.action}")
         }
 
-        finish() // Close immediately — no UI, no app launch
+        finish()
     }
 }

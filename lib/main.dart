@@ -39,156 +39,111 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Hive
+  // ── Step 1: Hive must be initialized before opening boxes ───────────────
   await Hive.initFlutter();
-  await Hive.openBox(kPagesBox);
-  await Hive.openBox(kFoldersBox);
-  await Hive.openBox(kClipboardBox);
-  await Hive.openBox(kClipboardGroupsBox);
-  await Hive.openBox(kSettingsBox);
-  await Hive.openBox(kDiscoverCacheBox);
-  await Hive.openBox(kSyncQueueBox);
-  await Hive.openBox('ai_chats');
 
-  // ── Share Intent handling ──
-  // Channel for communicating with native Android code
-  const shareChannel = MethodChannel('com.webvault.app/overlay');
+  // ── Step 2: Open all Hive boxes + Supabase in PARALLEL ──────────────────
+  // All box opens are independent of each other, and Supabase
+  // is a pure network operation — none of these depend on each other.
+  await Future.wait([
+    Hive.openBox(kPagesBox),
+    Hive.openBox(kFoldersBox),
+    Hive.openBox(kClipboardBox),
+    Hive.openBox(kClipboardGroupsBox),
+    Hive.openBox(kSettingsBox),
+    Hive.openBox(kDiscoverCacheBox),
+    Hive.openBox(kSyncQueueBox),
+    Hive.openBox('ai_chats'),
+    SupabaseConfig.initialize(),   // runs while Hive boxes open
+  ]);
 
-  // Function to check and process all pending shared items from the queue
-  Future<void> checkAndProcessPendingShares() async {
-    try {
-      final result = await shareChannel.invokeMethod('getPendingShares');
-      if (result != null) {
-        final items = List<Map<dynamic, dynamic>>.from(result as List);
-        final box = Hive.box(kClipboardBox);
-        for (final raw in items) {
-          final args = Map<String, dynamic>.from(raw);
-          final label = args['label'] as String? ?? 'Shared item';
-          final text = args['text'] as String? ?? '';
-          if (text.isNotEmpty) {
-            final id = DateTime.now().microsecondsSinceEpoch.toString();
-            final item = {
-              'id': id,
-              'label': label,
-              'value': text,
-              'type': 0,
-              'isPinned': false,
-              'sortOrder': box.length,
-              'isEncrypted': false,
-              'createdAt': DateTime.now().toIso8601String(),
-              'autoDeleteAt': null,
-              'groupId': null,
-            };
-            await box.put(id, item);
-            debugPrint('[Share] Saved shared item: label=$label');
-          }
-        }
-        debugPrint('[Share] Processed ${items.length} pending shares');
-      }
-    } catch (e) {
-      debugPrint('[Share] Error checking pending shares: $e');
-    }
-  }
-
-  // Check for pending shares on startup
-  await checkAndProcessPendingShares();
-
-  // Also check on every app resume (user shared while app was in background)
-  // ignore: unused_local_variable
-  final lifecycleListener = AppLifecycleListener(
-    onResume: () => checkAndProcessPendingShares(),
-  );
-
-  // Set up timeago arabic locales
+  // Set up timeago arabic locales (synchronous — free)
   timeago.setLocaleMessages('ar', timeago.ArMessages());
 
-  // Initialize Supabase
-  await SupabaseConfig.initialize();
-
-  // Create a global container so we can invalidate providers from callbacks
+  // Create global container for provider access outside widget tree
   final container = ProviderContainer();
   final authService = AuthService();
 
-  // ── Initialize Firebase & FCM (replacing OneSignal) ──
+  // ── Step 3: Firebase init ────────────────────────────────────────────────
+  // Firebase.initializeApp() reads google-services.json from APK (local, fast).
+  // Everything AFTER initializeApp (permission, token) is non-blocking.
   if (!kIsWeb) {
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(); // fast — local file read
 
-      // Register background message handler
       FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // Request push notification permission
       final messaging = FirebaseMessaging.instance;
-      await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
 
-      // ── Get and store FCM token ──
+      // Helper to persist FCM token to the user's profile
       Future<void> storeFcmToken(String? token) async {
         if (token == null || token.isEmpty) return;
         final user = SupabaseConfig.client.auth.currentUser;
         if (user != null) {
           try {
             await authService.updateProfile(fcmToken: token);
-            debugPrint('[FCM] Stored token to profile: ${token.substring(0, 20)}...');
+            debugPrint('[FCM] Stored token: ${token.substring(0, 20)}...');
           } catch (e) {
             debugPrint('[FCM] Failed to store token: $e');
           }
         }
       }
 
-      try {
-        final token = await messaging.getToken();
-        debugPrint('[FCM] Token: ${token?.substring(0, 20)}...');
-        await storeFcmToken(token);
-      } catch (e) {
-        debugPrint('[FCM] Failed to get token: $e');
-      }
+      // ── Non-blocking: permission dialog & network token fetch ─────────
+      // The UI does NOT need these to start — fire and continue.
+      unawaited(
+        messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: false,
+        ),
+      );
 
-      // ── Monitor token refresh ──
+      unawaited(
+        messaging.getToken().then((token) {
+          debugPrint('[FCM] Token: ${token?.substring(0, 20)}...');
+          storeFcmToken(token);
+        }).catchError((e) {
+          debugPrint('[FCM] Failed to get token: $e');
+        }),
+      );
+
+      // ── Event listeners (synchronous registration — free) ────────────
       messaging.onTokenRefresh.listen((newToken) {
         debugPrint('[FCM] Token refreshed: ${newToken.substring(0, 20)}...');
         storeFcmToken(newToken);
       });
 
-      // ── Foreground notification handling ──
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint(
-          '[FCM] Foreground notification received: ${message.notification?.title}',
-        );
-        // Refresh badge count
+        debugPrint('[FCM] Foreground: ${message.notification?.title}');
         container.invalidate(notificationCountProvider);
       });
 
-      // ── Notification tap handler (app was in background) ──
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        debugPrint('[FCM] Notification clicked: ${message.notification?.title}');
+        debugPrint('[FCM] Tapped: ${message.notification?.title}');
         container.invalidate(notificationCountProvider);
-        // Route to notifications screen
-        final router = container.read(routerProvider);
-        router.go('/notifications');
+        container.read(routerProvider).go('/notifications');
       });
 
-      // ── Check if app was opened from a terminated state notification ──
-      final initialMessage = await messaging.getInitialMessage();
-      if (initialMessage != null) {
-        debugPrint('[FCM] App opened from terminated notification');
-        // Will be handled after app is fully built
-        Future.delayed(const Duration(milliseconds: 500), () {
-          container.invalidate(notificationCountProvider);
-          final router = container.read(routerProvider);
-          router.go('/notifications');
-        });
-      }
+      // ── Non-blocking: check initial message ───────────────────────────
+      unawaited(
+        messaging.getInitialMessage().then((initialMessage) {
+          if (initialMessage != null) {
+            debugPrint('[FCM] App opened from terminated notification');
+            Future.delayed(const Duration(milliseconds: 500), () {
+              container.invalidate(notificationCountProvider);
+              container.read(routerProvider).go('/notifications');
+            });
+          }
+        }),
+      );
     } catch (e) {
       debugPrint('[Firebase/FCM] Initialization error: $e');
     }
   }
 
-  // ── Store FCM token on auth state changes ──
+  // ── Store FCM token whenever auth state changes ─────────────────────────
   SupabaseConfig.client.auth.onAuthStateChange.listen((data) async {
     final event = data.event;
     final session = data.session;
@@ -199,9 +154,7 @@ Future<void> main() async {
       final userId = session?.user.id;
       if (userId != null) {
         debugPrint('[FCM] User signed in: $userId');
-
         if (!kIsWeb) {
-          // Get and store FCM token for this user
           try {
             final token = await FirebaseMessaging.instance.getToken();
             debugPrint('[FCM] Current token: ${token?.substring(0, 20)}...');
@@ -215,10 +168,9 @@ Future<void> main() async {
         }
       }
     }
-    // No logout action needed for FCM (token stays on device)
   });
 
-  // Seed dummy data on first launch
+  // ── Seed dummy data on first launch (synchronous check) ─────────────────
   final settingsRepo = SettingsRepository();
   if (settingsRepo.isFirstLaunch()) {
     await DummyData.seed(
@@ -229,18 +181,13 @@ Future<void> main() async {
     await settingsRepo.setFirstLaunch(false);
   }
 
-  // ── Splash version migration ──
-  // If the splash was redesigned (version bumped), reset the flag so users
-  // see the new splash once more.
+  // ── Splash version migration ─────────────────────────────────────────────
   final settingsBox = Hive.box(kSettingsBox);
-  final storedSplashVersion =
-      settingsBox.get(kSplashVersion, defaultValue: 0) as int;
+  final storedSplashVersion = settingsBox.get(kSplashVersion, defaultValue: 0) as int;
   if (storedSplashVersion < kCurrentSplashVersion) {
     await settingsRepo.setHasSeenWelcomeScreen(false);
     await settingsBox.put(kSplashVersion, kCurrentSplashVersion);
-    debugPrint(
-      '[Splash] Reset welcome screen flag (v$storedSplashVersion → v$kCurrentSplashVersion)',
-    );
+    debugPrint('[Splash] Reset welcome screen flag (v$storedSplashVersion → v$kCurrentSplashVersion)');
   }
 
   // Set system UI style
@@ -251,8 +198,8 @@ Future<void> main() async {
     ),
   );
 
-  // Track app open asynchronously
-  AnalyticsService.trackAppOpen();
+  // Track app open — fire and forget, no blocking
+  unawaited(AnalyticsService.trackAppOpen());
 
   runApp(
     UncontrolledProviderScope(container: container, child: const WebVaultApp()),

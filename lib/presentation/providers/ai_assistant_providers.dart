@@ -145,3 +145,112 @@ final aiButtonVisibilityProvider = StateProvider<bool>((ref) => false);
 final aiChatProvider = StateNotifierProvider.family<AiChatNotifier, AiChatState, WebsiteModel>(
       (ref, item) => AiChatNotifier(item),
     );
+
+/// State notifier for external AI Assistant chats
+class ExternalAiChatNotifier extends StateNotifier<AiChatState> {
+  final String initialContext;
+
+  static const _hiveKey = 'external_chat_history';
+  static const _draftKey = 'external_chat_draft';
+
+  ExternalAiChatNotifier(this.initialContext) : super(const AiChatState()) {
+    _loadChatHistory();
+  }
+
+  void _loadChatHistory() {
+    try {
+      final box = Hive.box('ai_chats');
+      final data = box.get(_hiveKey);
+      if (data != null && data is List && data.isNotEmpty) {
+        final messages = data
+            .map((e) => AiChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
+            .toList();
+        state = state.copyWith(messages: messages);
+      }
+    } catch (_) {}
+  }
+
+  void _saveChatHistory() {
+    try {
+      final box = Hive.box('ai_chats');
+      final data = state.messages.map((m) => m.toJson()).toList();
+      box.put(_hiveKey, data);
+    } catch (_) {}
+  }
+
+  Future<void> saveDraft(String text) async {
+    try {
+      final box = Hive.box('ai_chats');
+      box.put(_draftKey, text);
+    } catch (_) {}
+  }
+
+  String loadDraft() {
+    try {
+      final box = Hive.box('ai_chats');
+      return (box.get(_draftKey) as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  Future<void> sendMessage(String content) async {
+    if (content.trim().isEmpty || state.isLoading) return;
+
+    // Clear draft on send
+    await saveDraft('');
+
+    final userMessage = AiChatMessage(
+      role: 'user',
+      content: content.trim(),
+      timestamp: DateTime.now(),
+    );
+
+    final updatedMessages = [...state.messages, userMessage];
+    state = state.copyWith(
+      messages: updatedMessages,
+      isLoading: true,
+      error: null,
+    );
+
+    try {
+      final responseText = await AiAssistantService.sendMessage(
+        item: null,
+        chatHistory: updatedMessages,
+        externalUrlOrText: initialContext.isNotEmpty ? initialContext : null,
+      );
+
+      final assistantMessage = AiChatMessage(
+        role: 'assistant',
+        content: responseText,
+        timestamp: DateTime.now(),
+      );
+
+      state = state.copyWith(
+        messages: [...updatedMessages, assistantMessage],
+        isLoading: false,
+      );
+      _saveChatHistory();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+  }
+
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+
+  void clearChat() {
+    state = const AiChatState();
+    _saveChatHistory();
+    saveDraft('');
+  }
+}
+
+/// Provider for external AI chats — NOT auto-disposed so session persists.
+final externalAiChatProvider = StateNotifierProvider.family<ExternalAiChatNotifier, AiChatState, String>(
+  (ref, contextText) => ExternalAiChatNotifier(contextText),
+);

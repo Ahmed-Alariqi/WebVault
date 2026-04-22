@@ -74,8 +74,11 @@ dependencies:
   flutter_highlighter: ^0.1.1
   markdown: ^7.3.0
 
-  # Voice Input (STT — Groq Whisper)
-  record: ^6.2.0
+  # Voice Input (STT)
+  speech_to_text: ^7.0.0
+  
+  # UI & Media
+  any_link_preview: ^3.0.0
   webview_flutter_web: ^0.2.3+4
 
 dev_dependencies:
