@@ -3713,6 +3713,27 @@ class AppLocalizationsAr extends AppLocalizations {
       'هل وجدت هذا الموقع مفيداً؟ اقترحه للإدارة ليتم نشره للجميع في قسم المستكشف.';
 
   @override
+  String get tutBrowserAiAssistantTitle => 'المساعد الذكي';
+
+  @override
+  String get tutBrowserAiAssistantDesc =>
+      'استخدم أيقونة المساعد الذكي لتحليل محتوى الصفحة الحالية، تلخيصها، أو سؤال المساعد عن أي تفاصيل بداخلها.';
+
+  @override
+  String get tutDiscoverWelcomeTitle => 'قسم المستكشف';
+
+  @override
+  String get tutDiscoverWelcomeDesc =>
+      'اكتشف أهم المواقع والخدمات التي تم اختيارها لك بعناية في زاد التقني.';
+
+  @override
+  String get tutDiscoverSaveTitle => 'حفظ الصفحة';
+
+  @override
+  String get tutDiscoverSaveDesc =>
+      'قم بحفظ أي موقع في \'صفحاتي\' لتتمكن من الوصول إليه بسهولة لاحقاً مع استخدام الحافظة العائمة.';
+
+  @override
   String get tutGotIt => 'فهمت ذلك';
 
   @override
@@ -3750,4 +3771,266 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get browserAiExtractError => 'تعذر قراءة محتوى الصفحة';
+
+  @override
+  String get draftsTitle => 'المسودات';
+
+  @override
+  String get draftsFilterAll => 'الكل';
+
+  @override
+  String get draftsFilterIdeas => 'أفكار';
+
+  @override
+  String get draftsFilterInProgress => 'قيد التنفيذ';
+
+  @override
+  String get draftsFilterReady => 'جاهز للنشر';
+
+  @override
+  String get draftsNewDraft => 'مسودة جديدة';
+
+  @override
+  String get draftsEmptyTitle => 'لا توجد مسودات';
+
+  @override
+  String get draftsEmptySub => 'سجّل أفكارك ومحتواك المستقبلي هنا';
+
+  @override
+  String get draftsDeleteTitle => 'حذف المسودة';
+
+  @override
+  String draftsDeleteConfirm(String title) {
+    return 'هل تريد حذف \"$title\"؟';
+  }
+
+  @override
+  String get draftsDeleted => 'تم حذف المسودة';
+
+  @override
+  String get draftsReadiness => 'درجة الجاهزية';
+
+  @override
+  String get draftsPrepAi => 'تجهيز بـ AI';
+
+  @override
+  String get draftsImproveAi => 'تحسين بـ AI';
+
+  @override
+  String get draftsPublish => 'نشر';
+
+  @override
+  String get draftsManualEdit => 'تعديل يدوي';
+
+  @override
+  String get draftsSaveEdits => 'حفظ التعديلات';
+
+  @override
+  String get draftsSaveAsDraft => 'حفظ كمسودة';
+
+  @override
+  String get draftsTitleOrIdea => 'العنوان أو الفكرة *';
+
+  @override
+  String get draftsDescription => 'وصف المسودة...';
+
+  @override
+  String get draftsUrl => 'رابط (اختياري)';
+
+  @override
+  String get draftsTags => 'الوسوم (مثال: ذكاء، تصميم، أدوات)';
+
+  @override
+  String get draftsNotes => 'ملاحظات جانبية...';
+
+  @override
+  String get draftsCategory => 'التصنيف';
+
+  @override
+  String get draftsPriority => 'الأولوية';
+
+  @override
+  String get draftsContentType => 'نوع المحتوى';
+
+  @override
+  String get draftsEditTitle => 'تعديل المسودة';
+
+  @override
+  String get draftsNewTitle => 'مسودة سريعة';
+
+  @override
+  String get draftsHeaderSub => 'سجّل فكرتك قبل أن تضيع';
+
+  @override
+  String get draftsSelectCategory => 'اختر تصنيفاً';
+
+  @override
+  String get draftsPriorityLow => 'منخفضة';
+
+  @override
+  String get draftsPriorityNormal => 'عادية';
+
+  @override
+  String get draftsPriorityHigh => 'عالية';
+
+  @override
+  String get draftsPriorityUrgent => 'عاجلة';
+
+  @override
+  String draftsErrorSaving(String error) {
+    return 'خطأ في حفظ المسودة: $error';
+  }
+
+  @override
+  String get aiPrepTitle => 'مساعد تجهيز المحتوى';
+
+  @override
+  String get aiPrepSub => 'أدخل رابط أو نص لتوليد بيانات منظمة';
+
+  @override
+  String get aiModelTooltip => 'تغيير نموذج الذكاء الاصطناعي';
+
+  @override
+  String get aiInputHint => 'الصق رابط أو اكتب وصف المحتوى...';
+
+  @override
+  String get aiButtonGenerate => 'توليد المحتوى';
+
+  @override
+  String get aiLoading => 'جاري تحليل المحتوى...';
+
+  @override
+  String get aiLabelTitle => 'العنوان';
+
+  @override
+  String get aiLabelDescription => 'الوصف';
+
+  @override
+  String get aiLabelMainCategory => 'التصنيف الرئيسي';
+
+  @override
+  String get aiLabelSubcategory => 'التصنيف الفرعي';
+
+  @override
+  String get aiLabelType => 'نوع المحتوى';
+
+  @override
+  String get aiLabelTags => 'التاجات';
+
+  @override
+  String get aiHintAddTag => 'أضف تاج...';
+
+  @override
+  String get aiButtonApply => 'تطبيق التغييرات';
+
+  @override
+  String get aiButtonRetry => 'محاولة أخرى';
+
+  @override
+  String get subAi => 'ذكاء اصطناعي';
+
+  @override
+  String get subCoding => 'برمجة';
+
+  @override
+  String get subResearch => 'بحث';
+
+  @override
+  String get subProductivity => 'انتاجية';
+
+  @override
+  String get subDesign => 'تصميم';
+
+  @override
+  String get subCyberSecurity => 'امن سيبراني';
+
+  @override
+  String get subBusiness => 'اعمال وتسويق';
+
+  @override
+  String get subEducation => 'تعليم';
+
+  @override
+  String get subGeneral => 'عام';
+
+  @override
+  String get subImageGen => 'توليد صور';
+
+  @override
+  String get subImageEdit => 'تعديل صور';
+
+  @override
+  String get subVideoGen => 'توليد فيديو';
+
+  @override
+  String get subWriting => 'كتابة';
+
+  @override
+  String get subAnalysis => 'تحليل';
+
+  @override
+  String get subAutomation => 'أتمتة';
+
+  @override
+  String get subStyleControl => 'أسلوب وتحكم';
+
+  @override
+  String get typeWebsite => 'موقع إلكتروني';
+
+  @override
+  String get typeTool => 'أداة ذكية';
+
+  @override
+  String get typeCourse => 'دورة تدريبية';
+
+  @override
+  String get typePrompt => 'برومبت / أمر';
+
+  @override
+  String get typeOffer => 'عرض / خصم';
+
+  @override
+  String get typeAnnouncement => 'إعلان / خبر';
+
+  @override
+  String get typeTutorial => 'شرح / تعليمي';
+
+  @override
+  String get aiAssistantTitle => 'مساعد تجهيز المحتوى';
+
+  @override
+  String get aiAssistantSub => 'أدخل رابط أو نص لتوليد بيانات منظمة';
+
+  @override
+  String get aiChangeModel => 'تغيير نموذج الذكاء الاصطناعي';
+
+  @override
+  String get aiGenerate => 'توليد المحتوى';
+
+  @override
+  String get aiAnalyzing => 'جاري تحليل المحتوى...';
+
+  @override
+  String get aiSubcategory => 'التصنيف الفرعي';
+
+  @override
+  String get aiSelectSubcategory => 'اختر التصنيف الفرعي';
+
+  @override
+  String get aiSelectType => 'اختر النوع';
+
+  @override
+  String get aiAddTag => 'أضف تاج...';
+
+  @override
+  String get aiRegenerate => 'إعادة التوليد';
+
+  @override
+  String get aiApprove => 'اعتماد وتعبئة';
+
+  @override
+  String get aiRegenerating => 'جاري...';
+
+  @override
+  String get aiImprove => 'تحسين';
 }

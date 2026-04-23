@@ -10,9 +10,9 @@ import '../../data/models/website_model.dart';
 import '../../core/utils/text_utils.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
-import '../../presentation/widgets/shimmer_loading.dart';
-import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/modern_fab.dart';
+import '../../presentation/widgets/website_details_dialog.dart';
+import '../../presentation/widgets/shimmer_loading.dart';
 import '../../l10n/app_localizations.dart';
 
 class ManageWebsitesScreen extends ConsumerStatefulWidget {
@@ -131,6 +131,47 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
             ),
             onPressed: _toggleSort,
             tooltip: ascending ? l10n.adminSortOldest : l10n.adminSortNewest,
+          ),
+          // Drafts toggle
+          Consumer(
+            builder: (context, ref, _) {
+              final draftCount = ref.watch(adminDraftCountProvider);
+              final readyCount = ref.watch(adminReadyDraftCountProvider);
+
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      PhosphorIcons.notepad(PhosphorIconsStyle.fill),
+                      color: const Color(0xFFF59E0B),
+                    ),
+                    onPressed: () => context.push('/admin/drafts'),
+                    tooltip: 'المسودات',
+                  ),
+                  if (draftCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: readyCount > 0 ? AppTheme.successColor : Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          draftCount > 9 ? '9+' : draftCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
         ],
       ),

@@ -3725,6 +3725,27 @@ class AppLocalizationsEn extends AppLocalizations {
       'Found this site useful? Suggest it to the management to be published for everyone in the Explorer section.';
 
   @override
+  String get tutBrowserAiAssistantTitle => 'AI Smart Assistant';
+
+  @override
+  String get tutBrowserAiAssistantDesc =>
+      'Use the sparkle button to analyze the page content, summarize it, or ask the AI assistant for any details.';
+
+  @override
+  String get tutDiscoverWelcomeTitle => 'Explorer Section';
+
+  @override
+  String get tutDiscoverWelcomeDesc =>
+      'Discover the most important websites and services carefully selected for you.';
+
+  @override
+  String get tutDiscoverSaveTitle => 'Save Page';
+
+  @override
+  String get tutDiscoverSaveDesc =>
+      'Save any site to your \'Pages\' to access it easily later with the floating clipboard.';
+
+  @override
   String get tutGotIt => 'Got it!';
 
   @override
@@ -3762,4 +3783,267 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get browserAiExtractError => 'Failed to read page content';
+
+  @override
+  String get draftsTitle => 'Drafts';
+
+  @override
+  String get draftsFilterAll => 'All';
+
+  @override
+  String get draftsFilterIdeas => 'Ideas';
+
+  @override
+  String get draftsFilterInProgress => 'In Progress';
+
+  @override
+  String get draftsFilterReady => 'Ready';
+
+  @override
+  String get draftsNewDraft => 'New Draft';
+
+  @override
+  String get draftsEmptyTitle => 'No Drafts Found';
+
+  @override
+  String get draftsEmptySub => 'Record your ideas and future content here';
+
+  @override
+  String get draftsDeleteTitle => 'Delete Draft';
+
+  @override
+  String draftsDeleteConfirm(String title) {
+    return 'Do you want to delete \"$title\"?';
+  }
+
+  @override
+  String get draftsDeleted => 'Draft deleted';
+
+  @override
+  String get draftsReadiness => 'Readiness Score';
+
+  @override
+  String get draftsPrepAi => 'Prepare with AI';
+
+  @override
+  String get draftsImproveAi => 'Improve with AI';
+
+  @override
+  String get draftsPublish => 'Publish';
+
+  @override
+  String get draftsManualEdit => 'Manual Edit';
+
+  @override
+  String get draftsSaveEdits => 'Save Changes';
+
+  @override
+  String get draftsSaveAsDraft => 'Save as Draft';
+
+  @override
+  String get draftsTitleOrIdea => 'Title or Idea *';
+
+  @override
+  String get draftsDescription => 'Draft description...';
+
+  @override
+  String get draftsUrl => 'URL (Optional)';
+
+  @override
+  String get draftsTags => 'Tags (e.g. AI, design, tools)';
+
+  @override
+  String get draftsNotes => 'Side notes...';
+
+  @override
+  String get draftsCategory => 'Category';
+
+  @override
+  String get draftsPriority => 'Priority';
+
+  @override
+  String get draftsContentType => 'Content Type';
+
+  @override
+  String get draftsEditTitle => 'Edit Draft';
+
+  @override
+  String get draftsNewTitle => 'Quick Draft';
+
+  @override
+  String get draftsHeaderSub => 'Record your idea before it\'s lost';
+
+  @override
+  String get draftsSelectCategory => 'Select a category';
+
+  @override
+  String get draftsPriorityLow => 'Low';
+
+  @override
+  String get draftsPriorityNormal => 'Normal';
+
+  @override
+  String get draftsPriorityHigh => 'High';
+
+  @override
+  String get draftsPriorityUrgent => 'Urgent';
+
+  @override
+  String draftsErrorSaving(String error) {
+    return 'Error saving draft: $error';
+  }
+
+  @override
+  String get aiPrepTitle => 'Content Prep Assistant';
+
+  @override
+  String get aiPrepSub => 'Paste a link or text to generate structured data';
+
+  @override
+  String get aiModelTooltip => 'Change AI Model';
+
+  @override
+  String get aiInputHint => 'Paste link or write content description...';
+
+  @override
+  String get aiButtonGenerate => 'Generate Content';
+
+  @override
+  String get aiLoading => 'Analyzing content...';
+
+  @override
+  String get aiLabelTitle => 'Title';
+
+  @override
+  String get aiLabelDescription => 'Description';
+
+  @override
+  String get aiLabelMainCategory => 'Main Category';
+
+  @override
+  String get aiLabelSubcategory => 'Subcategory';
+
+  @override
+  String get aiLabelType => 'Content Type';
+
+  @override
+  String get aiLabelTags => 'Tags';
+
+  @override
+  String get aiHintAddTag => 'Add tag...';
+
+  @override
+  String get aiButtonApply => 'Apply Changes';
+
+  @override
+  String get aiButtonRetry => 'Retry';
+
+  @override
+  String get subAi => 'Artificial Intelligence';
+
+  @override
+  String get subCoding => 'Coding';
+
+  @override
+  String get subResearch => 'Search';
+
+  @override
+  String get subProductivity => 'Productivity';
+
+  @override
+  String get subDesign => 'Design';
+
+  @override
+  String get subCyberSecurity => 'Cyber Security';
+
+  @override
+  String get subBusiness => 'Business & Marketing';
+
+  @override
+  String get subEducation => 'Education';
+
+  @override
+  String get subGeneral => 'General';
+
+  @override
+  String get subImageGen => 'Image Generation';
+
+  @override
+  String get subImageEdit => 'Image Editing';
+
+  @override
+  String get subVideoGen => 'Video Generation';
+
+  @override
+  String get subWriting => 'Writing';
+
+  @override
+  String get subAnalysis => 'Analysis';
+
+  @override
+  String get subAutomation => 'Automation';
+
+  @override
+  String get subStyleControl => 'Style & Control';
+
+  @override
+  String get typeWebsite => 'Website';
+
+  @override
+  String get typeTool => 'Tool';
+
+  @override
+  String get typeCourse => 'Course';
+
+  @override
+  String get typePrompt => 'Prompt';
+
+  @override
+  String get typeOffer => 'Offer';
+
+  @override
+  String get typeAnnouncement => 'Announcement';
+
+  @override
+  String get typeTutorial => 'Tutorial';
+
+  @override
+  String get aiAssistantTitle => 'Content Prep Assistant';
+
+  @override
+  String get aiAssistantSub =>
+      'Paste a link or text to generate structured data';
+
+  @override
+  String get aiChangeModel => 'Change AI Model';
+
+  @override
+  String get aiGenerate => 'Generate Content';
+
+  @override
+  String get aiAnalyzing => 'Analyzing content...';
+
+  @override
+  String get aiSubcategory => 'Subcategory';
+
+  @override
+  String get aiSelectSubcategory => 'Select a subcategory';
+
+  @override
+  String get aiSelectType => 'Select Type';
+
+  @override
+  String get aiAddTag => 'Add tag...';
+
+  @override
+  String get aiRegenerate => 'Regenerate';
+
+  @override
+  String get aiApprove => 'Approve & Fill';
+
+  @override
+  String get aiRegenerating => 'Regenerating...';
+
+  @override
+  String get aiImprove => 'Improve';
 }

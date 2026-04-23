@@ -21,13 +21,15 @@ import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
 import '../../data/models/ai_content_result.dart';
 import '../../data/models/category_model.dart';
+import '../../data/models/draft_model.dart';
 import 'widgets/ai_content_prep_sheet.dart';
 
 class AddEditWebsiteScreen extends ConsumerStatefulWidget {
   final WebsiteModel? existing;
   final SuggestionModel? suggestion;
+  final DraftModel? draft;
 
-  const AddEditWebsiteScreen({super.key, this.existing, this.suggestion});
+  const AddEditWebsiteScreen({super.key, this.existing, this.suggestion, this.draft});
 
   @override
   ConsumerState<AddEditWebsiteScreen> createState() =>
@@ -59,6 +61,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   bool _showVideoSection = false;
   bool _isUploadingVideo = false;
   double _videoUploadProgress = 0;
+  bool _isSavingDraft = false;
 
   // ── AI Content Prep ──
   Future<void> _openAiContentPrep(List<CategoryModel> categories) async {
@@ -197,20 +200,20 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   void initState() {
     super.initState();
     _titleCtrl = TextEditingController(
-      text: widget.existing?.title ?? widget.suggestion?.pageTitle ?? '',
+      text: widget.existing?.title ?? widget.suggestion?.pageTitle ?? widget.draft?.title ?? '',
     );
     _urlCtrl = TextEditingController(
-      text: widget.existing?.url ?? widget.suggestion?.pageUrl ?? '',
+      text: widget.existing?.url ?? widget.suggestion?.pageUrl ?? widget.draft?.url ?? '',
     );
-    _imgCtrl = TextEditingController(text: widget.existing?.imageUrl ?? '');
+    _imgCtrl = TextEditingController(text: widget.existing?.imageUrl ?? widget.draft?.imageUrl ?? '');
     _actionValueCtrl = TextEditingController(
-      text: widget.existing?.actionValue ?? '',
+      text: widget.existing?.actionValue ?? widget.draft?.actionValue ?? '',
     );
     _videoUrlCtrl = TextEditingController(
       text: widget.existing?.videoUrl ?? '',
     );
     _tagsCtrl = TextEditingController(
-      text: widget.existing?.tags.join(', ') ?? '',
+      text: widget.existing?.tags.join(', ') ?? widget.draft?.tags.join(', ') ?? '',
     );
     _showVideoSection = widget.existing?.hasVideo ?? false;
 
@@ -218,9 +221,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _isPopular = widget.existing?.isPopular ?? false;
     _isFeatured = widget.existing?.isFeatured ?? false;
     _isActive = widget.existing?.isActive ?? true;
-    _selectedCategoryId = widget.existing?.categoryId;
-    _contentType = widget.existing?.contentType ?? 'website';
-    _pricingModel = widget.existing?.pricingModel ?? 'free';
+    _selectedCategoryId = widget.existing?.categoryId ?? widget.draft?.categoryId;
+    _contentType = widget.existing?.contentType ?? widget.draft?.contentType ?? 'website';
+    _pricingModel = widget.existing?.pricingModel ?? widget.draft?.pricingModel ?? 'free';
     _expiresAt = widget.existing?.expiresAt;
 
     Document doc;
@@ -228,6 +231,16 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       if (widget.existing != null && widget.existing!.description.isNotEmpty) {
         final decoded = jsonDecode(widget.existing!.description);
         doc = Document.fromJson(decoded);
+      } else if (widget.draft != null &&
+          widget.draft!.description != null &&
+          widget.draft!.description!.isNotEmpty) {
+        // Try to parse as Quill Delta JSON, otherwise as plain text
+        try {
+          final decoded = jsonDecode(widget.draft!.description!);
+          doc = Document.fromJson(decoded);
+        } catch (_) {
+          doc = Document()..insert(0, widget.draft!.description!);
+        }
       } else if (widget.suggestion != null &&
           widget.suggestion!.pageDescription != null &&
           widget.suggestion!.pageDescription!.isNotEmpty) {
@@ -240,6 +253,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         ..insert(
           0,
           widget.existing?.description ??
+              widget.draft?.description ??
               widget.suggestion?.pageDescription ??
               '',
         );
@@ -354,6 +368,11 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         }
       }
 
+      // Link draft if applicable
+      if (newItemId != null && widget.draft != null) {
+        await adminMarkDraftPublished(widget.draft!.id, newItemId);
+      }
+
       // Send notification if toggled on (only for new items)
       if (_sendNotification && widget.existing == null) {
         try {
@@ -418,6 +437,60 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  /// Save current form state as a draft
+  Future<void> _saveAsDraft() async {
+    if (_titleCtrl.text.trim().isEmpty &&
+        _urlCtrl.text.trim().isEmpty) {
+      AdminUIUtils.showWarning(context, 'يجب ملء العنوان أو الرابط على الأقل');
+      return;
+    }
+
+    setState(() => _isSavingDraft = true);
+
+    try {
+      final deltaJson = jsonEncode(
+        _quillController.document.toDelta().toJson(),
+      );
+
+      final data = {
+        'title': _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+        'url': _urlCtrl.text.trim().isEmpty ? null : _urlCtrl.text.trim(),
+        'description': deltaJson,
+        'category_id': _selectedCategoryId,
+        'image_url': _imgCtrl.text.trim().isEmpty ? null : _imgCtrl.text.trim(),
+        'content_type': _contentType,
+        'action_value': _actionValueCtrl.text.trim(),
+        'tags': _tagsCtrl.text.trim().isEmpty
+            ? <String>[]
+            : _tagsCtrl.text
+                  .split(',')
+                  .map((e) => e.trim())
+                  .where((e) => e.isNotEmpty)
+                  .toList(),
+        'pricing_model': _pricingModel,
+        'status': 'in_progress',
+        'priority': 'normal',
+      };
+
+      if (widget.draft != null) {
+        await adminUpdateDraft(widget.draft!.id, data);
+      } else {
+        await adminAddDraft(data);
+      }
+
+      if (mounted) {
+        context.pop();
+        AdminUIUtils.showSuccess(context, 'تم حفظ المسودة بنجاح 💾');
+      }
+    } catch (e) {
+      if (mounted) {
+        AdminUIUtils.showError(context, 'خطأ في حفظ المسودة: $e');
+      }
+    } finally {
+      if (mounted) setState(() => _isSavingDraft = false);
     }
   }
 
@@ -738,6 +811,32 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           icon: Icon(PhosphorIcons.x()),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          if (widget.existing == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: _isSavingDraft
+                  ? const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                        ),
+                      ),
+                    )
+                  : Tooltip(
+                      message: 'حفظ كمسودة',
+                      child: IconButton(
+                        onPressed: _isSaving ? null : _saveAsDraft,
+                        icon: Icon(
+                          PhosphorIcons.notepad(),
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(

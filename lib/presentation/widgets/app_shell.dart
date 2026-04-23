@@ -741,6 +741,13 @@ class _AppShellState extends ConsumerState<AppShell> {
               },
             ),
           ),
+
+          // ── Zad Expert FAB ──
+          Positioned(
+            bottom: 16,
+            left: 20,
+            child: _ZadExpertFab(isDark: isDark),
+          ),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -947,6 +954,86 @@ class _AppShellState extends ConsumerState<AppShell> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Zad Expert FAB ─────────────────────────────────────────────────────────
+class _ZadExpertFab extends StatefulWidget {
+  final bool isDark;
+  const _ZadExpertFab({required this.isDark});
+
+  @override
+  State<_ZadExpertFab> createState() => _ZadExpertFabState();
+}
+
+class _ZadExpertFabState extends State<_ZadExpertFab>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        final glowOpacity = 0.15 + (_pulseAnimation.value * 0.2);
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF8B5CF6).withValues(alpha: glowOpacity),
+                blurRadius: 20 + (_pulseAnimation.value * 8),
+                spreadRadius: 2 + (_pulseAnimation.value * 2),
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: GestureDetector(
+        onTap: () => context.push('/zad-expert'),
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: widget.isDark ? 0.15 : 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: const Icon(
+            PhosphorIconsFill.sparkle,
+            color: Colors.white,
+            size: 24,
+          ),
         ),
       ),
     );

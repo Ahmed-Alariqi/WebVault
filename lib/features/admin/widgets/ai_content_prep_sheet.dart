@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../l10n/app_localizations.dart';
 
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/ai_content_result.dart';
@@ -12,11 +13,13 @@ import '../../../data/services/ai_content_prep_service.dart';
 class AiContentPrepSheet extends StatefulWidget {
   final List<CategoryModel> categories;
   final List<String> contentTypes;
+  final String? initialInput;
 
   const AiContentPrepSheet({
     super.key,
     required this.categories,
     required this.contentTypes,
+    this.initialInput,
   });
 
   @override
@@ -56,32 +59,39 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
   String? _regeneratingField;
 
   // Subcategory lists
-  static const _generalSubcategories = [
-    'ذكاء اصطناعي',
-    'برمجة',
-    'بحث',
-    'انتاجية',
-    'تصميم',
-    'امن سيبراني',
-    'اعمال وتسويق',
-    'تعليم',
-    'عام',
-  ];
-  static const _promptSubcategories = [
-    'توليد صور',
-    'تعديل صور',
-    'توليد فيديو',
-    'كتابة',
-    'برمجة',
-    'تحليل',
-    'أتمتة',
-    'أسلوب وتحكم',
-    'عام',
-  ];
+  List<String> _getLocalizedGeneralSubcategories(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.subAi,
+      l10n.subCoding,
+      l10n.subResearch,
+      l10n.subProductivity,
+      l10n.subDesign,
+      l10n.subCyberSecurity,
+      l10n.subBusiness,
+      l10n.subEducation,
+      l10n.subGeneral,
+    ];
+  }
 
-  List<String> get _currentSubcategories {
-    if (_selectedContentType == 'prompt') return _promptSubcategories;
-    return _generalSubcategories;
+  List<String> _getLocalizedPromptSubcategories(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      l10n.subImageGen,
+      l10n.subImageEdit,
+      l10n.subVideoGen,
+      l10n.subWriting,
+      l10n.subCoding,
+      l10n.subAnalysis,
+      l10n.subAutomation,
+      l10n.subStyleControl,
+      l10n.subGeneral,
+    ];
+  }
+
+  List<String> _getCurrentSubcategories(BuildContext context) {
+    if (_selectedContentType == 'prompt') return _getLocalizedPromptSubcategories(context);
+    return _getLocalizedGeneralSubcategories(context);
   }
 
   @override
@@ -89,6 +99,9 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
     super.initState();
     _titleCtrl = TextEditingController();
     _descCtrl = TextEditingController();
+    if (widget.initialInput != null && widget.initialInput!.isNotEmpty) {
+      _inputCtrl.text = widget.initialInput!;
+    }
   }
 
   @override
@@ -246,7 +259,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'مساعد تجهيز المحتوى',
+                        AppLocalizations.of(context)!.aiAssistantTitle,
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w800,
@@ -257,7 +270,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'أدخل رابط أو نص لتوليد بيانات منظمة',
+                        AppLocalizations.of(context)!.aiAssistantSub,
                         style: TextStyle(
                           fontSize: 12,
                           color: isDark
@@ -276,7 +289,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                   ),
                   child: PopupMenuButton<String>(
                     initialValue: _selectedModel,
-                    tooltip: 'تغيير نموذج الذكاء الاصطناعي',
+                    tooltip: AppLocalizations.of(context)!.aiChangeModel,
                     onSelected: (String newValue) {
                       setState(() {
                         _selectedModel = newValue;
@@ -443,7 +456,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
             color: isDark ? Colors.white : Colors.black87,
           ),
           decoration: InputDecoration(
-            hintText: 'الصق رابط أو اكتب وصف المحتوى...',
+            hintText: AppLocalizations.of(context)!.aiInputHint,
             hintStyle: TextStyle(
               color: isDark ? Colors.white30 : Colors.black26,
               fontSize: 14,
@@ -504,9 +517,9 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                   size: 20,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'توليد المحتوى',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context)!.aiGenerate,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -538,7 +551,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
             ),
             const SizedBox(width: 10),
             Text(
-              'جاري تحليل المحتوى...',
+              AppLocalizations.of(context)!.aiAnalyzing,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -555,12 +568,12 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
   List<Widget> _buildShimmerFields(bool isDark) {
     final fields = [
-      'العنوان',
-      'الوصف',
-      'التصنيف الرئيسي',
-      'التصنيف الفرعي',
-      'النوع',
-      'التاجات',
+      AppLocalizations.of(context)!.aiLabelTitle,
+      AppLocalizations.of(context)!.aiLabelDescription,
+      AppLocalizations.of(context)!.draftsCategory,
+      AppLocalizations.of(context)!.aiSubcategory,
+      AppLocalizations.of(context)!.draftsContentType,
+      AppLocalizations.of(context)!.aiLabelTags,
     ];
     return fields.map((label) {
       return Padding(
@@ -645,7 +658,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Title with regen button
         _buildResultFieldWithRegen(
-          label: 'العنوان',
+          label: AppLocalizations.of(context)!.aiLabelTitle,
           fieldName: 'title',
           icon: PhosphorIcons.textT(),
           isDark: isDark,
@@ -663,7 +676,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Description with regen button
         _buildResultFieldWithRegen(
-          label: 'الوصف',
+          label: AppLocalizations.of(context)!.aiLabelDescription,
           fieldName: 'description',
           icon: PhosphorIcons.textAlignLeft(),
           isDark: isDark,
@@ -683,7 +696,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Category dropdown
         _buildResultField(
-          label: 'التصنيف الرئيسي',
+          label: AppLocalizations.of(context)!.draftsCategory,
           icon: PhosphorIcons.folders(),
           isDark: isDark,
           child: _buildDropdown(
@@ -692,7 +705,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                 : null,
             hint: _selectedCategoryName.isNotEmpty
                 ? _selectedCategoryName
-                : 'اختر التصنيف',
+                : AppLocalizations.of(context)!.draftsSelectCategory,
             items: categoryNames,
             isDark: isDark,
             onChanged: (val) => setState(() => _selectedCategoryName = val!),
@@ -702,17 +715,17 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Subcategory dropdown
         _buildResultField(
-          label: 'التصنيف الفرعي',
+          label: AppLocalizations.of(context)!.aiSubcategory,
           icon: PhosphorIcons.treeStructure(),
           isDark: isDark,
           child: _buildDropdown(
-            value: _currentSubcategories.contains(_selectedSubcategory)
+            value: _getCurrentSubcategories(context).contains(_selectedSubcategory)
                 ? _selectedSubcategory
                 : null,
             hint: _selectedSubcategory.isNotEmpty
                 ? _selectedSubcategory
-                : 'اختر التصنيف الفرعي',
-            items: _currentSubcategories,
+                : AppLocalizations.of(context)!.aiSelectSubcategory,
+            items: _getCurrentSubcategories(context),
             isDark: isDark,
             onChanged: (val) => setState(() => _selectedSubcategory = val!),
           ),
@@ -721,14 +734,14 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Content type dropdown
         _buildResultField(
-          label: 'نوع المحتوى',
+          label: AppLocalizations.of(context)!.draftsContentType,
           icon: PhosphorIcons.squaresFour(),
           isDark: isDark,
           child: _buildDropdown(
             value: widget.contentTypes.contains(_selectedContentType)
                 ? _selectedContentType
                 : widget.contentTypes.first,
-            hint: 'اختر النوع',
+            hint: AppLocalizations.of(context)!.aiSelectType,
             items: widget.contentTypes,
             isDark: isDark,
             onChanged: (val) => setState(() => _selectedContentType = val!),
@@ -738,7 +751,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
 
         // Tags with regen button
         _buildResultFieldWithRegen(
-          label: 'التاجات',
+          label: AppLocalizations.of(context)!.aiLabelTags,
           fieldName: 'tags',
           icon: PhosphorIcons.tag(),
           isDark: isDark,
@@ -782,7 +795,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'أضف تاج...',
+                        hintText: AppLocalizations.of(context)!.aiAddTag,
                         hintStyle: TextStyle(
                           color: isDark ? Colors.white30 : Colors.black26,
                           fontSize: 13,
@@ -873,7 +886,7 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'إعادة التوليد',
+                        AppLocalizations.of(context)!.aiRegenerate,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -906,14 +919,14 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.check_rounded, color: Colors.white, size: 20),
-                      SizedBox(width: 6),
+                      const Icon(Icons.check_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
                       Text(
-                        'اعتماد وتعبئة',
-                        style: TextStyle(
+                        AppLocalizations.of(context)!.aiApprove,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -1027,7 +1040,9 @@ class _AiContentPrepSheetState extends State<AiContentPrepSheet> {
                       ),
                     const SizedBox(width: 4),
                     Text(
-                      isRegenerating ? 'جاري...' : 'تحسين',
+                      isRegenerating 
+                          ? AppLocalizations.of(context)!.aiRegenerating 
+                          : AppLocalizations.of(context)!.aiImprove,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,

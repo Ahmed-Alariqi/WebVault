@@ -43,9 +43,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFF6366F1), // Indigo
-                          const Color(0xFF8B5CF6), // Violet
+                          const Color(0xFF1E293B), // Slate 800
+                          AppTheme.primaryColor,   // Indigo
+                          const Color(0xFF0F172A), // Slate 900
                         ],
+                        stops: const [0.0, 0.4, 1.0],
                       ),
                     ),
                     child: Stack(
@@ -163,9 +165,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(20),
                 sliver: SliverGrid.count(
                   crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.85,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.3, // Slightly taller to accommodate wrapping text safely
                   children: [
                     if (perms.contains('analytics'))
                       _ActionCard(
@@ -192,6 +194,22 @@ class AdminDashboardScreen extends ConsumerWidget {
                         isDark: isDark,
                         onTap: () => context.push('/admin/suggestions'),
                         delay: 0,
+                      ),
+                    if (perms.contains('websites'))
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final count = ref.watch(adminDraftCountProvider);
+                          return _ActionCard(
+                            title: 'المسودات',
+                            subtitle: 'إدارة مسودات المحتوى',
+                            icon: PhosphorIcons.notepad(PhosphorIconsStyle.duotone),
+                            color: const Color(0xFFF59E0B),
+                            isDark: isDark,
+                            onTap: () => context.push('/admin/drafts'),
+                            delay: 25,
+                            badge: count > 0 ? _buildBadge(count) : null,
+                          );
+                        },
                       ),
                     if (perms.contains('websites'))
                       _ActionCard(
@@ -306,6 +324,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                         delay: 345,
                       ),
 
+                    // AI Management
+                    _ActionCard(
+                      title: 'إدارة الذكاء الاصطناعي',
+                      subtitle: 'الشخصيات والمزودين',
+                      icon: PhosphorIcons.brain(
+                        PhosphorIconsStyle.duotone,
+                      ),
+                      color: const Color(0xFF8B5CF6),
+                      isDark: isDark,
+                      onTap: () => context.push('/admin/ai-management'),
+                      delay: 350,
+                    ),
+
                     Consumer(
                       builder: (context, ref, _) {
                         // User messages is a special card — show if user has 'users' permission
@@ -355,114 +386,115 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _StatItem(
+    return Row(
+      children: [
+        Expanded(
+          child: _StatCard(
             label: AppLocalizations.of(context)!.totalUsers,
             value: stats['users']?.toString() ?? '0',
-            icon: PhosphorIcons.users(PhosphorIconsStyle.fill),
+            icon: PhosphorIcons.users(PhosphorIconsStyle.bold),
             color: const Color(0xFF6366F1),
             isDark: isDark,
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: isDark ? Colors.white12 : Colors.black12,
-          ),
-          _StatItem(
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _StatCard(
             label: AppLocalizations.of(context)!.websitesTitle,
             value: stats['websites']?.toString() ?? '0',
-            icon: PhosphorIcons.globe(PhosphorIconsStyle.fill),
+            icon: PhosphorIcons.globe(PhosphorIconsStyle.bold),
             color: const Color(0xFF10B981),
             isDark: isDark,
           ),
-          Container(
-            width: 1,
-            height: 40,
-            color: isDark ? Colors.white12 : Colors.black12,
-          ),
-          _StatItem(
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _StatCard(
             label: AppLocalizations.of(context)!.categoriesTitle,
             value: stats['categories']?.toString() ?? '0',
-            icon: PhosphorIcons.tag(PhosphorIconsStyle.fill),
+            icon: PhosphorIcons.tag(PhosphorIconsStyle.bold),
             color: const Color(0xFFF59E0B),
             isDark: isDark,
           ),
-        ],
-      ),
-    ).animate().fadeIn().slideY(begin: 0.2);
+        ),
+      ],
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, curve: Curves.easeOutCubic);
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
   final bool isDark;
 
-  const _StatItem({
+  const _StatCard({
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
     required this.isDark,
-  }); // Fixed typo in copy/paste construction? No, wait.
-
-  // Actually, I should just use the previous _StatItem class.
-  // I will check the constructor in the previous view.
-  // It was: const _StatItem({required this.label, ..., required this.isDark});
-  // I will just copy it.
-
-  // Wait, I am writing the WHOLE file.
-  // I need to be careful with `_StatItem` and `_ActionCard` and `_AccessDeniedView`.
-  // They are at the bottom of the file in step 1026.
-
-  // Let me just copy them from step 1026 output.
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : AppTheme.primaryColor.withValues(alpha: 0.1),
+          width: 1,
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white54 : Colors.black45,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-        ),
-      ],
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : Colors.black87,
+              letterSpacing: -0.5,
+            ),
+          ),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white54 : Colors.black45,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
+
+
 
 class _ActionCard extends StatelessWidget {
   final String title;
@@ -487,81 +519,128 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget card = Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              if (badge != null) const SizedBox(width: 8),
-              ?badge,
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            subtitle,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark ? Colors.white54 : Colors.black45,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-
     return GestureDetector(
       onTap: onTap,
-      child: card,
-    ).animate(delay: delay.ms).fadeIn().scale(begin: const Offset(0.9, 0.9));
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? AppTheme.darkCard : Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: isDark 
+                ? color.withValues(alpha: 0.2) 
+                : color.withValues(alpha: 0.15),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: isDark ? 0.15 : 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -12,
+              bottom: -12,
+              child: Icon(
+                icon,
+                size: 70,
+                color: color.withValues(alpha: 0.04),
+              ),
+            ),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color,
+                        color.withValues(alpha: 0.8),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: isDark ? Colors.white : Colors.black87,
+                                letterSpacing: -0.1,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                          if (badge != null) ...[
+                            const SizedBox(width: 6),
+                            badge!,
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isDark ? Colors.white38 : Colors.black45,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.1,
+                          height: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).animate(delay: delay.ms).fadeIn(duration: 400.ms).scale(
+      begin: const Offset(0.92, 0.92),
+      curve: Curves.easeOutBack,
+    );
   }
 }
 
 Widget _buildBadge(int count) {
   return Container(
-    padding: const EdgeInsets.all(8),
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     decoration: BoxDecoration(
-      color: Colors.red,
-      shape: BoxShape.circle,
-      border: Border.all(color: Colors.white, width: 2),
+      color: AppTheme.errorColor,
+      borderRadius: BorderRadius.circular(8),
       boxShadow: [
         BoxShadow(
-          color: Colors.red.withValues(alpha: 0.3),
+          color: AppTheme.errorColor.withValues(alpha: 0.2),
           blurRadius: 4,
           offset: const Offset(0, 2),
         ),
@@ -571,10 +650,9 @@ Widget _buildBadge(int count) {
       count > 99 ? '99+' : count.toString(),
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
+        fontSize: 9,
+        fontWeight: FontWeight.w900,
       ),
-      textAlign: TextAlign.center,
     ),
   );
 }

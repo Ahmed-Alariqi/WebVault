@@ -7064,6 +7064,42 @@ abstract class AppLocalizations {
   /// **'Found this site useful? Suggest it to the management to be published for everyone in the Explorer section.'**
   String get tutBrowserSuggestDesc;
 
+  /// No description provided for @tutBrowserAiAssistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'AI Smart Assistant'**
+  String get tutBrowserAiAssistantTitle;
+
+  /// No description provided for @tutBrowserAiAssistantDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the sparkle button to analyze the page content, summarize it, or ask the AI assistant for any details.'**
+  String get tutBrowserAiAssistantDesc;
+
+  /// No description provided for @tutDiscoverWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer Section'**
+  String get tutDiscoverWelcomeTitle;
+
+  /// No description provided for @tutDiscoverWelcomeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover the most important websites and services carefully selected for you.'**
+  String get tutDiscoverWelcomeDesc;
+
+  /// No description provided for @tutDiscoverSaveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Page'**
+  String get tutDiscoverSaveTitle;
+
+  /// No description provided for @tutDiscoverSaveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save any site to your \'Pages\' to access it easily later with the floating clipboard.'**
+  String get tutDiscoverSaveDesc;
+
   /// No description provided for @tutGotIt.
   ///
   /// In en, this message translates to:
@@ -7141,6 +7177,522 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to read page content'**
   String get browserAiExtractError;
+
+  /// No description provided for @draftsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drafts'**
+  String get draftsTitle;
+
+  /// No description provided for @draftsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get draftsFilterAll;
+
+  /// No description provided for @draftsFilterIdeas.
+  ///
+  /// In en, this message translates to:
+  /// **'Ideas'**
+  String get draftsFilterIdeas;
+
+  /// No description provided for @draftsFilterInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In Progress'**
+  String get draftsFilterInProgress;
+
+  /// No description provided for @draftsFilterReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get draftsFilterReady;
+
+  /// No description provided for @draftsNewDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'New Draft'**
+  String get draftsNewDraft;
+
+  /// No description provided for @draftsEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Drafts Found'**
+  String get draftsEmptyTitle;
+
+  /// No description provided for @draftsEmptySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your ideas and future content here'**
+  String get draftsEmptySub;
+
+  /// No description provided for @draftsDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Draft'**
+  String get draftsDeleteTitle;
+
+  /// No description provided for @draftsDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to delete \"{title}\"?'**
+  String draftsDeleteConfirm(String title);
+
+  /// No description provided for @draftsDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft deleted'**
+  String get draftsDeleted;
+
+  /// No description provided for @draftsReadiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Readiness Score'**
+  String get draftsReadiness;
+
+  /// No description provided for @draftsPrepAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare with AI'**
+  String get draftsPrepAi;
+
+  /// No description provided for @draftsImproveAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve with AI'**
+  String get draftsImproveAi;
+
+  /// No description provided for @draftsPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get draftsPublish;
+
+  /// No description provided for @draftsManualEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Edit'**
+  String get draftsManualEdit;
+
+  /// No description provided for @draftsSaveEdits.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get draftsSaveEdits;
+
+  /// No description provided for @draftsSaveAsDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as Draft'**
+  String get draftsSaveAsDraft;
+
+  /// No description provided for @draftsTitleOrIdea.
+  ///
+  /// In en, this message translates to:
+  /// **'Title or Idea *'**
+  String get draftsTitleOrIdea;
+
+  /// No description provided for @draftsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft description...'**
+  String get draftsDescription;
+
+  /// No description provided for @draftsUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'URL (Optional)'**
+  String get draftsUrl;
+
+  /// No description provided for @draftsTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags (e.g. AI, design, tools)'**
+  String get draftsTags;
+
+  /// No description provided for @draftsNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Side notes...'**
+  String get draftsNotes;
+
+  /// No description provided for @draftsCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get draftsCategory;
+
+  /// No description provided for @draftsPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority'**
+  String get draftsPriority;
+
+  /// No description provided for @draftsContentType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get draftsContentType;
+
+  /// No description provided for @draftsEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Draft'**
+  String get draftsEditTitle;
+
+  /// No description provided for @draftsNewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Draft'**
+  String get draftsNewTitle;
+
+  /// No description provided for @draftsHeaderSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your idea before it\'s lost'**
+  String get draftsHeaderSub;
+
+  /// No description provided for @draftsSelectCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a category'**
+  String get draftsSelectCategory;
+
+  /// No description provided for @draftsPriorityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get draftsPriorityLow;
+
+  /// No description provided for @draftsPriorityNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get draftsPriorityNormal;
+
+  /// No description provided for @draftsPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get draftsPriorityHigh;
+
+  /// No description provided for @draftsPriorityUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get draftsPriorityUrgent;
+
+  /// No description provided for @draftsErrorSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving draft: {error}'**
+  String draftsErrorSaving(String error);
+
+  /// No description provided for @aiPrepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Prep Assistant'**
+  String get aiPrepTitle;
+
+  /// No description provided for @aiPrepSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link or text to generate structured data'**
+  String get aiPrepSub;
+
+  /// No description provided for @aiModelTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Change AI Model'**
+  String get aiModelTooltip;
+
+  /// No description provided for @aiInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste link or write content description...'**
+  String get aiInputHint;
+
+  /// No description provided for @aiButtonGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Content'**
+  String get aiButtonGenerate;
+
+  /// No description provided for @aiLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing content...'**
+  String get aiLoading;
+
+  /// No description provided for @aiLabelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get aiLabelTitle;
+
+  /// No description provided for @aiLabelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get aiLabelDescription;
+
+  /// No description provided for @aiLabelMainCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Category'**
+  String get aiLabelMainCategory;
+
+  /// No description provided for @aiLabelSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory'**
+  String get aiLabelSubcategory;
+
+  /// No description provided for @aiLabelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Type'**
+  String get aiLabelType;
+
+  /// No description provided for @aiLabelTags.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get aiLabelTags;
+
+  /// No description provided for @aiHintAddTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag...'**
+  String get aiHintAddTag;
+
+  /// No description provided for @aiButtonApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply Changes'**
+  String get aiButtonApply;
+
+  /// No description provided for @aiButtonRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get aiButtonRetry;
+
+  /// No description provided for @subAi.
+  ///
+  /// In en, this message translates to:
+  /// **'Artificial Intelligence'**
+  String get subAi;
+
+  /// No description provided for @subCoding.
+  ///
+  /// In en, this message translates to:
+  /// **'Coding'**
+  String get subCoding;
+
+  /// No description provided for @subResearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get subResearch;
+
+  /// No description provided for @subProductivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Productivity'**
+  String get subProductivity;
+
+  /// No description provided for @subDesign.
+  ///
+  /// In en, this message translates to:
+  /// **'Design'**
+  String get subDesign;
+
+  /// No description provided for @subCyberSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyber Security'**
+  String get subCyberSecurity;
+
+  /// No description provided for @subBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Business & Marketing'**
+  String get subBusiness;
+
+  /// No description provided for @subEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get subEducation;
+
+  /// No description provided for @subGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get subGeneral;
+
+  /// No description provided for @subImageGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Generation'**
+  String get subImageGen;
+
+  /// No description provided for @subImageEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Editing'**
+  String get subImageEdit;
+
+  /// No description provided for @subVideoGen.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Generation'**
+  String get subVideoGen;
+
+  /// No description provided for @subWriting.
+  ///
+  /// In en, this message translates to:
+  /// **'Writing'**
+  String get subWriting;
+
+  /// No description provided for @subAnalysis.
+  ///
+  /// In en, this message translates to:
+  /// **'Analysis'**
+  String get subAnalysis;
+
+  /// No description provided for @subAutomation.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation'**
+  String get subAutomation;
+
+  /// No description provided for @subStyleControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Style & Control'**
+  String get subStyleControl;
+
+  /// No description provided for @typeWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get typeWebsite;
+
+  /// No description provided for @typeTool.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool'**
+  String get typeTool;
+
+  /// No description provided for @typeCourse.
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get typeCourse;
+
+  /// No description provided for @typePrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt'**
+  String get typePrompt;
+
+  /// No description provided for @typeOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer'**
+  String get typeOffer;
+
+  /// No description provided for @typeAnnouncement.
+  ///
+  /// In en, this message translates to:
+  /// **'Announcement'**
+  String get typeAnnouncement;
+
+  /// No description provided for @typeTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'Tutorial'**
+  String get typeTutorial;
+
+  /// No description provided for @aiAssistantTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Prep Assistant'**
+  String get aiAssistantTitle;
+
+  /// No description provided for @aiAssistantSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a link or text to generate structured data'**
+  String get aiAssistantSub;
+
+  /// No description provided for @aiChangeModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change AI Model'**
+  String get aiChangeModel;
+
+  /// No description provided for @aiGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Content'**
+  String get aiGenerate;
+
+  /// No description provided for @aiAnalyzing.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing content...'**
+  String get aiAnalyzing;
+
+  /// No description provided for @aiSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Subcategory'**
+  String get aiSubcategory;
+
+  /// No description provided for @aiSelectSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a subcategory'**
+  String get aiSelectSubcategory;
+
+  /// No description provided for @aiSelectType.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Type'**
+  String get aiSelectType;
+
+  /// No description provided for @aiAddTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag...'**
+  String get aiAddTag;
+
+  /// No description provided for @aiRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get aiRegenerate;
+
+  /// No description provided for @aiApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve & Fill'**
+  String get aiApprove;
+
+  /// No description provided for @aiRegenerating.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerating...'**
+  String get aiRegenerating;
+
+  /// No description provided for @aiImprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Improve'**
+  String get aiImprove;
 }
 
 class _AppLocalizationsDelegate

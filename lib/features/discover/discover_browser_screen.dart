@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../../core/utils/page_content_extractor.dart';
 import '../clipboard/floating_clipboard.dart';
 import '../ai_assistant/ai_chat_bottom_sheet.dart';
+import '../../presentation/widgets/tutorial_overlay.dart';
 import 'package:uuid/uuid.dart';
 
 class DiscoverBrowserScreen extends ConsumerStatefulWidget {
@@ -30,11 +31,30 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
   double _progress = 0;
   bool _isLoading = true;
   bool _isFullscreen = false; // Toggle for fullscreen mode
+  final GlobalKey _aiKey = GlobalKey();
+  final GlobalKey _clipboardKey = GlobalKey();
+  final GlobalKey _saveKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _initPage();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+  }
+
+  Future<void> _checkTutorial() async {
+    final shouldShow = await TutorialManager.shouldShowSection(TutorialSection.discover);
+    if (mounted && shouldShow) {
+      final l10n = AppLocalizations.of(context)!;
+      TutorialOverlay.show(
+        context,
+        section: TutorialSection.discover,
+        steps: TutorialManager.getDiscoverSteps(l10n, _aiKey, _clipboardKey, _saveKey),
+        onComplete: () {
+          if (mounted) setState(() {});
+        },
+      );
+    }
   }
 
   void _initPage() {
@@ -92,6 +112,7 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
               ),
               actions: [
                 IconButton(
+                  key: _saveKey,
                   icon: Icon(PhosphorIcons.folderPlus(), size: 20),
                   onPressed: _saveToPages,
                   tooltip: 'Save to Pages',
@@ -99,6 +120,7 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
                 Tooltip(
                   message: AppLocalizations.of(context)!.browserAiAssistant,
                   child: InkWell(
+                    key: _aiKey,
                     onTap: () async {
                       // Show scanning snackbar
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -150,6 +172,25 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
                         PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
                         size: 20,
                         color: const Color(0xFF8A2BE2),
+                      ),
+                    ),
+                  ),
+                ),
+                Tooltip(
+                  message: 'Toggle Clipboard',
+                  child: InkWell(
+                    key: _clipboardKey,
+                    onTap: () {
+                      ref.read(clipboardVisibilityProvider.notifier).update((s) => !s);
+                    },
+                    customBorder: const CircleBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(
+                        ref.watch(clipboardVisibilityProvider)
+                            ? PhosphorIcons.clipboardText(PhosphorIconsStyle.fill)
+                            : PhosphorIcons.clipboardText(),
+                        size: 20,
                       ),
                     ),
                   ),

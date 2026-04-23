@@ -44,3 +44,69 @@ class AiChatMessage {
     };
   }
 }
+
+/// Model for a standalone chat session in the Quick Tile AI Assistant
+class QuickChatSession {
+  final String id;
+  final String title;
+  final String contextHash; // MD5-like short hash of the context text
+  final List<AiChatMessage> messages;
+  final DateTime lastActivity;
+
+  const QuickChatSession({
+    required this.id,
+    required this.title,
+    required this.contextHash,
+    required this.messages,
+    required this.lastActivity,
+  });
+
+  /// Auto-generate a short human-readable title from the context
+  static String generateTitle(String context) {
+    final clean = context.trim();
+    if (clean.startsWith('http')) {
+      try {
+        final uri = Uri.parse(clean);
+        return uri.host.replaceAll('www.', '');
+      } catch (_) {
+        return clean.substring(0, clean.length.clamp(0, 40));
+      }
+    }
+    return clean.length > 45 ? '${clean.substring(0, 42)}...' : clean;
+  }
+
+  QuickChatSession copyWith({
+    List<AiChatMessage>? messages,
+    DateTime? lastActivity,
+  }) {
+    return QuickChatSession(
+      id: id,
+      title: title,
+      contextHash: contextHash,
+      messages: messages ?? this.messages,
+      lastActivity: lastActivity ?? this.lastActivity,
+    );
+  }
+
+  factory QuickChatSession.fromJson(Map<dynamic, dynamic> json) {
+    return QuickChatSession(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      contextHash: json['contextHash'] as String,
+      messages: (json['messages'] as List)
+          .map((e) => AiChatMessage.fromJson(Map<dynamic, dynamic>.from(e as Map)))
+          .toList(),
+      lastActivity: DateTime.parse(json['lastActivity'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'contextHash': contextHash,
+      'messages': messages.map((m) => m.toJson()).toList(),
+      'lastActivity': lastActivity.toIso8601String(),
+    };
+  }
+}

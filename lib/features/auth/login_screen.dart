@@ -110,48 +110,89 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: isDark
-                ? [
-                    const Color(0xFF0F172A),
-                    const Color(0xFF1E1B4B),
-                    const Color(0xFF0F172A),
-                  ]
-                : [
-                    const Color(0xFFF8FAFC),
-                    const Color(0xFFE2E8F0),
-                    const Color(0xFFF1F5F9),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                SizedBox(height: size.height * 0.02),
-
-                // Logo / Branding
-                _buildLogo(isDark),
-                const SizedBox(height: 24),
-
-                // Login Card
-                _buildLoginCard(isDark),
-                const SizedBox(height: 16),
-
-                // Sign Up Link
-                _buildSignUpLink(isDark),
-                const SizedBox(height: 14),
-              ],
+      body: Stack(
+        children: [
+          // 1. Background Gradient
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: isDark
+                    ? [
+                        const Color(0xFF0F172A),
+                        const Color(0xFF1E1B4B),
+                        const Color(0xFF020617),
+                      ]
+                    : [
+                        const Color(0xFFF8FAFC),
+                        const Color(0xFFEEF2FF),
+                        const Color(0xFFF1F5F9),
+                      ],
+              ),
             ),
           ),
-        ),
+
+          // 2. Decorative Blobs (Manual implementation for visibility)
+          if (!isDark) ...[
+            Positioned(
+              top: -100,
+              right: -50,
+              child: Container(
+                width: size.width * 0.8,
+                height: size.width * 0.8,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 50,
+              left: -50,
+              child: Container(
+                width: size.width * 0.6,
+                height: size.width * 0.6,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC7D2FE).withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                child: const SizedBox.shrink(),
+              ),
+            ),
+          ],
+
+          // 3. Main Content
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+                  SizedBox(height: size.height * 0.02),
+
+                  // Logo / Branding
+                  _buildLogo(isDark),
+                  const SizedBox(height: 24),
+
+                  // Login Card
+                  _buildLoginCard(isDark),
+                  const SizedBox(height: 16),
+
+                  // Sign Up Link
+                  _buildSignUpLink(isDark),
+                  const SizedBox(height: 14),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -200,20 +241,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.7),
+                : Colors.white,
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.5),
+                  : Colors.white,
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                blurRadius: 32,
-                offset: const Offset(0, 16),
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
               ),
+              if (!isDark)
+                 BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.03),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
             ],
           ),
           child: Form(
@@ -296,7 +343,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     icon: Icon(
                       _obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
                       size: 20,
-                      color: isDark ? Colors.white38 : Colors.black38,
+                      color: isDark ? Colors.white38 : const Color(0xFF334155),
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
@@ -388,7 +435,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             AppLocalizations.of(context)!.useBiometrics,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? Colors.white60 : Colors.black54,
+                              color: isDark ? Colors.white60 :,
                             ),
                           ),
                         ],
@@ -478,15 +525,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         prefixIcon: Icon(
           icon,
           size: 20,
-          color: isDark ? Colors.white38 : Colors.black38,
+          color: isDark ? Colors.white38 : const Color(0xFF334155),
         ),
         suffixIcon: suffixIcon,
         labelStyle: TextStyle(
-          color: isDark ? Colors.white38 : Colors.black38,
+          color: isDark ? Colors.white38 : const Color(0xFF334155),
           fontSize: 14,
         ),
         hintStyle: TextStyle(
-          color: isDark ? Colors.white24 : Colors.black26,
+          color: isDark ? Colors.white24 : const Color(0xFF64748B),
           fontSize: 14,
         ),
         filled: true,

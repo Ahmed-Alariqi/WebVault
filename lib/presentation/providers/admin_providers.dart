@@ -8,6 +8,7 @@ import '../../data/models/suggestion_model.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/repositories/suggestion_repository.dart';
 import '../../data/models/collection_model.dart';
+import '../../data/models/draft_model.dart';
 
 final _client = SupabaseConfig.client;
 
@@ -570,3 +571,68 @@ final collectionItemsProvider =
           .map((ci) => WebsiteModel.fromJson(ci['websites']))
           .toList();
     });
+
+// --------------- Admin Content Drafts ---------------
+
+/// Real-time stream of all drafts, ordered by priority (urgent first) then newest
+final adminDraftsProvider = StreamProvider<List<DraftModel>>((ref) {
+  try {
+    return _client
+        .from('content_drafts')
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: false)
+        .map((data) {
+          try {
+            return data.map((e) => DraftModel.fromJson(e)).toList()
+              ..sort((a, b) {
+                const priorityOrder = {'urgent': 0, 'high': 1, 'normal': 2, 'low': 3};
+                final pa = priorityOrder[a.priority] ?? 2;
+                final pb = priorityOrder[b.priority] ?? 2;
+                if (pa != pb) return pa.compareTo(pb);
+                return b.createdAt.compareTo(a.createdAt);
+              });
+          } catch (e) {
+            // Log parsing error but don't kill the stream
+            return [];
+          }
+        });
+  } catch (e) {
+    // If stream initialization fails (e.g. Realtime disabled)
+    return Stream.error(e);
+  }
+});
+
+/// Count of unpublished drafts (for badges)
+final adminDraftCountProvider = Provider<int>((ref) {
+  final drafts = ref.watch(adminDraftsProvider).valueOrNull ?? [];
+  return drafts.where((d) => !d.isPublished).length;
+});
+
+/// Count of ready-to-publish drafts
+final adminReadyDraftCountProvider = Provider<int>((ref) {
+  final drafts = ref.watch(adminDraftsProvider).valueOrNull ?? [];
+  return drafts.where((d) => d.status == 'ready' && !d.isPublished).length;
+});
+
+Future<String?> adminAddDraft(Map<String, dynamic> data) async {
+  final user = _client.auth.currentUser;
+  data['created_by'] = user?.id;
+  final res = await _client.from('content_drafts').insert(data).select('id').single();
+  return res['id'] as String?;
+}
+
+Future<void> adminUpdateDraft(String id, Map<String, dynamic> data) async {
+  await _client.from('content_drafts').update(data).eq('id', id);
+}
+
+Future<void> adminDeleteDraft(String id) async {
+  await _client.from('content_drafts').delete().eq('id', id);
+}
+
+/// Mark a draft as published and link it to the website
+Future<void> adminMarkDraftPublished(String draftId, String websiteId) async {
+  await _client.from('content_drafts').update({
+    'published_website_id': websiteId,
+    'status': 'ready',
+  }).eq('id', draftId);
+}

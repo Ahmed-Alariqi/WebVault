@@ -32,7 +32,7 @@ class AiChatState {
   }
 }
 
-/// Notifier that manages the chat session state
+/// Notifier that manages the chat session state (for in-app website chats)
 class AiChatNotifier extends StateNotifier<AiChatState> {
   final WebsiteModel item;
 
@@ -72,7 +72,6 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   Future<void> sendMessage(String content, [String? pageContent]) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
-    // Add user message
     final userMessage = AiChatMessage(
       role: 'user',
       content: content.trim(),
@@ -87,14 +86,12 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     );
 
     try {
-      // Call AI service
       final responseText = await AiAssistantService.sendMessage(
         item: item,
         chatHistory: updatedMessages,
         pageContent: pageContent,
       );
 
-      // Add assistant response
       final assistantMessage = AiChatMessage(
         role: 'assistant',
         content: responseText,
@@ -111,18 +108,14 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
         isLoading: false,
         error: e.toString().replaceAll('Exception: ', ''),
       );
-      // Remove loading message from history if any error happens, or we can just leave it as is
-      // but without the mock. Better to revert updatedMessages or just save current state.
       _saveChatHistory();
     }
   }
 
-  /// Clear the error
   void clearError() {
     state = state.copyWith(error: null);
   }
 
-  /// Clear all messages
   void clearChat() {
     state = const AiChatState();
     _saveChatHistory();
@@ -146,58 +139,156 @@ final aiChatProvider = StateNotifierProvider.family<AiChatNotifier, AiChatState,
       (ref, item) => AiChatNotifier(item),
     );
 
-/// State notifier for external AI Assistant chats
-class ExternalAiChatNotifier extends StateNotifier<AiChatState> {
-  final String initialContext;
+// ─────────────────────────────────────────────────────────────────────────────
+// QUICK TILE (External) — Multi-Session Manager
+// ─────────────────────────────────────────────────────────────────────────────
 
-  static const _hiveKey = 'external_chat_history';
-  static const _draftKey = 'external_chat_draft';
+/// Max number of sessions to store locally
+const _kMaxSessions = 10;
+const _kSessionsHiveKey = 'quick_chat_sessions';
+const _kDraftHiveKey = 'quick_chat_draft';
 
-  ExternalAiChatNotifier(this.initialContext) : super(const AiChatState()) {
-    _loadChatHistory();
+/// State for the Quick Tile multi-session manager
+class QuickSessionsState {
+  final List<QuickChatSession> sessions;
+  final String? activeSessionId;
+  final bool isLoading;
+  final String? error;
+
+  const QuickSessionsState({
+    this.sessions = const [],
+    this.activeSessionId,
+    this.isLoading = false,
+    this.error,
+  });
+
+  QuickChatSession? get activeSession =>
+      sessions.where((s) => s.id == activeSessionId).firstOrNull;
+
+  List<AiChatMessage> get activeMessages => activeSession?.messages ?? [];
+
+  QuickSessionsState copyWith({
+    List<QuickChatSession>? sessions,
+    String? activeSessionId,
+    bool? isLoading,
+    String? error,
+    bool clearError = false,
+  }) {
+    return QuickSessionsState(
+      sessions: sessions ?? this.sessions,
+      activeSessionId: activeSessionId ?? this.activeSessionId,
+      isLoading: isLoading ?? this.isLoading,
+      error: clearError ? null : (error ?? this.error),
+    );
+  }
+}
+
+class QuickSessionsNotifier extends StateNotifier<QuickSessionsState> {
+  QuickSessionsNotifier() : super(const QuickSessionsState()) {
+    _loadAllSessions();
   }
 
-  void _loadChatHistory() {
+  // ── Persistence Helpers ──────────────────────────────────────────────────
+
+  void _loadAllSessions() {
     try {
       final box = Hive.box('ai_chats');
-      final data = box.get(_hiveKey);
-      if (data != null && data is List && data.isNotEmpty) {
-        final messages = data
-            .map((e) => AiChatMessage.fromJson(Map<String, dynamic>.from(e as Map)))
-            .toList();
-        state = state.copyWith(messages: messages);
+      final raw = box.get(_kSessionsHiveKey);
+      if (raw != null && raw is List && raw.isNotEmpty) {
+        final sessions = raw
+            .map((e) => QuickChatSession.fromJson(Map<dynamic, dynamic>.from(e as Map)))
+            .toList()
+          ..sort((a, b) => b.lastActivity.compareTo(a.lastActivity));
+        state = state.copyWith(sessions: sessions);
       }
     } catch (_) {}
   }
 
-  void _saveChatHistory() {
+  void _saveAllSessions() {
     try {
       final box = Hive.box('ai_chats');
-      final data = state.messages.map((m) => m.toJson()).toList();
-      box.put(_hiveKey, data);
+      final data = state.sessions.map((s) => s.toJson()).toList();
+      box.put(_kSessionsHiveKey, data);
     } catch (_) {}
   }
 
-  Future<void> saveDraft(String text) async {
-    try {
-      final box = Hive.box('ai_chats');
-      box.put(_draftKey, text);
-    } catch (_) {}
-  }
+  // ── Session Management ───────────────────────────────────────────────────
 
-  String loadDraft() {
-    try {
-      final box = Hive.box('ai_chats');
-      return (box.get(_draftKey) as String?) ?? '';
-    } catch (_) {
-      return '';
+  /// Opens the correct session for the given context (URL/text).
+  /// If a matching session exists → resumes. Otherwise → creates fresh.
+  void openForContext(String contextText) {
+    if (contextText.trim().isEmpty) {
+      startNewSession(contextText);
+      return;
+    }
+
+    final hash = _computeHash(contextText);
+    final existing = state.sessions
+        .where((s) => s.contextHash == hash)
+        .toList()
+      ..sort((a, b) => b.lastActivity.compareTo(a.lastActivity));
+
+    if (existing.isNotEmpty) {
+      state = state.copyWith(activeSessionId: existing.first.id);
+    } else {
+      startNewSession(contextText);
     }
   }
 
-  Future<void> sendMessage(String content) async {
+  /// Force-starts a brand new empty session for the given context.
+  void startNewSession(String contextText) {
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final session = QuickChatSession(
+      id: id,
+      title: QuickChatSession.generateTitle(contextText),
+      contextHash: _computeHash(contextText),
+      messages: [],
+      lastActivity: DateTime.now(),
+    );
+
+    final trimmed = [session, ...state.sessions].take(_kMaxSessions).toList();
+    state = state.copyWith(sessions: trimmed, activeSessionId: id);
+    _saveAllSessions();
+  }
+
+  /// Switch to a previous session by ID.
+  void switchToSession(String sessionId) {
+    state = state.copyWith(activeSessionId: sessionId);
+  }
+
+  /// Delete a specific session by ID.
+  void deleteSession(String sessionId) {
+    final updated = state.sessions.where((s) => s.id != sessionId).toList();
+    String? nextId = state.activeSessionId;
+    if (nextId == sessionId) {
+      nextId = updated.firstOrNull?.id;
+    }
+    state = state.copyWith(sessions: updated, activeSessionId: nextId);
+    _saveAllSessions();
+  }
+
+  /// Clear only the active session's messages (not delete it from history).
+  void clearActiveSession() {
+    final id = state.activeSessionId;
+    if (id == null) return;
+    final updated = state.sessions.map((s) {
+      if (s.id == id) return s.copyWith(messages: []);
+      return s;
+    }).toList();
+    state = state.copyWith(sessions: updated);
+    _saveAllSessions();
+  }
+
+  // ── Messaging ────────────────────────────────────────────────────────────
+
+  Future<void> sendMessage(String content, String contextText) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
-    // Clear draft on send
+    // Ensure there's an active session
+    if (state.activeSessionId == null) {
+      openForContext(contextText);
+    }
+
     await saveDraft('');
 
     final userMessage = AiChatMessage(
@@ -206,18 +297,14 @@ class ExternalAiChatNotifier extends StateNotifier<AiChatState> {
       timestamp: DateTime.now(),
     );
 
-    final updatedMessages = [...state.messages, userMessage];
-    state = state.copyWith(
-      messages: updatedMessages,
-      isLoading: true,
-      error: null,
-    );
+    _updateActiveMessages([...state.activeMessages, userMessage]);
+    state = state.copyWith(isLoading: true, error: null, clearError: true);
 
     try {
       final responseText = await AiAssistantService.sendMessage(
         item: null,
-        chatHistory: updatedMessages,
-        externalUrlOrText: initialContext.isNotEmpty ? initialContext : null,
+        chatHistory: state.activeMessages,
+        externalUrlOrText: contextText.isNotEmpty ? contextText : null,
       );
 
       final assistantMessage = AiChatMessage(
@@ -226,11 +313,9 @@ class ExternalAiChatNotifier extends StateNotifier<AiChatState> {
         timestamp: DateTime.now(),
       );
 
-      state = state.copyWith(
-        messages: [...updatedMessages, assistantMessage],
-        isLoading: false,
-      );
-      _saveChatHistory();
+      _updateActiveMessages([...state.activeMessages, assistantMessage]);
+      state = state.copyWith(isLoading: false);
+      _saveAllSessions();
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -239,18 +324,51 @@ class ExternalAiChatNotifier extends StateNotifier<AiChatState> {
     }
   }
 
-  void clearError() {
-    state = state.copyWith(error: null);
+  void _updateActiveMessages(List<AiChatMessage> messages) {
+    final id = state.activeSessionId;
+    if (id == null) return;
+    final updated = state.sessions.map((s) {
+      if (s.id == id) {
+        return s.copyWith(messages: messages, lastActivity: DateTime.now());
+      }
+      return s;
+    }).toList();
+    state = state.copyWith(sessions: updated);
   }
 
-  void clearChat() {
-    state = const AiChatState();
-    _saveChatHistory();
-    saveDraft('');
+  void clearError() => state = state.copyWith(clearError: true);
+
+  // ── Draft ────────────────────────────────────────────────────────────────
+
+  Future<void> saveDraft(String text) async {
+    try {
+      Hive.box('ai_chats').put(_kDraftHiveKey, text);
+    } catch (_) {}
+  }
+
+  String loadDraft() {
+    try {
+      return (Hive.box('ai_chats').get(_kDraftHiveKey) as String?) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  // ── Utilities ────────────────────────────────────────────────────────────
+
+  static String _computeHash(String text) {
+    // Simple repeatable hash — no external deps needed
+    final clean = text.trim().toLowerCase();
+    int h = 0;
+    for (final c in clean.codeUnits) {
+      h = (h * 31 + c) & 0xFFFFFFFF;
+    }
+    return h.toRadixString(16);
   }
 }
 
-/// Provider for external AI chats — NOT auto-disposed so session persists.
-final externalAiChatProvider = StateNotifierProvider.family<ExternalAiChatNotifier, AiChatState, String>(
-  (ref, contextText) => ExternalAiChatNotifier(contextText),
+/// The single provider for the Quick Tile multi-session system.
+final quickSessionsProvider =
+    StateNotifierProvider.autoDispose<QuickSessionsNotifier, QuickSessionsState>(
+  (ref) => QuickSessionsNotifier(),
 );

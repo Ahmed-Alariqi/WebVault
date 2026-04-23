@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/suggestion_model.dart';
+import '../../data/models/draft_model.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../features/dashboard/dashboard_screen.dart';
@@ -26,6 +27,7 @@ import '../../features/auth/forgot_password_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/admin/admin_dashboard_screen.dart';
 import '../../features/admin/manage_websites_screen.dart';
+import '../../features/admin/manage_drafts_screen.dart';
 import '../../features/admin/manage_categories_screen.dart';
 import '../../features/admin/send_notification_screen.dart';
 import '../../features/admin/manage_in_app_messages_screen.dart';
@@ -57,6 +59,8 @@ import '../../features/discover/advertisement_detail_screen.dart';
 import '../../features/ai_assistant/ai_chat_screen.dart';
 import '../../features/ai_assistant/zad_share_hub_screen.dart';
 import '../../features/ai_assistant/external_ai_chat_screen.dart';
+import '../../features/zad_expert/zad_expert_screen.dart';
+import '../../features/admin/admin_ai_management_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -420,19 +424,27 @@ final routerProvider = Provider<GoRouter>((ref) {
           final extra = state.extra;
           WebsiteModel? existing;
           SuggestionModel? suggestion;
+          DraftModel? draft;
 
           if (extra is WebsiteModel) {
             existing = extra;
           } else if (extra is Map) {
             existing = extra['existing'] as WebsiteModel?;
             suggestion = extra['suggestion'] as SuggestionModel?;
+            draft = extra['draft'] as DraftModel?;
           }
 
           return AddEditWebsiteScreen(
             existing: existing,
             suggestion: suggestion,
+            draft: draft,
           );
         },
+      ),
+      GoRoute(
+        path: '/admin/drafts',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ManageDraftsScreen(),
       ),
       GoRoute(
         path: '/admin/categories',
@@ -515,6 +527,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return AdminChatScreen(conversationId: id);
         },
+      ),
+      // ---- Zad Expert AI ----
+      GoRoute(
+        path: '/zad-expert',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ZadExpertScreen(),
+      ),
+      GoRoute(
+        path: '/admin/ai-management',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminAiManagementScreen(),
       ),
       GoRoute(
         path: '/pin-setup',

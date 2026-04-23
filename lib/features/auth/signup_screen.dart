@@ -295,58 +295,99 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: isDark
-                ? [
-                    const Color(0xFF0F172A),
-                    const Color(0xFF1E1B4B),
-                    const Color(0xFF0F172A),
-                  ]
-                : [
-                    const Color(0xFFF8FAFC),
-                    const Color(0xFFE2E8F0),
-                    const Color(0xFFF1F5F9),
-                  ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                // Back button
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: Icon(
-                      PhosphorIcons.arrowLeft(),
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                if (_success) ...[
-                  _buildSuccessCard(isDark),
-                ] else ...[
-                  _buildHeader(isDark),
-                  const SizedBox(height: 32),
-                  _buildFormCard(isDark),
-                  const SizedBox(height: 24),
-                  _buildLoginLink(isDark),
-                ],
-                const SizedBox(height: 40),
-              ],
+      body: Stack(
+        children: [
+          // 1. Background Gradient
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+                colors: isDark
+                    ? [
+                        const Color(0xFF0F172A),
+                        const Color(0xFF1E1B4B),
+                        const Color(0xFF020617),
+                      ]
+                    : [
+                        const Color(0xFFF8FAFC),
+                        const Color(0xFFEEF2FF),
+                        const Color(0xFFF1F5F9),
+                      ],
+              ),
             ),
           ),
-        ),
+
+          // 2. Decorative Blobs
+          if (!isDark) ...[
+            Positioned(
+              top: -50,
+              right: -30,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 100,
+              left: -50,
+              child: Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC7D2FE).withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                child: const SizedBox.shrink(),
+              ),
+            ),
+          ],
+
+          // 3. Main Content
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+                  // Back button
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: Icon(
+                        PhosphorIcons.arrowLeft(),
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  if (_success) ...[
+                    _buildSuccessCard(isDark),
+                  ] else ...[
+                    _buildHeader(isDark),
+                    const SizedBox(height: 32),
+                    _buildFormCard(isDark),
+                    const SizedBox(height: 24),
+                    _buildLoginLink(isDark),
+                  ],
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -456,20 +497,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.7),
+                : Colors.white,
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.5),
+                  : Colors.white,
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                blurRadius: 32,
-                offset: const Offset(0, 16),
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                blurRadius: 40,
+                offset: const Offset(0, 20),
               ),
+              if (!isDark)
+                 BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.03),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
             ],
           ),
           child: Form(
@@ -570,7 +617,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     icon: Icon(
                       _obscure ? PhosphorIcons.eye() : PhosphorIcons.eyeSlash(),
                       size: 20,
-                      color: isDark ? Colors.white38 : Colors.black38,
+                      color: isDark ? Colors.white38 : const Color(0xFF334155),
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
@@ -627,7 +674,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ? PhosphorIcons.eye()
                           : PhosphorIcons.eyeSlash(),
                       size: 20,
-                      color: isDark ? Colors.white38 : Colors.black38,
+                      color: isDark ? Colors.white38 : const Color(0xFF334155),
                     ),
                     onPressed: () =>
                         setState(() => _obscureConfirm = !_obscureConfirm),
@@ -736,15 +783,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         prefixIcon: Icon(
           icon,
           size: 20,
-          color: isDark ? Colors.white38 : Colors.black38,
+          color: isDark ? Colors.white38 : const Color(0xFF334155),
         ),
         suffixIcon: suffixIcon,
         labelStyle: TextStyle(
-          color: isDark ? Colors.white38 : Colors.black38,
+          color: isDark ? Colors.white38 : const Color(0xFF334155),
           fontSize: 14,
         ),
         hintStyle: TextStyle(
-          color: isDark ? Colors.white24 : Colors.black26,
+          color: isDark ? Colors.white24 : const Color(0xFF64748B),
           fontSize: 14,
         ),
         filled: true,

@@ -76,6 +76,11 @@ class SettingsRepository {
   Future<void> setHasSeenBrowserTutorial(bool value) =>
       _box.put('has_seen_browser_tutorial', value);
 
+  bool hasSeenDiscoverTutorial() =>
+      _box.get('has_seen_discover_tutorial', defaultValue: false) as bool;
+  Future<void> setHasSeenDiscoverTutorial(bool value) =>
+      _box.put('has_seen_discover_tutorial', value);
+
   // Get all settings as a map
   Map<String, dynamic> getAllSettings() {
     return {
@@ -90,6 +95,7 @@ class SettingsRepository {
       'hasSeenClipboardTutorial': hasSeenClipboardTutorial(),
       'hasSeenPagesTutorial': hasSeenPagesTutorial(),
       'hasSeenBrowserTutorial': hasSeenBrowserTutorial(),
+      'hasSeenDiscoverTutorial': hasSeenDiscoverTutorial(),
       'locale': getLocale(),
     };
   }

@@ -32,6 +32,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   PageModel? _page;
   final GlobalKey _suggestKey = GlobalKey();
   final GlobalKey _clipboardKey = GlobalKey();
+  final GlobalKey _aiKey = GlobalKey();
 
   @override
   void initState() {
@@ -47,7 +48,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
       TutorialOverlay.show(
         context,
         section: TutorialSection.browser,
-        steps: TutorialManager.getBrowserSteps(l10n, _clipboardKey, _suggestKey),
+        steps: TutorialManager.getBrowserSteps(l10n, _clipboardKey, _suggestKey, _aiKey),
         onComplete: () {
           if (mounted) setState(() {});
         },
@@ -143,6 +144,7 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
           Tooltip(
             message: AppLocalizations.of(context)!.browserAiAssistant,
             child: InkWell(
+              key: _aiKey,
               onTap: () async {
                 // Show scanning snackbar
                 ScaffoldMessenger.of(context).showSnackBar(

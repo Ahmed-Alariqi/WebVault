@@ -22,7 +22,7 @@ class TutorialStep {
   });
 }
 
-enum TutorialSection { clipboard, pages, browser }
+enum TutorialSection { clipboard, pages, browser, discover }
 
 class TutorialOverlay extends StatefulWidget {
   final List<TutorialStep> steps;
@@ -220,6 +220,8 @@ class TutorialManager {
         return !(data['hasSeenPagesTutorial'] as bool? ?? false);
       case TutorialSection.browser:
         return !(data['hasSeenBrowserTutorial'] as bool? ?? false);
+      case TutorialSection.discover:
+        return !(data['hasSeenDiscoverTutorial'] as bool? ?? false);
     }
   }
 
@@ -234,6 +236,9 @@ class TutorialManager {
         break;
       case TutorialSection.browser:
         await settings.setHasSeenBrowserTutorial(true);
+        break;
+      case TutorialSection.discover:
+        await settings.setHasSeenDiscoverTutorial(true);
         break;
     }
   }
@@ -310,7 +315,7 @@ class TutorialManager {
     ];
   }
 
-   static List<TutorialStep> getBrowserSteps(AppLocalizations l10n, GlobalKey? clipboardKey, GlobalKey? suggestKey) {
+   static List<TutorialStep> getBrowserSteps(AppLocalizations l10n, GlobalKey? clipboardKey, GlobalKey? suggestKey, GlobalKey? aiKey) {
     return [
       TutorialStep(
         title: l10n.tutBrowserWelcomeTitle,
@@ -325,10 +330,48 @@ class TutorialManager {
         isPointer: true,
       ),
       TutorialStep(
+        title: l10n.tutBrowserAiAssistantTitle,
+        description: l10n.tutBrowserAiAssistantDesc,
+        icon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+        targetKey: aiKey,
+        isPointer: true,
+      ),
+      TutorialStep(
         title: l10n.tutBrowserSuggestTitle,
         description: l10n.tutBrowserSuggestDesc,
         icon: PhosphorIcons.paperPlaneTilt(),
         targetKey: suggestKey,
+        isPointer: true,
+      ),
+    ];
+  }
+
+  static List<TutorialStep> getDiscoverSteps(AppLocalizations l10n, GlobalKey? aiKey, GlobalKey? clipboardKey, GlobalKey? saveKey) {
+    return [
+      TutorialStep(
+        title: l10n.tutDiscoverWelcomeTitle,
+        description: l10n.tutDiscoverWelcomeDesc,
+        icon: PhosphorIcons.compass(),
+      ),
+      TutorialStep(
+        title: l10n.tutBrowserAiAssistantTitle,
+        description: l10n.tutBrowserAiAssistantDesc,
+        icon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
+        targetKey: aiKey,
+        isPointer: true,
+      ),
+      TutorialStep(
+        title: l10n.tutBrowserFloatingTitle,
+        description: l10n.tutBrowserFloatingDesc,
+        icon: PhosphorIcons.clipboardText(),
+        targetKey: clipboardKey,
+        isPointer: true,
+      ),
+      TutorialStep(
+        title: l10n.tutDiscoverSaveTitle,
+        description: l10n.tutDiscoverSaveDesc,
+        icon: PhosphorIcons.folderPlus(),
+        targetKey: saveKey,
         isPointer: true,
       ),
     ];
