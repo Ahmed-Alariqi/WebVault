@@ -54,6 +54,7 @@ Future<void> main() async {
     Hive.openBox(kDiscoverCacheBox),
     Hive.openBox(kSyncQueueBox),
     Hive.openBox('ai_chats'),
+    Hive.openBox(kExpertSessionsBox),
     SupabaseConfig.initialize(),   // runs while Hive boxes open
   ]);
 

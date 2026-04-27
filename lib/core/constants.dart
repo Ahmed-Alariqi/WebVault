@@ -7,6 +7,7 @@ const String kSettingsBox = 'settings_box';
 const String kCopyHistoryBox = 'copy_history_box';
 const String kDiscoverCacheBox = 'discover_cache_box';
 const String kSyncQueueBox = 'sync_queue_box';
+const String kExpertSessionsBox = 'expert_sessions_box';
 
 // Settings keys
 const String kPinCode = 'pin_code';

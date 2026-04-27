@@ -110,3 +110,57 @@ class QuickChatSession {
     };
   }
 }
+
+/// Model for a chat session with an Expert Persona
+class ExpertChatSession {
+  final String id;
+  final String title;
+  final String personaSlug;
+  final List<AiChatMessage> messages;
+  final DateTime lastActivity;
+
+  const ExpertChatSession({
+    required this.id,
+    required this.title,
+    required this.personaSlug,
+    required this.messages,
+    required this.lastActivity,
+  });
+
+  ExpertChatSession copyWith({
+    String? title,
+    List<AiChatMessage>? messages,
+    DateTime? lastActivity,
+  }) {
+    return ExpertChatSession(
+      id: id,
+      title: title ?? this.title,
+      personaSlug: personaSlug,
+      messages: messages ?? this.messages,
+      lastActivity: lastActivity ?? this.lastActivity,
+    );
+  }
+
+  factory ExpertChatSession.fromJson(Map<dynamic, dynamic> json) {
+    return ExpertChatSession(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? 'محادثة',
+      personaSlug: json['personaSlug'] as String,
+      messages: (json['messages'] as List?)
+              ?.map((e) => AiChatMessage.fromJson(Map<dynamic, dynamic>.from(e as Map)))
+              .toList() ??
+          [],
+      lastActivity: DateTime.parse(json['lastActivity'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'personaSlug': personaSlug,
+      'messages': messages.map((m) => m.toJson()).toList(),
+      'lastActivity': lastActivity.toIso8601String(),
+    };
+  }
+}

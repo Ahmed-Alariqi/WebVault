@@ -55,7 +55,7 @@ class AiAssistantService {
           },
           body: jsonEncode(requestBody),
         )
-        .timeout(const Duration(seconds: 60));
+        .timeout(const Duration(minutes: 3));
 
     if (response.statusCode != 200) {
       String errorMsg = 'AI assistant request failed';

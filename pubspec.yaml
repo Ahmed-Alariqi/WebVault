@@ -80,6 +80,7 @@ dependencies:
   # UI & Media
   any_link_preview: ^3.0.0
   webview_flutter_web: ^0.2.3+4
+  flutter_mermaid: ^0.1.0
 
 dev_dependencies:
   flutter_test:

@@ -120,6 +120,29 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     state = const AiChatState();
     _saveChatHistory();
   }
+
+  /// Edit the last user message: remove the last user message and any
+  /// assistant reply that came after it, then resend with the new content.
+  Future<void> editAndResendLast(String newContent, [String? pageContent]) async {
+    if (newContent.trim().isEmpty || state.isLoading) return;
+    if (state.messages.isEmpty) return;
+
+    final msgs = List<AiChatMessage>.from(state.messages);
+
+    if (msgs.isNotEmpty && msgs.last.role == 'assistant') {
+      msgs.removeLast();
+    }
+    if (msgs.isNotEmpty && msgs.last.role == 'user') {
+      msgs.removeLast();
+    } else {
+      return;
+    }
+
+    state = state.copyWith(messages: msgs);
+    _saveChatHistory();
+
+    await sendMessage(newContent, pageContent);
+  }
 }
 
 /// State to control bottom sheet visibility and expanded state

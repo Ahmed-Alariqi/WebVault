@@ -67,7 +67,6 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
 
   // STT
   final stt.SpeechToText _speech = stt.SpeechToText();
-  bool _sttAvailable = false;
   bool _isListening = false;
 
   // Typing animation
@@ -82,9 +81,6 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat();
-
-    // Initialise STT
-    _initStt();
 
     // Initialise sessions provider for this context
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -106,18 +102,6 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
     _controller.addListener(() {
       ref.read(quickSessionsProvider.notifier).saveDraft(_controller.text);
     });
-  }
-
-  Future<void> _initStt() async {
-    final available = await _speech.initialize(
-      onError: (_) => setState(() => _isListening = false),
-      onStatus: (status) {
-        if (status == 'done' || status == 'notListening') {
-          setState(() => _isListening = false);
-        }
-      },
-    );
-    if (mounted) setState(() => _sttAvailable = available);
   }
 
   Future<void> _loadClipboardContext() async {
@@ -160,7 +144,23 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
   }
 
   void _toggleListening() async {
-    if (!_sttAvailable) return;
+    if (!_speech.isAvailable) {
+      bool available = await _speech.initialize(
+        onError: (_) => setState(() => _isListening = false),
+        onStatus: (status) {
+          if (status == 'done' || status == 'notListening') {
+            setState(() => _isListening = false);
+          }
+        },
+      );
+      if (!available && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: const Text('التعرف على الصوت غير متاح الآن.', style: TextStyle()), backgroundColor: Colors.red.shade700),
+        );
+        return;
+      }
+    }
+
     if (_isListening) {
       await _speech.stop();
       setState(() => _isListening = false);
@@ -200,6 +200,9 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
         activeId: ref.read(quickSessionsProvider).activeSessionId,
         onSelect: (id) {
           Navigator.pop(context);
+          setState(() {
+            _contextText = ""; // Clear clipboard context when loading an old chat
+          });
           ref.read(quickSessionsProvider.notifier).switchToSession(id);
         },
         onDelete: (id) {
@@ -222,7 +225,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
         title: Text(
           'حذف المحادثة الحالية',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            
             fontWeight: FontWeight.bold,
             color: isDark ? Colors.white : Colors.black87,
           ),
@@ -231,7 +234,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
         content: Text(
           'هل تريد مسح رسائل المحادثة الحالية؟ ستبقى المحادثات الأخرى في السجل.',
           style: TextStyle(
-            fontFamily: 'Cairo',
+            
             color: isDark ? Colors.white70 : Colors.black54,
           ),
           textDirection: TextDirection.rtl,
@@ -241,14 +244,14 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
             onPressed: () => Navigator.pop(dCtx, false),
             child: Text('إلغاء',
                 style: TextStyle(
-                    fontFamily: 'Cairo',
+                    
                     color: isDark ? Colors.white60 : Colors.black54)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dCtx, true),
             child: const Text('حذف',
                 style: TextStyle(
-                    fontFamily: 'Cairo', color: Colors.redAccent)),
+                     color: Colors.redAccent)),
           ),
         ],
       ),
@@ -373,12 +376,12 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
                   color: isDark ? Colors.white : Colors.black87,
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Cairo',
+                  
                 ),
               ),
               const Spacer(),
               // History
-              if (sessions.length > 1)
+              if (sessions.isNotEmpty)
                 IconButton(
                   icon: Icon(PhosphorIcons.clockCounterClockwise(),
                       color: isDark ? Colors.white60 : Colors.black45, size: 20),
@@ -429,12 +432,12 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              fontFamily: 'Cairo',
+              
             ),
             bodyStyle: TextStyle(
               color: isDark ? Colors.white70 : Colors.black54,
               fontSize: 11,
-              fontFamily: 'Cairo',
+              
             ),
             errorWidget: _buildTextContextChip(isDark),
             cache: const Duration(days: 7),
@@ -506,7 +509,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black87,
-              fontFamily: 'Cairo',
+              
             ),
           ),
           const SizedBox(height: 6),
@@ -518,7 +521,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
             style: TextStyle(
               fontSize: 13,
               color: isDark ? Colors.white54 : Colors.black45,
-              fontFamily: 'Cairo',
+              
             ),
           ),
           const SizedBox(height: 28),
@@ -580,7 +583,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
         ),
         child: AnimatedBuilder(
           animation: _typingDotController,
-          builder: (_, _a) {
+          builder: (_, _) {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (index) {
@@ -638,21 +641,16 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Quick prompts (only when no messages yet)
-          if (isEmpty && _contextText.isNotEmpty) _buildChipRow(isDark),
-
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               // Voice button
-              if (_sttAvailable) ...[
-                _VoiceButton(
-                  isDark: isDark,
-                  isListening: _isListening,
-                  onTap: _toggleListening,
-                ),
-                const SizedBox(width: 8),
-              ],
+              _VoiceButton(
+                isDark: isDark,
+                isListening: _isListening,
+                onTap: _toggleListening,
+              ),
+              const SizedBox(width: 8),
 
               // Text Field
               Expanded(
@@ -727,42 +725,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
     );
   }
 
-  Widget _buildChipRow(bool isDark) {
-    final prompts = _getSmartPrompts(_contextText);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10, top: 2),
-      child: SizedBox(
-        height: 34,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: prompts.length,
-          separatorBuilder: (_, _a) => const SizedBox(width: 8),
-          itemBuilder: (_, i) {
-            final p = prompts[i];
-            return ActionChip(
-              avatar: Text(p['icon']!, style: const TextStyle(fontSize: 13)),
-              label: Text(
-                p['label']!,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontFamily: 'Cairo',
-                ),
-              ),
-              backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.04),
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              visualDensity: VisualDensity.compact,
-              onPressed: () => _sendMessage(p['prompt']!),
-            );
-          },
-        ),
-      ),
-    );
-  }
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -781,8 +744,12 @@ class _ChatBubble extends StatelessWidget {
     final isUser = msg.role == 'user';
     return Align(
       alignment: isUser ? Alignment.centerLeft : Alignment.centerRight,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
+      child: Column(
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(bottom: 2),
         constraints: BoxConstraints(
           maxWidth: MediaQuery.of(c).size.width * 0.84,
         ),
@@ -818,7 +785,7 @@ class _ChatBubble extends StatelessWidget {
                   color: Colors.white,
                   fontSize: 14,
                   height: 1.5,
-                  fontFamily: 'Cairo',
+                  
                 ),
                 textDirection: TextDirection.rtl,
               )
@@ -830,21 +797,102 @@ class _ChatBubble extends StatelessWidget {
                     color: isDark ? Colors.white : Colors.black87,
                     fontSize: 14,
                     height: 1.6,
-                    fontFamily: 'Cairo',
+                    
+                  ),
+                  h1: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    
+                  ),
+                  h2: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    
+                  ),
+                  h3: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    
                   ),
                   code: TextStyle(
+                    color: AppTheme.primaryColor,
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    fontSize: 13,
                     fontFamily: 'monospace',
-                    backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                  ),
+                  codeblockDecoration: BoxDecoration(
                     color: isDark
-                        ? Colors.amber.shade200
-                        : Colors.brown.shade800,
+                        ? const Color(0xFF282C34)
+                        : const Color(0xFFFAFAFA),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  blockquoteDecoration: BoxDecoration(
+                    border: Border(
+                      left: BorderSide(
+                        color: AppTheme.primaryColor,
+                        width: 3,
+                      ),
+                    ),
+                  ),
+                  listBullet: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black54,
+                  ),
+                  a: TextStyle(
+                    color: AppTheme.primaryColor,
+                    decoration: TextDecoration.underline,
                   ),
                 ),
-                builders: {'code': CodeElementBuilder(isDark, context)},
+                builders: {
+                  'code': CodeElementBuilder(isDark, context),
+                },
                 onTapLink: (text, href, title) {
-                  if (href != null) launchUrl(Uri.parse(href));
+                  if (href != null) {
+                    launchUrl(Uri.parse(href),
+                        mode: LaunchMode.externalApplication);
+                  }
                 },
               ),
+          ),
+          if (!isUser) // Copy action button below bubble
+            Padding(
+              padding: const EdgeInsets.only(bottom: 14, right: 8, top: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Tooltip(
+                    message: 'نسخ',
+                    child: GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: msg.content));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('تم النسخ', style: TextStyle()),
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: AppTheme.primaryColor,
+                            duration: const Duration(seconds: 1),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(PhosphorIcons.copy(), size: 14, color: isDark ? Colors.white38 : Colors.black38),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else 
+            const SizedBox(height: 14),
+        ],
       ),
     );
   }
@@ -903,7 +951,7 @@ class _SmartPromptCard extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
                       color: isDark ? Colors.white : Colors.black87,
@@ -915,7 +963,7 @@ class _SmartPromptCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontFamily: 'Cairo',
+                      
                       fontSize: 11,
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),
@@ -1030,7 +1078,7 @@ class _HistorySheet extends StatelessWidget {
                 Text(
                   'سجل المحادثات',
                   style: TextStyle(
-                    fontFamily: 'Cairo',
+                    
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: isDark ? Colors.white : Colors.black87,
@@ -1040,7 +1088,7 @@ class _HistorySheet extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onNewSession,
                   icon: Icon(PhosphorIcons.plus(), size: 16),
-                  label: const Text('جديد', style: TextStyle(fontFamily: 'Cairo', fontSize: 13)),
+                  label: const Text('جديد', style: TextStyle( fontSize: 13)),
                   style: TextButton.styleFrom(
                     foregroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -1099,7 +1147,7 @@ class _HistorySheet extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontFamily: 'Cairo',
+                        
                         fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                         fontSize: 14,
                         color: isDark ? Colors.white : Colors.black87,
@@ -1108,7 +1156,7 @@ class _HistorySheet extends StatelessWidget {
                     subtitle: Text(
                       '${s.messages.length} رسالة · ${_timeAgo(s.lastActivity)}',
                       style: TextStyle(
-                        fontFamily: 'Cairo',
+                        
                         fontSize: 11,
                         color: isDark ? Colors.white38 : Colors.black38,
                       ),

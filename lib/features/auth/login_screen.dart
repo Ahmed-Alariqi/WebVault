@@ -435,7 +435,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             AppLocalizations.of(context)!.useBiometrics,
                             style: TextStyle(
                               fontSize: 13,
-                              color: isDark ? Colors.white60 :,
+                              color: isDark ? Colors.white60 : Colors.black54,
                             ),
                           ),
                         ],

@@ -744,8 +744,8 @@ class _AppShellState extends ConsumerState<AppShell> {
 
           // ── Zad Expert FAB ──
           Positioned(
-            bottom: 16,
-            left: 20,
+            bottom: 140, // Positioning above the bottom nav on the left edge
+            left: 0,
             child: _ZadExpertFab(isDark: isDark),
           ),
         ],
@@ -1000,12 +1000,16 @@ class _ZadExpertFabState extends State<_ZadExpertFab>
         final glowOpacity = 0.15 + (_pulseAnimation.value * 0.2);
         return Container(
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(20),
+              bottomRight: Radius.circular(20),
+            ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFF8B5CF6).withValues(alpha: glowOpacity),
-                blurRadius: 20 + (_pulseAnimation.value * 8),
-                spreadRadius: 2 + (_pulseAnimation.value * 2),
+                blurRadius: 15 + (_pulseAnimation.value * 5),
+                spreadRadius: 0,
+                offset: const Offset(4, 0),
               ),
             ],
           ),
@@ -1015,27 +1019,41 @@ class _ZadExpertFabState extends State<_ZadExpertFab>
       child: GestureDetector(
         onTap: () => context.push('/zad-expert'),
         child: Container(
-          width: 52,
-          height: 52,
+          padding: const EdgeInsets.only(left: 8, right: 14, top: 12, bottom: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              begin: Alignment.bottomLeft,
+              end: Alignment.topRight,
             ),
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white.withValues(alpha: widget.isDark ? 0.15 : 0.3),
-              width: 1.5,
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(26),
+              bottomRight: Radius.circular(26),
+            ),
+            border: Border(
+              right: BorderSide(
+                color: Colors.white.withValues(alpha: widget.isDark ? 0.15 : 0.4),
+                width: 1.5,
+              ),
+              top: BorderSide(
+                color: Colors.white.withValues(alpha: widget.isDark ? 0.15 : 0.4),
+                width: 1.5,
+              ),
+              bottom: BorderSide(
+                color: Colors.white.withValues(alpha: widget.isDark ? 0.15 : 0.4),
+                width: 1.5,
+              ),
+              left: BorderSide.none,
             ),
           ),
           child: const Icon(
             PhosphorIconsFill.sparkle,
             color: Colors.white,
-            size: 24,
+            size: 22,
           ),
         ),
       ),
     );
   }
 }
+

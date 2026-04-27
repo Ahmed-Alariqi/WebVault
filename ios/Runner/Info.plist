@@ -66,6 +66,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>يحتاج التطبيق إلى الميكروفون لتحويل الصوت إلى نص في المحادثات.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>يحتاج التطبيق إلى التعرف على الكلام لتحويل الصوت المسجَّل إلى نص.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
