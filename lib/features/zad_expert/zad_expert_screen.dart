@@ -12,9 +12,11 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../core/theme/app_theme.dart';
 import '../../data/models/ai_chat_model.dart';
 import '../../data/models/ai_persona_model.dart';
+import '../../data/models/ai_persona_mode.dart';
 import '../../presentation/providers/zad_expert_providers.dart';
 import '../ai_assistant/ai_chat_screen.dart'; // For CodeElementBuilder
 import '../ai_assistant/widgets/chat_prompt_bridge.dart';
+import 'widgets/mode_cards_view.dart';
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,7 +54,77 @@ IconData personaIconFromName(String name) {
     case 'treeStructure':
       return PhosphorIcons.treeStructure(PhosphorIconsStyle.fill);
     case 'flow':
+    case 'flowArrow':
       return PhosphorIcons.flowArrow(PhosphorIconsStyle.fill);
+    case 'database':
+      return PhosphorIcons.database(PhosphorIconsStyle.fill);
+    case 'sequence':
+    case 'arrowsLeftRight':
+      return PhosphorIcons.arrowsLeftRight(PhosphorIconsStyle.fill);
+    case 'class':
+    case 'squaresFour':
+      return PhosphorIcons.squaresFour(PhosphorIconsStyle.fill);
+    case 'architecture':
+    case 'buildings':
+      return PhosphorIcons.buildings(PhosphorIconsStyle.fill);
+    case 'stack':
+      return PhosphorIcons.stack(PhosphorIconsStyle.fill);
+    case 'sparkle':
+      return PhosphorIcons.sparkle(PhosphorIconsStyle.fill);
+    case 'rocket':
+      return PhosphorIcons.rocket(PhosphorIconsStyle.fill);
+    case 'target':
+      return PhosphorIcons.target(PhosphorIconsStyle.fill);
+    case 'globe':
+      return PhosphorIcons.globe(PhosphorIconsStyle.fill);
+    case 'atom':
+      return PhosphorIcons.atom(PhosphorIconsStyle.fill);
+    case 'gear':
+      return PhosphorIcons.gear(PhosphorIconsStyle.fill);
+    case 'shield':
+      return PhosphorIcons.shield(PhosphorIconsStyle.fill);
+    case 'key':
+      return PhosphorIcons.key(PhosphorIconsStyle.fill);
+    case 'book':
+      return PhosphorIcons.bookOpen(PhosphorIconsStyle.fill);
+    case 'fire':
+      return PhosphorIcons.fire(PhosphorIconsStyle.fill);
+    case 'flask':
+      return PhosphorIcons.flask(PhosphorIconsStyle.fill);
+    case 'microscope':
+      return PhosphorIcons.microscope(PhosphorIconsStyle.fill);
+    case 'image':
+      return PhosphorIcons.image(PhosphorIconsStyle.fill);
+    case 'video':
+      return PhosphorIcons.videoCamera(PhosphorIconsStyle.fill);
+    case 'briefcase':
+      return PhosphorIcons.briefcase(PhosphorIconsStyle.fill);
+    case 'palette':
+      return PhosphorIcons.palette(PhosphorIconsStyle.fill);
+    case 'terminal':
+      return PhosphorIcons.terminalWindow(PhosphorIconsStyle.fill);
+    case 'gitBranch':
+      return PhosphorIcons.gitBranch(PhosphorIconsStyle.fill);
+    case 'package':
+      return PhosphorIcons.package(PhosphorIconsStyle.fill);
+    case 'cloud':
+      return PhosphorIcons.cloud(PhosphorIconsStyle.fill);
+    case 'bug':
+      return PhosphorIcons.bug(PhosphorIconsStyle.fill);
+    case 'rocketLaunch':
+      return PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill);
+    case 'chatCircle':
+      return PhosphorIcons.chatCircle(PhosphorIconsStyle.fill);
+    case 'compass':
+      return PhosphorIcons.compass(PhosphorIconsStyle.fill);
+    case 'crown':
+      return PhosphorIcons.crown(PhosphorIconsStyle.fill);
+    case 'trophy':
+      return PhosphorIcons.trophy(PhosphorIconsStyle.fill);
+    case 'megaphone':
+      return PhosphorIcons.megaphone(PhosphorIconsStyle.fill);
+    case 'hammer':
+      return PhosphorIcons.hammer(PhosphorIconsStyle.fill);
     default:
       return PhosphorIcons.sparkle(PhosphorIconsStyle.fill);
   }
@@ -552,16 +624,52 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                             ],
                           )
                         else
-                          Text(
-                            persona.description,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          Builder(builder: (_) {
+                            final activeMode =
+                                ref.watch(selectedModeProvider(persona.slug));
+                            if (activeMode != null) {
+                              return GestureDetector(
+                                onTap: () => _maybeChangeMode(persona),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      personaIconFromName(activeMode.icon),
+                                      size: 11,
+                                      color: Colors.white.withValues(alpha: 0.85),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        'وضع: ${activeMode.name}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(alpha: 0.85),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(PhosphorIcons.caretDown(),
+                                        size: 9,
+                                        color: Colors.white.withValues(alpha: 0.7)),
+                                  ],
+                                ),
+                              );
+                            }
+                            return Text(
+                              persona.description,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            );
+                          }),
                       ],
                     ),
                   ),
@@ -875,9 +983,105 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     }
   }
 
+  // ── Mode activation helpers ─────────────────────────────────────────
+  //
+  // Picking a mode card writes to [selectedModeProvider] and starts a fresh
+  // session so the new system prompt isn't muddled with prior context.
+  void _activateMode(AiPersonaModel persona, AiPersonaMode mode) {
+    HapticFeedback.lightImpact();
+    ref.read(selectedModeProvider(persona.slug).notifier).state = mode;
+    // If the active session already has messages, branch into a new one to
+    // give the layered prompt a clean canvas. Empty sessions are reused.
+    final chat = ref.read(expertChatProvider(persona));
+    if (chat.activeMessages.isNotEmpty) {
+      ref.read(expertChatProvider(persona).notifier).startNewSession();
+    }
+    _focusNode.requestFocus();
+  }
+
+  /// Confirm before resetting the active mode (would lose chat context if
+  /// any). Returns the user back to the mode picker by clearing the provider.
+  Future<void> _maybeChangeMode(AiPersonaModel persona) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final chat = ref.read(expertChatProvider(persona));
+    final hasMessages = chat.activeMessages.isNotEmpty;
+
+    bool proceed = !hasMessages;
+    if (hasMessages) {
+      setState(() => _isOverlayActive = true);
+      proceed = await showDialog<bool>(
+            context: context,
+            builder: (_) => AlertDialog(
+              backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text('تغيير الوضع؟',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87)),
+              content: Text(
+                'سيتم بدء محادثة جديدة بالوضع الجديد. المحادثة الحالية ستبقى محفوظة في السجل.',
+                style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black54),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('إلغاء')),
+                ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white),
+                    child: const Text('متابعة')),
+              ],
+            ),
+          ) ??
+          false;
+      if (mounted) setState(() => _isOverlayActive = false);
+    }
+
+    if (!proceed || !mounted) return;
+    if (hasMessages) {
+      ref.read(expertChatProvider(persona).notifier).startNewSession();
+    }
+    ref.read(selectedModeProvider(persona.slug).notifier).state = null;
+    HapticFeedback.mediumImpact();
+  }
+
   // ── Welcome View ──
+  //
+  // Three flavours:
+  //   • Persona has no modes → original avatar + persona quickActions (legacy).
+  //   • Persona has modes & no mode picked yet → mode cards picker.
+  //   • Persona has modes & a mode is active   → mini header (persona + mode
+  //     badge) followed by the *mode's* quickActions.
   Widget _buildWelcome(
       bool isDark, AiPersonaModel persona, Color personaColor) {
+    final activeMode = ref.watch(selectedModeProvider(persona.slug));
+
+    // Case A — persona has modes and none selected: show the picker.
+    if (persona.hasModes && activeMode == null) {
+      return ModeCardsView(
+        persona: persona,
+        personaColor: personaColor,
+        isDark: isDark,
+        onSelect: (mode) => _activateMode(persona, mode),
+      );
+    }
+
+    // Effective quick actions + heading source: the active mode (if any),
+    // otherwise the persona itself.
+    final effectiveActions = activeMode?.quickActions.isNotEmpty == true
+        ? activeMode!.quickActions
+        : persona.quickActions;
+    final effectiveColor = activeMode != null
+        ? hexToColor(activeMode.color)
+        : personaColor;
+    final effectiveIcon = activeMode?.icon ?? persona.icon;
+    final effectiveTitle = activeMode?.name ?? persona.name;
+    final effectiveSubtitle = activeMode?.description ?? persona.description;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
@@ -888,20 +1092,20 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
             height: 80,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [personaColor, personaColor.withValues(alpha: 0.6)],
+                colors: [effectiveColor, effectiveColor.withValues(alpha: 0.6)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: personaColor.withValues(alpha: 0.3),
+                  color: effectiveColor.withValues(alpha: 0.3),
                   blurRadius: 24,
                   offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Icon(personaIconFromName(persona.icon),
+            child: Icon(personaIconFromName(effectiveIcon),
                 color: Colors.white, size: 40),
           )
               .animate()
@@ -913,7 +1117,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
           const SizedBox(height: 20),
 
           Text(
-            persona.name,
+            effectiveTitle,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -922,9 +1126,44 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
             ),
           ).animate().fadeIn(delay: 150.ms),
 
+          if (activeMode != null) ...[
+            const SizedBox(height: 6),
+            // Tappable "change mode" pill — sets the mode back to null which
+            // re-renders the picker on next frame.
+            GestureDetector(
+              onTap: () => _maybeChangeMode(persona),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: effectiveColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                      color: effectiveColor.withValues(alpha: 0.3), width: 1),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(PhosphorIcons.arrowsClockwise(),
+                        size: 12, color: effectiveColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      'تغيير الوضع',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: effectiveColor,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fadeIn(delay: 200.ms),
+          ],
+
           const SizedBox(height: 6),
           Text(
-            persona.description,
+            effectiveSubtitle,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
@@ -936,7 +1175,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
           const SizedBox(height: 32),
 
           // Quick actions
-          ...persona.quickActions.asMap().entries.map((entry) {
+          ...effectiveActions.asMap().entries.map((entry) {
             final i = entry.key;
             final action = entry.value;
             return Padding(

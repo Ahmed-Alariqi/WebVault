@@ -1,3 +1,5 @@
+import 'ai_persona_mode.dart';
+
 /// Model for an AI Persona (Zad Expert personality)
 class AiPersonaModel {
   final String id;
@@ -14,6 +16,7 @@ class AiPersonaModel {
   final bool isActive;
   final int sortOrder;
   final List<Map<String, String>> quickActions;
+  final List<AiPersonaMode> modes;
 
   const AiPersonaModel({
     required this.id,
@@ -30,7 +33,35 @@ class AiPersonaModel {
     required this.isActive,
     required this.sortOrder,
     required this.quickActions,
+    this.modes = const [],
   });
+
+  /// True when this persona exposes specialised modes (cards UX).
+  bool get hasModes => modes.where((m) => m.enabled).isNotEmpty;
+
+  /// Visible modes ordered by [AiPersonaMode.sortOrder].
+  List<AiPersonaMode> get visibleModes {
+    final list = modes.where((m) => m.enabled).toList()
+      ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return list;
+  }
+
+  /// The single default mode if any, otherwise null.
+  AiPersonaMode? get defaultMode {
+    for (final m in visibleModes) {
+      if (m.isDefault) return m;
+    }
+    return null;
+  }
+
+  /// Look up a mode by its stable [key].
+  AiPersonaMode? modeByKey(String? key) {
+    if (key == null || key.isEmpty) return null;
+    for (final m in modes) {
+      if (m.key == key) return m;
+    }
+    return null;
+  }
 
   factory AiPersonaModel.fromJson(Map<String, dynamic> json) {
     // Parse quick_actions from JSON
@@ -38,6 +69,15 @@ class AiPersonaModel {
     if (json['quick_actions'] is List) {
       actions = (json['quick_actions'] as List)
           .map((e) => Map<String, String>.from(e as Map))
+          .toList();
+    }
+
+    // Parse modes from JSONB array
+    List<AiPersonaMode> modes = const [];
+    if (json['modes'] is List) {
+      modes = (json['modes'] as List)
+          .whereType<Map>()
+          .map((e) => AiPersonaMode.fromJson(Map<String, dynamic>.from(e)))
           .toList();
     }
 
@@ -56,6 +96,7 @@ class AiPersonaModel {
       isActive: json['is_active'] as bool? ?? true,
       sortOrder: json['sort_order'] as int? ?? 0,
       quickActions: actions,
+      modes: modes,
     );
   }
 
@@ -73,6 +114,7 @@ class AiPersonaModel {
         'is_active': isActive,
         'sort_order': sortOrder,
         'quick_actions': quickActions,
+        'modes': modes.map((m) => m.toJson()).toList(),
       };
 }
 

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../core/supabase_config.dart';
 import '../models/ai_chat_model.dart';
 import '../models/ai_persona_model.dart';
+import '../models/ai_stats_model.dart';
 
 /// Service for the Zad Expert AI system — completely independent from the existing AI assistant.
 class ZadExpertService {
@@ -94,10 +95,15 @@ class ZadExpertService {
   // Chat — send message via zad-expert Edge Function
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Send a message to a persona and get a response
+  /// Send a message to a persona and get a response.
+  ///
+  /// [modeKey] (optional) selects a sub-persona mode whose specialised
+  /// system prompt will be layered on top of the persona's general
+  /// instruction. Pass `null` to fall back to the persona-only behaviour.
   static Future<String> sendMessage({
     required String personaId,
     required List<AiChatMessage> chatHistory,
+    String? modeKey,
   }) async {
     final messages = chatHistory
         .where((m) => !m.isLoading)
@@ -106,16 +112,19 @@ class ZadExpertService {
 
     final url = '${SupabaseConfig.url}/functions/v1/zad-expert';
 
+    final userId = SupabaseConfig.client.auth.currentUser?.id ?? '';
     final response = await http
         .post(
           Uri.parse(url),
           headers: {
             'Content-Type': 'application/json',
             'apikey': SupabaseConfig.anonKey,
+            if (userId.isNotEmpty) 'x-user-id': userId,
           },
           body: jsonEncode({
             'persona_id': personaId,
             'messages': messages,
+            if (modeKey != null && modeKey.isNotEmpty) 'mode_key': modeKey,
           }),
         )
         .timeout(const Duration(minutes: 3));
@@ -145,6 +154,7 @@ class ZadExpertService {
   static Stream<String> sendMessageStream({
     required String personaId,
     required List<AiChatMessage> chatHistory,
+    String? modeKey,
   }) async* {
     final messages = chatHistory
         .where((m) => !m.isLoading)
@@ -154,14 +164,17 @@ class ZadExpertService {
     final url = '${SupabaseConfig.url}/functions/v1/zad-expert';
     final client = http.Client();
     try {
+      final userId = SupabaseConfig.client.auth.currentUser?.id ?? '';
       final req = http.Request('POST', Uri.parse(url));
       req.headers['Content-Type'] = 'application/json';
       req.headers['apikey'] = SupabaseConfig.anonKey;
       req.headers['Accept'] = 'text/event-stream';
+      if (userId.isNotEmpty) req.headers['x-user-id'] = userId;
       req.body = jsonEncode({
         'persona_id': personaId,
         'messages': messages,
         'stream': true,
+        if (modeKey != null && modeKey.isNotEmpty) 'mode_key': modeKey,
       });
 
       final res = await client
@@ -217,5 +230,66 @@ class ZadExpertService {
     } finally {
       client.close();
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Admin — usage statistics (RPCs gated to admins server-side)
+  // ─────────────────────────────────────────────────────────────────────────
+
+  static Future<AiOverviewStats> fetchOverview(int periodDays) async {
+    final res = await SupabaseConfig.client
+        .rpc('get_ai_overview', params: {'period_days': periodDays});
+    final list = (res as List?) ?? const [];
+    if (list.isEmpty) return AiOverviewStats.empty;
+    return AiOverviewStats.fromJson(Map<String, dynamic>.from(list.first as Map));
+  }
+
+  static Future<List<AiPersonaUsage>> fetchTopPersonas(int periodDays,
+      {int limit = 10}) async {
+    final res = await SupabaseConfig.client.rpc(
+      'get_ai_top_personas',
+      params: {'period_days': periodDays, 'lim': limit},
+    );
+    return ((res as List?) ?? const [])
+        .map((e) => AiPersonaUsage.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  static Future<List<AiProviderUsage>> fetchTopProviders(int periodDays,
+      {int limit = 10}) async {
+    final res = await SupabaseConfig.client.rpc(
+      'get_ai_top_providers',
+      params: {'period_days': periodDays, 'lim': limit},
+    );
+    return ((res as List?) ?? const [])
+        .map((e) => AiProviderUsage.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  static Future<List<AiUserUsage>> fetchTopUsers(int periodDays,
+      {int limit = 10}) async {
+    final res = await SupabaseConfig.client.rpc(
+      'get_ai_top_users',
+      params: {'period_days': periodDays, 'lim': limit},
+    );
+    return ((res as List?) ?? const [])
+        .map((e) => AiUserUsage.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  static Future<List<AiKeyHealth>> fetchKeyHealth(int periodDays) async {
+    final res = await SupabaseConfig.client
+        .rpc('get_ai_key_health', params: {'period_days': periodDays});
+    return ((res as List?) ?? const [])
+        .map((e) => AiKeyHealth.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  static Future<List<AiErrorEntry>> fetchRecentErrors({int limit = 10}) async {
+    final res = await SupabaseConfig.client
+        .rpc('get_ai_recent_errors', params: {'lim': limit});
+    return ((res as List?) ?? const [])
+        .map((e) => AiErrorEntry.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/ai_chat_model.dart';
 import '../../data/models/ai_persona_model.dart';
+import '../../data/models/ai_persona_mode.dart';
+import '../../data/models/ai_stats_model.dart';
 import '../../data/services/zad_expert_service.dart';
 import '../../core/constants.dart';
 
@@ -17,6 +19,13 @@ final expertPersonasProvider =
 /// Currently selected persona
 final selectedPersonaProvider = StateProvider<AiPersonaModel?>((ref) => null);
 
+/// Currently selected sub-persona mode (per persona slug).
+///
+/// Null  = persona-only behaviour (no mode layered on top).
+/// Set when the user picks a mode card on the welcome screen.
+final selectedModeProvider =
+    StateProvider.family<AiPersonaMode?, String>((ref, _) => null);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Admin — providers management
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,6 +38,56 @@ final adminAiProvidersProvider =
 final adminAllPersonasProvider =
     FutureProvider.autoDispose<List<AiPersonaModel>>((ref) async {
   return ZadExpertService.fetchAllPersonas();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Admin — usage statistics dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Currently selected period for the stats tab. Driven by the segmented
+/// selector at the top of the dashboard.
+final aiStatsPeriodProvider =
+    StateProvider<AiStatsPeriod>((ref) => AiStatsPeriod.today);
+
+/// All six providers below `watch` the period so they auto-refresh whenever
+/// the admin flips the selector. They're `autoDispose` so leaving the tab
+/// frees memory.
+
+final aiOverviewProvider =
+    FutureProvider.autoDispose<AiOverviewStats>((ref) async {
+  final period = ref.watch(aiStatsPeriodProvider);
+  return ZadExpertService.fetchOverview(period.days);
+});
+
+final aiTopPersonasProvider =
+    FutureProvider.autoDispose<List<AiPersonaUsage>>((ref) async {
+  final period = ref.watch(aiStatsPeriodProvider);
+  return ZadExpertService.fetchTopPersonas(period.days);
+});
+
+final aiTopProvidersProvider =
+    FutureProvider.autoDispose<List<AiProviderUsage>>((ref) async {
+  final period = ref.watch(aiStatsPeriodProvider);
+  return ZadExpertService.fetchTopProviders(period.days);
+});
+
+final aiTopUsersProvider =
+    FutureProvider.autoDispose<List<AiUserUsage>>((ref) async {
+  final period = ref.watch(aiStatsPeriodProvider);
+  return ZadExpertService.fetchTopUsers(period.days);
+});
+
+final aiKeyHealthProvider =
+    FutureProvider.autoDispose<List<AiKeyHealth>>((ref) async {
+  final period = ref.watch(aiStatsPeriodProvider);
+  return ZadExpertService.fetchKeyHealth(period.days);
+});
+
+final aiRecentErrorsProvider =
+    FutureProvider.autoDispose<List<AiErrorEntry>>((ref) async {
+  // Recent errors aren't bound to the period selector — always show the
+  // last 10 errors regardless, since the panel's purpose is troubleshooting.
+  return ZadExpertService.fetchRecentErrors();
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,11 +131,21 @@ class ExpertSessionsState {
 class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
   final String personaSlug;
   final String personaId;
+  final Ref _ref;
 
-  ExpertSessionsNotifier({required this.personaSlug, required this.personaId})
-      : super(const ExpertSessionsState()) {
+  ExpertSessionsNotifier({
+    required this.personaSlug,
+    required this.personaId,
+    required Ref ref,
+  })  : _ref = ref,
+        super(const ExpertSessionsState()) {
     _loadAllSessions();
   }
+
+  /// Resolve the active mode key from the per-persona [selectedModeProvider].
+  /// Returns `null` when no mode is selected (legacy behaviour).
+  String? get _activeModeKey =>
+      _ref.read(selectedModeProvider(personaSlug))?.key;
 
   String get _hiveKey => 'expert_sessions_$personaSlug';
 
@@ -204,10 +273,12 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     _updateSessionMessages([...updatedMessages, aiMsg], isAiReply: true);
 
     try {
+      final modeKey = _activeModeKey;
       final buffer = StringBuffer();
       await for (final chunk in ZadExpertService.sendMessageStream(
         personaId: personaId,
         chatHistory: updatedMessages,
+        modeKey: modeKey,
       )) {
         buffer.write(chunk);
         aiMsg = aiMsg.copyWith(content: buffer.toString());
@@ -222,6 +293,7 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
           final fallback = await ZadExpertService.sendMessage(
             personaId: personaId,
             chatHistory: updatedMessages,
+            modeKey: modeKey,
           );
           if (fallback.trim().isNotEmpty) {
             aiMsg = aiMsg.copyWith(content: fallback);
@@ -318,5 +390,6 @@ final expertChatProvider = StateNotifierProvider.family<ExpertSessionsNotifier,
   (ref, persona) => ExpertSessionsNotifier(
     personaSlug: persona.slug,
     personaId: persona.id,
+    ref: ref,
   ),
 );

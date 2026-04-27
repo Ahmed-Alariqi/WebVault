@@ -8,6 +8,9 @@ import '../../data/models/ai_persona_model.dart';
 import '../../data/services/zad_expert_service.dart';
 import '../../presentation/providers/zad_expert_providers.dart';
 import '../zad_expert/zad_expert_screen.dart' show hexToColor, personaIconFromName;
+import '../zad_expert/widgets/persona_visual_options.dart';
+import 'admin_ai_stats_tab.dart';
+import 'admin_persona_modes_sheet.dart';
 
 class AdminAiManagementScreen extends ConsumerStatefulWidget {
   const AdminAiManagementScreen({super.key});
@@ -25,7 +28,7 @@ class _AdminAiManagementScreenState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -64,6 +67,7 @@ class _AdminAiManagementScreenState
           tabs: const [
             Tab(text: 'الشخصيات', icon: Icon(PhosphorIconsFill.robot, size: 18)),
             Tab(text: 'المزودين', icon: Icon(PhosphorIconsFill.plugs, size: 18)),
+            Tab(text: 'الإحصائيات', icon: Icon(PhosphorIconsFill.chartLineUp, size: 18)),
           ],
         ),
       ),
@@ -72,6 +76,7 @@ class _AdminAiManagementScreenState
         children: [
           _PersonasTab(isDark: isDark),
           _ProvidersTab(isDark: isDark),
+          AdminAiStatsTab(isDark: isDark),
         ],
       ),
     );
@@ -187,6 +192,10 @@ class _PersonasTab extends ConsumerWidget {
                                       _deletePersona(context, ref, p),
                                   onToggle: () =>
                                       _togglePersona(ref, p),
+                                  onManageModes: () =>
+                                      AdminPersonaModesSheet.show(
+                                          context, p, isDark),
+                                  modesCount: p.modes.length,
                                   isActive: p.isActive,
                                 ),
                               ],
@@ -477,105 +486,109 @@ class _PersonasTab extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
 
-                      // Icon & Color
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('الأيقونة', isDark),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.05)
-                                        : Colors.black.withValues(alpha: 0.03),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
+                      // ── Live persona preview (reacts to name/desc) ──
+                      ListenableBuilder(
+                        listenable: Listenable.merge([nameCtrl, descCtrl]),
+                        builder: (context, _) {
+                        final c = hexToColor(selectedColor);
+                        return Container(
+                          padding: const EdgeInsets.all(14),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                c.withValues(alpha: isDark ? 0.18 : 0.10),
+                                c.withValues(alpha: isDark ? 0.06 : 0.03),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                                color: c.withValues(alpha: 0.35), width: 1.4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: c.withValues(alpha: 0.18),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(children: [
+                            Container(
+                              width: 52,
+                              height: 52,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(colors: [
+                                  c,
+                                  c.withValues(alpha: 0.7),
+                                ]),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Icon(personaIconFromName(selectedIcon),
+                                  color: Colors.white, size: 26),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    nameCtrl.text.trim().isEmpty
+                                        ? 'اسم الشخصية'
+                                        : nameCtrl.text.trim(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
                                       color: isDark
-                                          ? AppTheme.darkDivider
-                                          : AppTheme.lightDivider,
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
-                                  child: DropdownButton<String>(
-                                    value: selectedIcon,
-                                    isExpanded: true,
-                                    underline: const SizedBox.shrink(),
-                                    dropdownColor: isDark
-                                        ? AppTheme.darkCard
-                                        : Colors.white,
-                                    items: [
-                                      DropdownMenuItem(value: 'robot', child: Row(children: [Icon(PhosphorIcons.robot(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('روبوت')])),
-                                      DropdownMenuItem(value: 'code', child: Row(children: [Icon(PhosphorIcons.code(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('كود')])),
-                                      DropdownMenuItem(value: 'paintBrush', child: Row(children: [Icon(PhosphorIcons.paintBrush(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('فرشاة')])),
-                                      DropdownMenuItem(value: 'pencilLine', child: Row(children: [Icon(PhosphorIcons.pencilSimple(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('قلم')])),
-                                      DropdownMenuItem(value: 'magic', child: Row(children: [Icon(PhosphorIcons.magicWand(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('سحر')])),
-                                      DropdownMenuItem(value: 'brain', child: Row(children: [Icon(PhosphorIcons.brain(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('دماغ')])),
-                                      DropdownMenuItem(value: 'lightbulb', child: Row(children: [Icon(PhosphorIcons.lightbulb(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('فكرة')])),
-                                      DropdownMenuItem(value: 'graduationCap', child: Row(children: [Icon(PhosphorIcons.graduationCap(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('تعليم')])),
-                                      DropdownMenuItem(value: 'chart', child: Row(children: [Icon(PhosphorIcons.chartLineUp(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('مخطط')])),
-                                      DropdownMenuItem(value: 'treeStructure', child: Row(children: [Icon(PhosphorIcons.treeStructure(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('هيكل')])),
-                                      DropdownMenuItem(value: 'flow', child: Row(children: [Icon(PhosphorIcons.flowArrow(PhosphorIconsStyle.fill), size: 18, color: isDark ? Colors.white70 : Colors.black54), const SizedBox(width: 8), const Text('تدفق')])),
-                                    ],
-                                    onChanged: (v) {
-                                      if (v != null) {
-                                        setModalState(() => selectedIcon = v);
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _label('اللون', isDark),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: isDark
-                                        ? Colors.white.withValues(alpha: 0.05)
-                                        : Colors.black.withValues(alpha: 0.03),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    descCtrl.text.trim().isEmpty
+                                        ? 'وصف مختصر للشخصية…'
+                                        : descCtrl.text.trim(),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      height: 1.5,
                                       color: isDark
-                                          ? AppTheme.darkDivider
-                                          : AppTheme.lightDivider,
+                                          ? Colors.white70
+                                          : Colors.black54,
                                     ),
                                   ),
-                                  child: DropdownButton<String>(
-                                    value: selectedColor,
-                                    isExpanded: true,
-                                    underline: const SizedBox.shrink(),
-                                    dropdownColor: isDark
-                                        ? AppTheme.darkCard
-                                        : Colors.white,
-                                    items: [
-                                      DropdownMenuItem(value: '#6366F1', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#6366F1'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('بنفسجي')])),
-                                      DropdownMenuItem(value: '#EC4899', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#EC4899'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('وردي')])),
-                                      DropdownMenuItem(value: '#F59E0B', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#F59E0B'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('ذهبي')])),
-                                      DropdownMenuItem(value: '#10B981', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#10B981'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('أخضر')])),
-                                      DropdownMenuItem(value: '#8B5CF6', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#8B5CF6'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('أرجواني')])),
-                                      DropdownMenuItem(value: '#EF4444', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#EF4444'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('أحمر')])),
-                                      DropdownMenuItem(value: '#3B82F6', child: Row(children: [Container(width: 14, height: 14, decoration: BoxDecoration(color: hexToColor('#3B82F6'), shape: BoxShape.circle)), const SizedBox(width: 8), const Text('أزرق')])),
-                                    ],
-                                    onChanged: (v) {
-                                      if (v != null) {
-                                        setModalState(() => selectedColor = v);
-                                      }
-                                    },
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ]),
+                        );
+                      }),
+
+                      // ── Visual icon picker (uses curated icon set) ─
+                      _label('الأيقونة', isDark),
+                      const SizedBox(height: 8),
+                      PersonaIconPicker(
+                        selected: selectedIcon,
+                        highlight: hexToColor(selectedColor),
+                        isDark: isDark,
+                        onPick: (k) =>
+                            setModalState(() => selectedIcon = k),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ── Visual color palette ────────────────────
+                      _label('اللون', isDark),
+                      const SizedBox(height: 8),
+                      PersonaColorPalette(
+                        selected: selectedColor,
+                        isDark: isDark,
+                        onPick: (h) =>
+                            setModalState(() => selectedColor = h),
                       ),
                       const SizedBox(height: 16),
 
@@ -817,6 +830,8 @@ class _PersonasTab extends ConsumerWidget {
         isActive: isActive,
         sortOrder: existing?.sortOrder ?? 0,
         quickActions: List<Map<String, String>>.from(quickActions),
+        // Preserve sub-persona modes — they are managed in a dedicated sheet.
+        modes: existing?.modes ?? const [],
       );
 
       try {
@@ -896,6 +911,7 @@ class _PersonasTab extends ConsumerWidget {
       isActive: !p.isActive,
       sortOrder: p.sortOrder,
       quickActions: p.quickActions,
+      modes: p.modes,
     );
     await ZadExpertService.savePersona(updated, existingId: p.id);
     ref.invalidate(adminAllPersonasProvider);
@@ -1324,6 +1340,8 @@ class _PopupMenu extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onToggle;
+  final VoidCallback? onManageModes;
+  final int modesCount;
 
   const _PopupMenu({
     required this.isDark,
@@ -1331,6 +1349,8 @@ class _PopupMenu extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onToggle,
+    this.onManageModes,
+    this.modesCount = 0,
   });
 
   @override
@@ -1344,6 +1364,9 @@ class _PopupMenu extends StatelessWidget {
         switch (v) {
           case 'edit':
             onEdit();
+            break;
+          case 'modes':
+            onManageModes?.call();
             break;
           case 'toggle':
             onToggle();
@@ -1361,6 +1384,15 @@ class _PopupMenu extends StatelessWidget {
               const SizedBox(width: 8),
               const Text('تعديل', style: TextStyle())
             ])),
+        if (onManageModes != null)
+          PopupMenuItem(
+              value: 'modes',
+              child: Row(children: [
+                Icon(PhosphorIcons.squaresFour(), size: 16),
+                const SizedBox(width: 8),
+                Text('إدارة الأوضاع${modesCount > 0 ? ' ($modesCount)' : ''}',
+                    style: const TextStyle())
+              ])),
         PopupMenuItem(
             value: 'toggle',
             child: Row(children: [
