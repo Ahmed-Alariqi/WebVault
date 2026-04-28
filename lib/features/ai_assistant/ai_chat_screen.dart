@@ -20,6 +20,8 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../presentation/providers/ai_assistant_providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'widgets/zad_mermaid_view.dart';
+import 'widgets/zad_plantuml_view.dart';
+import 'utils/plantuml_encoder.dart';
 import 'widgets/chat_prompt_bridge.dart';
 
 
@@ -47,6 +49,26 @@ class CodeElementBuilder extends MarkdownElementBuilder {
       return _MermaidChartWidget(
         codeText: codeText,
         isDark: isDark,
+      );
+    }
+
+    // ── PLANTUML RENDERING ──
+    // Aliased fences (`dfd`, `usecase`, `uml`) are wrapped with @startuml
+    // automatically so the model can emit just the body. Native `plantuml`
+    // / `puml` fences are passed through unchanged.
+    if (language == 'plantuml' ||
+        language == 'puml' ||
+        language == 'dfd' ||
+        language == 'usecase' ||
+        language == 'uml') {
+      final wrapped = (language == 'plantuml' || language == 'puml')
+          ? codeText
+          : ensurePlantUmlWrapped(codeText, isDark: isDark);
+      return _PlantUmlChartWidget(
+        codeText: wrapped,
+        rawCode: codeText,
+        isDark: isDark,
+        languageLabel: language,
       );
     }
 
@@ -892,6 +914,698 @@ class _MermaidActionButton extends StatelessWidget {
           child: Icon(icon,
               size: 14, color: isDark ? Colors.white54 : Colors.black45),
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PlantUML Chart Widget — renders DFD / Use Case / UML diagrams via the
+// public PlantUML server (no client-side renderer needed). Mirrors the
+// Mermaid widget's chrome so the chat UI stays consistent across both
+// diagram engines.
+// ─────────────────────────────────────────────────────────────────────────────
+class _PlantUmlChartWidget extends StatefulWidget {
+  /// The code that gets sent to the PlantUML server (already wrapped with
+  /// `@startuml`/`@enduml` plus theme skinparams when the fence used an
+  /// alias like `dfd`).
+  final String codeText;
+
+  /// The original code as the user / model wrote it. Used by the "show
+  /// code" toggle so users see exactly what was authored, not the
+  /// auto-wrapped version.
+  final String rawCode;
+
+  /// `mermaid`-style language label shown in the toolbar (e.g. `dfd`,
+  /// `usecase`, `plantuml`). Purely cosmetic.
+  final String languageLabel;
+
+  final bool isDark;
+
+  const _PlantUmlChartWidget({
+    required this.codeText,
+    required this.rawCode,
+    required this.isDark,
+    required this.languageLabel,
+  });
+
+  @override
+  State<_PlantUmlChartWidget> createState() => _PlantUmlChartWidgetState();
+}
+
+class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
+    with AutomaticKeepAliveClientMixin {
+  String? _errorMessage;
+  bool _showCode = false;
+  final ZadPlantUmlController _ctl = ZadPlantUmlController();
+
+  /// Mirrors the Mermaid widget's stabilization scheme so we never ask
+  /// PlantUML to render half-streamed code.
+  String? _stableCode;
+  Timer? _stabilizer;
+  static const Duration _stabilizationDelay = Duration(milliseconds: 500);
+
+  bool get _hasError => _errorMessage != null;
+  bool get _isStabilizing => _stableCode != widget.codeText;
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scheduleStabilize();
+  }
+
+  void _scheduleStabilize() {
+    _stabilizer?.cancel();
+    _stabilizer = Timer(_stabilizationDelay, () {
+      if (!mounted) return;
+      if (_stableCode != widget.codeText) {
+        setState(() => _stableCode = widget.codeText);
+      }
+    });
+  }
+
+  void _handleError(String msg) {
+    if (!mounted) return;
+    if (_isStabilizing) return;
+    setState(() => _errorMessage = msg);
+  }
+
+  @override
+  void didUpdateWidget(covariant _PlantUmlChartWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.codeText != widget.codeText) {
+      if (_errorMessage != null) {
+        setState(() => _errorMessage = null);
+      }
+      _scheduleStabilize();
+    }
+  }
+
+  @override
+  void dispose() {
+    _stabilizer?.cancel();
+    super.dispose();
+  }
+
+  void _askAiToFix() {
+    final bridge = ChatPromptBridge.of(context);
+    if (bridge == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تعذر تحديد محادثة نشطة لإرسال طلب التصحيح'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    final prompt =
+        'المخطط PlantUML التالي لا يُعرض بسبب خطأ في الصياغة. أعد كتابته بصياغة صحيحة فقط داخل ```plantuml``` بدون أي شرح إضافي.\n\n'
+        'الخطأ:\n```\n${_errorMessage ?? ''}\n```\n\n'
+        'الكود الأصلي:\n```plantuml\n${widget.rawCode}\n```';
+    bridge.inject(prompt);
+  }
+
+  Future<void> _showExportSheet() async {
+    HapticFeedback.lightImpact();
+    final isDark = widget.isDark;
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white24 : Colors.black12,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'تصدير المخطط',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            ListTile(
+              leading: Icon(PhosphorIcons.image(PhosphorIconsStyle.fill),
+                  color: const Color(0xFF10B981)),
+              title: const Text('صورة PNG (للمشاركة السريعة)'),
+              subtitle: const Text('من خادم PlantUML — جاهزة للنشر',
+                  style: TextStyle(fontSize: 11)),
+              onTap: () => Navigator.pop(ctx, 'png'),
+            ),
+            ListTile(
+              leading: Icon(PhosphorIcons.fileSvg(),
+                  color: const Color(0xFF6366F1)),
+              title: const Text('ملف SVG (متجهي قابل للتكبير)'),
+              subtitle: const Text('مناسب للطباعة بدقة لا متناهية',
+                  style: TextStyle(fontSize: 11)),
+              onTap: () => Navigator.pop(ctx, 'svg'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == null || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Row(children: [
+          SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.white)),
+          SizedBox(width: 12),
+          Text('جارٍ تجهيز الملف...'),
+        ]),
+        duration: Duration(seconds: 4),
+      ),
+    );
+
+    try {
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      if (choice == 'png') {
+        final bytes = await _ctl.getPng();
+        if (bytes == null || bytes.isEmpty) {
+          throw Exception('فشل تجهيز الصورة');
+        }
+        await Share.shareXFiles(
+          [
+            XFile.fromData(
+              bytes,
+              name: 'plantuml_$ts.png',
+              mimeType: 'image/png',
+            ),
+          ],
+          text: 'مخطط من خبير زاد',
+        );
+      } else if (choice == 'svg') {
+        final svg = await _ctl.getSvg();
+        if (svg == null || svg.isEmpty) {
+          throw Exception('فشل تجهيز ملف SVG');
+        }
+        await Share.shareXFiles(
+          [
+            XFile.fromData(
+              Uint8List.fromList(utf8.encode(svg)),
+              name: 'plantuml_$ts.svg',
+              mimeType: 'image/svg+xml',
+            ),
+          ],
+          text: 'مخطط من خبير زاد',
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('تعذر التصدير: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: widget.isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: widget.isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : Colors.black.withValues(alpha: 0.1),
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: widget.isDark ? Colors.black26 : Colors.white,
+                border: Border(
+                  bottom: BorderSide(
+                    color: widget.isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(PhosphorIcons.diamond(PhosphorIconsStyle.bold),
+                      size: 16, color: const Color(0xFF6366F1)),
+                  const SizedBox(width: 8),
+                  Text(
+                    _labelFor(widget.languageLabel),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color:
+                          widget.isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  _MermaidActionButton(
+                    icon: _showCode
+                        ? PhosphorIcons.image()
+                        : PhosphorIcons.code(),
+                    tooltip: _showCode ? 'عرض المخطط' : 'عرض الكود',
+                    isDark: widget.isDark,
+                    onTap: () => setState(() => _showCode = !_showCode),
+                  ),
+                  const SizedBox(width: 4),
+                  _MermaidActionButton(
+                    icon: PhosphorIcons.copy(),
+                    tooltip: 'نسخ الكود',
+                    isDark: widget.isDark,
+                    onTap: () {
+                      Clipboard.setData(
+                          ClipboardData(text: widget.rawCode));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('تم نسخ كود المخطط'),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: const Color(0xFF6366F1),
+                          duration: const Duration(seconds: 1),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 4),
+                  if (!_hasError && !_showCode)
+                    _MermaidActionButton(
+                      icon: PhosphorIcons.export(),
+                      tooltip: 'تصدير كصورة (PNG / SVG)',
+                      isDark: widget.isDark,
+                      onTap: _showExportSheet,
+                    ),
+                  const SizedBox(width: 4),
+                  if (!_hasError && !_showCode) ...[
+                    _MermaidActionButton(
+                      icon: PhosphorIcons.minusCircle(),
+                      tooltip: 'تصغير',
+                      isDark: widget.isDark,
+                      onTap: () => _ctl.zoomOut(),
+                    ),
+                    const SizedBox(width: 4),
+                    _MermaidActionButton(
+                      icon: PhosphorIcons.plusCircle(),
+                      tooltip: 'تكبير',
+                      isDark: widget.isDark,
+                      onTap: () => _ctl.zoomIn(),
+                    ),
+                    const SizedBox(width: 4),
+                    _MermaidActionButton(
+                      icon: PhosphorIcons.cornersIn(),
+                      tooltip: 'توسيط',
+                      isDark: widget.isDark,
+                      onTap: () => _ctl.zoomReset(),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                  if (!_hasError && !_showCode)
+                    _MermaidActionButton(
+                      icon: PhosphorIcons.arrowsOut(),
+                      tooltip: 'ملء الشاشة',
+                      isDark: widget.isDark,
+                      onTap: () => _showFullScreen(context),
+                    ),
+                ],
+              ),
+            ),
+            // Body
+            if (_showCode)
+              _buildCodeView()
+            else if (_hasError)
+              _buildErrorFallback()
+            else if (_isStabilizing || _stableCode == null)
+              _buildStreamingSkeleton()
+            else
+              Container(
+                padding: const EdgeInsets.all(4),
+                color: widget.isDark ? Colors.black12 : Colors.white,
+                child: GestureDetector(
+                  onTap: () => _showFullScreen(context),
+                  behavior: HitTestBehavior.translucent,
+                  child: ZadPlantUmlView(
+                    key: ValueKey(_stableCode),
+                    code: _stableCode!,
+                    isDark: widget.isDark,
+                    controller: _ctl,
+                    nonInteractive: true,
+                    height: 280,
+                    onError: _handleError,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Maps the fence alias to a friendly Arabic label shown in the header.
+  String _labelFor(String lang) {
+    switch (lang) {
+      case 'dfd':
+        return 'مخطط تدفق البيانات';
+      case 'usecase':
+        return 'مخطط حالات الاستخدام';
+      case 'uml':
+        return 'مخطط UML';
+      case 'puml':
+      case 'plantuml':
+      default:
+        return 'مخطط PlantUML';
+    }
+  }
+
+  Widget _buildStreamingSkeleton() {
+    final isDark = widget.isDark;
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? Colors.white54 : Colors.black54,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'جاري تجهيز المخطط…',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCodeView() {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        color: widget.isDark
+            ? const Color(0xFF282C34)
+            : const Color(0xFFF8F8F8),
+        child: SelectableText(
+          widget.rawCode,
+          style: TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 12,
+            color: widget.isDark ? Colors.white70 : Colors.black87,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorFallback() {
+    final amber = Colors.amber.shade700;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          color: Colors.amber.withValues(alpha: 0.08),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                  size: 18, color: amber),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'تعذّر رسم المخطط',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: amber,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'تعذّر تحميل المخطط من خادم PlantUML أو أن الصياغة غير صحيحة. يمكنك إعادة المحاولة أو طلب تصحيحه من الذكاء الاصطناعي.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.5,
+                        color: widget.isDark
+                            ? Colors.white70
+                            : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          color: widget.isDark
+              ? Colors.white.withValues(alpha: 0.02)
+              : Colors.black.withValues(alpha: 0.015),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: _askAiToFix,
+                  icon: Icon(PhosphorIcons.magicWand(PhosphorIconsStyle.fill),
+                      size: 16),
+                  label: const Text(
+                    'اطلب من AI تصحيح المخطط',
+                    style: TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor:
+                      widget.isDark ? Colors.white70 : Colors.black87,
+                  side: BorderSide(
+                    color: widget.isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.black.withValues(alpha: 0.15),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  // Retry: clear error + re-stabilize the same code so the
+                  // view rebuilds and re-fetches from PlantUML.
+                  setState(() => _errorMessage = null);
+                  _scheduleStabilize();
+                },
+                icon: Icon(PhosphorIcons.arrowClockwise(), size: 14),
+                label: const Text(
+                  'إعادة المحاولة',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        _buildCodeView(),
+      ],
+    );
+  }
+
+  void _showFullScreen(BuildContext context) {
+    final fsCtl = ZadPlantUmlController();
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black87,
+        barrierDismissible: true,
+        pageBuilder: (_, _, _) => Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 56, 8, 16),
+                    child: ZadPlantUmlView(
+                      code: _stableCode ?? widget.codeText,
+                      isDark: true,
+                      controller: fsCtl,
+                      nonInteractive: false,
+                      minScale: 0.1,
+                      maxScale: 10.0,
+                      height: MediaQuery.of(context).size.height,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: _MermaidActionButton(
+                    icon: PhosphorIcons.x(),
+                    tooltip: 'إغلاق',
+                    isDark: true,
+                    onTap: () => Navigator.pop(context),
+                  ),
+                ),
+                Positioned(
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _MermaidActionButton(
+                            icon: PhosphorIcons.minusCircle(),
+                            tooltip: 'تصغير',
+                            isDark: true,
+                            onTap: () => fsCtl.zoomOut(),
+                          ),
+                          const SizedBox(width: 8),
+                          _MermaidActionButton(
+                            icon: PhosphorIcons.cornersIn(),
+                            tooltip: 'احتواء (Fit)',
+                            isDark: true,
+                            onTap: () => fsCtl.zoomReset(),
+                          ),
+                          const SizedBox(width: 8),
+                          if (fsCtl.transformationController != null)
+                            ValueListenableBuilder<Matrix4>(
+                              valueListenable:
+                                  fsCtl.transformationController!,
+                              builder: (_, m, _) {
+                                final pct =
+                                    (m.getMaxScaleOnAxis() * 100).round();
+                                return GestureDetector(
+                                  onTap: () => fsCtl.zoomReset(),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white
+                                          .withValues(alpha: 0.08),
+                                      borderRadius:
+                                          BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '$pct%',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        fontFeatures: [
+                                          FontFeature.tabularFigures(),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          const SizedBox(width: 8),
+                          _MermaidActionButton(
+                            icon: PhosphorIcons.plusCircle(),
+                            tooltip: 'تكبير',
+                            isDark: true,
+                            onTap: () => fsCtl.zoomIn(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        transitionsBuilder: (_, anim, _, child) {
+          return FadeTransition(opacity: anim, child: child);
+        },
       ),
     );
   }
