@@ -1313,7 +1313,7 @@ class _ClipboardTile extends ConsumerWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: ClipboardItemType.values.length,
-                      separatorBuilder: (_, _a) => const SizedBox(width: 8),
+                      separatorBuilder: (_, a) => const SizedBox(width: 8),
                       itemBuilder: (_, index) {
                         final t = ClipboardItemType.values[index];
                         final isSel = t == selectedType;

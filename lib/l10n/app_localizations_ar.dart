@@ -425,7 +425,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get clipboardSettingsSubtitle =>
-      'الحافظة العائمة، إذن التراكب، النسخ الذكي والنصائح';
+      'الحافظة العائمة، النسخ الذكي والنصائح';
 
   @override
   String get support => 'الدعم';

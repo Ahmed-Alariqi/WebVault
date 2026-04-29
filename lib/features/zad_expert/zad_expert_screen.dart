@@ -2918,24 +2918,24 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
           // ── Unified pill ─────────────────────────────────────────────
           AnimatedBuilder(
             animation: _recordingPulseController,
-            builder: (_, __) {
-              // Dynamic pulse for recording state
-              final pulseOpacity = _isListening
-                  ? (0.3 + 0.7 * _easeInOutQuad(_recordingPulseController.value))
+            builder: (_, _) {
+              // While listening we keep the pill's geometry rock-steady
+              // (no shadow spread/blur changes that would visually inflate
+              // and deflate the entire input). Instead we only modulate the
+              // *alpha* of a fixed-size red glow + the border color, which
+              // reads as a calm "breathing" tint rather than a distracting
+              // pulse that distorts the layout.
+              final t = _isListening
+                  ? _easeInOutQuad(_recordingPulseController.value)
                   : 0.0;
-              final pulseBlur = _isListening
-                  ? (16 + 12 * _easeInOutQuad(_recordingPulseController.value))
-                  : 0.0;
-              final pulseSpread = _isListening
-                  ? (1 + 3 * _easeInOutQuad(_recordingPulseController.value))
-                  : 0.0;
+              const recColor = Colors.redAccent;
 
               final dynamicShadow = _isListening
                   ? [
                       BoxShadow(
-                        color: personaColor.withValues(alpha: 0.4 * pulseOpacity),
-                        blurRadius: pulseBlur,
-                        spreadRadius: pulseSpread,
+                        color: recColor.withValues(alpha: 0.10 + 0.14 * t),
+                        blurRadius: 18,
+                        spreadRadius: 0,
                         offset: const Offset(0, 0),
                       ),
                     ]
@@ -2958,14 +2958,26 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                           ),
                         ]);
 
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
+              final liveBorder = _isListening
+                  ? Color.lerp(
+                      shellBorder,
+                      recColor.withValues(alpha: 0.55),
+                      0.5 + 0.5 * t,
+                    )!
+                  : shellBorder;
+
+              // NOTE: We deliberately use a plain Container here rather than
+              // AnimatedContainer. The outer AnimatedBuilder already drives
+              // the decoration changes smoothly per frame from the pulse
+              // controller; layering an AnimatedContainer on top would start a
+              // fresh implicit tween every rebuild and that's what produced
+              // the unsightly "growing/shrinking" wobble while listening.
+              return Container(
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   color: shellBg,
                   borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: shellBorder, width: 1.2),
+                  border: Border.all(color: liveBorder, width: 1.2),
                   boxShadow: dynamicShadow,
                 ),
                 child: Padding(
@@ -3163,15 +3175,19 @@ class _ComposerIconButtonState extends State<_ComposerIconButton>
         children: [
           AnimatedBuilder(
             animation: _pulseCtrl,
-            builder: (_, __) {
+            builder: (_, _) {
+              // Calmer mic halo: smaller expansion + softer alpha so the icon
+              // feels alive without the heavy "throb" that distorted the
+              // composer. We also keep the halo strictly behind the icon by
+              // bounding its growth to the available padding around the button.
               final t = _pulseCtrl.value;
               return Container(
-                width: 40 + 16 * t,
-                height: 40 + 16 * t,
+                width: 40 + 8 * t,
+                height: 40 + 8 * t,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: widget.activeColor
-                      .withValues(alpha: (1 - t) * 0.25),
+                      .withValues(alpha: (1 - t) * 0.16),
                 ),
               );
             },
@@ -3327,7 +3343,7 @@ class _HeaderTypingIndicatorState extends State<_HeaderTypingIndicator>
         const SizedBox(width: 4),
         AnimatedBuilder(
           animation: _ctrl,
-          builder: (_, __) {
+          builder: (_, _) {
             final t = _ctrl.value;
             return Row(
               mainAxisSize: MainAxisSize.min,

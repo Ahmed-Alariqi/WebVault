@@ -312,6 +312,11 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     final updatedMessages = [...currentMessages, userMsg];
 
     _updateSessionMessages(updatedMessages);
+    // Persist the user message immediately so it survives a navigation
+    // before the assistant's streamed reply is complete. Without this, a
+    // user who backs out of the screen mid-stream would find the message
+    // gone on next visit.
+    _saveAllSessions();
     state = state.copyWith(isLoading: true, clearError: true);
 
     // Insert an empty assistant placeholder we'll progressively fill from the

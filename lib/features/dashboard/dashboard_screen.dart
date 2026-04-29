@@ -284,35 +284,9 @@ class _DashboardHeader extends ConsumerWidget {
           const SizedBox(width: 8),
           GestureDetector(
             onTap: () => _showProfilePreview(context, isDark),
-            child: Stack(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                    ),
-                  ),
-                  child: _HeaderAvatar(isDark: isDark),
-                ),
-                if (hasUnreadChats)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.errorColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+            child: _HeaderAvatar(
+              isDark: isDark,
+              hasUnreadChats: hasUnreadChats,
             ),
           ).animate().scale(delay: 200.ms, curve: Curves.elasticOut),
         ],
@@ -1266,10 +1240,23 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
+/// Premium header avatar.
+///
+/// Visuals:
+///  • Outer 2-stop gradient ring (primary → accent) with soft brand-coloured
+///    glow that lifts the avatar off the header.
+///  • Inner gradient disc carrying the user's first initial in white — much
+///    more striking than the old "primary text on white card" treatment.
+///  • Optional red dot (with a contrasting border that matches the page
+///    background) when there are unread support-chat messages.
 class _HeaderAvatar extends ConsumerWidget {
   final bool isDark;
+  final bool hasUnreadChats;
 
-  const _HeaderAvatar({required this.isDark});
+  const _HeaderAvatar({
+    required this.isDark,
+    this.hasUnreadChats = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1278,38 +1265,109 @@ class _HeaderAvatar extends ConsumerWidget {
     return userProfileAsync.when(
       data: (profile) {
         final fullName = profile?['full_name'] as String? ?? '';
-        final initials = fullName.isNotEmpty ? fullName[0].toUpperCase() : '?';
-
-        return CircleAvatar(
-          radius: 24,
-          backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
-          child: Text(
-            initials,
-            style: const TextStyle(
-              color: AppTheme.primaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-        );
+        final initial = fullName.trim().isNotEmpty
+            ? fullName.trim()[0].toUpperCase()
+            : '?';
+        return _buildShell(child: _buildInitial(initial));
       },
-      loading: () => CircleAvatar(
-        radius: 24,
-        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+      loading: () => _buildShell(
         child: const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(strokeWidth: 2),
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(Colors.white),
+          ),
         ),
       ),
-      error: (_, _) => CircleAvatar(
-        radius: 24,
-        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+      error: (_, _) => _buildShell(
         child: Icon(
           PhosphorIcons.user(PhosphorIconsStyle.bold),
-          color: AppTheme.primaryColor,
-          size: 24,
+          color: Colors.white,
+          size: 22,
         ),
+      ),
+    );
+  }
+
+  Widget _buildShell({required Widget child}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Solid primary ring + soft glow (no gradient — uses the app's
+        // single brand colour as requested).
+        Container(
+          padding: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppTheme.primaryColor,
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryColor.withValues(alpha: 0.28),
+                blurRadius: 14,
+                spreadRadius: 0,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          // Background-coloured hairline between the ring and the inner
+          // disc — gives the avatar a clean two-tone separation similar to
+          // premium banking / messaging apps.
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+            ),
+            padding: const EdgeInsets.all(2),
+            child: Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.primaryColor,
+              ),
+              child: child,
+            ),
+          ),
+        ),
+
+        if (hasUnreadChats)
+          Positioned(
+            top: -1,
+            right: -1,
+            child: Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.errorColor.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInitial(String initial) {
+    return Text(
+      initial,
+      style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w800,
+        fontSize: 18,
+        letterSpacing: 0.5,
+        height: 1.0,
       ),
     );
   }

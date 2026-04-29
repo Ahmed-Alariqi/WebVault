@@ -116,6 +116,19 @@ class AiPersonaModel {
         'quick_actions': quickActions,
         'modes': modes.map((m) => m.toJson()).toList(),
       };
+
+  // Identity is keyed off the stable [id] so that Riverpod family providers
+  // (e.g. `expertChatProvider`) keep returning the *same* notifier instance
+  // even when the persona list is refetched and a new model object is built.
+  // Without this, every refresh would spawn a fresh chat notifier and the
+  // user would appear to lose their previous sessions until reload.
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AiPersonaModel && other.id == id);
+
+  @override
+  int get hashCode => id.hashCode;
 }
 
 /// Model for an AI Provider (Groq, OpenRouter, Ollama, etc.)

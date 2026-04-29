@@ -447,6 +447,7 @@ class _UserDialogState extends State<_UserDialog> {
     ('analytics', Icons.bar_chart, Color(0xFF6366F1)),
     ('suggestions', Icons.lightbulb_outline, Color(0xFF8B5CF6)),
     ('websites', Icons.language, Color(0xFF3B82F6)),
+    ('drafts', Icons.edit_note, Color(0xFFF59E0B)),
     ('categories', Icons.sell_outlined, Color(0xFF10B981)),
     ('notifications', Icons.notifications_active, Color(0xFFF59E0B)),
     ('in_app_messages', Icons.campaign, Color(0xFF14B8A6)),
@@ -455,6 +456,7 @@ class _UserDialogState extends State<_UserDialog> {
     ('advertisements', Icons.ad_units, Color(0xFF8B5CF6)),
     ('collections', Icons.folder_special, Color(0xFF06B6D4)),
     ('events', Icons.celebration, Color(0xFFE11D48)),
+    ('ai_management', Icons.psychology, Color(0xFF8B5CF6)),
   ];
 
   @override
@@ -572,6 +574,10 @@ class _UserDialogState extends State<_UserDialog> {
         return l.manageCollections;
       case 'events':
         return l.eventsTitle;
+      case 'drafts':
+        return l.draftsTitle;
+      case 'ai_management':
+        return 'إدارة الذكاء الاصطناعي';
       default:
         return key;
     }

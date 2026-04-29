@@ -239,9 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
               color: isDark
@@ -256,7 +254,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 offset: const Offset(0, 20),
               ),
               if (!isDark)
-                 BoxShadow(
+                BoxShadow(
                   color: AppTheme.primaryColor.withValues(alpha: 0.03),
                   blurRadius: 20,
                   offset: const Offset(0, 10),

@@ -46,6 +46,7 @@ const kAllPermissions = [
   'analytics',
   'suggestions',
   'websites',
+  'drafts',
   'categories',
   'notifications',
   'in_app_messages',
@@ -54,11 +55,13 @@ const kAllPermissions = [
   'advertisements',
   'collections',
   'events',
+  'ai_management',
 ];
 
 /// Preset permissions for the Content Creator role
 const kContentCreatorPermissions = [
   'websites',
+  'drafts',
   'categories',
   'notifications',
   'suggestions',

@@ -1506,7 +1506,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
         child: Padding(
 
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 16),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
 
           child: Container(
 
@@ -1514,19 +1514,19 @@ class _AppShellState extends ConsumerState<AppShell> {
 
               color: isDark
 
-                  ? AppTheme.darkSurface.withValues(alpha: 0.85)
+                  ? AppTheme.darkSurface.withValues(alpha: 0.92)
 
-                  : Colors.white.withValues(alpha: 0.85),
+                  : Colors.white.withValues(alpha: 0.92),
 
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(28),
 
               border: Border.all(
 
                 color: isDark
 
-                    ? Colors.white.withValues(alpha: 0.1)
+                    ? Colors.white.withValues(alpha: 0.06)
 
-                    : Colors.black.withValues(alpha: 0.05),
+                    : Colors.black.withValues(alpha: 0.04),
 
                 width: 1,
 
@@ -1536,11 +1536,27 @@ class _AppShellState extends ConsumerState<AppShell> {
 
                 BoxShadow(
 
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppTheme.primaryColor.withValues(
 
-                  blurRadius: 20,
+                    alpha: isDark ? 0.10 : 0.08,
+
+                  ),
+
+                  blurRadius: 24,
+
+                  spreadRadius: 0,
 
                   offset: const Offset(0, 8),
+
+                ),
+
+                BoxShadow(
+
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+
+                  blurRadius: 12,
+
+                  offset: const Offset(0, 4),
 
                 ),
 
@@ -1550,17 +1566,17 @@ class _AppShellState extends ConsumerState<AppShell> {
 
             child: ClipRRect(
 
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(28),
 
               child: BackdropFilter(
 
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
 
                 child: Padding(
 
                   padding: const EdgeInsets.symmetric(
 
-                    horizontal: 12,
+                    horizontal: 8,
 
                     vertical: 8,
 
@@ -1724,198 +1740,114 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 
 
+  // Premium nav item:
+  //   • Inactive  → just an icon (subtle muted colour). Tighter footprint
+  //     keeps the bar lean.
+  //   • Selected  → expands into a gradient pill (primary → accent) with the
+  //     icon and label rendered in white. The pill glows with a soft
+  //     brand-coloured shadow so it visually "lifts" off the glass bar.
+  //   • Animated using a single AnimatedContainer so taps feel instant but
+  //     transitions stay buttery (300 ms easeOutCubic).
   Widget _buildNavItem(
-
     BuildContext context, {
-
     required IconData icon,
-
     required IconData inactiveIcon,
-
     required String label,
-
     required int index,
-
     required int selectedIndex,
-
     required bool isDark,
-
     bool isAdmin = false,
-
   }) {
-
     final isSelected = index == selectedIndex;
+    final showCommunityDot =
+        !isAdmin && index == 4 && _hasNewCommunityPosts;
 
-    return GestureDetector(
+    final inactiveColor =
+        isDark ? Colors.white.withValues(alpha: 0.62) : Colors.black54;
 
-      onTap: () => _onItemTapped(context, index, isAdmin),
-
-      behavior: HitTestBehavior.opaque,
-
-      child: AnimatedContainer(
-
-        duration: const Duration(milliseconds: 300),
-
-        curve: Curves.easeOutCubic,
-
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-
-        decoration: BoxDecoration(
-
-          color: isSelected
-
-              ? AppTheme.primaryColor.withValues(alpha: 0.12)
-
-              : Colors.transparent,
-
-          borderRadius: BorderRadius.circular(20),
-
-        ),
-
-        child: Column(
-
-          mainAxisSize: MainAxisSize.min,
-
-          children: [
-
-            /// Animated Icon
-
-            Stack(
-
-              clipBehavior: Clip.none,
-
-              children: [
-
-                AnimatedSwitcher(
-
-                  duration: const Duration(milliseconds: 200),
-
-                  transitionBuilder: (child, anim) =>
-
-                      ScaleTransition(scale: anim, child: child),
-
-                  child: Icon(
-
-                    isSelected ? icon : inactiveIcon,
-
-                    key: ValueKey(isSelected), // Forces swap animation
-
-                    size: 24,
-
-                    color: isSelected
-
-                        ? AppTheme.primaryColor
-
-                        : (isDark ? Colors.white60 : Colors.black54),
-
-                  ),
-
-                ),
-
-                if (!isAdmin && index == 4 && _hasNewCommunityPosts)
-
-                  Positioned(
-
-                    top: -2,
-
-                    right: -2,
-
-                    child: Container(
-
-                      width: 10,
-
-                      height: 10,
-
-                      decoration: BoxDecoration(
-
-                        color: Colors.redAccent,
-
-                        shape: BoxShape.circle,
-
-                        border: Border.all(
-
-                          color: isDark
-
-                              ? const Color(0xFF1E1E1E)
-
-                              : Colors.white,
-
-                          width: 2,
-
-                        ),
-
-                      ),
-
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => _onItemTapped(context, index, isAdmin),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          margin: const EdgeInsets.symmetric(horizontal: 3),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 8,
+          ),
+          decoration: BoxDecoration(
+            // Solid primary tint when selected (no gradient) — matches the
+            // app's primary brand colour the user requested.
+            color: isSelected
+                ? AppTheme.primaryColor.withValues(alpha: 0.14)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 220),
+                    transitionBuilder: (child, anim) =>
+                        ScaleTransition(scale: anim, child: child),
+                    child: Icon(
+                      isSelected ? icon : inactiveIcon,
+                      key: ValueKey(isSelected),
+                      size: 22,
+                      color: isSelected
+                          ? AppTheme.primaryColor
+                          : inactiveColor,
                     ),
-
                   ),
-
-              ],
-
-            ),
-
-            const SizedBox(height: 4),
-
-
-
-            /// Persistent label
-
-            Text(
-
-              label,
-
-              style: TextStyle(
-
-                fontSize: 10,
-
-                letterSpacing: 0.2,
-
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-
-                color: isSelected
-
-                    ? AppTheme.primaryColor
-
-                    : (isDark ? Colors.white60 : Colors.black54),
-
+                  if (showCommunityDot)
+                    Positioned(
+                      top: -2,
+                      right: -2,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? AppTheme.darkSurface
+                                : Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-
-            ),
-
-
-
-            /// Subtle active indicator dot
-
-            AnimatedContainer(
-
-              duration: const Duration(milliseconds: 300),
-
-              curve: Curves.easeOutCubic,
-
-              margin: const EdgeInsets.only(top: 4),
-
-              height: 4,
-
-              width: isSelected ? 4 : 0,
-
-              decoration: BoxDecoration(
-
-                color: AppTheme.primaryColor,
-
-                shape: BoxShape.circle,
-
+              const SizedBox(height: 4),
+              // Always-visible label so the user can read every tab name.
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  letterSpacing: 0.1,
+                  fontWeight: isSelected
+                      ? FontWeight.w800
+                      : FontWeight.w600,
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : inactiveColor,
+                ),
               ),
-
-            ),
-
-          ],
-
+            ],
+          ),
         ),
-
       ),
-
     );
-
   }
 
 }

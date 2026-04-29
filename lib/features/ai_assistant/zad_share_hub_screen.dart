@@ -287,7 +287,7 @@ class _ZadShareHubScreenState extends ConsumerState<ZadShareHubScreen> {
                     
                     if (groups.isNotEmpty)
                       DropdownButtonFormField<String>(
-                        value: _selectedGroupId,
+                        initialValue: _selectedGroupId,
                         decoration: InputDecoration(
                           labelText: 'المجموعة (اختياري)',
                           labelStyle: TextStyle(fontFamily: 'Cairo', color: AppTheme.primaryColor),

@@ -195,7 +195,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         onTap: () => context.push('/admin/suggestions'),
                         delay: 0,
                       ),
-                    if (perms.contains('websites'))
+                    if (perms.contains('drafts'))
                       Consumer(
                         builder: (context, ref, _) {
                           final count = ref.watch(adminDraftCountProvider);
@@ -297,7 +297,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         onTap: () => context.push('/admin/advertisements'),
                         delay: 335,
                       ),
-                    if (perms.contains('websites'))
+                    if (perms.contains('collections'))
                       _ActionCard(
                         title: AppLocalizations.of(context)!.manageCollections,
                         subtitle: AppLocalizations.of(
@@ -325,17 +325,18 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
 
                     // AI Management
-                    _ActionCard(
-                      title: 'إدارة الذكاء الاصطناعي',
-                      subtitle: 'الشخصيات والمزودين',
-                      icon: PhosphorIcons.brain(
-                        PhosphorIconsStyle.duotone,
+                    if (perms.contains('ai_management'))
+                      _ActionCard(
+                        title: 'إدارة الذكاء الاصطناعي',
+                        subtitle: 'الشخصيات والمزودين',
+                        icon: PhosphorIcons.brain(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF8B5CF6),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/ai-management'),
+                        delay: 350,
                       ),
-                      color: const Color(0xFF8B5CF6),
-                      isDark: isDark,
-                      onTap: () => context.push('/admin/ai-management'),
-                      delay: 350,
-                    ),
 
                     Consumer(
                       builder: (context, ref, _) {
