@@ -214,6 +214,36 @@ class AboutScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _FeatureCard(
+                  emoji: '🤖',
+                  title: loc.aboutFeatureZadExpertTitle,
+                  body: loc.aboutFeatureZadExpertBody,
+                  accent: const Color(0xFF7C4DFF),
+                  isDark: isDark,
+                ).animate().fadeIn(delay: 230.ms).slideX(begin: 0.08),
+
+                const SizedBox(height: 12),
+
+                _FeatureCard(
+                  emoji: '✨',
+                  title: loc.aboutFeatureExplorerAiTitle,
+                  body: loc.aboutFeatureExplorerAiBody,
+                  accent: const Color(0xFFEC407A),
+                  isDark: isDark,
+                ).animate().fadeIn(delay: 245.ms).slideX(begin: 0.08),
+
+                const SizedBox(height: 12),
+
+                _FeatureCard(
+                  emoji: '🪄',
+                  title: loc.aboutFeatureBrowserAiTitle,
+                  body: loc.aboutFeatureBrowserAiBody,
+                  accent: const Color(0xFF26A69A),
+                  isDark: isDark,
+                ).animate().fadeIn(delay: 255.ms).slideX(begin: 0.08),
+
+                const SizedBox(height: 12),
+
+                _FeatureCard(
                   emoji: '📋',
                   title: loc.aboutFeature2Title,
                   body: loc.aboutFeature2Body,

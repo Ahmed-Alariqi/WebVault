@@ -30,6 +30,8 @@ import '../../data/models/ai_persona_mode.dart';
 
 import '../../presentation/providers/zad_expert_providers.dart';
 
+import '../../data/services/connectivity_service.dart';
+
 import '../ai_assistant/ai_chat_screen.dart'; // For CodeElementBuilder
 
 import '../ai_assistant/widgets/chat_prompt_bridge.dart';
@@ -1089,7 +1091,13 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
     final chatState = ref.watch(expertChatProvider(persona));
 
-    
+    // Offline-aware UI: when there's no connectivity we render a slim red
+    // banner above the header bar and trim the header's status-bar inset
+    // (since the banner itself already sits under the status bar).
+    final isOffline = ref.watch(isOnlineProvider).maybeWhen(
+      data: (online) => !online,
+      orElse: () => false,
+    );
 
     // Optimized Branding: Near-solid for maximum clarity without glare
 
@@ -1101,13 +1109,19 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
     
 
-    return Container(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _OfflineBanner(isVisible: isOffline, isDark: isDark),
+        Container(
 
       constraints: const BoxConstraints(minHeight: 65),
 
       padding: EdgeInsets.only(
 
-        top: MediaQuery.of(context).padding.top + 4,
+        // When the offline banner is visible above us it already consumes
+        // the status-bar inset, so don't double-pad here.
+        top: (isOffline ? 4 : MediaQuery.of(context).padding.top + 4),
 
         bottom: 6,
 
@@ -1470,7 +1484,9 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
       ),
 
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.1, end: 0);
+    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.1, end: 0),
+      ],
+    );
 
   }
 
@@ -2854,13 +2870,17 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     final isFocused = _focusNode.hasFocus;
     final isActive = isFocused || _isListening;
 
+    // Dark mode composer surface: clearly elevated above darkSurface
+    // (#1A1A2E) with a subtle indigo cast that matches the app's accent
+    // palette. The result is a "premium" pill that reads as a raised card
+    // rather than a dark hole sitting inside a darker frame.
     final shellBg = isDark
-        ? const Color(0xFF1C1F26)
+        ? const Color(0xFF2C2C44)
         : const Color(0xFFF4F5F7);
     final shellBorder = isActive
         ? personaColor.withValues(alpha: isDark ? 0.55 : 0.45)
         : (isDark
-            ? Colors.white.withValues(alpha: 0.06)
+            ? Colors.white.withValues(alpha: 0.07)
             : Colors.black.withValues(alpha: 0.06));
 
     return Container(
@@ -2992,6 +3012,13 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                               color: isDark ? Colors.white : Colors.black87,
                             ),
                             decoration: InputDecoration(
+                              // The global InputDecorationTheme forces
+                              // filled=true with darkBg as the fill color in
+                              // dark mode, which paints a near-black box
+                              // *inside* our pill. Disable that explicitly so
+                              // the TextField inherits the pill's surface.
+                              filled: false,
+                              fillColor: Colors.transparent,
                               isCollapsed: true,
                               hintText: _isListening
                                   ? 'جارٍ الاستماع…'
@@ -3001,12 +3028,13 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                                 color: _isListening
                                     ? personaColor
                                     : (isDark
-                                        ? Colors.white.withValues(alpha: 0.38)
+                                        ? Colors.white.withValues(alpha: 0.55)
                                         : Colors.black.withValues(alpha: 0.40)),
                               ),
                               border: InputBorder.none,
                               enabledBorder: InputBorder.none,
                               focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 8,
                                 vertical: 12,
@@ -5499,3 +5527,63 @@ class _ExpertEditActionButton extends StatelessWidget {
 
 
 
+
+
+// -- Offline Banner --------------------------------------------------------
+class _OfflineBanner extends StatelessWidget {
+  final bool isVisible;
+  final bool isDark;
+
+  const _OfflineBanner({required this.isVisible, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        child: !isVisible
+            ? const SizedBox(width: double.infinity, height: 0)
+            : Container(
+                key: const ValueKey('offline-banner'),
+                width: double.infinity,
+                color: AppTheme.errorColor.withValues(alpha: isDark ? 0.18 : 0.12),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).padding.top + 4,
+                  bottom: 6,
+                  left: 12,
+                  right: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppTheme.errorColor.withValues(alpha: 0.85),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        PhosphorIcons.wifiSlash(PhosphorIconsStyle.bold),
+                        size: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'أنت في وضع عدم الاتصال',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.errorColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}

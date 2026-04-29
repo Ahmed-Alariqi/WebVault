@@ -289,17 +289,46 @@ Future<Map<String, dynamic>> adminSendNotification(Map<String, dynamic> data) as
 // --------------- Admin FCM User Stats ---------------
 
 final adminFCMStatsProvider = FutureProvider<Map<String, int>>((ref) async {
-  final totalUsers = await _client.from('profiles').count(CountOption.exact) as int? ?? 0;
-  final activeFCMResp = await _client
+  final totalUsers =
+      await _client.from('profiles').count(CountOption.exact) as int? ?? 0;
+
+  // Active = has token AND token has not been marked invalid by a past send.
+  final activeResp = await _client
       .from('profiles')
       .select('id')
-      .not('fcm_token', 'is', null);
-  
-  final activeFCM = (activeFCMResp as List).length;
-  
+      .not('fcm_token', 'is', null)
+      .filter('fcm_token_invalid_at', 'is', null);
+  final activeFCM = (activeResp as List).length;
+
+  // Uninstalled = had a token but FCM marked it dead during a send.
+  final uninstalledResp = await _client
+      .from('profiles')
+      .select('id')
+      .not('fcm_token_invalid_at', 'is', null);
+  final uninstalled = (uninstalledResp as List).length;
+
+  final now = DateTime.now().toUtc();
+  final cutoff7 = now.subtract(const Duration(days: 7)).toIso8601String();
+  final cutoff30 = now.subtract(const Duration(days: 30)).toIso8601String();
+
+  final uninstalled7Resp = await _client
+      .from('profiles')
+      .select('id')
+      .gte('fcm_token_invalid_at', cutoff7);
+  final uninstalled7 = (uninstalled7Resp as List).length;
+
+  final uninstalled30Resp = await _client
+      .from('profiles')
+      .select('id')
+      .gte('fcm_token_invalid_at', cutoff30);
+  final uninstalled30 = (uninstalled30Resp as List).length;
+
   return {
     'total': totalUsers,
     'active': activeFCM,
+    'uninstalled': uninstalled,
+    'uninstalled_7d': uninstalled7,
+    'uninstalled_30d': uninstalled30,
   };
 });
 

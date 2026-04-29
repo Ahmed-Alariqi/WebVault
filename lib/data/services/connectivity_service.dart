@@ -26,5 +26,18 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
 
 final isOnlineProvider = StreamProvider<bool>((ref) {
   final service = ref.watch(connectivityServiceProvider);
-  return service.onConnectivityChanged;
+  // Emit the current connectivity state synchronously first so widgets that
+  // open in offline mode get an immediate `false` instead of a `loading`
+  // state forever (Connectivity.onConnectivityChanged only fires on change).
+  late final StreamController<bool> controller;
+  controller = StreamController<bool>(
+    onListen: () async {
+      try {
+        controller.add(await service.isOnline);
+      } catch (_) {}
+      controller.addStream(service.onConnectivityChanged);
+    },
+  );
+  ref.onDispose(controller.close);
+  return controller.stream;
 });

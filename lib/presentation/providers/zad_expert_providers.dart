@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/ai_chat_model.dart';
@@ -5,7 +7,35 @@ import '../../data/models/ai_persona_model.dart';
 import '../../data/models/ai_persona_mode.dart';
 import '../../data/models/ai_stats_model.dart';
 import '../../data/services/zad_expert_service.dart';
+import '../../data/services/connectivity_service.dart';
 import '../../core/constants.dart';
+
+const String _kPersonasCacheKey = 'personas_v1';
+
+List<AiPersonaModel> _readPersonasCache() {
+  try {
+    final box = Hive.box(kExpertPersonasCacheBox);
+    final raw = box.get(_kPersonasCacheKey);
+    if (raw is List && raw.isNotEmpty) {
+      return raw
+          .map((e) => AiPersonaModel.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+  } catch (_) {}
+  return const [];
+}
+
+void _writePersonasCache(List<AiPersonaModel> personas) {
+  try {
+    final box = Hive.box(kExpertPersonasCacheBox);
+    // Note: AiPersonaModel.toJson() omits `id` (used for Supabase upserts).
+    // We need `id` to reconstruct the model on read, so we attach it here.
+    final data = personas
+        .map((p) => {...p.toJson(), 'id': p.id})
+        .toList();
+    box.put(_kPersonasCacheKey, data);
+  } catch (_) {}
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Personas — fetched from Supabase
@@ -13,7 +43,19 @@ import '../../core/constants.dart';
 
 final expertPersonasProvider =
     FutureProvider.autoDispose<List<AiPersonaModel>>((ref) async {
-  return ZadExpertService.fetchPersonas();
+  try {
+    final fresh = await ZadExpertService.fetchPersonas();
+    if (fresh.isNotEmpty) {
+      _writePersonasCache(fresh);
+    }
+    return fresh;
+  } catch (e) {
+    // Offline / network failure: fall back to last cached personas so the
+    // user can still enter Zad Expert and use locally-stored chat sessions.
+    final cached = _readPersonasCache();
+    if (cached.isNotEmpty) return cached;
+    rethrow;
+  }
 });
 
 /// Currently selected persona
@@ -244,6 +286,17 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
+    // Offline guard: if we know there's no connectivity, surface a friendly
+    // error in the same SnackBar style the screen already uses, instead of
+    // letting the HTTP layer throw a raw SocketException.
+    final online = await _ref.read(connectivityServiceProvider).isOnline;
+    if (!online) {
+      state = state.copyWith(
+        error: 'لا يوجد اتصال بالإنترنت. تعذّر إرسال الرسالة.',
+      );
+      return;
+    }
+
     // Auto-create session if none active
     if (state.activeSessionId == null) {
       startNewSession();
@@ -319,9 +372,15 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
       // Drop the (possibly partial) assistant placeholder so we don't keep
       // a half-typed message in history when the stream errored.
       _updateSessionMessages(updatedMessages);
+      String msg;
+      if (e is SocketException || e is TimeoutException) {
+        msg = 'لا يوجد اتصال بالإنترنت. تعذّر إرسال الرسالة.';
+      } else {
+        msg = e.toString().replaceAll('Exception: ', '');
+      }
       state = state.copyWith(
         isLoading: false,
-        error: e.toString().replaceAll('Exception: ', ''),
+        error: msg,
       );
     }
   }

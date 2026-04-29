@@ -148,6 +148,7 @@ class AuthService {
     String? username,
     String? avatarUrl,
     String? fcmToken,
+    bool resetFcmTokenInvalid = false,
     bool updateUsernameTimestamp = false,
   }) async {
     final user = currentUser;
@@ -159,6 +160,11 @@ class AuthService {
     if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
     if (fcmToken != null) {
       updates['fcm_token'] = fcmToken;
+      // Whenever a fresh token is stored, also reactivate the device by
+      // clearing any prior "uninstalled" mark so it re-enters active stats.
+      updates['fcm_token_invalid_at'] = null;
+    } else if (resetFcmTokenInvalid) {
+      updates['fcm_token_invalid_at'] = null;
     }
     if (updateUsernameTimestamp) {
       updates['username_changed_at'] = DateTime.now().toUtc().toIso8601String();

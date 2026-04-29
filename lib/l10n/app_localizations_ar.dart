@@ -2308,21 +2308,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutTaglineSubtitle =>
-      'زاد تك هو زادك الرقمي لاكتشاف الأدوات وتنظيم كل ما تحتاجه على الإنترنت في مكان واحد.';
+      'كل ما تحتاجه من الإنترنت، منظَّماً في مكان واحد';
 
   @override
   String get aboutTaglineBody =>
-      'يساعدك التطبيق على اكتشاف أدوات ومواقع مفيدة، وحفظ كل ما يهمك من روابط أو نصوص أو مفاتيح أو أكواد، ثم استرجاعها بسرعة عندما تحتاجها.';
+      'سواء كنت طالباً يبحث عن أدوات ومواقع مفيدة، مطوّراً يحفظ مفاتيحه وأكواده، أو مستخدماً يريد ترتيب حياته الرقمية — زاد تك يجمعها لك في تطبيق واحد منظَّم وذكي.';
 
   @override
-  String get aboutFeaturesTitle => 'ماذا يقدم زاد تك؟';
+  String get aboutFeaturesTitle => 'ماذا يقدّم زاد تك؟';
 
   @override
-  String get aboutFeature1Title => 'مستكشف الأدوات';
+  String get aboutFeatureZadExpertTitle => 'خبير زاد';
+
+  @override
+  String get aboutFeatureZadExpertBody =>
+      'شخصيات خبيرة متخصصة تجيب عن أسئلتك بفهم عميق لمجالها — تقنية، تعليم، أعمال، والمزيد. تنوّع غير مسبوق في تطبيق عربي.';
+
+  @override
+  String get aboutFeatureExplorerAiTitle => 'مساعد المستكشف الذكي';
+
+  @override
+  String get aboutFeatureExplorerAiBody =>
+      'تلخيص فوري لأي أداة في المستكشف مع شرح مميزاتها وحالات استخدامها — دون فتح الموقع.';
+
+  @override
+  String get aboutFeatureBrowserAiTitle => 'متصفّح زاد الذكي';
+
+  @override
+  String get aboutFeatureBrowserAiBody =>
+      'تصفّح أي صفحة داخل التطبيق واطلب من المساعد تلخيصها أو شرحها أو الإجابة عن أسئلتك حول محتواها لحظياً.';
+
+  @override
+  String get aboutFeature1Title => 'مستكشف الأدوات المنتقاة';
 
   @override
   String get aboutFeature1Body =>
-      'اكتشف أدوات ومواقع وعروض واشتراكات جديدة يتم تحديثها باستمرار.';
+      'بين زحام ما يصدر يومياً من أدوات ومواقع وأخبار، نختبر ونختار لك الأفضل فقط. كل ما يصلك في المستكشف مرّ بفلتر التجربة قبل النشر.';
 
   @override
   String get aboutFeature2Title => 'الحافظة الذكية';
@@ -3759,6 +3780,48 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notifUsersProgress => 'حالة المستخدمين';
+
+  @override
+  String get notifUsersUninstalled => 'حذفوا التطبيق';
+
+  @override
+  String get notifUninstalledTitle => 'تفاصيل من حذفوا التطبيق';
+
+  @override
+  String get notifUninstalled7d => 'خلال 7 أيام';
+
+  @override
+  String get notifUninstalled30d => 'خلال 30 يوماً';
+
+  @override
+  String get notifUninstalledTotal => 'الإجمالي';
+
+  @override
+  String get notifUninstalledExplain =>
+      'هؤلاء المستخدمون كان الإشعار مفعلاً لديهم لكن FCM رفض الـ token الخاص بأجهزتهم في عملية إرسال سابقة — غالباً لأن التطبيق تم حذفه أو إعادة تثبيته. يتم استثناؤهم من إحصائية المفعّلين ومن إرسال الإشعارات الجديدة.';
+
+  @override
+  String get notifStatsCleaned => 'توكنات تم تنظيفها تلقائياً';
+
+  @override
+  String get notifStatsCleanedHint =>
+      'تم اكتشاف أن التطبيق محذوف خلال هذا الإرسال، وتم استثناؤها من الإرسالات القادمة.';
+
+  @override
+  String get notifSettingsTitle => 'الإشعارات';
+
+  @override
+  String get notifSettingsSubtitle => 'إدارة تفضيلات الإشعارات';
+
+  @override
+  String get notifSettingsAllContent => 'المحتوى الجديد في المستكشف';
+
+  @override
+  String get notifSettingsAllContentSub =>
+      'تنبيه عند إضافة أي عنصر جديد إلى المستكشف.';
+
+  @override
+  String get notifSettingsSaveError => 'تعذّر حفظ التفضيل';
 
   @override
   String get browserAiAssistant => 'مساعد الصفحة الذكي';

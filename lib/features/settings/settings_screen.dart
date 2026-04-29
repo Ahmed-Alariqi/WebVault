@@ -284,6 +284,53 @@ class SettingsScreen extends ConsumerWidget {
 
           const SizedBox(height: 28),
 
+          // Notifications section
+          _buildSectionHeader(
+            AppLocalizations.of(context)!.notifSettingsTitle,
+            PhosphorIcons.bell(),
+            isDark,
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            isDark: isDark,
+            child: ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  PhosphorIcons.bellRinging(PhosphorIconsStyle.fill),
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.notifSettingsTitle,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
+                ),
+              ),
+              subtitle: Text(
+                AppLocalizations.of(context)!.notifSettingsSubtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                ),
+              ),
+              trailing: Icon(PhosphorIcons.caretRight()),
+              onTap: () => context.push('/notification-settings'),
+            ),
+          ),
+
+          const SizedBox(height: 28),
+
           // Clipboard & Copy section
           _buildSectionHeader(
             AppLocalizations.of(context)!.clipboardSettings,

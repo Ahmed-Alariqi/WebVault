@@ -4403,13 +4403,13 @@ abstract class AppLocalizations {
   /// No description provided for @aboutTaglineSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'ZaadTech is your digital companion for discovering tools and organizing everything you need online in one place.'**
+  /// **'Everything you need from the internet — organized in one place.'**
   String get aboutTaglineSubtitle;
 
   /// No description provided for @aboutTaglineBody.
   ///
   /// In en, this message translates to:
-  /// **'The app helps you discover useful tools, websites, and subscriptions, save links, texts, keys, or codes that matter to you, and retrieve them quickly whenever you need them.'**
+  /// **'Whether you are a student seeking useful tools and websites, a developer saving keys and code, or a user wanting to organize their digital life — ZaadTech brings it all together in one smart, organized app.'**
   String get aboutTaglineBody;
 
   /// No description provided for @aboutFeaturesTitle.
@@ -4418,16 +4418,52 @@ abstract class AppLocalizations {
   /// **'What does ZaadTech offer?'**
   String get aboutFeaturesTitle;
 
+  /// No description provided for @aboutFeatureZadExpertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zad Expert'**
+  String get aboutFeatureZadExpertTitle;
+
+  /// No description provided for @aboutFeatureZadExpertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Specialized AI personas that answer your questions with deep domain understanding — tech, education, business, and more.'**
+  String get aboutFeatureZadExpertBody;
+
+  /// No description provided for @aboutFeatureExplorerAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart Explorer Assistant'**
+  String get aboutFeatureExplorerAiTitle;
+
+  /// No description provided for @aboutFeatureExplorerAiBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Instant AI summaries of any tool in the explorer, with key features and use cases — without opening the website.'**
+  String get aboutFeatureExplorerAiBody;
+
+  /// No description provided for @aboutFeatureBrowserAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart In-App Browser'**
+  String get aboutFeatureBrowserAiTitle;
+
+  /// No description provided for @aboutFeatureBrowserAiBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse any page inside the app and ask the assistant to summarize, explain, or answer questions about its content in real time.'**
+  String get aboutFeatureBrowserAiBody;
+
   /// No description provided for @aboutFeature1Title.
   ///
   /// In en, this message translates to:
-  /// **'Tools Explorer'**
+  /// **'Curated Tools Explorer'**
   String get aboutFeature1Title;
 
   /// No description provided for @aboutFeature1Body.
   ///
   /// In en, this message translates to:
-  /// **'Discover tools, websites, offers, and subscriptions that are constantly updated.'**
+  /// **'Amid the daily flood of new tools, sites, and announcements, we test and hand-pick only the best for you. Every item in the explorer has passed our experience filter before being published.'**
   String get aboutFeature1Body;
 
   /// No description provided for @aboutFeature2Title.
@@ -7153,6 +7189,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Users Progress'**
   String get notifUsersProgress;
+
+  /// No description provided for @notifUsersUninstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstalled'**
+  String get notifUsersUninstalled;
+
+  /// No description provided for @notifUninstalledTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall Breakdown'**
+  String get notifUninstalledTitle;
+
+  /// No description provided for @notifUninstalled7d.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 7 days'**
+  String get notifUninstalled7d;
+
+  /// No description provided for @notifUninstalled30d.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 30 days'**
+  String get notifUninstalled30d;
+
+  /// No description provided for @notifUninstalledTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get notifUninstalledTotal;
+
+  /// No description provided for @notifUninstalledExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'These users had push enabled but their device token was rejected by FCM during a previous send — typically because the app was uninstalled or reinstalled. They are excluded from active counts and from new push targeting.'**
+  String get notifUninstalledExplain;
+
+  /// No description provided for @notifStatsCleaned.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-cleaned tokens'**
+  String get notifStatsCleaned;
+
+  /// No description provided for @notifStatsCleanedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected as uninstalled during this send and excluded from future ones.'**
+  String get notifStatsCleanedHint;
+
+  /// No description provided for @notifSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifSettingsTitle;
+
+  /// No description provided for @notifSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage notification preferences'**
+  String get notifSettingsSubtitle;
+
+  /// No description provided for @notifSettingsAllContent.
+  ///
+  /// In en, this message translates to:
+  /// **'New explorer items'**
+  String get notifSettingsAllContent;
+
+  /// No description provided for @notifSettingsAllContentSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified whenever a new item is added to the explorer.'**
+  String get notifSettingsAllContentSub;
+
+  /// No description provided for @notifSettingsSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save preference'**
+  String get notifSettingsSaveError;
 
   /// No description provided for @browserAiAssistant.
   ///

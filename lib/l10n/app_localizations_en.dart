@@ -2310,21 +2310,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutTaglineSubtitle =>
-      'ZaadTech is your digital companion for discovering tools and organizing everything you need online in one place.';
+      'Everything you need from the internet — organized in one place.';
 
   @override
   String get aboutTaglineBody =>
-      'The app helps you discover useful tools, websites, and subscriptions, save links, texts, keys, or codes that matter to you, and retrieve them quickly whenever you need them.';
+      'Whether you are a student seeking useful tools and websites, a developer saving keys and code, or a user wanting to organize their digital life — ZaadTech brings it all together in one smart, organized app.';
 
   @override
   String get aboutFeaturesTitle => 'What does ZaadTech offer?';
 
   @override
-  String get aboutFeature1Title => 'Tools Explorer';
+  String get aboutFeatureZadExpertTitle => 'Zad Expert';
+
+  @override
+  String get aboutFeatureZadExpertBody =>
+      'Specialized AI personas that answer your questions with deep domain understanding — tech, education, business, and more.';
+
+  @override
+  String get aboutFeatureExplorerAiTitle => 'Smart Explorer Assistant';
+
+  @override
+  String get aboutFeatureExplorerAiBody =>
+      'Instant AI summaries of any tool in the explorer, with key features and use cases — without opening the website.';
+
+  @override
+  String get aboutFeatureBrowserAiTitle => 'Smart In-App Browser';
+
+  @override
+  String get aboutFeatureBrowserAiBody =>
+      'Browse any page inside the app and ask the assistant to summarize, explain, or answer questions about its content in real time.';
+
+  @override
+  String get aboutFeature1Title => 'Curated Tools Explorer';
 
   @override
   String get aboutFeature1Body =>
-      'Discover tools, websites, offers, and subscriptions that are constantly updated.';
+      'Amid the daily flood of new tools, sites, and announcements, we test and hand-pick only the best for you. Every item in the explorer has passed our experience filter before being published.';
 
   @override
   String get aboutFeature2Title => 'Smart Clipboard';
@@ -3771,6 +3792,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifUsersProgress => 'Users Progress';
+
+  @override
+  String get notifUsersUninstalled => 'Uninstalled';
+
+  @override
+  String get notifUninstalledTitle => 'Uninstall Breakdown';
+
+  @override
+  String get notifUninstalled7d => 'Last 7 days';
+
+  @override
+  String get notifUninstalled30d => 'Last 30 days';
+
+  @override
+  String get notifUninstalledTotal => 'Total';
+
+  @override
+  String get notifUninstalledExplain =>
+      'These users had push enabled but their device token was rejected by FCM during a previous send — typically because the app was uninstalled or reinstalled. They are excluded from active counts and from new push targeting.';
+
+  @override
+  String get notifStatsCleaned => 'Auto-cleaned tokens';
+
+  @override
+  String get notifStatsCleanedHint =>
+      'Detected as uninstalled during this send and excluded from future ones.';
+
+  @override
+  String get notifSettingsTitle => 'Notifications';
+
+  @override
+  String get notifSettingsSubtitle => 'Manage notification preferences';
+
+  @override
+  String get notifSettingsAllContent => 'New explorer items';
+
+  @override
+  String get notifSettingsAllContentSub =>
+      'Get notified whenever a new item is added to the explorer.';
+
+  @override
+  String get notifSettingsSaveError => 'Could not save preference';
 
   @override
   String get browserAiAssistant => 'Page Smart Assistant';

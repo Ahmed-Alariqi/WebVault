@@ -250,6 +250,47 @@ class _SendNotificationScreenState
                   ],
                 ),
               ),
+              if ((stats['invalidated_count'] ?? 0) > 0) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(PhosphorIcons.broom(PhosphorIconsStyle.duotone),
+                          color: Colors.orange, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${loc.notifStatsCleaned}: ${stats['invalidated_count']}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              loc.notifStatsCleanedHint,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.white60 : Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -1324,12 +1365,24 @@ class _SendNotificationScreenState
             data: (stats) {
               final total = stats['total'] ?? 0;
               final active = stats['active'] ?? 0;
+              final uninstalled = stats['uninstalled'] ?? 0;
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildBannerStatItem(loc.notifUsersTotal, total.toString(), isDark),
                   Container(width: 1, height: 30, color: isDark ? Colors.white24 : Colors.black12),
                   _buildBannerStatItem(loc.notifUsersActive, active.toString(), isDark, isHighlight: true),
+                  Container(width: 1, height: 30, color: isDark ? Colors.white24 : Colors.black12),
+                  GestureDetector(
+                    onTap: () => _showUninstalledBreakdownSheet(stats, isDark),
+                    behavior: HitTestBehavior.opaque,
+                    child: _buildBannerStatItem(
+                      loc.notifUsersUninstalled,
+                      uninstalled.toString(),
+                      isDark,
+                      valueColor: uninstalled > 0 ? Colors.redAccent : null,
+                    ),
+                  ),
                 ],
               );
             },
@@ -1341,7 +1394,7 @@ class _SendNotificationScreenState
     );
   }
 
-  Widget _buildBannerStatItem(String label, String value, bool isDark, {bool isHighlight = false}) {
+  Widget _buildBannerStatItem(String label, String value, bool isDark, {bool isHighlight = false, Color? valueColor}) {
     return Column(
       children: [
         Text(
@@ -1349,7 +1402,7 @@ class _SendNotificationScreenState
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: isHighlight ? AppTheme.primaryColor : (isDark ? Colors.white : Colors.black87),
+            color: valueColor ?? (isHighlight ? AppTheme.primaryColor : (isDark ? Colors.white : Colors.black87)),
           ),
         ),
         const SizedBox(height: 2),
@@ -1361,6 +1414,102 @@ class _SendNotificationScreenState
           ),
         ),
       ],
+    );
+  }
+
+  void _showUninstalledBreakdownSheet(Map<String, int> stats, bool isDark) {
+    final loc = AppLocalizations.of(context)!;
+    final total = stats['uninstalled'] ?? 0;
+    final d7 = stats['uninstalled_7d'] ?? 0;
+    final d30 = stats['uninstalled_30d'] ?? 0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(PhosphorIcons.trash(PhosphorIconsStyle.fill),
+                    color: Colors.redAccent, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  loc.notifUninstalledTitle,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownRow(loc.notifUninstalled7d, d7.toString(), isDark),
+            const SizedBox(height: 8),
+            _buildBreakdownRow(loc.notifUninstalled30d, d30.toString(), isDark),
+            const SizedBox(height: 8),
+            _buildBreakdownRow(loc.notifUninstalledTotal, total.toString(), isDark, isStrong: true),
+            const SizedBox(height: 16),
+            Text(
+              loc.notifUninstalledExplain,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.5,
+                color: isDark ? Colors.white54 : Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBreakdownRow(String label, String value, bool isDark, {bool isStrong = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isStrong ? FontWeight.w700 : FontWeight.w500,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isStrong ? 18 : 16,
+              fontWeight: FontWeight.bold,
+              color: isStrong ? Colors.redAccent : (isDark ? Colors.white : Colors.black87),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -373,28 +373,55 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         await adminMarkDraftPublished(widget.draft!.id, newItemId);
       }
 
-      // Send notification if toggled on (only for new items)
-      if (_sendNotification && widget.existing == null) {
-        try {
-          await adminSendNotification({
-            'title': '✨ ${_titleCtrl.text.trim()}',
-            'body': _contentType == 'offer'
-                ? notifOffer
-                : _contentType == 'prompt'
-                ? notifPrompt
-                : _contentType == 'announcement'
-                ? notifAnnouncement
-                : notifDefault,
-            'type': 'new_item',
-            'target_url': newItemId != null
-                ? 'app://discover/item/$newItemId'
-                : 'app://discover',
-            'image_url': _imgCtrl.text.trim().isEmpty
-                ? null
-                : _imgCtrl.text.trim(),
-          });
-        } catch (_) {
-          // Notification failure shouldn't block save
+      // Notifications for newly created items only.
+      if (widget.existing == null) {
+        final notifTitle = '✨ ${_titleCtrl.text.trim()}';
+        final notifBody = _contentType == 'offer'
+            ? notifOffer
+            : _contentType == 'prompt'
+            ? notifPrompt
+            : _contentType == 'announcement'
+            ? notifAnnouncement
+            : notifDefault;
+        final notifTargetUrl = newItemId != null
+            ? 'app://discover/item/$newItemId'
+            : 'app://discover';
+        final notifImageUrl = _imgCtrl.text.trim().isEmpty
+            ? null
+            : _imgCtrl.text.trim();
+
+        if (_sendNotification) {
+          // Admin opted to broadcast to everyone — also creates a DB notification record.
+          try {
+            await adminSendNotification({
+              'title': notifTitle,
+              'body': notifBody,
+              'type': 'new_item',
+              'target_url': notifTargetUrl,
+              'image_url': notifImageUrl,
+            });
+          } catch (_) {
+            // Notification failure shouldn't block save
+          }
+        } else {
+          // Admin DID NOT broadcast: still push silently to users who opted-in
+          // to receive every new explorer item (notif_all_new_content = true).
+          // No DB row inserted — these are silent opt-in deliveries.
+          try {
+            await SupabaseConfig.client.functions.invoke(
+              'send-notification',
+              body: {
+                'mode': 'auto_content_only',
+                'title': notifTitle,
+                'body': notifBody,
+                'type': 'content_auto',
+                'target_url': notifTargetUrl,
+                'image_url': notifImageUrl,
+              },
+            );
+          } catch (_) {
+            // Silent — opt-in push is best-effort.
+          }
         }
       }
 

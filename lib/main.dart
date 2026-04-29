@@ -18,6 +18,7 @@ import 'data/repositories/clipboard_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/services/auth_service.dart';
 import 'presentation/providers/providers.dart';
+import 'presentation/providers/auth_providers.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'core/services/analytics_service.dart';
@@ -55,6 +56,7 @@ Future<void> main() async {
     Hive.openBox(kSyncQueueBox),
     Hive.openBox('ai_chats'),
     Hive.openBox(kExpertSessionsBox),
+    Hive.openBox(kExpertPersonasCacheBox),
     SupabaseConfig.initialize(),   // runs while Hive boxes open
   ]);
 
@@ -121,21 +123,37 @@ Future<void> main() async {
         container.invalidate(notificationCountProvider);
       });
 
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // Resolve the in-app destination from an FCM payload.
+      // For chat pushes: admins go to /admin/user-chats, users to /chat.
+      Future<String> routeForMessage(RemoteMessage m) async {
+        final type = (m.data['type'] ?? '').toString();
+        if (type == 'chat') {
+          try {
+            final isAdmin = await container.read(hasAdminAccessProvider.future);
+            return isAdmin ? '/admin/user-chats' : '/chat';
+          } catch (_) {
+            return '/chat';
+          }
+        }
+        return '/notifications';
+      }
+
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
         debugPrint('[FCM] Tapped: ${message.notification?.title}');
         container.invalidate(notificationCountProvider);
-        container.read(routerProvider).go('/notifications');
+        final route = await routeForMessage(message);
+        container.read(routerProvider).go(route);
       });
 
       // ── Non-blocking: check initial message ───────────────────────────
       unawaited(
-        messaging.getInitialMessage().then((initialMessage) {
+        messaging.getInitialMessage().then((initialMessage) async {
           if (initialMessage != null) {
             debugPrint('[FCM] App opened from terminated notification');
-            Future.delayed(const Duration(milliseconds: 500), () {
-              container.invalidate(notificationCountProvider);
-              container.read(routerProvider).go('/notifications');
-            });
+            await Future.delayed(const Duration(milliseconds: 500));
+            container.invalidate(notificationCountProvider);
+            final route = await routeForMessage(initialMessage);
+            container.read(routerProvider).go(route);
           }
         }),
       );

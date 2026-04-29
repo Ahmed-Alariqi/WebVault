@@ -8,6 +8,7 @@ const String kCopyHistoryBox = 'copy_history_box';
 const String kDiscoverCacheBox = 'discover_cache_box';
 const String kSyncQueueBox = 'sync_queue_box';
 const String kExpertSessionsBox = 'expert_sessions_box';
+const String kExpertPersonasCacheBox = 'expert_personas_cache_box';
 
 // Settings keys
 const String kPinCode = 'pin_code';
@@ -35,4 +36,4 @@ const List<int> kAutoLockOptions = [0, 30, 60, 300, 600];
 
 // App info
 const String kAppName = 'ZaadTech Manager';
-const String kAppVersion = '2.0.0';
+const String kAppVersion = '2.0.1';

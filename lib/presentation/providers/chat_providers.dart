@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -170,6 +172,41 @@ Future<String> getOrCreateConversation(String userId) async {
   return newConv['id'] as String;
 }
 
+/// Builds a short notification preview from a message body.
+String _chatPreview(String content) {
+  if (content.startsWith('[IMAGE]')) return '📷 صورة';
+  final trimmed = content.trim();
+  if (trimmed.length <= 80) return trimmed;
+  return '${trimmed.substring(0, 80)}…';
+}
+
+/// Fire-and-forget FCM push via the unified send-notification edge function.
+Future<void> _invokeChatPush({
+  required String mode, // 'chat_to_admins' | 'chat_to_user'
+  required String conversationId,
+  required String senderId,
+  required String preview,
+  String? targetUserId,
+}) async {
+  try {
+    await _supabase.functions.invoke(
+      'send-notification',
+      body: {
+        'mode': mode,
+        'title': preview,
+        'body': preview,
+        'type': 'chat',
+        'target_url': 'app://chat',
+        'sender_id': senderId,
+        'conversation_id': conversationId,
+        'target_user_id': ?targetUserId,
+      },
+    );
+  } catch (e) {
+    debugPrint('[Chat FCM] invoke failed: $e');
+  }
+}
+
 Future<void> userSendMessage(String conversationId, String content) async {
   final userId = _supabase.auth.currentUser?.id;
   if (userId == null) return;
@@ -206,6 +243,16 @@ Future<void> userSendMessage(String conversationId, String content) async {
       .from('conversations')
       .update({'unread_admin_count': currentAdminUnread + 1})
       .eq('id', conversationId);
+
+  // Fire-and-forget push to all admins (sender excluded by edge function)
+  unawaited(
+    _invokeChatPush(
+      mode: 'chat_to_admins',
+      conversationId: conversationId,
+      senderId: userId,
+      preview: _chatPreview(content),
+    ),
+  );
 }
 
 Future<void> adminSendMessage(String conversationId, String content) async {
@@ -220,7 +267,13 @@ Future<void> adminSendMessage(String conversationId, String content) async {
     'content': content,
   });
 
-  // Update conversation
+  // Update conversation + fetch the conversation owner (target user) in one go.
+  final conv = await _supabase
+      .from('conversations')
+      .select('unread_user_count, user_id')
+      .eq('id', conversationId)
+      .single();
+
   await _supabase
       .from('conversations')
       .update({
@@ -231,16 +284,25 @@ Future<void> adminSendMessage(String conversationId, String content) async {
       .eq('id', conversationId);
 
   // Increment unread_user_count
-  final conv = await _supabase
-      .from('conversations')
-      .select('unread_user_count')
-      .eq('id', conversationId)
-      .single();
   final currentUserUnread = conv['unread_user_count'] as int? ?? 0;
   await _supabase
       .from('conversations')
       .update({'unread_user_count': currentUserUnread + 1})
       .eq('id', conversationId);
+
+  // Fire-and-forget push to the conversation owner only
+  final targetUserId = conv['user_id'] as String?;
+  if (targetUserId != null) {
+    unawaited(
+      _invokeChatPush(
+        mode: 'chat_to_user',
+        conversationId: conversationId,
+        senderId: userId,
+        preview: _chatPreview(content),
+        targetUserId: targetUserId,
+      ),
+    );
+  }
 }
 
 Future<void> markConversationReadByUser(String conversationId) async {
