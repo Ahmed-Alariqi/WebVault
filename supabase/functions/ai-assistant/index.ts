@@ -1,25 +1,94 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore - Deno JSR import not recognized by standard TS server
+import { createClient } from "jsr:@supabase/supabase-js@2";
 // Provide Deno global space for typescript IDE
 declare const Deno: any;
 
-// ==========================================
-// ضع مفاتيح الـ API الخاصة بك هنا داخل هذه القائمة
-// ==========================================
-const HARDCODED_API_KEYS: string[] = [
-    "f34d7786dc994bd799f69d90aec4b9f9.aZr057otPvcQ14zG3H-b_G_b",
-    "3874c11c55a54b07bdf464856bbd3d61.Vb0V59ULNpXf28uQSK24_sfw"
-];
+// ════════════════════════════════════════════════════════════════════════════
+// AI Assistant — DB-driven providers
+// ════════════════════════════════════════════════════════════════════════════
+//
+// Previously the API keys, base URL and model were hardcoded in this file
+// (or read from `Deno.env`). That meant changing the model, rotating a
+// burnt key, or adding a new fallback provider required editing the
+// source and redeploying — a friction point we hit in production.
+//
+// The function now reads its configuration from the `ai_providers` table
+// rows whose `purpose = 'ai-assistant'` (and `is_active = true`). The
+// admin manages those rows from inside the app via the AI Management
+// screen, so updates are instant and require no code changes.
+//
+// Each provider row contributes:
+//   • base_url        → the chat-completions endpoint to POST to
+//   • api_key         → comma-separated list of keys (rotated on 401/429)
+//   • selected_model  → model to send (falls back to supported_models[0])
+//
+// We try each provider in order; within a provider we try each key in
+// order. This preserves the historical failover behaviour while letting
+// the admin run several providers side-by-side (e.g. Groq + Ollama) for
+// resilience.
+// ════════════════════════════════════════════════════════════════════════════
 
-// دمج المفاتيح المكتوبة هنا مع المتوفرة في متغيرات البيئة (إن وجدت)
-const OLLAMA_API_KEYS = [
-    ...HARDCODED_API_KEYS,
-    ...(Deno.env.get('OLLAMA_API_KEYS') || Deno.env.get('OLLAMA_API_KEY') || '')
-        .split(',')
-        .map((k: string) => k.trim())
-        .filter(Boolean)
-];
-const LLM_BASE_URL = Deno.env.get('LLM_BASE_URL') || 'https://ollama.com/api/chat';
-const LLM_MODEL = Deno.env.get('LLM_MODEL') || 'gemini-3-flash-preview:cloud';
+const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+);
+
+interface AssistantProvider {
+    baseUrl: string;
+    keys: string[];
+    model: string;
+}
+
+let cachedProviders: AssistantProvider[] = [];
+let lastCacheRefresh = 0;
+const CACHE_TTL_MS = 60_000; // 1 minute — fresh enough that admin edits show up almost immediately, slow enough to keep cold-call latency low.
+
+async function loadProviders(): Promise<AssistantProvider[]> {
+    const now = Date.now();
+    if (now - lastCacheRefresh < CACHE_TTL_MS && cachedProviders.length > 0) {
+        return cachedProviders;
+    }
+
+    const { data, error } = await supabaseAdmin
+        .from('ai_providers')
+        .select('base_url, api_key, supported_models, selected_model')
+        .eq('purpose', 'ai-assistant')
+        .eq('is_active', true)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Failed to load ai-assistant providers:', error.message);
+        // On error, keep serving the previously-cached config rather than
+        // 500-ing every chat request. The next refresh will retry.
+        return cachedProviders;
+    }
+
+    const built: AssistantProvider[] = [];
+    for (const row of data ?? []) {
+        const keys = String(row.api_key ?? '')
+            .split(',')
+            .map((k: string) => k.trim())
+            .filter(Boolean);
+        if (keys.length === 0) continue;
+
+        const baseUrl = String(row.base_url ?? '').trim();
+        if (!baseUrl) continue;
+
+        const supported: string[] = Array.isArray(row.supported_models)
+            ? row.supported_models.map((m: unknown) => String(m).trim()).filter(Boolean)
+            : [];
+        const explicit = (row.selected_model ?? '').toString().trim();
+        const model = explicit || supported[0] || '';
+        if (!model) continue;
+
+        built.push({ baseUrl, keys, model });
+    }
+
+    cachedProviders = built;
+    lastCacheRefresh = now;
+    return cachedProviders;
+}
 
 const SYSTEM_INSTRUCTION = `أنت "مرشد زاد الذكي"، المساعد الذكي داخل تطبيق "زاد التقني".
 
@@ -242,59 +311,74 @@ Deno.serve(async (req: Request) => {
 });
 
 // ── Call LLM API ──
+//
+// Two-level failover:
+//   1. Try providers in DB order (oldest → newest).
+//   2. Within a provider, try its keys in order.
+// On 401/429 we silently move to the next key/provider; on any other
+// non-2xx we surface the error immediately (it's likely a payload bug).
 async function callLLM(
     messages: Array<Record<string, unknown>>,
     includeTools: boolean,
 ): Promise<{ content: string | null; tool_calls?: Array<any> }> {
-    const payload: Record<string, unknown> = {
-        model: LLM_MODEL,
-        messages,
-        stream: false,
-    };
+    const providers = await loadProviders();
 
-    if (includeTools) {
-        payload.tools = TOOLS;
+    if (providers.length === 0) {
+        throw new Error(
+            'No active AI Assistant providers configured. Add one from the admin AI Management screen (Providers tab → "المساعد الذكي العام").',
+        );
     }
 
     let lastError: Error | null = null;
 
-    if (OLLAMA_API_KEYS.length === 0) {
-        throw new Error("No API keys configured.");
-    }
+    for (const provider of providers) {
+        const payload: Record<string, unknown> = {
+            model: provider.model,
+            messages,
+            stream: false,
+        };
+        if (includeTools) payload.tools = TOOLS;
 
-    for (const key of OLLAMA_API_KEYS) {
-        try {
-            const res = await fetch(LLM_BASE_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${key}`,
-                },
-                body: JSON.stringify(payload),
-            });
+        for (const key of provider.keys) {
+            try {
+                const res = await fetch(provider.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
 
-            if (!res.ok) {
-                const errorText = await res.text();
-                // Failover on 401 or 429
-                if (res.status === 401 || res.status === 429) {
-                    console.log(`Key ending in ...${key.slice(-4)} failed with ${res.status}. Trying next key...`);
-                    lastError = new Error(`LLM API error ${res.status}: ${errorText}`);
-                    continue;
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    // Soft failover: invalid/expired key (401) or rate
+                    // limited (429) — keep trying remaining keys/providers.
+                    if (res.status === 401 || res.status === 429) {
+                        console.log(
+                            `[ai-assistant] ${provider.baseUrl} key ...${key.slice(-4)} failed ${res.status}; trying next.`,
+                        );
+                        lastError = new Error(
+                            `LLM API error ${res.status}: ${errorText}`,
+                        );
+                        continue;
+                    }
+                    // Hard error — surface to caller immediately.
+                    throw new Error(`LLM API error ${res.status}: ${errorText}`);
                 }
-                throw new Error(`LLM API error ${res.status}: ${errorText}`);
+
+                const data = await res.json();
+                const choice = data.message ?? data.choices?.[0]?.message;
+
+                return {
+                    content: choice?.content ?? null,
+                    tool_calls: choice?.tool_calls,
+                };
+            } catch (err: any) {
+                lastError = err;
             }
-
-            const data = await res.json();
-            const choice = data.message;
-
-            return {
-                content: choice?.content ?? null,
-                tool_calls: choice?.tool_calls,
-            };
-        } catch (err: any) {
-            lastError = err;
         }
     }
 
-    throw lastError || new Error("All API keys failed.");
+    throw lastError || new Error('All AI Assistant providers/keys failed.');
 }

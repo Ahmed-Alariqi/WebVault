@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/giveaway_model.dart';
 import '../../data/models/poll_model.dart';
+import 'admin_providers.dart' show notifyUser;
 
 final _supabase = SupabaseConfig.client;
 
@@ -214,7 +217,70 @@ Future<List<String>> drawGiveawayWinner(
   ref.invalidate(giveawaysProvider);
   ref.invalidate(activeGiveawayProvider);
   ref.invalidate(giveawayByIdProvider(giveawayId));
+
+  // Notify each winner (best-effort, do not fail the draw on push errors)
+  unawaited(_notifyGiveawayWinners(giveawayId, winners));
+
   return winners;
+}
+
+/// Sends a targeted push notification to each winner of a giveaway.
+/// Pulls the giveaway title and (if any) the linked premium collection
+/// so the user can deep-link to the unlocked content.
+Future<void> _notifyGiveawayWinners(
+  String giveawayId,
+  List<String> winnerIds,
+) async {
+  if (winnerIds.isEmpty) return;
+  try {
+    final g = await _supabase
+        .from('giveaways')
+        .select('title')
+        .eq('id', giveawayId)
+        .maybeSingle();
+    final title = (g?['title'] as String?) ?? 'مسابقة';
+
+    // If a referral campaign links this giveaway to a collection, surface that.
+    String? collectionId;
+    String? collectionTitle;
+    try {
+      final camp = await _supabase
+          .from('referral_campaigns')
+          .select('reward_collection_id')
+          .eq('reward_giveaway_id', giveawayId)
+          .eq('reward_type', 'collection_access')
+          .limit(1)
+          .maybeSingle();
+      collectionId = camp?['reward_collection_id'] as String?;
+      if (collectionId != null) {
+        final c = await _supabase
+            .from('featured_collections')
+            .select('title')
+            .eq('id', collectionId)
+            .maybeSingle();
+        collectionTitle = c?['title'] as String?;
+      }
+    } catch (_) {/* optional enrichment */}
+
+    final body = collectionTitle != null
+        ? 'مبروك! فزت بـ "$title" وتم فتح مجموعة "$collectionTitle" لك.'
+        : 'مبروك! فزت بـ "$title". اضغط لمعرفة التفاصيل.';
+    final targetUrl = collectionId != null
+        ? '/collections/$collectionId'
+        : '/giveaways/$giveawayId';
+
+    for (final uid in winnerIds) {
+      await notifyUser(
+        userId: uid,
+        title: '🎉 مبروك الفوز!',
+        body: body,
+        type: 'giveaway_win',
+        targetUrl: targetUrl,
+      );
+    }
+  } catch (e) {
+    debugPrint('Failed to notify giveaway winners: $e');
+  }
 }
 
 /// Redraw giveaway — clear winners and draw new ones

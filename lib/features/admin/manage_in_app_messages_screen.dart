@@ -29,6 +29,19 @@ class _ManageInAppMessagesScreenState
   final _actionTextCtrl = TextEditingController();
   final _targetVersionCtrl = TextEditingController();
   int _campaignMode = 0;
+  // Audience targeting — maps 1-to-1 to the `target_version_mode` column:
+  //   'any'          → show to everyone (no version gate)
+  //   'below'        → only users on a version lower than target_version
+  //                     (classic "please update" prompt)
+  //   'at_or_above'  → only users on target_version or newer
+  //                     (welcome card, release notes, what's-new, etc.)
+  // This is the key piece that lets the admin run two campaigns side-by-side
+  // (e.g. an update nag for stragglers + a welcome for early adopters) and
+  // have each one find its correct audience automatically.
+  String _audienceMode = 'any';
+  // Display priority (0..10). When multiple messages are eligible for the
+  // same user in the same session they are queued highest-first.
+  int _priority = 0;
   bool _isLoading = false;
   bool _isUploading = false;
   double _uploadProgress = 0;
@@ -72,9 +85,14 @@ class _ManageInAppMessagesScreenState
             : _actionTextCtrl.text.trim(),
         'is_dismissible': _campaignMode != 2,
         'show_every_time': _campaignMode != 0,
-        'target_version': _targetVersionCtrl.text.trim().isNotEmpty
+        // Audience targeting. If the admin picked "everyone" we clear
+        // target_version so stale values don't leak in.
+        'target_version_mode': _audienceMode,
+        'target_version': (_audienceMode != 'any' &&
+                _targetVersionCtrl.text.trim().isNotEmpty)
             ? _targetVersionCtrl.text.trim()
             : null,
+        'priority': _priority,
         'personalize_name': _personalizeWithName,
       };
 
@@ -134,6 +152,8 @@ class _ManageInAppMessagesScreenState
     _targetVersionCtrl.clear();
     setState(() {
       _campaignMode = 0;
+      _audienceMode = 'any';
+      _priority = 0;
       _personalizeWithName = false;
       _editingId = null;
     });
@@ -156,6 +176,8 @@ class _ManageInAppMessagesScreenState
 
     setState(() {
       _campaignMode = mode;
+      _audienceMode = (msg['target_version_mode'] as String?) ?? 'any';
+      _priority = (msg['priority'] as int?) ?? 0;
       _personalizeWithName = msg['personalize_name'] == true;
       _editingId = msg['id'];
     });
@@ -825,12 +847,16 @@ class _ManageInAppMessagesScreenState
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      _targetVersionCtrl,
-                      AppLocalizations.of(context)!.targetVersionOptional,
-                      isDark,
-                    ),
+                    const SizedBox(height: 20),
+                    // ─── Audience targeting ─────────────────────────────
+                    // Admin picks WHO should see this message. Combined with
+                    // priority this lets us run multiple concurrent campaigns
+                    // (e.g. an update nag + a welcome card) and have each
+                    // one reach exactly the right users.
+                    _buildAudienceSection(isDark),
+                    const SizedBox(height: 20),
+                    // ─── Priority slider ────────────────────────────────
+                    _buildPrioritySection(isDark),
                     const SizedBox(height: 16),
                     // --- Personalize with user name ---
                     Container(
@@ -1053,8 +1079,27 @@ class _ManageInAppMessagesScreenState
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                // Title on its own row so it never gets
+                                // squeezed by the chips when there are many.
+                                Text(
+                                  msg['title'] ?? '',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 6),
+                                // Chip row: audience + priority + status.
+                                Wrap(
+                                  spacing: 0,
+                                  runSpacing: 4,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
+                                    _buildAudienceChip(msg),
+                                    if (_buildPriorityChip(msg) != null)
+                                      _buildPriorityChip(msg)!,
                                     if (isActive)
                                       Container(
                                         margin: const EdgeInsets.only(right: 8),
@@ -1140,22 +1185,11 @@ class _ManageInAppMessagesScreenState
                                           ),
                                         ),
                                       ),
-                                    Expanded(
-                                      child: Text(
-                                        msg['title'],
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 Text(
-                                  msg['message'],
+                                  msg['message'] ?? '',
                                   style: TextStyle(
                                     fontSize: 13,
                                     color: isDark
@@ -1231,6 +1265,280 @@ class _ManageInAppMessagesScreenState
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 40)),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Audience section — 3 explicit options + a conditional version field.
+  //
+  // The previous UX was a single "Target version (optional)" text field
+  // whose semantic was implicit ("only users on an older version see this")
+  // which silently limited the admin to one campaign type. The new control
+  // makes the choice explicit so two simultaneous campaigns (e.g. an
+  // update nag + a welcome card) can each reach the right audience.
+  // ═══════════════════════════════════════════════════════════════════════
+  Widget _buildAudienceSection(bool isDark) {
+    const labels = {
+      'any': 'الجميع',
+      'below': 'إصدار أقل من',
+      'at_or_above': 'هذا الإصدار أو أعلى',
+    };
+    const icons = {
+      'any': Icons.public,
+      'below': Icons.system_update_alt,
+      'at_or_above': Icons.celebration_outlined,
+    };
+    const helpers = {
+      'any':
+          'الرسالة ستظهر لجميع المستخدمين بغضّ النظر عن إصدار التطبيق.',
+      'below':
+          'الرسالة ستظهر فقط للمستخدمين الذين إصدارهم أقدم من الإصدار المحدد أدناه. مثالي لرسائل "حدّث التطبيق".',
+      'at_or_above':
+          'الرسالة ستظهر للمستخدمين الذين إصدارهم يطابق الإصدار المحدد أو أحدث منه. مثالي لرسائل الترحيب وما الجديد.',
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black12,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(PhosphorIcons.users(PhosphorIconsStyle.fill),
+                  size: 18, color: AppTheme.primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'الجمهور المستهدف',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<String>(
+            segments: [
+              for (final key in const ['any', 'below', 'at_or_above'])
+                ButtonSegment(
+                  value: key,
+                  icon: Icon(icons[key], size: 16),
+                  label:
+                      Text(labels[key]!, style: const TextStyle(fontSize: 12)),
+                ),
+            ],
+            selected: {_audienceMode},
+            onSelectionChanged: (s) {
+              setState(() {
+                _audienceMode = s.first;
+                if (_audienceMode == 'any') _targetVersionCtrl.clear();
+              });
+            },
+            style: ButtonStyle(
+              backgroundColor:
+                  WidgetStateProperty.resolveWith<Color>((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppTheme.primaryColor.withValues(alpha: 0.2);
+                }
+                return Colors.transparent;
+              }),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            helpers[_audienceMode]!,
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.5,
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+          if (_audienceMode != 'any') ...[
+            const SizedBox(height: 12),
+            _buildTextField(
+              _targetVersionCtrl,
+              'الإصدار المستهدف (مثال: 1.5.0)',
+              isDark,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Priority slider — controls queue order when multiple messages are
+  // eligible for the same user in the same session. Higher = shown first.
+  // ═══════════════════════════════════════════════════════════════════════
+  Widget _buildPrioritySection(bool isDark) {
+    final (color, label) = switch (_priority) {
+      >= 8 => (Colors.red, 'عاجل جداً'),
+      >= 5 => (Colors.orange, 'مهم'),
+      >= 2 => (AppTheme.primaryColor, 'متوسط'),
+      _ => (Colors.grey, 'عادي'),
+    };
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black12,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(PhosphorIcons.flag(PhosphorIconsStyle.fill),
+                  size: 18, color: color),
+              const SizedBox(width: 8),
+              Text(
+                'أولوية العرض',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$label · $_priority',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: color,
+              thumbColor: color,
+              overlayColor: color.withValues(alpha: 0.15),
+              inactiveTrackColor: color.withValues(alpha: 0.15),
+              trackHeight: 4,
+            ),
+            child: Slider(
+              value: _priority.toDouble(),
+              min: 0,
+              max: 10,
+              divisions: 10,
+              label: _priority.toString(),
+              onChanged: (v) => setState(() => _priority = v.round()),
+            ),
+          ),
+          Text(
+            'عند وجود أكثر من رسالة مؤهّلة لنفس المستخدم، تُعرض الأعلى أولوية أولاً ثم الأحدث. يُفيد هذا في تقديم التنبيهات العاجلة قبل رسائل الترحيب.',
+            style: TextStyle(
+              fontSize: 11.5,
+              height: 1.5,
+              color: isDark ? Colors.white54 : Colors.black54,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Compact "audience" chip displayed on each existing-campaign card so
+  /// the admin sees at a glance who each message targets.
+  Widget _buildAudienceChip(Map<String, dynamic> msg) {
+    final mode = (msg['target_version_mode'] as String?) ?? 'any';
+    final target = msg['target_version'] as String?;
+    final (icon, text, color) = switch (mode) {
+      'below' => (
+          Icons.system_update_alt,
+          target != null && target.isNotEmpty ? 'أقدم من $target' : 'إصدار أقدم',
+          Colors.orange,
+        ),
+      'at_or_above' => (
+          Icons.celebration_outlined,
+          target != null && target.isNotEmpty ? 'من $target' : 'بعد التحديث',
+          Colors.green,
+        ),
+      _ => (Icons.public, 'الجميع', AppTheme.primaryColor),
+    };
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Compact "priority" chip — only rendered when priority > 0 so we don't
+  /// clutter cards for the common case (which is "normal").
+  Widget? _buildPriorityChip(Map<String, dynamic> msg) {
+    final p = (msg['priority'] as int?) ?? 0;
+    if (p <= 0) return null;
+    final (color, label) = switch (p) {
+      >= 8 => (Colors.red, 'عاجل'),
+      >= 5 => (Colors.orange, 'مهم'),
+      _ => (AppTheme.primaryColor, 'متوسط'),
+    };
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.flag, size: 10, color: color),
+          const SizedBox(width: 4),
+          Text(
+            '$label · $p',
+            style: TextStyle(
+              color: color,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );

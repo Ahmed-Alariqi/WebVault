@@ -11,6 +11,17 @@ import '../zad_expert/zad_expert_screen.dart' show hexToColor, personaIconFromNa
 import '../zad_expert/widgets/persona_visual_options.dart';
 import 'admin_ai_stats_tab.dart';
 import 'admin_persona_modes_sheet.dart';
+import '../../core/utils/admin_ui_utils.dart';
+
+/// Currently-selected purpose filter in the Providers tab. The same admin
+/// screen now manages providers for two distinct AI consumers (Zad Expert
+/// personas + the general AI Assistant used by the discover "Understand
+/// more" button, the embedded browser assistant, the Quick Tile and the
+/// Zad Hub) — this provider lets the segmented control at the top of the
+/// tab decide which set is displayed and which one new providers default
+/// to. Kept private to this file because it's purely a UI concern.
+final _providersPurposeFilterProvider =
+    StateProvider<AiProviderPurpose>((ref) => AiProviderPurpose.zadExpert);
 
 class AdminAiManagementScreen extends ConsumerStatefulWidget {
   const AdminAiManagementScreen({super.key});
@@ -244,12 +255,7 @@ class _PersonasTab extends ConsumerWidget {
 
     if (providers.isEmpty) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('يجب إضافة مزود أولاً',
-                  style: TextStyle()),
-              backgroundColor: Colors.redAccent),
-        );
+        AdminUIUtils.showWarning(context, 'يجب إضافة مزود أولاً');
       }
       return;
     }
@@ -274,6 +280,8 @@ class _PersonasTab extends ConsumerWidget {
     ];
     final newActionLabelCtrl = TextEditingController();
     final newActionPromptCtrl = TextEditingController();
+
+    if (!context.mounted) return;
 
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
@@ -840,25 +848,11 @@ class _PersonasTab extends ConsumerWidget {
         ref.invalidate(adminAllPersonasProvider);
         ref.invalidate(expertPersonasProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('تم الحفظ بنجاح ✅',
-                  style: TextStyle()),
-              backgroundColor: AppTheme.successColor,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
+          AdminUIUtils.showSuccess(context, 'تم حفظ الشخصية بنجاح');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('خطأ: $e', style: const TextStyle()),
-              backgroundColor: AppTheme.errorColor,
-            ),
-          );
+          AdminUIUtils.showError(context, 'فشل الحفظ: $e');
         }
       }
     }
@@ -973,18 +967,106 @@ class _ProvidersTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final providersAsync = ref.watch(adminAiProvidersProvider);
+    final filter = ref.watch(_providersPurposeFilterProvider);
 
     return providersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('خطأ: $e')),
-      data: (providers) => Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: providers.length,
-              itemBuilder: (ctx, i) {
-                final p = providers[i];
+      data: (allProviders) {
+        // Group by purpose so the segmented control can show counts.
+        final byPurpose = <AiProviderPurpose, List<AiProviderModel>>{};
+        for (final p in allProviders) {
+          byPurpose.putIfAbsent(p.purpose, () => []).add(p);
+        }
+        final providers = byPurpose[filter] ?? const <AiProviderModel>[];
+
+        return Column(
+          children: [
+            // ─── Purpose switcher ────────────────────────────────────────
+            // One screen, two distinct AI surfaces. The segmented control
+            // makes it obvious which set is currently being managed and
+            // also shows the count of providers per purpose so the admin
+            // doesn't have to switch back and forth to remember.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: SegmentedButton<AiProviderPurpose>(
+                segments: [
+                  for (final purpose in AiProviderPurpose.values)
+                    ButtonSegment(
+                      value: purpose,
+                      icon: Icon(
+                        purpose == AiProviderPurpose.zadExpert
+                            ? PhosphorIcons.graduationCap()
+                            : PhosphorIcons.sparkle(),
+                        size: 16,
+                      ),
+                      label: Text(
+                        '${purpose.arabicLabel}'
+                        ' (${(byPurpose[purpose] ?? const []).length})',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                ],
+                selected: {filter},
+                onSelectionChanged: (s) {
+                  ref
+                      .read(_providersPurposeFilterProvider.notifier)
+                      .state = s.first;
+                },
+                style: ButtonStyle(
+                  backgroundColor:
+                      WidgetStateProperty.resolveWith<Color>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return const Color(0xFF8B5CF6).withValues(alpha: 0.2);
+                    }
+                    return Colors.transparent;
+                  }),
+                ),
+              ),
+            ),
+            // Helper caption explains what each purpose means at a glance.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
+              child: Text(
+                filter == AiProviderPurpose.zadExpert
+                    ? 'مزودي خبير زاد — كل شخصية في الخبير تختار نموذجها الخاص. أضف مفاتيح API وأسماء النماذج المتاحة.'
+                    : 'مزودي المساعد الذكي العام — يستخدمه زر "افهم أكثر" في المستكشف، المساعد المدمج في المتصفح، Quick Tile، وزاد المنسوخات. حدد نموذجاً واحداً لكل مزود.',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  height: 1.5,
+                  color: isDark ? Colors.white54 : Colors.black54,
+                ),
+              ),
+            ),
+            if (providers.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(PhosphorIcons.plugsConnected(),
+                          size: 56,
+                          color:
+                              (isDark ? Colors.white24 : Colors.black26)),
+                      const SizedBox(height: 12),
+                      Text(
+                        'لا يوجد مزودون مضافون لـ"${filter.arabicLabel}" بعد',
+                        style: TextStyle(
+                          color:
+                              isDark ? Colors.white54 : Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  itemCount: providers.length,
+                  itemBuilder: (ctx, i) {
+                    final p = providers[i];
                 final hasKey = p.apiKey.isNotEmpty;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -1066,41 +1148,66 @@ class _ProvidersTab extends ConsumerWidget {
                 )
                     .animate()
                     .fadeIn(delay: (i * 80).ms, duration: 300.ms);
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () =>
-                    _showProviderEditor(context, ref, isDark, null),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5CF6),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
+                  },
                 ),
-                icon: const Icon(PhosphorIconsBold.plus, size: 18),
-                label: const Text('إضافة مزود',
-                    style: TextStyle()),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showProviderEditor(
+                      context, ref, isDark, null,
+                      defaultPurpose: filter),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8B5CF6),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  icon: const Icon(PhosphorIconsBold.plus, size: 18),
+                  label: Text('إضافة مزود لـ${filter.arabicLabel}',
+                      style: const TextStyle()),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 
-  Future<void> _showProviderEditor(BuildContext context, WidgetRef ref,
-      bool isDark, AiProviderModel? existing) async {
+  Future<void> _showProviderEditor(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+    AiProviderModel? existing, {
+    AiProviderPurpose defaultPurpose = AiProviderPurpose.zadExpert,
+  }) async {
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final slugCtrl = TextEditingController(text: existing?.slug ?? '');
     final urlCtrl = TextEditingController(text: existing?.baseUrl ?? '');
-    final keyCtrl = TextEditingController(text: existing?.apiKey ?? '');
-    final modelsCtrl = TextEditingController(
-        text: existing?.supportedModels.join(', ') ?? '');
+
+    // The purpose decides whether the "selected model" field is shown.
+    // When creating a new provider it defaults to whichever segment the
+    // admin is currently viewing — saves a click 99% of the time.
+    AiProviderPurpose purpose = existing?.purpose ?? defaultPurpose;
+    String? selectedModel = existing?.selectedModel;
+
+    // API keys & models are now managed as chip lists for a much friendlier
+    // input UX. We still persist them in the SAME shape the backend expects:
+    //   • apiKey            → comma-joined string (the rotation/failover
+    //                          logic on the edge function splits by ',')
+    //   • supportedModels   → List<String>
+    // So the load-balancing behaviour (try next key on error) is unchanged.
+    final keys = <String>[
+      ...?existing?.apiKey
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty),
+    ];
+    final models = <String>[...?existing?.supportedModels];
+
     bool isActive = existing?.isActive ?? true;
 
     final confirmed = await showModalBottomSheet<bool>(
@@ -1165,6 +1272,67 @@ class _ProvidersTab extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.all(20),
                     children: [
+                      // ─── Purpose picker ─────────────────────────────
+                      // Letting the admin move a provider between Zad
+                      // Expert and the general AI Assistant just by
+                      // toggling this control is much friendlier than
+                      // forcing them to delete-and-recreate.
+                      Text('يخدم هذا المزود',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          )),
+                      const SizedBox(height: 8),
+                      SegmentedButton<AiProviderPurpose>(
+                        segments: [
+                          for (final p in AiProviderPurpose.values)
+                            ButtonSegment(
+                              value: p,
+                              icon: Icon(
+                                p == AiProviderPurpose.zadExpert
+                                    ? PhosphorIcons.graduationCap()
+                                    : PhosphorIcons.sparkle(),
+                                size: 14,
+                              ),
+                              label: Text(p.arabicLabel,
+                                  style: const TextStyle(fontSize: 12)),
+                            ),
+                        ],
+                        selected: {purpose},
+                        onSelectionChanged: (s) => setModalState(() {
+                          purpose = s.first;
+                          // When switching away from ai-assistant the
+                          // selected model becomes irrelevant — clear it
+                          // so we don't store stale state.
+                          if (purpose != AiProviderPurpose.aiAssistant) {
+                            selectedModel = null;
+                          }
+                        }),
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.resolveWith<Color>(
+                                  (states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return const Color(0xFF8B5CF6)
+                                  .withValues(alpha: 0.2);
+                            }
+                            return Colors.transparent;
+                          }),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        purpose == AiProviderPurpose.zadExpert
+                            ? 'كل شخصية في خبير زاد ستختار نموذجها بنفسها من قائمة "النماذج المدعومة" أدناه.'
+                            : 'سيُستعمل هذا المزود في المساعد الذكي العام بنموذج واحد محدد. اختره أدناه.',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          height: 1.5,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       _providerField('الاسم', nameCtrl, isDark),
                       const SizedBox(height: 12),
                       _providerField('المعرف (slug)', slugCtrl, isDark,
@@ -1173,12 +1341,134 @@ class _ProvidersTab extends ConsumerWidget {
                       _providerField('Base URL', urlCtrl, isDark,
                           hint: 'https://api.groq.com/openai/v1/chat/completions'),
                       const SizedBox(height: 12),
-                      _providerField('API Key (متعددة بفاصلة)', keyCtrl, isDark,
-                          hint: 'gsk_xxx,gsk_yyy', isSecret: true),
+                      _ChipListInput(
+                        label: 'مفاتيح API',
+                        helper:
+                            'أضف كل مفتاح بشكل منفصل. عند فشل أي مفتاح يتم الانتقال تلقائياً إلى التالي.',
+                        hint: 'gsk_xxx',
+                        addButtonText: 'إضافة مفتاح',
+                        isDark: isDark,
+                        isSecret: true,
+                        values: keys,
+                        onChanged: (v) => setModalState(() {
+                          keys
+                            ..clear()
+                            ..addAll(v);
+                        }),
+                      ),
                       const SizedBox(height: 12),
-                      _providerField(
-                          'النماذج المدعومة (بفاصلة)', modelsCtrl, isDark,
-                          hint: 'llama-3.3-70b, mixtral-8x7b'),
+                      _ChipListInput(
+                        label: 'النماذج المدعومة',
+                        helper: 'أضف كل نموذج بشكل منفصل.',
+                        hint: 'llama-3.3-70b',
+                        addButtonText: 'إضافة نموذج',
+                        isDark: isDark,
+                        values: models,
+                        onChanged: (v) => setModalState(() {
+                          models
+                            ..clear()
+                            ..addAll(v);
+                          // If the previously-selected model was just
+                          // deleted from the chip list, drop it so we
+                          // don't persist a dangling reference.
+                          if (selectedModel != null &&
+                              !models.contains(selectedModel)) {
+                            selectedModel = null;
+                          }
+                        }),
+                      ),
+                      // ─── Selected model (only for ai-assistant) ─────
+                      // Zad Expert personas pick their own model per
+                      // persona so this control is irrelevant for them.
+                      if (purpose == AiProviderPurpose.aiAssistant) ...[
+                        const SizedBox(height: 16),
+                        Text('النموذج المستخدم في المساعد الذكي',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                              color:
+                                  isDark ? Colors.white70 : Colors.black54,
+                            )),
+                        const SizedBox(height: 4),
+                        Text(
+                          'اختر نموذجاً واحداً من قائمة "النماذج المدعومة" أعلاه. لو لم تختر شيئاً سيُستعمل أول نموذج تلقائياً.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.5,
+                            color: isDark ? Colors.white54 : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (models.isEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color: Colors.orange
+                                      .withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(PhosphorIcons.warning(),
+                                    size: 16, color: Colors.orange),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    'أضف أسماء النماذج أولاً ثم اختر منها هنا.',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.orange),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          DropdownButtonFormField<String>(
+                            initialValue:
+                                models.contains(selectedModel)
+                                    ? selectedModel
+                                    : (models.isNotEmpty
+                                        ? models.first
+                                        : null),
+                            isExpanded: true,
+                            dropdownColor: isDark
+                                ? AppTheme.darkSurface
+                                : Colors.white,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: isDark
+                                        ? AppTheme.darkDivider
+                                        : AppTheme.lightDivider),
+                              ),
+                              contentPadding:
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 14),
+                            ),
+                            items: [
+                              for (final m in models)
+                                DropdownMenuItem(
+                                  value: m,
+                                  child: Text(m,
+                                      style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black87,
+                                          fontSize: 13)),
+                                ),
+                            ],
+                            onChanged: (v) =>
+                                setModalState(() => selectedModel = v),
+                          ),
+                      ],
                       const SizedBox(height: 16),
                       SwitchListTile(
                         value: isActive,
@@ -1204,20 +1494,35 @@ class _ProvidersTab extends ConsumerWidget {
     );
 
     if (confirmed == true && context.mounted) {
-      final models = modelsCtrl.text
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
+      // Persist in the legacy format the backend expects: keys joined by ','
+      // (the edge function splits on ',' for round-robin / failover) and
+      // models as a list. The UI only changed; the rotation logic is intact.
+      final cleanedKeys =
+          keys.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      final cleanedModels =
+          models.map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+
+      // Final selected_model resolution:
+      //   * For zad-expert: always null (per-persona model takes over).
+      //   * For ai-assistant: keep the chosen model only if it still
+      //     exists in the cleaned model list, else null (= "use first").
+      final String? finalSelectedModel =
+          purpose == AiProviderPurpose.aiAssistant &&
+                  selectedModel != null &&
+                  cleanedModels.contains(selectedModel)
+              ? selectedModel
+              : null;
 
       final provider = AiProviderModel(
         id: existing?.id ?? '',
         name: nameCtrl.text.trim(),
         slug: slugCtrl.text.trim(),
         baseUrl: urlCtrl.text.trim(),
-        apiKey: keyCtrl.text.trim(),
+        apiKey: cleanedKeys.join(','),
         isActive: isActive,
-        supportedModels: models,
+        supportedModels: cleanedModels,
+        purpose: purpose,
+        selectedModel: finalSelectedModel,
       );
 
       try {
@@ -1225,25 +1530,11 @@ class _ProvidersTab extends ConsumerWidget {
             existingId: existing?.id);
         ref.invalidate(adminAiProvidersProvider);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('تم الحفظ ✅',
-                  style: TextStyle()),
-              backgroundColor: AppTheme.successColor,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-          );
+          AdminUIUtils.showSuccess(context, 'تم حفظ المزود بنجاح');
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('خطأ: $e'),
-              backgroundColor: AppTheme.errorColor,
-            ),
-          );
+          AdminUIUtils.showError(context, 'فشل الحفظ: $e');
         }
       }
     }
@@ -1280,15 +1571,10 @@ class _ProvidersTab extends ConsumerWidget {
   }
 
   Future<void> _toggleProvider(WidgetRef ref, AiProviderModel p) async {
-    final updated = AiProviderModel(
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      baseUrl: p.baseUrl,
-      apiKey: p.apiKey,
-      supportedModels: p.supportedModels,
-      isActive: !p.isActive,
-    );
+    // Use copyWith so we never accidentally drop purpose or selected_model
+    // when toggling active state — that would silently break the routing
+    // of which AI consumer this provider serves.
+    final updated = p.copyWith(isActive: !p.isActive);
     await ZadExpertService.saveProvider(updated, existingId: p.id);
     ref.invalidate(adminAiProvidersProvider);
   }
@@ -1413,6 +1699,332 @@ class _PopupMenu extends StatelessWidget {
                       TextStyle( color: Colors.redAccent))
             ])),
       ],
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Chip-list input — friendlier UX for entering API keys & model names
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Renders the existing entries as chips (each with its own delete X) and
+// provides a single text field + "+" button to add a new one. Pressing
+// Enter in the text field also adds the entry. If the user pastes a string
+// that contains commas, we split on ',' and add each piece — this preserves
+// muscle memory for admins who used to paste bulk values, while making the
+// common case (typing one item at a time) much nicer.
+//
+// API-key chips are displayed masked (e.g. `••••••abcd`) so secrets are not
+// exposed on screen; tapping the eye toggles full visibility temporarily.
+// The data model (List<String>) is the same regardless of `isSecret`, so
+// the parent simply joins keys with ',' before saving — exactly matching
+// the format the edge function already splits on for round-robin/failover.
+class _ChipListInput extends StatefulWidget {
+  final String label;
+  final String? helper;
+  final String? hint;
+  final String addButtonText;
+  final bool isDark;
+  final bool isSecret;
+  final List<String> values;
+  final ValueChanged<List<String>> onChanged;
+
+  const _ChipListInput({
+    required this.label,
+    required this.addButtonText,
+    required this.isDark,
+    required this.values,
+    required this.onChanged,
+    this.helper,
+    this.hint,
+    this.isSecret = false,
+  });
+
+  @override
+  State<_ChipListInput> createState() => _ChipListInputState();
+}
+
+class _ChipListInputState extends State<_ChipListInput> {
+  late final TextEditingController _ctrl;
+  late final FocusNode _focus;
+  bool _revealSecrets = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController();
+    _focus = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _commit([String? raw]) {
+    final text = (raw ?? _ctrl.text);
+    if (text.trim().isEmpty) return;
+
+    // Allow paste-with-commas: split on ',' so admins can still bulk-paste.
+    final pieces = text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (pieces.isEmpty) return;
+
+    final next = [...widget.values];
+    for (final p in pieces) {
+      if (!next.contains(p)) next.add(p);
+    }
+    widget.onChanged(next);
+    _ctrl.clear();
+    _focus.requestFocus();
+  }
+
+  void _remove(int index) {
+    final next = [...widget.values]..removeAt(index);
+    widget.onChanged(next);
+  }
+
+  String _maskSecret(String s) {
+    if (!widget.isSecret || _revealSecrets) return s;
+    if (s.length <= 4) return '•' * s.length;
+    return '${'•' * (s.length - 4).clamp(4, 10)}${s.substring(s.length - 4)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final fillColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.black.withValues(alpha: 0.03);
+    final borderColor =
+        isDark ? AppTheme.darkDivider : AppTheme.lightDivider;
+    const accent = Color(0xFF8B5CF6);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                widget.label,
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.white70 : Colors.black54),
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+            // Count badge — quick visual cue of how many items are configured.
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${widget.values.length}',
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: accent),
+              ),
+            ),
+            if (widget.isSecret) ...[
+              const SizedBox(width: 6),
+              InkWell(
+                onTap: () =>
+                    setState(() => _revealSecrets = !_revealSecrets),
+                borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    _revealSecrets
+                        ? PhosphorIcons.eyeSlash()
+                        : PhosphorIcons.eye(),
+                    size: 16,
+                    color: isDark ? Colors.white54 : Colors.black45,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+        if (widget.helper != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            widget.helper!,
+            style: TextStyle(
+                fontSize: 11,
+                color: isDark ? Colors.white38 : Colors.black45,
+                height: 1.4),
+            textDirection: TextDirection.rtl,
+          ),
+        ],
+        const SizedBox(height: 8),
+
+        // ── Chips ──────────────────────────────────────────────────────
+        if (widget.values.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: borderColor),
+            ),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (int i = 0; i < widget.values.length; i++)
+                  _Chip(
+                    // Numbered prefix makes it clear which key/model is in
+                    // which slot — useful for admins debugging rotation order.
+                    label: '${i + 1}. ${_maskSecret(widget.values[i])}',
+                    isDark: isDark,
+                    onRemove: () => _remove(i),
+                  ),
+              ],
+            ),
+          ),
+        if (widget.values.isNotEmpty) const SizedBox(height: 8),
+
+        // ── Add row ────────────────────────────────────────────────────
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _ctrl,
+                focusNode: _focus,
+                obscureText: widget.isSecret && !_revealSecrets,
+                textInputAction: TextInputAction.done,
+                onSubmitted: _commit,
+                style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87),
+                decoration: InputDecoration(
+                  hintText: widget.hint,
+                  hintStyle: TextStyle(
+                      color: isDark ? Colors.white24 : Colors.black26),
+                  filled: true,
+                  fillColor: fillColor,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide:
+                        const BorderSide(color: accent, width: 1.4),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Material(
+              color: accent,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: () => _commit(),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(PhosphorIconsBold.plus,
+                          size: 16, color: Colors.white),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.addButtonText,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final String label;
+  final bool isDark;
+  final VoidCallback onRemove;
+
+  const _Chip({
+    required this.label,
+    required this.isDark,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : const Color(0xFF8B5CF6).withValues(alpha: 0.10);
+    final fg = isDark ? Colors.white : const Color(0xFF5B21B6);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.10)
+              : const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: fg),
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: onRemove,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                PhosphorIcons.x(PhosphorIconsStyle.bold),
+                size: 14,
+                color: isDark ? Colors.white70 : const Color(0xFF8B5CF6),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

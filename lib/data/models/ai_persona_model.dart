@@ -131,6 +131,38 @@ class AiPersonaModel {
   int get hashCode => id.hashCode;
 }
 
+/// Identifies which app-level AI consumer a provider serves.
+///
+/// * [zadExpert]: the persona-based Zad Expert chat (each persona picks
+///   its own model, so [AiProviderModel.selectedModel] is ignored).
+/// * [aiAssistant]: the general "understand more" assistant used across
+///   the app (discover cards, embedded browser, Quick Tile, Zad Hub).
+///   Uses [AiProviderModel.selectedModel] to decide which model to call.
+enum AiProviderPurpose {
+  zadExpert('zad-expert'),
+  aiAssistant('ai-assistant');
+
+  final String slug;
+  const AiProviderPurpose(this.slug);
+
+  static AiProviderPurpose fromSlug(String? slug) {
+    for (final p in values) {
+      if (p.slug == slug) return p;
+    }
+    return AiProviderPurpose.zadExpert;
+  }
+
+  /// Admin-facing Arabic label for the segmented control.
+  String get arabicLabel {
+    switch (this) {
+      case AiProviderPurpose.zadExpert:
+        return 'خبير زاد';
+      case AiProviderPurpose.aiAssistant:
+        return 'المساعد الذكي العام';
+    }
+  }
+}
+
 /// Model for an AI Provider (Groq, OpenRouter, Ollama, etc.)
 class AiProviderModel {
   final String id;
@@ -140,6 +172,11 @@ class AiProviderModel {
   final String apiKey;
   final bool isActive;
   final List<String> supportedModels;
+  final AiProviderPurpose purpose;
+  // Only meaningful when [purpose] == ai-assistant. When null/empty, the
+  // first entry of [supportedModels] is used. Zad Expert personas ignore
+  // this and provide their own model per-persona.
+  final String? selectedModel;
 
   const AiProviderModel({
     required this.id,
@@ -149,6 +186,8 @@ class AiProviderModel {
     required this.apiKey,
     required this.isActive,
     required this.supportedModels,
+    this.purpose = AiProviderPurpose.zadExpert,
+    this.selectedModel,
   });
 
   factory AiProviderModel.fromJson(Map<String, dynamic> json) {
@@ -163,6 +202,10 @@ class AiProviderModel {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      purpose: AiProviderPurpose.fromSlug(json['purpose'] as String?),
+      selectedModel: (json['selected_model'] as String?)?.trim().isNotEmpty == true
+          ? (json['selected_model'] as String).trim()
+          : null,
     );
   }
 
@@ -173,5 +216,33 @@ class AiProviderModel {
         'api_key': apiKey,
         'is_active': isActive,
         'supported_models': supportedModels,
+        'purpose': purpose.slug,
+        'selected_model': selectedModel,
       };
+
+  AiProviderModel copyWith({
+    String? id,
+    String? name,
+    String? slug,
+    String? baseUrl,
+    String? apiKey,
+    bool? isActive,
+    List<String>? supportedModels,
+    AiProviderPurpose? purpose,
+    String? selectedModel,
+    bool clearSelectedModel = false,
+  }) {
+    return AiProviderModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      slug: slug ?? this.slug,
+      baseUrl: baseUrl ?? this.baseUrl,
+      apiKey: apiKey ?? this.apiKey,
+      isActive: isActive ?? this.isActive,
+      supportedModels: supportedModels ?? this.supportedModels,
+      purpose: purpose ?? this.purpose,
+      selectedModel:
+          clearSelectedModel ? null : (selectedModel ?? this.selectedModel),
+    );
+  }
 }

@@ -10,6 +10,8 @@ class CollectionModel {
   final int sortOrder;
   final bool isActive;
   final bool isReferralExclusive;
+  /// User IDs manually granted access by an admin (in addition to referral-based eligibility).
+  final List<String> manualUserIds;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -28,6 +30,7 @@ class CollectionModel {
     this.sortOrder = 0,
     this.isActive = true,
     this.isReferralExclusive = false,
+    this.manualUserIds = const [],
     required this.createdAt,
     required this.updatedAt,
     this.items = const [],
@@ -57,6 +60,10 @@ class CollectionModel {
       sortOrder: json['sort_order'] ?? 0,
       isActive: json['is_active'] ?? true,
       isReferralExclusive: json['is_referral_exclusive'] ?? false,
+      manualUserIds: (json['manual_user_ids'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       items: parsedItems,
@@ -82,6 +89,7 @@ class CollectionModel {
     int? sortOrder,
     bool? isActive,
     bool? isReferralExclusive,
+    List<String>? manualUserIds,
     List<WebsiteModel>? items,
     int? itemCount,
   }) {
@@ -94,6 +102,7 @@ class CollectionModel {
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
       isReferralExclusive: isReferralExclusive ?? this.isReferralExclusive,
+      manualUserIds: manualUserIds ?? this.manualUserIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
       items: items ?? this.items,

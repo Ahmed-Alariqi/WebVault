@@ -294,6 +294,7 @@ final hasBeenReferredProvider = FutureProvider<bool>((ref) async {
 });
 
 /// Check if user qualifies for a specific referral-exclusive collection
+/// (either via referrals OR via a manual admin grant).
 final isEligibleForCollectionProvider = FutureProvider.family<bool, String>((
   ref,
   collectionId,
@@ -301,7 +302,23 @@ final isEligibleForCollectionProvider = FutureProvider.family<bool, String>((
   final uid = _supabase.auth.currentUser?.id;
   if (uid == null) return false;
 
-  // Find campaigns that give access to this collection
+  // 1. Manual admin grant takes precedence
+  try {
+    final col = await _supabase
+        .from('featured_collections')
+        .select('manual_user_ids')
+        .eq('id', collectionId)
+        .maybeSingle();
+    final ids = (col?['manual_user_ids'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const <String>[];
+    if (ids.contains(uid)) return true;
+  } catch (_) {
+    // Ignore and fall through to referral check
+  }
+
+  // 2. Referral-based eligibility
   final campaigns = await _supabase
       .from('referral_campaigns')
       .select('id, required_referrals')

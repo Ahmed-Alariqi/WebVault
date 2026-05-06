@@ -45,6 +45,27 @@ class AdminUIUtils {
     );
   }
 
+  /// Variant that takes a [ScaffoldMessengerState] directly. Useful when
+  /// the caller wants to capture the messenger before closing a sheet/dialog
+  /// (so the snackbar still shows after the sheet pops).
+  static void showSuccessOn(ScaffoldMessengerState messenger, String message) {
+    _showFloatingSnackbarOn(
+      messenger,
+      message: message,
+      icon: Icons.check_circle,
+      backgroundColor: AppTheme.successColor,
+    );
+  }
+
+  static void showErrorOn(ScaffoldMessengerState messenger, String message) {
+    _showFloatingSnackbarOn(
+      messenger,
+      message: message,
+      icon: Icons.error_outline,
+      backgroundColor: AppTheme.errorColor,
+    );
+  }
+
   static void _showFloatingSnackbar(
     BuildContext context, {
     required String message,
@@ -52,10 +73,24 @@ class AdminUIUtils {
     required Color backgroundColor,
     Duration duration = const Duration(seconds: 3),
   }) {
-    // Clear existing snackbars to avoid overlap
-    ScaffoldMessenger.of(context).clearSnackBars();
+    _showFloatingSnackbarOn(
+      ScaffoldMessenger.of(context),
+      message: message,
+      icon: icon,
+      backgroundColor: backgroundColor,
+      duration: duration,
+    );
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
+  static void _showFloatingSnackbarOn(
+    ScaffoldMessengerState messenger, {
+    required String message,
+    required IconData icon,
+    required Color backgroundColor,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: [

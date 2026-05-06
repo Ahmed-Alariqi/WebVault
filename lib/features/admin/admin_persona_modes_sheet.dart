@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/admin_ui_utils.dart';
 import '../../data/models/ai_persona_mode.dart';
 import '../../data/models/ai_persona_model.dart';
 import '../../data/services/zad_expert_service.dart';
@@ -59,6 +60,9 @@ class _AdminPersonaModesSheetState
   Future<void> _persist() async {
     if (_saving) return;
     setState(() => _saving = true);
+    // Capture the messenger BEFORE closing the sheet so the snackbar
+    // still has somewhere to render after we pop.
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final updated = AiPersonaModel(
         id: widget.persona.id,
@@ -80,25 +84,16 @@ class _AdminPersonaModesSheetState
       await ZadExpertService.savePersona(updated, existingId: widget.persona.id);
       ref.invalidate(adminAllPersonasProvider);
       ref.invalidate(expertPersonasProvider);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('تم حفظ الأوضاع ✅'),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      // Close the sheet first so the success snackbar isn't hidden behind it.
+      Navigator.of(context).pop();
+      AdminUIUtils.showSuccessOn(messenger, 'تم حفظ الأوضاع بنجاح');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('فشل الحفظ: $e'),
-              backgroundColor: AppTheme.errorColor),
-        );
+        // Keep sheet open on failure so the admin can retry.
+        AdminUIUtils.showErrorOn(messenger, 'فشل الحفظ: $e');
+        setState(() => _saving = false);
       }
-    } finally {
-      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -166,6 +161,20 @@ class _AdminPersonaModesSheetState
   }
 
   Future<void> _editMode({AiPersonaMode? existing, int? index}) async {
+    // Resolve the list of models the admin is allowed to pick from for this
+    // mode's optional override. We pull them from the persona's *current*
+    // provider so the dropdown is always in sync with what's actually
+    // configured upstream — never a hardcoded list. If the providers
+    // haven't loaded yet (race on first paint) we fall back to an empty
+    // list, which makes the dropdown show only "inherit from persona".
+    List<String> availableModels = const [];
+    try {
+      final providers = await ref.read(adminAiProvidersProvider.future);
+      final p = providers.where((x) => x.id == widget.persona.providerId).firstOrNull;
+      availableModels = List<String>.from(p?.supportedModels ?? const []);
+    } catch (_) {/* keep empty */}
+
+    if (!mounted) return;
     final result = await showModalBottomSheet<AiPersonaMode>(
       context: context,
       isScrollControlled: true,
@@ -177,6 +186,8 @@ class _AdminPersonaModesSheetState
             if (i != index) _modes[i].key,
         ],
         isDark: _isDark,
+        personaModelId: widget.persona.modelId,
+        availableModels: availableModels,
       ),
     );
     if (result == null) return;
@@ -476,6 +487,41 @@ class _ModeRow extends StatelessWidget {
                                       color: Colors.redAccent)),
                             ),
                           ],
+                          // Per-mode model override indicator. We only render
+                          // it when an override is actually set so the row
+                          // stays uncluttered for the common case (inherit).
+                          if (mode.modelId.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: color.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(PhosphorIcons.cpu(),
+                                      size: 9, color: color),
+                                  const SizedBox(width: 3),
+                                  ConstrainedBox(
+                                    constraints:
+                                        const BoxConstraints(maxWidth: 90),
+                                    child: Text(
+                                      mode.modelId,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          color: color),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 2),
@@ -559,10 +605,23 @@ class _ModeEditorSheet extends StatefulWidget {
   final List<String> usedKeys;
   final bool isDark;
 
+  /// The persona's own `modelId` — shown as the "inherit" option label so
+  /// the admin can clearly see what they'll fall back to when no override
+  /// is set. Empty string means the persona itself has no model configured
+  /// (rare, but handled gracefully).
+  final String personaModelId;
+
+  /// Models the persona's provider supports. The admin can only pick from
+  /// this list — we never let them type a free-form value because that
+  /// silently breaks at request time when the upstream rejects it.
+  final List<String> availableModels;
+
   const _ModeEditorSheet({
     required this.existing,
     required this.usedKeys,
     required this.isDark,
+    required this.personaModelId,
+    required this.availableModels,
   });
 
   @override
@@ -584,6 +643,8 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
   late List<Map<String, String>> _quickActions;
   late bool _isDefault;
   late bool _enabled;
+  /// Optional override. Empty string = inherit from persona.
+  late String _modelId;
 
   String? _err;
 
@@ -604,6 +665,13 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
     ];
     _isDefault = m?.isDefault ?? false;
     _enabled = m?.enabled ?? true;
+    // Sanitise: if the previously-saved override is no longer in the
+    // provider's supported list (e.g. admin deleted it from the provider),
+    // silently fall back to inherit so we don't keep a dangling reference.
+    final saved = m?.modelId ?? '';
+    _modelId = (saved.isEmpty || widget.availableModels.contains(saved))
+        ? saved
+        : '';
 
     // Live-preview redraw when name/description change.
     _name.addListener(() => setState(() {}));
@@ -657,6 +725,7 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
       isDefault: _isDefault,
       enabled: _enabled,
       sortOrder: widget.existing?.sortOrder ?? 0,
+      modelId: _modelId,
     );
     Navigator.pop(context, mode);
   }
@@ -843,6 +912,14 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
                           'منهجية الوضع، المراحل، أسئلة قبل البدء، قواعد المخرج…'),
                   const SizedBox(height: 22),
 
+                  // Per-mode model override
+                  _section('نموذج الوضع', PhosphorIcons.cpu(),
+                      hint:
+                          'اختر نموذجاً خاصاً لهذا الوضع فقط، أو دعه يرث نموذج الشخصية'),
+                  const SizedBox(height: 8),
+                  _modelOverridePicker(),
+                  const SizedBox(height: 22),
+
                   // Output template
                   _section('قالب الإخراج', PhosphorIcons.fileText(),
                       hint: 'هيكل Markdown يلتزم به النموذج'),
@@ -971,6 +1048,121 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
         ],
       ),
     ).animate().fadeIn(duration: 200.ms);
+  }
+
+  // ── Per-mode model override picker ──────────────────────────────────────
+  // Renders a dropdown with two zones:
+  //   • A first item that explicitly says "inherit from persona" and shows
+  //     which model that resolves to right now — so the admin understands
+  //     exactly what will happen if they leave the override empty.
+  //   • One item per `availableModels` entry from the persona's provider.
+  //
+  // We deliberately reject free-form text input for the model name: the
+  // upstream APIs reject unknown model strings with a 400, and a typo here
+  // means a silent failure for end users. Forcing the admin to pick from
+  // the provider's actual supported list keeps the two in sync at all
+  // times.
+  Widget _modelOverridePicker() {
+    final inheritLabel = widget.personaModelId.isEmpty
+        ? 'وراثة من الشخصية (لم يُحدَّد نموذج للشخصية)'
+        : 'وراثة من الشخصية (${widget.personaModelId})';
+
+    if (widget.availableModels.isEmpty) {
+      // The persona's provider has no models listed yet — we can't show a
+      // meaningful picker, so we explain the situation instead of pretending
+      // everything is fine.
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.orange.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border:
+              Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+        ),
+        child: Row(children: [
+          Icon(PhosphorIcons.warning(), size: 16, color: Colors.orange),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'لم يتم العثور على نماذج في المزود الخاص بالشخصية. أضف نماذج للمزود أولاً ثم ارجع هنا لتفعيل التخصيص لكل وضع.',
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.5,
+                color: _isDark ? Colors.orange.shade200 : Colors.orange.shade800,
+              ),
+            ),
+          ),
+        ]),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _modelId.isEmpty
+              ? (_isDark ? AppTheme.darkDivider : AppTheme.lightDivider)
+              : _color.withValues(alpha: 0.5),
+          width: _modelId.isEmpty ? 1 : 1.5,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _modelId,
+          isExpanded: true,
+          dropdownColor: _isDark ? AppTheme.darkSurface : Colors.white,
+          icon: Icon(PhosphorIcons.caretDown(),
+              size: 14,
+              color: _isDark ? Colors.white54 : Colors.black54),
+          items: [
+            DropdownMenuItem(
+              value: '',
+              child: Row(children: [
+                Icon(PhosphorIcons.linkSimple(),
+                    size: 14,
+                    color: _isDark ? Colors.white54 : Colors.black54),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    inheritLabel,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: _isDark ? Colors.white70 : Colors.black87,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ]),
+            ),
+            for (final m in widget.availableModels)
+              DropdownMenuItem(
+                value: m,
+                child: Row(children: [
+                  Icon(PhosphorIcons.cpu(),
+                      size: 14, color: _color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      m,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _isDark ? Colors.white : Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ]),
+              ),
+          ],
+          onChanged: (v) => setState(() => _modelId = v ?? ''),
+        ),
+      ),
+    );
   }
 
   // ── Section heading ──────────────────────────────────────────────────────

@@ -35,23 +35,19 @@ class ModernFab extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.primaryColor.withValues(alpha: isDark ? 0.85 : 0.95),
-            AppTheme.primaryDark.withValues(alpha: isDark ? 0.9 : 1.0),
+            AppTheme.primaryColor,
+            AppTheme.primaryDark,
           ],
         ),
         borderRadius: BorderRadius.circular(isExtended ? 100 : 30),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.25),
-          width: 0.8,
-        ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.45 : 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.12),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),

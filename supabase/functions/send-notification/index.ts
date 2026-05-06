@@ -62,8 +62,8 @@ Deno.serve(async (req: Request) => {
             image_url,
             created_by,
             // New fields for unified routing:
-            mode = 'broadcast',                 // 'broadcast' | 'auto_content_only' | 'chat_to_admins' | 'chat_to_user'
-            target_user_id,                     // required for mode='chat_to_user'
+            mode = 'broadcast',                 // 'broadcast' | 'auto_content_only' | 'chat_to_admins' | 'chat_to_user' | 'direct_to_user'
+            target_user_id,                     // required for mode='chat_to_user' or mode='direct_to_user'
             sender_id,                          // for chat modes — used to fetch sender name
             conversation_id,                    // for chat modes — used as Android tag (coalesce)
         } = reqBody;
@@ -101,6 +101,16 @@ Deno.serve(async (req: Request) => {
                 );
             }
             query = query.eq('notif_chat', true).eq('id', target_user_id);
+        } else if (mode === 'direct_to_user') {
+            // Targeted system notification (e.g. contest win, manual collection grant).
+            // Bound only by the master push toggle — does NOT depend on chat preferences.
+            if (!target_user_id) {
+                return new Response(
+                    JSON.stringify({ error: "target_user_id required for mode=direct_to_user" }),
+                    { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+                );
+            }
+            query = query.eq('id', target_user_id);
         }
         // mode === 'broadcast' → no extra filter
 

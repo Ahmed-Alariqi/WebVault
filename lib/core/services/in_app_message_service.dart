@@ -12,114 +12,186 @@ import '../constants.dart';
 class InAppMessageService {
   static const String _dismissedKey = 'dismissed_in_app_messages';
 
-  /// Check for active in-app messages from Supabase and show them if not dismissed
+  /// Check for active in-app messages from Supabase and show each eligible
+  /// message sequentially (a professional "campaign queue"). Prior to this,
+  /// only a single most-recent message was ever fetched via `.limit(1)`,
+  /// which meant that e.g. a "please update" banner and a "welcome to v1.5"
+  /// welcome card could never coexist — whichever was newest silently hid
+  /// the other. Now the admin can schedule several simultaneous campaigns,
+  /// each with its own audience (`target_version_mode`) and importance
+  /// (`priority`); they are presented one after another, in priority order,
+  /// with each subsequent dialog opening only after the previous one has
+  /// been dismissed.
   static Future<void> checkAndShowMessage(BuildContext context) async {
     try {
-      final response = await SupabaseConfig.client
+      // Fetch ALL active messages (no limit). Server-side ordering is by
+      // priority DESC, then created_at DESC so the admin's explicit urgency
+      // wins, with newest-first as the tie-breaker.
+      final raw = await SupabaseConfig.client
           .from('in_app_messages')
           .select()
           .eq('is_active', true)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
+          .order('priority', ascending: false)
+          .order('created_at', ascending: false);
 
-      if (response == null) return;
+      final List<Map<String, dynamic>> candidates = (raw as List)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+      if (candidates.isEmpty) return;
 
-      bool isDismissible = response['is_dismissible'] ?? true;
-      final String? targetVersionStr = response['target_version'];
-      if (targetVersionStr != null && targetVersionStr.isNotEmpty) {
-        final packageInfo = await PackageInfo.fromPlatform();
-        final currentVersion = packageInfo.version;
+      // ── Shared context (fetched once — avoids N round-trips in the loop).
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
 
-        bool isCurrentLower = _isVersionLower(currentVersion, targetVersionStr);
-        if (!isCurrentLower) {
-          // If they meet or exceed the required version, they don't need to see the update message
-          return;
-        }
-      }
-
-      // Explicit Admin Override
-      // If the user is an Admin, they can bypass ANY Non-Dismissible message organically to prevent lockouts.
       final currentUser = SupabaseConfig.client.auth.currentUser;
-      if (currentUser != null && !isDismissible) {
-        final profile = await SupabaseConfig.client
-            .from('profiles')
-            .select('role')
-            .eq('id', currentUser.id)
-            .maybeSingle();
+      bool? userIsAdmin;
+      String? userFullName;
 
-        if (profile != null && profile['role'] == 'admin') {
-          isDismissible = true;
+      Future<bool> isAdmin() async {
+        if (userIsAdmin != null) return userIsAdmin!;
+        if (currentUser == null) {
+          userIsAdmin = false;
+          return false;
         }
+        try {
+          final profile = await SupabaseConfig.client
+              .from('profiles')
+              .select('role')
+              .eq('id', currentUser.id)
+              .maybeSingle();
+          userIsAdmin = profile != null && profile['role'] == 'admin';
+        } catch (_) {
+          userIsAdmin = false;
+        }
+        return userIsAdmin!;
       }
 
-      final messageId = response['id'] as String;
-      final bool showEveryTime = response['show_every_time'] == true;
-
-      // Check if user already dismissed this specific message ID
-      final box = Hive.box(kSettingsBox);
-      final List<String> dismissedIds = List<String>.from(
-        box.get(_dismissedKey) ?? [],
-      );
-
-      if (!showEveryTime && dismissedIds.contains(messageId)) {
-        return; // Already seen and dismissed
-      }
-
-      // --- Personalize with user name ---
-      final bool personalizeName = response['personalize_name'] == true;
-      if (personalizeName && currentUser != null) {
+      Future<String> userName(BuildContext ctx) async {
+        if (userFullName != null) return userFullName!;
+        if (currentUser == null) {
+          userFullName = ctx.mounted
+              ? AppLocalizations.of(ctx)!.defaultUserFallback
+              : 'User';
+          return userFullName!;
+        }
         try {
           final profile = await SupabaseConfig.client
               .from('profiles')
               .select('full_name')
               .eq('id', currentUser.id)
               .maybeSingle();
-          final String userName =
-              (profile != null &&
-                  profile['full_name'] != null &&
-                  (profile['full_name'] as String).isNotEmpty)
-              ? profile['full_name'] as String
-              : (context.mounted
-                    ? AppLocalizations.of(context)!.defaultUserFallback
-                    : 'User');
-          response['title'] = (response['title'] as String).replaceAll(
-            '{user_name}',
-            userName,
-          );
-          response['message'] = (response['message'] as String).replaceAll(
-            '{user_name}',
-            userName,
-          );
+          final name = profile?['full_name'] as String?;
+          userFullName = (name != null && name.isNotEmpty)
+              ? name
+              : (ctx.mounted
+                  ? AppLocalizations.of(ctx)!.defaultUserFallback
+                  : 'User');
         } catch (_) {
-          // If profile fetch fails, replace with fallback
-          final fallback = context.mounted
-              ? AppLocalizations.of(context)!.defaultUserFallback
+          userFullName = ctx.mounted
+              ? AppLocalizations.of(ctx)!.defaultUserFallback
               : 'User';
-          response['title'] = (response['title'] as String).replaceAll(
-            '{user_name}',
-            fallback,
-          );
-          response['message'] = (response['message'] as String).replaceAll(
-            '{user_name}',
-            fallback,
-          );
         }
+        return userFullName!;
       }
 
-      if (context.mounted) {
-        _showCampaignDialog(
+      // Dismissed-IDs live in Hive. A message with `show_every_time=true`
+      // ignores this list so recurring reminders keep firing every launch.
+      final box = Hive.box(kSettingsBox);
+      final List<String> dismissedIds = List<String>.from(
+        box.get(_dismissedKey) ?? [],
+      );
+
+      // ── Filter the candidates down to what this user should actually see.
+      final List<Map<String, dynamic>> eligible = [];
+      for (final msg in candidates) {
+        final messageId = msg['id'] as String;
+        final bool showEveryTime = msg['show_every_time'] == true;
+        if (!showEveryTime && dismissedIds.contains(messageId)) continue;
+
+        // Audience: version mode gate.
+        if (!_matchesAudience(msg, currentVersion)) continue;
+
+        eligible.add(msg);
+      }
+      if (eligible.isEmpty) return;
+
+      // ── Present the eligible messages sequentially. We await each dialog
+      // so the next one only appears after the user has dismissed / acted
+      // on the previous — no stacked modals, no surprise chains.
+      for (final msg in eligible) {
+        if (!context.mounted) return;
+        final messageId = msg['id'] as String;
+        final bool showEveryTime = msg['show_every_time'] == true;
+        bool isDismissible = msg['is_dismissible'] ?? true;
+
+        // Admin override: never lock an admin out with a non-dismissible
+        // "hard block" campaign (prevents self-inflicted lockouts).
+        if (!isDismissible && await isAdmin()) {
+          isDismissible = true;
+        }
+
+        // Personalisation: replace `{user_name}` in title/body with the
+        // profile's full_name (or a localised fallback). We mutate a local
+        // copy so we don't disturb the map we iterate over.
+        if (msg['personalize_name'] == true && context.mounted) {
+          final name = await userName(context);
+          msg['title'] =
+              (msg['title'] as String).replaceAll('{user_name}', name);
+          msg['message'] =
+              (msg['message'] as String).replaceAll('{user_name}', name);
+        }
+
+        if (!context.mounted) return;
+        await _showCampaignDialog(
           context,
-          response,
+          msg,
           messageId,
           box,
           dismissedIds,
           isDismissible,
           showEveryTime,
         );
+
+        // A short gap between dialogs gives the user a moment to realise
+        // one ended before the next appears — feels like a conversation
+        // rather than a barrage.
+        if (context.mounted) {
+          await Future.delayed(const Duration(milliseconds: 250));
+        }
       }
     } catch (e) {
       debugPrint('Error loading in-app messages: $e');
+    }
+  }
+
+  /// Returns true when [msg]'s audience targeting rules admit the given
+  /// [currentVersion]. Three modes (see migration comments):
+  ///   * any           → always matches (default for broadcast messages)
+  ///   * below         → matches users *older* than target_version (legacy
+  ///                     "update required / available" semantic)
+  ///   * at_or_above   → matches users on target_version or newer (welcome
+  ///                     cards, "what's new in v1.5", release notes, etc.)
+  static bool _matchesAudience(
+    Map<String, dynamic> msg,
+    String currentVersion,
+  ) {
+    final String mode = (msg['target_version_mode'] as String?) ?? 'any';
+    final String? target = msg['target_version'] as String?;
+
+    if (mode == 'any') return true;
+    if (target == null || target.isEmpty) {
+      // Admin picked a version-targeted mode but forgot the version — fall
+      // back to "show to everyone" to avoid silently hiding the message.
+      return true;
+    }
+    final isLower = _isVersionLower(currentVersion, target);
+    switch (mode) {
+      case 'below':
+        return isLower;
+      case 'at_or_above':
+        return !isLower;
+      default:
+        return true;
     }
   }
 
@@ -140,7 +212,7 @@ class InAppMessageService {
     }
   }
 
-  static void _showCampaignDialog(
+  static Future<void> _showCampaignDialog(
     BuildContext context,
     Map<String, dynamic> data,
     String messageId,
@@ -156,7 +228,7 @@ class InAppMessageService {
     final actionText = data['action_text'] as String?;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    showDialog(
+    return showDialog<void>(
       context: context,
       barrierDismissible: isDismissible,
       builder: (ctx) {

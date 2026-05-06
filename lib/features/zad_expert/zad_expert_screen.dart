@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -348,12 +349,6 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
   void _onComposerStateChange() {
     if (mounted) setState(() {});
   }
-
-  double _easeInOutQuad(double t) {
-    return t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
-  }
-
-
 
   @override
 
@@ -2916,75 +2911,52 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // ── Unified pill ─────────────────────────────────────────────
-          AnimatedBuilder(
-            animation: _recordingPulseController,
-            builder: (_, _) {
-              // While listening we keep the pill's geometry rock-steady
-              // (no shadow spread/blur changes that would visually inflate
-              // and deflate the entire input). Instead we only modulate the
-              // *alpha* of a fixed-size red glow + the border color, which
-              // reads as a calm "breathing" tint rather than a distracting
-              // pulse that distorts the layout.
-              final t = _isListening
-                  ? _easeInOutQuad(_recordingPulseController.value)
-                  : 0.0;
-              const recColor = Colors.redAccent;
-
-              final dynamicShadow = _isListening
+          Builder(
+            builder: (_) {
+              // Pill geometry is completely static. We no longer animate
+              // shadows, borders, or size while listening — that caused the
+              // whole input to "breathe" which felt heavy. Instead:
+              //   • The mic icon has its own localized halo pulse
+              //     (see _ComposerIconButton).
+              //   • A subtle chasing light travels around the pill's border
+              //     in the active persona color — drawn as an overlay so it
+              //     can never affect the pill's layout.
+              final staticShadow = isActive
                   ? [
                       BoxShadow(
-                        color: recColor.withValues(alpha: 0.10 + 0.14 * t),
+                        color: personaColor.withValues(alpha: 0.18),
                         blurRadius: 18,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 0),
+                        spreadRadius: 0.5,
+                        offset: const Offset(0, 2),
                       ),
                     ]
-                  : (isActive
-                      ? [
-                          BoxShadow(
-                            color: personaColor.withValues(alpha: 0.18),
-                            blurRadius: 18,
-                            spreadRadius: 0.5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                              alpha: isDark ? 0.25 : 0.05,
-                            ),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]);
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.25 : 0.05,
+                        ),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ];
 
-              final liveBorder = _isListening
-                  ? Color.lerp(
-                      shellBorder,
-                      recColor.withValues(alpha: 0.55),
-                      0.5 + 0.5 * t,
-                    )!
-                  : shellBorder;
+              const borderRadius = BorderRadius.all(Radius.circular(26));
 
-              // NOTE: We deliberately use a plain Container here rather than
-              // AnimatedContainer. The outer AnimatedBuilder already drives
-              // the decoration changes smoothly per frame from the pulse
-              // controller; layering an AnimatedContainer on top would start a
-              // fresh implicit tween every rebuild and that's what produced
-              // the unsightly "growing/shrinking" wobble while listening.
-              return Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: shellBg,
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(color: liveBorder, width: 1.2),
-                  boxShadow: dynamicShadow,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
+              return Stack(
+                children: [
+                  Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: shellBg,
+                      borderRadius: borderRadius,
+                      border: Border.all(color: shellBorder, width: 1.2),
+                      boxShadow: staticShadow,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
                       // Mic (leading in RTL = right side)
                       if (_sttAvailable)
                         _ComposerIconButton(
@@ -3067,6 +3039,33 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                     ],
                   ),
                 ),
+                  ),
+                  // Chasing-light border overlay. Only painted while the
+                  // user is actively dictating. The SweepGradient rotates
+                  // with _recordingPulseController, creating a smooth
+                  // comet-like highlight that travels around the pill
+                  // in the current persona color. IgnorePointer keeps
+                  // the text field fully interactive, and the overlay
+                  // never contributes to layout so the input size stays
+                  // perfectly still (no breathing, no wobble).
+                  if (_isListening)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: AnimatedBuilder(
+                          animation: _recordingPulseController,
+                          builder: (_, _) {
+                            return CustomPaint(
+                              painter: _ChasingBorderPainter(
+                                progress: _recordingPulseController.value,
+                                color: personaColor,
+                                radius: 26,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -5602,4 +5601,64 @@ class _OfflineBanner extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Paints a single soft "comet" of light that chases around the rounded
+/// rectangle border of the composer pill. The stroke sits exactly on the
+/// pill's outer edge (inset by half the stroke width), uses a SweepGradient
+/// rotated by [progress] ∈ [0,1], and fades to transparent at both ends so
+/// only a short arc of [color] is visible at any time. The effect is
+/// deliberately subtle — professional, not flashy — and never changes the
+/// pill's geometry because it's drawn as an overlay inside a Positioned.fill.
+class _ChasingBorderPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final double radius;
+
+  _ChasingBorderPainter({
+    required this.progress,
+    required this.color,
+    required this.radius,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const strokeWidth = 1.6;
+    final rect = Offset.zero & size;
+    final inset = rect.deflate(strokeWidth / 2);
+    final rrect = RRect.fromRectAndRadius(inset, Radius.circular(radius));
+
+    // Rotate a narrow "comet" sweep around the center. The gradient has
+    // a short lit arc (~22% of the perimeter) surrounded by fully
+    // transparent stops so the rest of the border stays clean.
+    final sweep = SweepGradient(
+      startAngle: 0,
+      endAngle: 2 * math.pi,
+      transform: GradientRotation(2 * math.pi * progress),
+      colors: [
+        color.withValues(alpha: 0.0),
+        color.withValues(alpha: 0.0),
+        color.withValues(alpha: 0.55),
+        color.withValues(alpha: 0.95),
+        color.withValues(alpha: 0.55),
+        color.withValues(alpha: 0.0),
+        color.withValues(alpha: 0.0),
+      ],
+      stops: const [0.0, 0.70, 0.80, 0.88, 0.96, 1.0, 1.0],
+    );
+
+    final paint = Paint()
+      ..shader = sweep.createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _ChasingBorderPainter old) =>
+      old.progress != progress ||
+      old.color != color ||
+      old.radius != radius;
 }

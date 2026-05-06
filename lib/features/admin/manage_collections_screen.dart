@@ -8,6 +8,7 @@ import '../../presentation/providers/admin_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'widgets/google_image_search_sheet.dart';
 import 'widgets/discover_item_picker_sheet.dart';
+import 'manage_collection_members_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
 
@@ -214,6 +215,24 @@ class _ManageCollectionsScreenState
                 ),
               ),
               // Actions
+              if (col.isReferralExclusive)
+                IconButton(
+                  tooltip: 'إدارة الأعضاء',
+                  icon: Icon(
+                    PhosphorIcons.users(),
+                    size: 20,
+                    color: Colors.amber,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ManageCollectionMembersScreen(collection: col),
+                      ),
+                    );
+                  },
+                ),
               IconButton(
                 icon: Icon(
                   PhosphorIcons.pencilSimple(),
@@ -264,7 +283,7 @@ class _ManageCollectionsScreenState
               Navigator.pop(ctx);
               await adminDeleteCollection(col.id);
               ref.invalidate(adminCollectionsProvider);
-              if (mounted) {
+              if (context.mounted) {
                 AdminUIUtils.showSuccess(context, loc.collectionDeleted);
               }
             },
@@ -293,10 +312,10 @@ class _ManageCollectionsScreenState
     double uploadProgress = 0.0;
 
     // Pickers State
-    int selectedColor = existing?.colorValue ?? AppTheme.primaryColor.value;
+    int selectedColor = existing?.colorValue ?? AppTheme.primaryColor.toARGB32();
 
     final colorOptions = [
-      AppTheme.primaryColor.value,
+      AppTheme.primaryColor.toARGB32(),
       0xFFE91E63, // Pink
       0xFF9C27B0, // Purple
       0xFF2196F3, // Blue
@@ -727,7 +746,7 @@ class _ManageCollectionsScreenState
                         }
                         ref.invalidate(adminCollectionsProvider);
                         if (ctx.mounted) Navigator.pop(ctx);
-                        if (mounted) {
+                        if (context.mounted) {
                           AdminUIUtils.showSuccess(context, loc.collectionSaved);
                         }
                       },

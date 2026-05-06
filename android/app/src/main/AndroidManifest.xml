@@ -53,7 +53,7 @@
             android:exported="true"
             android:theme="@style/NormalTheme"
             android:taskAffinity=":floating"
-            android:excludeFromRecents="true"
+            android:launchMode="singleTask"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
             <meta-data

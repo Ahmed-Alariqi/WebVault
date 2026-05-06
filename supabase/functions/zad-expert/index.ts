@@ -213,10 +213,21 @@ Deno.serve(async (req: Request) => {
       modeKey: resolvedModeKey,
     };
 
+    // Per-mode model override: if the active mode declares its own
+    // `model_id` (non-empty), use it; otherwise fall back to the persona's
+    // model. This lets the admin run e.g. an analytical "deep-thinking"
+    // mode on a heavier model while keeping the rest of the persona on a
+    // faster one — without having to clone the persona just for that.
+    const modeModelOverride =
+      mode && typeof mode.model_id === 'string' && mode.model_id.trim().length > 0
+        ? mode.model_id.trim()
+        : null;
+    const effectiveModelId = modeModelOverride ?? persona.model_id;
+
     if (stream === true) {
       return await callProviderStream(
         provider,
-        persona.model_id,
+        effectiveModelId,
         llmMessages,
         persona.temperature ?? 0.5,
         persona.max_tokens ?? 4096,
@@ -226,7 +237,7 @@ Deno.serve(async (req: Request) => {
 
     const result = await callProvider(
       provider,
-      persona.model_id,
+      effectiveModelId,
       llmMessages,
       persona.temperature ?? 0.5,
       persona.max_tokens ?? 4096,

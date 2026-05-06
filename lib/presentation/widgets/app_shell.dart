@@ -1827,20 +1827,28 @@ class _AppShellState extends ConsumerState<AppShell> {
               ),
               const SizedBox(height: 4),
               // Always-visible label so the user can read every tab name.
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 10.5,
-                  letterSpacing: 0.1,
-                  fontWeight: isSelected
-                      ? FontWeight.w800
-                      : FontWeight.w600,
-                  color: isSelected
-                      ? AppTheme.primaryColor
-                      : inactiveColor,
+              // FittedBox scales long labels down just enough to fit the
+              // item's width, so names like "المستكشف" / "لوحة التحكم" are
+              // never ellipsized while the layout and position stay identical.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.visible,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    letterSpacing: 0.1,
+                    fontWeight: isSelected
+                        ? FontWeight.w800
+                        : FontWeight.w600,
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : inactiveColor,
+                  ),
                 ),
               ),
             ],

@@ -41,6 +41,14 @@ class AiPersonaMode {
   /// Display order in the cards list.
   final int sortOrder;
 
+  /// Optional per-mode model override. When empty, the persona's `modelId`
+  /// is used. When set, this mode (e.g. an analytical "deep-thinking" ERD
+  /// mode) can run on a heavier model than the rest of the persona without
+  /// having to clone the whole persona just to switch its model. The value
+  /// must be one of the strings present in the persona provider's
+  /// `supported_models` list — the editor enforces this with a dropdown.
+  final String modelId;
+
   const AiPersonaMode({
     required this.key,
     required this.name,
@@ -53,6 +61,7 @@ class AiPersonaMode {
     this.isDefault = false,
     this.enabled = true,
     this.sortOrder = 0,
+    this.modelId = '',
   });
 
   factory AiPersonaMode.fromJson(Map<String, dynamic> json) {
@@ -75,6 +84,7 @@ class AiPersonaMode {
       isDefault: json['is_default'] as bool? ?? false,
       enabled: json['enabled'] as bool? ?? true,
       sortOrder: json['sort_order'] as int? ?? 0,
+      modelId: json['model_id'] as String? ?? '',
     );
   }
 
@@ -90,6 +100,7 @@ class AiPersonaMode {
         'is_default': isDefault,
         'enabled': enabled,
         'sort_order': sortOrder,
+        'model_id': modelId,
       };
 
   AiPersonaMode copyWith({
@@ -104,6 +115,7 @@ class AiPersonaMode {
     bool? isDefault,
     bool? enabled,
     int? sortOrder,
+    String? modelId,
   }) {
     return AiPersonaMode(
       key: key ?? this.key,
@@ -117,6 +129,7 @@ class AiPersonaMode {
       isDefault: isDefault ?? this.isDefault,
       enabled: enabled ?? this.enabled,
       sortOrder: sortOrder ?? this.sortOrder,
+      modelId: modelId ?? this.modelId,
     );
   }
 }
