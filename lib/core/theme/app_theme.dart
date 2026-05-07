@@ -5,9 +5,9 @@ class AppTheme {
   AppTheme._();
 
   // Color palette
-  static const Color primaryColor = Color(0xFF3F51B5); // Indigo
-  static const Color primaryDark = Color(0xFF303F9F);
-  static const Color primaryLight = Color(0xFFC5CAE9);
+  static const Color primaryColor = Color(0xFF2563EB); // Professional Blue
+  static const Color primaryDark = Color(0xFF1D4ED8);  // Deep Blue
+  static const Color primaryLight = Color(0xFFEFF6FF); // Soft Blue
   static const Color accentColor = Color(0xFF009688); // Teal
   static const Color accentLight = Color(0xFF80CBC4);
   static const Color errorColor = Color(0xFFE53935);
@@ -23,16 +23,16 @@ class AppTheme {
   static const Color lightDivider = Color(0xFFE5E7EB);
 
   // Dark theme colors
-  static const Color darkBg = Color(0xFF0F0F1A);
-  static const Color darkSurface = Color(0xFF1A1A2E);
-  static const Color darkCard = Color(0xFF222240);
-  static const Color darkTextPrimary = Color(0xFFF0F0F5);
-  static const Color darkTextSecondary = Color(0xFF9CA3AF);
-  static const Color darkDivider = Color(0xFF2D2D4A);
+  static const Color darkBg = Color(0xFF020617);      // Very deep slate
+  static const Color darkSurface = Color(0xFF0F172A); // Deep slate
+  static const Color darkCard = Color(0xFF1E293B);    // Slate card
+  static const Color darkTextPrimary = Color(0xFFF8FAFC);
+  static const Color darkTextSecondary = Color(0xFF94A3B8);
+  static const Color darkDivider = Color(0xFF334155);
 
-  static const double borderRadius = 16.0;
-  static const double borderRadiusSm = 12.0;
-  static const double borderRadiusLg = 24.0;
+  static const double borderRadius = 20.0;
+  static const double borderRadiusSm = 14.0;
+  static const double borderRadiusLg = 30.0;
 
   static TextTheme _buildTextTheme(TextTheme base, String? languageCode) {
     if (languageCode == 'ar') {
@@ -77,7 +77,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(color: lightDivider.withValues(alpha: 0.5)),
+          side: BorderSide(color: lightDivider.withValues(alpha: 0.6), width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -89,15 +89,15 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: BorderSide(color: lightDivider),
+          borderSide: BorderSide(color: lightDivider.withValues(alpha: 0.8)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: const BorderSide(color: primaryColor, width: 1.5),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 20,
+          vertical: 18,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -105,13 +105,13 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
           textStyle: languageCode == 'ar'
-              ? GoogleFonts.tajawal(fontSize: 15, fontWeight: FontWeight.w600)
-              : GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+              ? GoogleFonts.tajawal(fontSize: 16, fontWeight: FontWeight.w700)
+              : GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -125,9 +125,15 @@ class AppTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: lightSurface,
         selectedItemColor: primaryColor,
-        unselectedItemColor: lightTextSecondary,
+        unselectedItemColor: lightTextSecondary.withValues(alpha: 0.6),
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
+        selectedLabelStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(fontSize: 11, fontWeight: FontWeight.w700)
+            : GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+        unselectedLabelStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(fontSize: 11, fontWeight: FontWeight.w500)
+            : GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
       ),
       dividerTheme: DividerThemeData(color: lightDivider, thickness: 1),
       switchTheme: SwitchThemeData(
@@ -177,31 +183,31 @@ class AppTheme {
               ),
       ),
       cardTheme: CardThemeData(
-        color: darkCard,
+        color: darkCard.withValues(alpha: 0.4),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(color: darkDivider.withValues(alpha: 0.5)),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: darkBg,
+        fillColor: Colors.white.withValues(alpha: 0.04),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: BorderSide(color: darkDivider),
+          borderSide: BorderSide(color: darkDivider.withValues(alpha: 0.5)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadiusSm),
-          borderSide: const BorderSide(color: primaryColor, width: 1.5),
+          borderSide: const BorderSide(color: primaryColor, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
+          horizontal: 20,
+          vertical: 18,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -209,13 +215,13 @@ class AppTheme {
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadiusSm),
           ),
           textStyle: languageCode == 'ar'
-              ? GoogleFonts.tajawal(fontSize: 15, fontWeight: FontWeight.w600)
-              : GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
+              ? GoogleFonts.tajawal(fontSize: 16, fontWeight: FontWeight.w700)
+              : GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -228,10 +234,16 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: darkSurface,
-        selectedItemColor: accentLight,
-        unselectedItemColor: darkTextSecondary,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: darkTextSecondary.withValues(alpha: 0.5),
         type: BottomNavigationBarType.fixed,
-        elevation: 8,
+        elevation: 0,
+        selectedLabelStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(fontSize: 11, fontWeight: FontWeight.w700)
+            : GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+        unselectedLabelStyle: languageCode == 'ar'
+            ? GoogleFonts.tajawal(fontSize: 11, fontWeight: FontWeight.w500)
+            : GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
       ),
       dividerTheme: DividerThemeData(color: darkDivider, thickness: 1),
       switchTheme: SwitchThemeData(

@@ -159,7 +159,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get lifetimeVisits => 'زيارة';
 
   @override
-  String get appName => 'زاد تك';
+  String get appName => 'زاد التقني';
 
   @override
   String get newFolder => 'مجلد جديد';
@@ -552,17 +552,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get savedExplicitlyToClipboard =>
-      'تم الحفظ بشكل صريح في حافظة زاد تك!';
+      'تم الحفظ بشكل صريح في حافظة زاد التقني!';
 
   @override
-  String get savedToClipboard => 'تم الحفظ في حافظة زاد تك!';
+  String get savedToClipboard => 'تم الحفظ في حافظة زاد التقني!';
 
   @override
   String get saveToVaultBtn => 'حفظ في القبو';
 
   @override
   String get promptSaveToVault =>
-      'هل ترغب في حفظ هذا النص في حافظة زاد تك لاستخدامه لاحقًا؟';
+      'هل ترغب في حفظ هذا النص في حافظة زاد التقني لاستخدامه لاحقًا؟';
 
   @override
   String get copiedText => 'نص منسوخ';
@@ -1243,7 +1243,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get savingTextInstructions =>
-      '1. المشاركة: حدد نصًا في أي تطبيق، وانقر على \"مشاركة\"، واختر زاد تك.\n2. تحديد النص: حدد نصًا واختر \"زاد تك\" من القائمة المنبثقة.\n3. لوحة الإعدادات السريعة: أضف زاد تك إلى الإعدادات السريعة للوصول إلى الحافظة من أي مكان.';
+      '1. المشاركة: حدد نصًا في أي تطبيق، وانقر على \"مشاركة\"، واختر زاد التقني.\n2. تحديد النص: حدد نصًا واختر \"زاد التقني\" من القائمة المنبثقة.\n3. لوحة الإعدادات السريعة: أضف زاد التقني إلى الإعدادات السريعة للوصول إلى الحافظة من أي مكان.';
 
   @override
   String get smartClipboard => 'الحافظة الذكية';
@@ -1262,7 +1262,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get smartCopyDescription =>
-      'عند تفعيله، يتم حفظ أي نص تنسخه في حافظة جهازك تلقائيًا في زاد تك في الخلفية (يتطلب Android 10+ تشغيل الخدمة في الخلفية).';
+      'عند تفعيله، يتم حفظ أي نص تنسخه في حافظة جهازك تلقائيًا في زاد التقني في الخلفية (يتطلب Android 10+ تشغيل الخدمة في الخلفية).';
 
   @override
   String get howToUse => 'كيفية الاستخدام';
@@ -1287,11 +1287,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'قم بإنشاء مجموعات لترتيب الحافظة وتسهيل تصفيتها';
 
   @override
-  String get shareDirectlyToVault => 'المشاركة مباشرة إلى زاد تك';
+  String get shareDirectlyToVault => 'المشاركة مباشرة إلى زاد التقني';
 
   @override
   String get shareDirectlyToVaultDesc =>
-      'في أي تطبيق: حدد النص → مشاركة → زاد تك Clipboard للحفظ';
+      'في أي تطبيق: حدد النص → مشاركة → زاد التقني Clipboard للحفظ';
 
   @override
   String get pullToRefresh => 'السحب للتحديث';
@@ -2304,7 +2304,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد ردود بعد.\nكن أول من ينضم إلى المحادثة!';
 
   @override
-  String get aboutTaglineTitle => 'زاد تك | ZaadTech';
+  String get aboutTaglineTitle => 'زاد التقني | ZaadTech';
 
   @override
   String get aboutTaglineSubtitle =>
@@ -2312,10 +2312,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutTaglineBody =>
-      'سواء كنت طالباً يبحث عن أدوات ومواقع مفيدة، مطوّراً يحفظ مفاتيحه وأكواده، أو مستخدماً يريد ترتيب حياته الرقمية — زاد تك يجمعها لك في تطبيق واحد منظَّم وذكي.';
+      'سواء كنت طالباً يبحث عن أدوات ومواقع مفيدة، مطوّراً يحفظ مفاتيحه وأكواده، أو مستخدماً يريد ترتيب حياته الرقمية — زاد التقني يجمعها لك في تطبيق واحد منظَّم وذكي.';
 
   @override
-  String get aboutFeaturesTitle => 'ماذا يقدّم زاد تك؟';
+  String get aboutFeaturesTitle => 'ماذا يقدّم زادالتقني؟';
 
   @override
   String get aboutFeatureZadExpertTitle => 'خبير زاد';
@@ -2381,14 +2381,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'ناقش الأدوات، شارك التجارب، واقترح أدوات جديدة ليتم نشرها في المستكشف.';
 
   @override
-  String get aboutGoalTitle => 'هدف زاد تك';
+  String get aboutGoalTitle => 'هدف زاد التقني';
 
   @override
   String get aboutGoalBody =>
       'الهدف هو أن يكون تطبيق زادك الرقمي منصة متكاملة تجمع كل ما قد يحتاجه المهتم بالتقنية في مكان واحد؛ بدءًا من المواقع والأدوات الرقمية، وصولًا إلى أحدث العروض والخدمات والاشتراكات. كما يوفّر التطبيق خزنة رقمية خاصة تتيح للمستخدم حفظ كل ما يهمه ويخاف فقدانه أو نسيانه، ليتمكن من استرجاعه بسهولة وفي أي وقت بضغطة زر.';
 
   @override
-  String get aboutTaglineBanner => 'زاد تك — اكتشف. احفظ. استرجع فورًا. 🚀';
+  String get aboutTaglineBanner => 'زاد التقني — اكتشف. احفظ. استرجع فورًا. 🚀';
 
   @override
   String get aboutDevLabel => 'تطوير: أحمد العريقي';
@@ -3228,6 +3228,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get changePassword => 'تغيير كلمة المرور';
 
   @override
+  String get changePasswordConfirm =>
+      'هل أنت متأكد من رغبتك في إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني؟';
+
+  @override
   String get passwordResetSent => 'تم إرسال رابط تغيير كلمة المرور';
 
   @override
@@ -3814,11 +3818,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get notifSettingsSubtitle => 'إدارة تفضيلات الإشعارات';
 
   @override
-  String get notifSettingsAllContent => 'المحتوى الجديد في المستكشف';
+  String get notifSettingsAllContent => 'إشعارات لكل المحتوى الجديد المستكشف';
 
   @override
   String get notifSettingsAllContentSub =>
-      'تنبيه عند إضافة أي عنصر جديد إلى المستكشف.';
+      'تلقي إشعارات دائما عند إضافة مقالات، تطبيقات، أو شروحات جديدة في قسم المستكشف.';
+
+  @override
+  String get notifSettingsCommunity => 'إشعارات منشورات المجتمع';
+
+  @override
+  String get notifSettingsCommunitySub =>
+      'تلقي إشعارات عند إضافة منشورات جديدة في مجتمع التطبيق.';
 
   @override
   String get notifSettingsSaveError => 'تعذّر حفظ التفضيل';
@@ -4096,4 +4107,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aiImprove => 'تحسين';
+
+  @override
+  String get backupAndRestore => 'النسخ الاحتياطي والاستعادة';
+
+  @override
+  String get autoBackup => 'النسخ الاحتياطي التلقائي';
+
+  @override
+  String get autoBackupDesc => 'حفظ نسخة محلية من بياناتك تلقائياً';
+
+  @override
+  String get backupFrequency => 'وتيرة النسخ';
+
+  @override
+  String get daily => 'يومياً';
+
+  @override
+  String get weekly => 'أسبوعياً';
+
+  @override
+  String get monthly => 'شهرياً';
+
+  @override
+  String get availableBackups => 'النسخ التلقائية المتوفرة';
+
+  @override
+  String get noAutoBackupsYet => 'لا توجد نسخ احتياطية تلقائية بعد.';
+
+  @override
+  String get restoreThisBackup => 'استعادة هذه النسخة؟';
+
+  @override
+  String restoreConfirmMessage(String date) {
+    return 'هل أنت متأكد من استعادة البيانات من $date؟ سيتم استبدال بياناتك الحالية.';
+  }
+
+  @override
+  String get manualBackup => 'النسخ اليدوي';
 }

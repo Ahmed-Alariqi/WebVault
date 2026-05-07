@@ -94,6 +94,26 @@ class BackupService {
         return false;
       }
 
+      return await _importFromJsonString(content);
+    } catch (e) {
+      debugPrint('Import error: $e');
+      return false;
+    }
+  }
+
+  /// Imports data from an internal local backup file.
+  Future<bool> importFromLocalBackup(File file) async {
+    try {
+      final content = await file.readAsString();
+      return await _importFromJsonString(content);
+    } catch (e) {
+      debugPrint('Local import error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> _importFromJsonString(String content) async {
+    try {
       final dynamic data = jsonDecode(content);
 
       if (data is! Map<String, dynamic>) {
@@ -157,8 +177,89 @@ class BackupService {
 
       return true;
     } catch (e) {
-      debugPrint('Import error: $e');
+      debugPrint('Import JSON error: $e');
       return false;
+    }
+  }
+
+  // ── Auto Backup Features ──────────────────────────────────────────────────
+
+  Future<Directory> _getBackupDirectory() async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final backupDir = Directory('${appDir.path}/backups');
+    if (!await backupDir.exists()) {
+      await backupDir.create(recursive: true);
+    }
+    return backupDir;
+  }
+
+  /// Performs an automatic backup and saves it locally.
+  /// Enforces a maximum of 3 backups (rolling).
+  Future<bool> performAutoBackup() async {
+    if (kIsWeb) return false; // Not supported on web
+
+    try {
+      final pages = _pageRepo.getAll().map((p) => p.toJson()).toList();
+      final folders = _folderRepo.getAll().map((f) => f.toJson()).toList();
+      final clipboard = _clipboardRepo
+          .getAllItems()
+          .map((c) => c.toJson())
+          .toList();
+
+      final backupData = {
+        'version': 1,
+        'timestamp': DateTime.now().toIso8601String(),
+        'pages': pages,
+        'folders': folders,
+        'clipboard': clipboard,
+      };
+
+      final jsonString = jsonEncode(backupData);
+      
+      final backupDir = await _getBackupDirectory();
+      final dateStr = DateTime.now().toIso8601String().replaceAll(':', '-');
+      final newFile = File('${backupDir.path}/ZaadTech_$dateStr.json');
+      
+      await newFile.writeAsString(jsonString);
+
+      // Rotation logic: keep only the last 3
+      final existingBackups = await getAutoBackups();
+      if (existingBackups.length > 3) {
+        // Since getAutoBackups returns sorted by modified date (newest first),
+        // we delete everything from index 3 onwards
+        for (int i = 3; i < existingBackups.length; i++) {
+          await existingBackups[i].delete();
+        }
+      }
+
+      return true;
+    } catch (e) {
+      debugPrint('Auto-backup error: $e');
+      return false;
+    }
+  }
+
+  /// Returns a list of local auto backups, sorted by newest first.
+  Future<List<File>> getAutoBackups() async {
+    if (kIsWeb) return [];
+    
+    try {
+      final backupDir = await _getBackupDirectory();
+      final entities = await backupDir.list().toList();
+      
+      final files = entities.whereType<File>().where((f) => f.path.endsWith('.json')).toList();
+      
+      // Sort by modified date descending (newest first)
+      files.sort((a, b) {
+        final aStat = a.statSync();
+        final bStat = b.statSync();
+        return bStat.modified.compareTo(aStat.modified);
+      });
+      
+      return files;
+    } catch (e) {
+      debugPrint('Get auto-backups error: $e');
+      return [];
     }
   }
 }

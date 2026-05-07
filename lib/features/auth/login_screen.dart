@@ -122,9 +122,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 end: Alignment.bottomLeft,
                 colors: isDark
                     ? [
-                        const Color(0xFF0F172A),
-                        const Color(0xFF1E1B4B),
-                        const Color(0xFF020617),
+                        const Color(0xFF0F172A), // Slate 900
+                        const Color(0xFF020617), // Slate 950
                       ]
                     : [
                         const Color(0xFFF8FAFC),
@@ -135,28 +134,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             ),
           ),
 
-          // 2. Decorative Blobs (Manual implementation for visibility)
-          if (!isDark) ...[
+          // 2. Decorative Blobs
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: size.width * 0.8,
+              height: size.width * 0.8,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          if (isDark)
             Positioned(
-              top: -100,
-              right: -50,
+              bottom: -150,
+              left: -100,
               child: Container(
-                width: size.width * 0.8,
-                height: size.width * 0.8,
+                width: size.width * 0.9,
+                height: size.width * 0.9,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            Positioned(
+          Positioned(
               bottom: 50,
               left: -50,
               child: Container(
                 width: size.width * 0.6,
                 height: size.width * 0.6,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFC7D2FE).withValues(alpha: 0.5),
+                  color: AppTheme.primaryLight.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -167,8 +178,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 child: const SizedBox.shrink(),
               ),
             ),
-          ],
-
           // 3. Main Content
           SafeArea(
             child: SingleChildScrollView(
@@ -233,32 +242,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   Widget _buildLoginCard(bool isDark) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
       child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-            borderRadius: BorderRadius.circular(32),
+            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? Colors.white.withValues(alpha: 0.08)
                   : Colors.white,
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
               ),
-              if (!isDark)
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.03),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
             ],
           ),
           child: Form(
@@ -576,7 +579,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       height: 54,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+          colors: [AppTheme.primaryColor, Color(0xFF4285F4)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

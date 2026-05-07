@@ -17,6 +17,7 @@ import 'data/repositories/folder_repository.dart';
 import 'data/repositories/clipboard_repository.dart';
 import 'data/repositories/settings_repository.dart';
 import 'data/services/auth_service.dart';
+import 'data/services/backup_service.dart';
 import 'presentation/providers/providers.dart';
 import 'presentation/providers/auth_providers.dart';
 import 'l10n/app_localizations.dart';
@@ -35,6 +36,45 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   }
   debugPrint('[FCM] Background message received: ${message.notification?.title}');
+}
+
+Future<void> _checkAutoBackup(SettingsRepository settingsRepo, BackupService backupService) async {
+  if (!settingsRepo.isAutoBackupEnabled() || kIsWeb) return;
+
+  final lastBackupStr = settingsRepo.getLastAutoBackupTime();
+  final frequency = settingsRepo.getAutoBackupFrequency();
+  
+  final now = DateTime.now();
+  bool shouldBackup = false;
+
+  if (lastBackupStr == null) {
+    shouldBackup = true;
+  } else {
+    final lastBackup = DateTime.tryParse(lastBackupStr);
+    if (lastBackup != null) {
+      final diff = now.difference(lastBackup);
+      if (frequency == 'daily' && diff.inDays >= 1) {
+        shouldBackup = true;
+      } else if (frequency == 'weekly' && diff.inDays >= 7) {
+        shouldBackup = true;
+      } else if (frequency == 'monthly' && diff.inDays >= 30) {
+        shouldBackup = true;
+      }
+    } else {
+      shouldBackup = true; // Invalid date format, just do it
+    }
+  }
+
+  if (shouldBackup) {
+    debugPrint('[AutoBackup] Running background auto-backup...');
+    final success = await backupService.performAutoBackup();
+    if (success) {
+      await settingsRepo.setLastAutoBackupTime(now.toIso8601String());
+      debugPrint('[AutoBackup] Auto-backup completed successfully.');
+    } else {
+      debugPrint('[AutoBackup] Auto-backup failed.');
+    }
+  }
 }
 
 Future<void> main() async {
@@ -219,6 +259,12 @@ Future<void> main() async {
 
   // Track app open — fire and forget, no blocking
   unawaited(AnalyticsService.trackAppOpen());
+
+  // Check and run auto-backup if needed
+  unawaited(_checkAutoBackup(
+    settingsRepo,
+    container.read(backupServiceProvider),
+  ));
 
   runApp(
     UncontrolledProviderScope(container: container, child: const WebVaultApp()),

@@ -1958,7 +1958,7 @@ class _ZadExpertFabState extends State<_ZadExpertFab>
 
               BoxShadow(
 
-                color: const Color(0xFF8B5CF6).withValues(alpha: glowOpacity),
+                color: AppTheme.primaryColor.withValues(alpha: glowOpacity),
 
                 blurRadius: 10 + (_pulseAnimation.value * 4),
 
@@ -2022,7 +2022,7 @@ class _ZadExpertFabState extends State<_ZadExpertFab>
 
             gradient: const LinearGradient(
 
-              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
+              colors: [AppTheme.primaryColor, Color(0xFF4285F4)],
 
               begin: Alignment.bottomLeft,
 

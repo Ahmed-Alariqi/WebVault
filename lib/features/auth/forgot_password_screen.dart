@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -146,89 +147,126 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [const Color(0xFF0D0D1A), const Color(0xFF1A1A2E)]
-                : [const Color(0xFFE8EAF6), const Color(0xFFC5CAE9)],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    onPressed: () {
-                      if (_step == _Step.email) {
-                        context.pop();
-                      } else if (_step == _Step.otp) {
-                        setState(() {
-                          _step = _Step.email;
-                          _error = null;
-                          _otpCtrl.clear();
-                        });
-                      } else {
-                        setState(() {
-                          _step = _Step.otp;
-                          _error = null;
-                          _passwordCtrl.clear();
-                          _confirmPasswordCtrl.clear();
-                        });
-                      }
-                    },
-                    icon: Icon(
-                      PhosphorIcons.arrowLeft(),
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                _buildIcon(),
-                const SizedBox(height: 24),
-                Text(
-                  _stepTitle(l10n),
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF1A1A2E),
-                  ),
-                ).animate().fadeIn(delay: 200.ms),
-                const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.all(28),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : Colors.white.withValues(alpha: 0.85),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: isDark ? Colors.white12 : Colors.white60,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(
-                          alpha: isDark ? 0.3 : 0.08,
-                        ),
-                        blurRadius: 32,
-                        offset: const Offset(0, 16),
-                      ),
-                    ],
-                  ),
-                  child: _buildStepContent(isDark, l10n),
-                ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
-              ],
+      body: Stack(
+        children: [
+          // 1. Background Gradient
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: isDark
+                    ? [const Color(0xFF020617), const Color(0xFF0F172A)]
+                    : [const Color(0xFFF0F4FF), AppTheme.primaryLight],
+              ),
             ),
           ),
-        ),
+          // 2. Decorative Blobs
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.06 : 0.1),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          if (isDark)
+            Positioned(
+              bottom: -100,
+              left: -80,
+              child: Container(
+                width: 350,
+                height: 350,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.04),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () {
+                        if (_step == _Step.email) {
+                          context.pop();
+                        } else if (_step == _Step.otp) {
+                          setState(() {
+                            _step = _Step.email;
+                            _error = null;
+                            _otpCtrl.clear();
+                          });
+                        } else {
+                          setState(() {
+                            _step = _Step.otp;
+                            _error = null;
+                            _passwordCtrl.clear();
+                            _confirmPasswordCtrl.clear();
+                          });
+                        }
+                      },
+                      icon: Icon(
+                        PhosphorIcons.arrowLeft(),
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  _buildIcon(),
+                  const SizedBox(height: 24),
+                  Text(
+                    _stepTitle(l10n),
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                    ),
+                  ).animate().fadeIn(delay: 200.ms),
+                  const SizedBox(height: 32),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+                    child: BackdropFilter(
+                      filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                      child: Container(
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.white.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
+                          border: Border.all(
+                            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.35 : 0.06,
+                              ),
+                              blurRadius: 40,
+                              offset: const Offset(0, 20),
+                            ),
+                          ],
+                        ),
+                        child: _buildStepContent(isDark, l10n),
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -494,7 +532,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       height: 54,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+          colors: [AppTheme.primaryColor, Color(0xFF4285F4)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

@@ -126,6 +126,16 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
     await _repo.setLocale(locale);
     _loadSettings();
   }
+
+  Future<void> setAutoBackupEnabled(bool enabled) async {
+    await _repo.setAutoBackupEnabled(enabled);
+    _loadSettings();
+  }
+
+  Future<void> setAutoBackupFrequency(String frequency) async {
+    await _repo.setAutoBackupFrequency(frequency);
+    _loadSettings();
+  }
 }
 
 // ============================================================

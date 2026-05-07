@@ -130,7 +130,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
     return Scaffold(
       backgroundColor: isDark
-          ? const Color(0xFF0A0A14)
+          ? AppTheme.darkBg
           : const Color(0xFFF8F9FA),
       body: Stack(
         children: [
@@ -209,8 +209,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                         shape: BoxShape.circle,
                         color:
                             (isDark
-                                    ? const Color(0xFF7C4DFF)
-                                    : const Color(0xFFE8EAF6))
+                                    ? AppTheme.primaryColor
+                                    : const Color(0xFFE6EFFF))
                                 .withValues(alpha: isDark ? 0.1 : 0.5),
                       ),
                     )
@@ -467,8 +467,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
               ? const LinearGradient(
                   colors: [
                     AppTheme.primaryColor,
-                    Color(0xFF651FFF),
-                  ], // Modern Indigo-Purple
+                    Color(0xFF4285F4),
+                  ], // Blue Gradient
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )

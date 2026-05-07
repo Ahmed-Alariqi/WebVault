@@ -96,117 +96,144 @@ class _ManageCollectionsScreenState
     int index,
   ) {
     final color = Color(col.colorValue);
+    final hasImage = col.coverImageUrl != null && col.coverImageUrl!.isNotEmpty;
+
     return Card(
       key: ValueKey(col.id),
       margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
       color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: () => _showItemsManager(context, col),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Color block with first letter
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  col.title.isNotEmpty ? col.title[0].toUpperCase() : '',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: color,
+              // Collection Icon / Image
+              Hero(
+                tag: 'col_img_${col.id}',
+                child: Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: color.withValues(alpha: 0.1),
+                    image: hasImage
+                        ? DecorationImage(
+                            image: CachedNetworkImageProvider(col.coverImageUrl!),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
                   ),
+                  alignment: Alignment.center,
+                  child: !hasImage
+                      ? Text(
+                          col.title.isNotEmpty ? col.title[0].toUpperCase() : '',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                        )
+                      : null,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      col.title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppTheme.darkTextPrimary
-                            : AppTheme.lightTextPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
+                        Expanded(
+                          child: Text(
+                            col.title,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? AppTheme.darkTextPrimary
+                                  : AppTheme.lightTextPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        if (col.isReferralExclusive)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              PhosphorIcons.crown(PhosphorIconsStyle.fill),
+                              size: 16,
+                              color: Colors.amber,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        // Item Count Badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.12),
+                            color: color.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             loc.collectionItems(col.itemCount),
                             style: TextStyle(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
                               color: color,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        // Status Badge
                         if (!col.isActive)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.redAccent.withValues(alpha: 0.12),
+                              color: Colors.redAccent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
-                              'Inactive',
+                              'Hidden',
                               style: TextStyle(
                                 fontSize: 10,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.redAccent,
                               ),
                             ),
                           ),
+                        // Premium Label (Referral)
                         if (col.isReferralExclusive)
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.12),
+                              color: Colors.amber.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.lock, size: 10, color: Colors.amber),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Premium',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.amber,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                            child: const Text(
+                              'Premium',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.amber,
+                              ),
                             ),
                           ),
                       ],
@@ -214,52 +241,67 @@ class _ManageCollectionsScreenState
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               // Actions
-              if (col.isReferralExclusive)
-                IconButton(
-                  tooltip: 'إدارة الأعضاء',
-                  icon: Icon(
-                    PhosphorIcons.users(),
-                    size: 20,
-                    color: Colors.amber,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ManageCollectionMembersScreen(collection: col),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (col.isReferralExclusive)
+                    _buildActionButton(
+                      icon: PhosphorIcons.users(),
+                      color: Colors.amber,
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ManageCollectionMembersScreen(collection: col),
+                        ),
                       ),
-                    );
-                  },
-                ),
-              IconButton(
-                icon: Icon(
-                  PhosphorIcons.pencilSimple(),
-                  size: 20,
-                  color: isDark ? Colors.white54 : Colors.black45,
-                ),
-                onPressed: () => _showCollectionDialog(context, col),
-              ),
-              IconButton(
-                icon: Icon(
-                  PhosphorIcons.trash(),
-                  size: 20,
-                  color: Colors.redAccent,
-                ),
-                onPressed: () => _confirmDelete(context, col, loc),
-              ),
-              ReorderableDragStartListener(
-                index: index,
-                child: Icon(
-                  PhosphorIcons.dotsSixVertical(),
-                  size: 20,
-                  color: isDark ? Colors.white30 : Colors.black26,
-                ),
+                      tooltip: 'Members',
+                    ),
+                  _buildActionButton(
+                    icon: PhosphorIcons.pencilSimple(),
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    onPressed: () => _showCollectionDialog(context, col),
+                  ),
+                  _buildActionButton(
+                    icon: PhosphorIcons.trash(),
+                    color: Colors.redAccent.withValues(alpha: 0.7),
+                    onPressed: () => _confirmDelete(context, col, loc),
+                  ),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(
+                        PhosphorIcons.dotsSixVertical(),
+                        size: 20,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+    String? tooltip,
+  }) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: IconButton(
+        padding: EdgeInsets.zero,
+        icon: Icon(icon, size: 18, color: color),
+        onPressed: onPressed,
+        tooltip: tooltip,
       ),
     );
   }

@@ -3239,6 +3239,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get changePassword => 'Change Password';
 
   @override
+  String get changePasswordConfirm =>
+      'Are you sure you want to send a password reset link to your email?';
+
+  @override
   String get passwordResetSent => 'Password reset email sent';
 
   @override
@@ -3826,11 +3830,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifSettingsSubtitle => 'Manage notification preferences';
 
   @override
-  String get notifSettingsAllContent => 'New explorer items';
+  String get notifSettingsAllContent => 'Discover Content Notifications';
 
   @override
   String get notifSettingsAllContentSub =>
-      'Get notified whenever a new item is added to the explorer.';
+      'Receive notifications when new articles, apps, or tutorials are added to the Discover section.';
+
+  @override
+  String get notifSettingsCommunity => 'Community Posts Notifications';
+
+  @override
+  String get notifSettingsCommunitySub =>
+      'Receive notifications when new posts are added to the community.';
 
   @override
   String get notifSettingsSaveError => 'Could not save preference';
@@ -4109,4 +4120,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiImprove => 'Improve';
+
+  @override
+  String get backupAndRestore => 'Backup & Restore';
+
+  @override
+  String get autoBackup => 'Auto Backup';
+
+  @override
+  String get autoBackupDesc => 'Automatically save a local copy of your data';
+
+  @override
+  String get backupFrequency => 'Backup Frequency';
+
+  @override
+  String get daily => 'Daily';
+
+  @override
+  String get weekly => 'Weekly';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get availableBackups => 'Available Auto-Backups';
+
+  @override
+  String get noAutoBackupsYet => 'No automatic backups yet.';
+
+  @override
+  String get restoreThisBackup => 'Restore this backup?';
+
+  @override
+  String restoreConfirmMessage(String date) {
+    return 'Are you sure you want to restore from $date? Your current data will be overwritten.';
+  }
+
+  @override
+  String get manualBackup => 'Manual Backup';
 }

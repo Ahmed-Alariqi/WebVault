@@ -90,6 +90,8 @@ Deno.serve(async (req: Request) => {
 
         if (mode === 'auto_content_only') {
             query = query.eq('notif_all_new_content', true);
+        } else if (mode === 'community_posts') {
+            query = query.eq('notif_community_posts', true);
         } else if (mode === 'chat_to_admins') {
             query = query.eq('notif_chat', true).eq('role', 'admin');
             if (sender_id) query = query.neq('id', sender_id); // don't push the sender themselves

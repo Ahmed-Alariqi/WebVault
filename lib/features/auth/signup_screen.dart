@@ -293,6 +293,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: Stack(
@@ -307,9 +308,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 end: Alignment.bottomLeft,
                 colors: isDark
                     ? [
-                        const Color(0xFF0F172A),
-                        const Color(0xFF1E1B4B),
-                        const Color(0xFF020617),
+                        const Color(0xFF0F172A), // Slate 900
+                        const Color(0xFF020617), // Slate 950
                       ]
                     : [
                         const Color(0xFFF8FAFC),
@@ -321,38 +321,49 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ),
 
           // 2. Decorative Blobs
-          if (!isDark) ...[
+          Positioned(
+            top: -50,
+            right: -30,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          if (isDark)
             Positioned(
-              top: -50,
-              right: -30,
+              bottom: -150,
+              left: -100,
               child: Container(
-                width: 300,
-                height: 300,
+                width: size.width * 0.9,
+                height: size.width * 0.9,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            Positioned(
-              bottom: 100,
-              left: -50,
-              child: Container(
-                width: 250,
-                height: 250,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFC7D2FE).withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
+          Positioned(
+            bottom: 100,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryLight.withValues(alpha: isDark ? 0.05 : 0.5),
+                shape: BoxShape.circle,
               ),
             ),
-            Positioned.fill(
+          ),
+          Positioned.fill(
               child: BackdropFilter(
                 filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
                 child: const SizedBox.shrink(),
               ),
             ),
-          ],
 
           // 3. Main Content
           SafeArea(
@@ -489,34 +500,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   Widget _buildFormCard(bool isDark) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
       child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        filter: ui.ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(32),
+            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
             border: Border.all(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
+                  ? Colors.white.withValues(alpha: 0.08)
                   : Colors.white,
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
               ),
-              if (!isDark)
-                 BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.03),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
             ],
           ),
           child: Form(
@@ -836,7 +839,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       height: 54,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+          colors: [AppTheme.primaryColor, Color(0xFF4285F4)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

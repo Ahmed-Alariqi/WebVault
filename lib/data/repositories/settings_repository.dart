@@ -96,6 +96,8 @@ class SettingsRepository {
       'hasSeenPagesTutorial': hasSeenPagesTutorial(),
       'hasSeenBrowserTutorial': hasSeenBrowserTutorial(),
       'hasSeenDiscoverTutorial': hasSeenDiscoverTutorial(),
+      'autoBackupEnabled': isAutoBackupEnabled(),
+      'autoBackupFrequency': getAutoBackupFrequency(),
       'locale': getLocale(),
     };
   }
@@ -103,4 +105,20 @@ class SettingsRepository {
   // Locale
   String getLocale() => _box.get(kLocale, defaultValue: 'ar') as String;
   Future<void> setLocale(String locale) => _box.put(kLocale, locale);
+
+  // Auto Backup
+  bool isAutoBackupEnabled() =>
+      _box.get(kAutoBackupEnabled, defaultValue: false) as bool;
+  Future<void> setAutoBackupEnabled(bool enabled) =>
+      _box.put(kAutoBackupEnabled, enabled);
+
+  String getAutoBackupFrequency() =>
+      _box.get(kAutoBackupFrequency, defaultValue: 'weekly') as String;
+  Future<void> setAutoBackupFrequency(String frequency) =>
+      _box.put(kAutoBackupFrequency, frequency);
+
+  String? getLastAutoBackupTime() =>
+      _box.get(kLastAutoBackupTime) as String?;
+  Future<void> setLastAutoBackupTime(String timeIso) =>
+      _box.put(kLastAutoBackupTime, timeIso);
 }

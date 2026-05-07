@@ -2870,7 +2870,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     // palette. The result is a "premium" pill that reads as a raised card
     // rather than a dark hole sitting inside a darker frame.
     final shellBg = isDark
-        ? const Color(0xFF2C2C44)
+        ? AppTheme.darkCard
         : const Color(0xFFF4F5F7);
     final shellBorder = isActive
         ? personaColor.withValues(alpha: isDark ? 0.55 : 0.45)

@@ -598,44 +598,52 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           return GestureDetector(
             onTap: () {
               final text = l10n.localeName.startsWith('ar')
-                  ? '''لو أنت تقني… فأكيد عندك هذا الصداع اليومي 🤯
-روابط مهمة، أدوات، مفاتيح API، أكواد، حسابات… وكلها ضايعة بين المتصفح، الملاحظات، والتطبيقات!
+                  ? '''لو كنت طالب، تقنني، مصمم، مبرمج، مختص أمن السيبراني أو مهندس ذكاء الاصطناعي. فأكيد تعرف 'دوامة' تشتت المصادر والروابط والأدوات! 🤯
 
-الحل؟ 🔥
-تطبيق زاد التقني — المكان اللي يجمع كل شي مهم لك في مكان واحد بذكاء 👇
+روابط مهمة، الأدوات الرقمية، مفاتيح الـ API، الأكواد، والحسابات المهمة.. كلها مبعثرة وضائعة بين مئات التبويبات في المتصفح، الملاحظات المنسية، وتطبيقات التواصل!
+
+تطبيق 'زاد' صُمم ليكون 'عقلك الثاني'.. المكان الذكي الذي ينظم اهتماماتك الرقمية في مكان واحد 👌
 
 🔖 احفظ أي موقع أو أداة مفيدة إلى التطبيق بنقرة.
 🔐 خزّن مفاتيحك المهمة (API، أكواد، حسابات…) بشكل منظم وآمن.
 🤖 مساعد ذكي (AI) لشرح وتلخيص أي أداة أو موقع وفهمه بعمق بضغطة زر.
+🧠 خبير زاد: مستشارك التقني الخاص! شخصيات ذكاء اصطناعي خبيرة في البرمجة، التقنية، والأعمال جاهزة لتفكيك أعقد مشاكلك وتقديم الحلول فوراً.
+🌐 متصفح زاد الذكي: وداعاً لضياع الوقت! تصفح أي موقع واجعل الـ AI يقرأه عنك، يلخصه، أو يستخرج لك أهم المعلومات منه بلمحة بصر.
 ⚡ أرسل أي نص أو قيمة مباشرة للحافظة من أي مكان دون فتح التطبيق عبر مشاركتها معه.
+📋 النسخ المتقدم: فعل "الوضع التلقائي" واترك التطبيق يحفظ كل ما تنسخه من نصوص وأكواد فوراً دون أن تفتح التطبيق حتى!
 📲 افتح الحافظة فورًا من زر مختصر في مركز التحكم وانسخ أي قيمة محفوظة بسرعة.
 🧭 استكشف أفضل الأدوات، المصادر، الكورسات، والعروض المختارة بعناية والمحدثة باستمرار.
 💬 مجتمع تقني حي لتبادل المعرفة والخبرات.
 
-كل شيء تحتاجه كـ تقني… صار بمكان واحد 👌
+كل شيء تحتاجه كـ شخص رقمي… صار بمكان واحد 👌
 
 ⬇️ حمّل التطبيق الآن:
 https://webvault.app/download
 
-جرب زاد التقني الآن… ورتب الفوضى التي تعيشها يومياً في مكان واحد 🚀'''
-                  : '''Are you a tech enthusiast? End the daily chaos of lost links and tools! 🤯
+جرب زاد الآن… ورتب الفوضى التي تعيشها يومياً في مكان واحد 🚀'''
+                  : '''Student, designer, developer, cybersec specialist, or AI engineer? Then you know the "chaos" of scattered resources and tools! 🤯
 
-The solution? 🔥
-Zad Tech App — Everything you need in one smart place 👇
+Important links, tools, API keys, code snippets, and accounts.. all scattered between browser tabs, forgotten notes, and chat apps!
+
+Zad App is designed to be your "Second Brain".. the smart home that organizes your digital interests in one place 👌
 
 🔖 Save any website or tool with one click.
 🔐 Store API keys and accounts securely and organized.
 🤖 AI Assistant to explain and summarize any tool instantly.
+🧠 Zad Expert: Your personal tech consultant! AI experts in coding and business ready to solve your complex problems.
+🌐 Smart Zad Browser: Browse any site and let the AI summarize it or extract key info for you in a glance.
 ⚡ Send text to your clipboard from anywhere without opening the app.
+📋 Advanced Copy: Auto-save everything you copy (text, code) instantly without even opening the app!
+📲 Open the clipboard instantly from a shortcut in the control center.
 🧭 Explore curated tools, courses, and resources.
 💬 Join a vibrant community to exchange knowledge.
 
-Everything you need as a techie, all in one place 👌
+Everything you need as a digital professional, all in one place 👌
 
 ⬇️ Download now:
 https://webvault.app/download
 
-Try Zad Tech now and organize your daily workflow! 🚀''';
+Try Zad now and organize your daily workflow! 🚀''';
               Share.share(text);
             },
             child: Container(
@@ -1224,6 +1232,46 @@ Try Zad Tech now and organize your daily workflow! 🚀''';
     if (user?.email == null) return;
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          l10n.changePassword,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        content: Text(
+          l10n.changePasswordConfirm,
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              l10n.cancel,
+              style: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l10n.confirm,
+              style: const TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
 
     // Step 1: Send OTP
     try {

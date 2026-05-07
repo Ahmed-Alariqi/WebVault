@@ -584,157 +584,198 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   ) {
     final loc = AppLocalizations.of(context)!;
     return Padding(
-      padding: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.only(top: 32, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  PhosphorIcons.folderStar(PhosphorIconsStyle.fill),
-                  color: isDark ? Colors.white : Colors.black87,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  loc.collectionsTitle,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        PhosphorIcons.folderStar(PhosphorIconsStyle.fill),
+                        color: AppTheme.primaryColor,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      loc.collectionsTitle,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
           SizedBox(
-            height: 140,
+            height: 160,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
               itemCount: collections.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (ctx, i) {
                 final col = collections[i];
                 final color = Color(col.colorValue);
+                final hasImage = col.coverImageUrl != null && col.coverImageUrl!.isNotEmpty;
+
                 return GestureDetector(
-                  onTap: () => context.push('/collection-items', extra: col),
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    context.push('/collection-items', extra: col);
+                  },
                   child: Container(
-                    width: 130,
+                    width: 150,
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: color.withValues(alpha: 0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                          blurRadius: 15,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
                     child: Stack(
                       children: [
-                        // Background Layer (Image or Color Gradient)
-                        if (col.coverImageUrl != null &&
-                            col.coverImageUrl!.isNotEmpty)
-                          Positioned.fill(
-                            child: CachedNetworkImage(
-                              imageUrl: col.coverImageUrl!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        else
-                          Positioned.fill(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [color.withValues(alpha: 0.8), color],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                        // Background Layer
+                        Positioned.fill(
+                          child: hasImage
+                              ? CachedNetworkImage(
+                                  imageUrl: col.coverImageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, _) => Container(color: color.withValues(alpha: 0.2)),
+                                )
+                              : Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        color,
+                                        color.withValues(alpha: 0.7),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
+                        ),
 
-                        // Dark/Gradient Overlay to make text readable
+                        // Modern Gradient Overlay
                         Positioned.fill(
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.black.withValues(alpha: 0.1),
-                                  Colors.black.withValues(alpha: 0.8),
+                                  Colors.transparent,
+                                  Colors.black.withValues(alpha: 0.2),
+                                  Colors.black.withValues(alpha: 0.85),
                                 ],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
+                                stops: const [0.0, 0.4, 1.0],
                               ),
                             ),
                           ),
                         ),
 
-                        // Lock Badge for Exclusive Collections
+                        // Lock / Premium Badge
                         if (col.isReferralExclusive)
                           Positioned(
-                            top: 8,
-                            right: 8,
+                            top: 10,
+                            right: 10,
                             child: Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.6),
-                                shape: BoxShape.circle,
+                                color: Colors.amber.withValues(alpha: 0.9),
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                  )
+                                ],
                               ),
-                              child: Icon(
-                                PhosphorIcons.lockKey(),
-                                size: 14,
-                                color: Colors.amber,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    PhosphorIcons.crown(PhosphorIconsStyle.fill),
+                                    size: 12,
+                                    color: Colors.black87,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    'PRO',
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
 
-                        // Content (Icon and Title)
+                        // Content
                         Padding(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              const Spacer(),
                               Text(
                                 col.title,
                                 style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w900,
                                   color: Colors.white,
-                                  height: 1.2,
+                                  height: 1.1,
+                                  letterSpacing: -0.2,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (col.itemCount > 0)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Text(
-                                    '${col.itemCount} items',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.7,
-                                      ),
-                                    ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  '${col.itemCount} items',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
                                   ),
                                 ),
+                              ),
                             ],
                           ),
                         ),
                       ],
                     ),
-                  ),
+                  ).animate().scale(delay: (i * 50).ms, duration: 400.ms, curve: Curves.easeOutBack),
                 );
               },
             ),

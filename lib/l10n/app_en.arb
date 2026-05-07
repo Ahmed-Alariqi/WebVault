@@ -1432,6 +1432,7 @@
   "checkingUsername": "Checking...",
   "fullNameRequired": "Full name is required",
   "changePassword": "Change Password",
+  "changePasswordConfirm": "Are you sure you want to send a password reset link to your email?",
   "passwordResetSent": "Password reset email sent",
   "signOutConfirm": "Are you sure you want to sign out?",
   "profileUpdated": "Profile updated successfully",
@@ -1627,8 +1628,10 @@
   "notifStatsCleanedHint": "Detected as uninstalled during this send and excluded from future ones.",
   "notifSettingsTitle": "Notifications",
   "notifSettingsSubtitle": "Manage notification preferences",
-  "notifSettingsAllContent": "New explorer items",
-  "notifSettingsAllContentSub": "Get notified whenever a new item is added to the explorer.",
+  "notifSettingsAllContent": "Discover Content Notifications",
+  "notifSettingsAllContentSub": "Receive notifications when new articles, apps, or tutorials are added to the Discover section.",
+  "notifSettingsCommunity": "Community Posts Notifications",
+  "notifSettingsCommunitySub": "Receive notifications when new posts are added to the community.",
   "notifSettingsSaveError": "Could not save preference",
   "browserAiAssistant": "Page Smart Assistant",
   "browserAiScanning": "Scanning page...",
@@ -1730,5 +1733,25 @@
   "aiRegenerate": "Regenerate",
   "aiApprove": "Approve & Fill",
   "aiRegenerating": "Regenerating...",
-  "aiImprove": "Improve"
+  "aiImprove": "Improve",
+
+  "backupAndRestore": "Backup & Restore",
+  "autoBackup": "Auto Backup",
+  "autoBackupDesc": "Automatically save a local copy of your data",
+  "backupFrequency": "Backup Frequency",
+  "daily": "Daily",
+  "weekly": "Weekly",
+  "monthly": "Monthly",
+  "availableBackups": "Available Auto-Backups",
+  "noAutoBackupsYet": "No automatic backups yet.",
+  "restoreThisBackup": "Restore this backup?",
+  "restoreConfirmMessage": "Are you sure you want to restore from {date}? Your current data will be overwritten.",
+  "@restoreConfirmMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "manualBackup": "Manual Backup"
 }

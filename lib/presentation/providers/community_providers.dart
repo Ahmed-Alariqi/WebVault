@@ -114,6 +114,25 @@ class PaginatedPostsNotifier extends StateNotifier<PaginatedPostsState> {
 
     final newPost = CommunityPost.fromJson(response);
     state = state.copyWith(items: [newPost, ...state.items]);
+
+    // Fire-and-forget FCM push for community posts
+    Future.microtask(() async {
+      try {
+        await _client.functions.invoke(
+          'send-notification',
+          body: {
+            'title': 'منشور جديد في المجتمع 💬',
+            'body': '{user_name} أضاف منشوراً جديداً، اضغط هنا للمشاهدة والمشاركة.',
+            'mode': 'community_posts',
+            'type': 'community',
+            'target_url': '/community', // Or specific post route if you have one
+            'created_by': user.id,
+          },
+        );
+      } catch (_) {
+        // Ignore errors for fire-and-forget
+      }
+    });
   }
 
   Future<void> deletePost(String postId) async {

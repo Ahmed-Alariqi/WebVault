@@ -6152,6 +6152,12 @@ abstract class AppLocalizations {
   /// **'Change Password'**
   String get changePassword;
 
+  /// No description provided for @changePasswordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to send a password reset link to your email?'**
+  String get changePasswordConfirm;
+
   /// No description provided for @passwordResetSent.
   ///
   /// In en, this message translates to:
@@ -7253,14 +7259,26 @@ abstract class AppLocalizations {
   /// No description provided for @notifSettingsAllContent.
   ///
   /// In en, this message translates to:
-  /// **'New explorer items'**
+  /// **'Discover Content Notifications'**
   String get notifSettingsAllContent;
 
   /// No description provided for @notifSettingsAllContentSub.
   ///
   /// In en, this message translates to:
-  /// **'Get notified whenever a new item is added to the explorer.'**
+  /// **'Receive notifications when new articles, apps, or tutorials are added to the Discover section.'**
   String get notifSettingsAllContentSub;
+
+  /// No description provided for @notifSettingsCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Posts Notifications'**
+  String get notifSettingsCommunity;
+
+  /// No description provided for @notifSettingsCommunitySub.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive notifications when new posts are added to the community.'**
+  String get notifSettingsCommunitySub;
 
   /// No description provided for @notifSettingsSaveError.
   ///
@@ -7807,6 +7825,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Improve'**
   String get aiImprove;
+
+  /// No description provided for @backupAndRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & Restore'**
+  String get backupAndRestore;
+
+  /// No description provided for @autoBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Backup'**
+  String get autoBackup;
+
+  /// No description provided for @autoBackupDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically save a local copy of your data'**
+  String get autoBackupDesc;
+
+  /// No description provided for @backupFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Frequency'**
+  String get backupFrequency;
+
+  /// No description provided for @daily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get daily;
+
+  /// No description provided for @weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weekly;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// No description provided for @availableBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Available Auto-Backups'**
+  String get availableBackups;
+
+  /// No description provided for @noAutoBackupsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No automatic backups yet.'**
+  String get noAutoBackupsYet;
+
+  /// No description provided for @restoreThisBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get restoreThisBackup;
+
+  /// No description provided for @restoreConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to restore from {date}? Your current data will be overwritten.'**
+  String restoreConfirmMessage(String date);
+
+  /// No description provided for @manualBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Backup'**
+  String get manualBackup;
 }
 
 class _AppLocalizationsDelegate

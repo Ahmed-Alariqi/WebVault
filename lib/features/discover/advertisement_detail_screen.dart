@@ -388,7 +388,7 @@ class _AdvertisementDetailScreenState
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+          colors: [AppTheme.primaryColor, Color(0xFF4285F4)],
         ),
       ),
       child: Center(

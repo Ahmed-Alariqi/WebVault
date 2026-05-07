@@ -34,7 +34,7 @@ class DummyData {
       PageModel(
         id: 'page-1',
         url: 'https://chat.openai.com',
-        title: 'شات جي بي تي',
+        title: 'ChatGPT',
         notes: 'مساعد الذكاء الاصطناعي',
         tags: ['ai', 'chatgpt'],
         folderId: 'folder-1',
@@ -66,6 +66,18 @@ class DummyData {
         visitCount: 8,
         lastOpened: DateTime.now().subtract(const Duration(hours: 5)),
         createdAt: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      PageModel(
+        id: 'page-4',
+        url: 'https://192.168.0.1',
+        title: 'اعدادت الراوتر',
+        notes: 'صفحة إعدادات الراوتر',
+        tags: ['network', 'router'],
+        folderId: 'folder-1',
+        isFavorite: true,
+        visitCount: 5,
+        lastOpened: DateTime.now().subtract(const Duration(hours: 10)),
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
       ),
     ];
     for (final p in pages) {

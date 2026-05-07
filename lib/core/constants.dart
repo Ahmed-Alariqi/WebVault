@@ -27,6 +27,9 @@ const String kAdvancedCopyEnabled = 'advanced_copy_enabled';
 const String kOnboardingCompleted = 'onboarding_completed';
 const String kHasSeenWelcomeScreen = 'has_seen_welcome_screen';
 const String kHasSeenTutorial = 'has_seen_tutorial';
+const String kAutoBackupEnabled = 'auto_backup_enabled';
+const String kAutoBackupFrequency = 'auto_backup_frequency';
+const String kLastAutoBackupTime = 'last_auto_backup_time';
 const String kSplashVersion = 'splash_version';
 // Bump this number whenever you redesign the splash and want all users to see it again
 const int kCurrentSplashVersion = 2;

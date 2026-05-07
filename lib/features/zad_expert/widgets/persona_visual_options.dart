@@ -79,9 +79,9 @@ const List<PersonaIconOption> kPersonaIconOptions = [
 
 /// Curated palette — vibrant, accessible, distinct hues.
 const List<PersonaColorOption> kPersonaColorOptions = [
-  PersonaColorOption('#6366F1', 'بنفسجي'),
-  PersonaColorOption('#8B5CF6', 'أرجواني'),
-  PersonaColorOption('#A855F7', 'ليلكي'),
+  PersonaColorOption('#1565FF', 'أزرق ملكي'),
+  PersonaColorOption('#4285F4', 'أزرق تقني'),
+  PersonaColorOption('#3B82F6', 'أزرق'),
   PersonaColorOption('#EC4899', 'وردي'),
   PersonaColorOption('#F43F5E', 'وردي حار'),
   PersonaColorOption('#EF4444', 'أحمر'),

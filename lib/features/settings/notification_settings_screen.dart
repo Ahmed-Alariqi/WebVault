@@ -40,6 +40,30 @@ class NotificationSettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _setCommunityPosts(
+    WidgetRef ref,
+    BuildContext context,
+    bool value,
+  ) async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+
+    try {
+      await SupabaseConfig.client
+          .from('profiles')
+          .update({'notif_community_posts': value})
+          .eq('id', user.id);
+      ref.invalidate(notificationPrefsProvider);
+    } catch (_) {
+      if (context.mounted) {
+        AdminUIUtils.showError(
+          context,
+          AppLocalizations.of(context)!.notifSettingsSaveError,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -54,6 +78,8 @@ class NotificationSettingsScreen extends ConsumerWidget {
         data: (prefs) {
           final allContent =
               prefs['notif_all_new_content'] as bool? ?? false;
+          final communityPosts =
+              prefs['notif_community_posts'] as bool? ?? false;
 
           return ListView(
             padding: const EdgeInsets.all(20),
@@ -66,6 +92,16 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 subtitle: loc.notifSettingsAllContentSub,
                 value: allContent,
                 onChanged: (v) => _setAllContent(ref, context, v),
+              ),
+              const SizedBox(height: 16),
+              _buildToggleCard(
+                isDark: isDark,
+                icon: PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+                iconColor: AppTheme.primaryColor,
+                title: loc.notifSettingsCommunity,
+                subtitle: loc.notifSettingsCommunitySub,
+                value: communityPosts,
+                onChanged: (v) => _setCommunityPosts(ref, context, v),
               ),
             ],
           );

@@ -11,17 +11,22 @@ final notificationPrefsProvider =
     FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final user = ref.watch(currentUserProvider);
   if (user == null) {
-    return {'notif_all_new_content': false};
+    return {
+      'notif_all_new_content': false,
+      'notif_community_posts': false,
+    };
   }
 
   final response = await SupabaseConfig.client
       .from('profiles')
-      .select('notif_all_new_content')
+      .select('notif_all_new_content, notif_community_posts')
       .eq('id', user.id)
       .maybeSingle();
 
   return {
     'notif_all_new_content':
         response?['notif_all_new_content'] as bool? ?? false,
+    'notif_community_posts':
+        response?['notif_community_posts'] as bool? ?? false,
   };
 });

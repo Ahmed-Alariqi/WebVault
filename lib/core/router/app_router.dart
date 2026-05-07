@@ -17,6 +17,7 @@ import '../../features/settings/pin_lock_screen.dart';
 import '../../features/settings/security_settings_screen.dart';
 import '../../features/settings/clipboard_settings_screen.dart';
 import '../../features/settings/notification_settings_screen.dart';
+import '../../features/settings/backup_restore_screen.dart';
 import '../../features/pages/add_edit_page_screen.dart';
 import '../../features/folders/folders_screen.dart';
 import '../../features/folders/folder_detail_screen.dart';
@@ -335,6 +336,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/about',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AboutScreen(),
+      ),
+      GoRoute(
+        path: '/backup-restore',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BackupRestoreScreen(),
       ),
       GoRoute(
         path: '/add-page',

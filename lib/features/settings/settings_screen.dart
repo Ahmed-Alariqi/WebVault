@@ -387,118 +387,39 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildCard(
             isDark: isDark,
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.accentColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      PhosphorIcons.upload(),
-                      color: AppTheme.accentColor,
-                    ),
-                  ),
-                  title: Text(
-                    AppLocalizations.of(context)!.exportBackup,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.darkTextPrimary
-                          : AppTheme.lightTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    AppLocalizations.of(context)!.saveAllDataAsJson,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppTheme.darkTextSecondary
-                          : AppTheme.lightTextSecondary,
-                    ),
-                  ),
-                  onTap: () async {
-                    final success = await ref
-                        .read(backupServiceProvider)
-                        .exportData();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            success
-                                ? AppLocalizations.of(context)!.backupSuccessful
-                                : AppLocalizations.of(context)!.backupFailed,
-                          ),
-                          backgroundColor: success ? Colors.green : Colors.red,
-                        ),
-                      );
-                    }
-                  },
+            child: ListTile(
+              leading: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                Divider(
-                  height: 1,
-                  color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
+                child: Icon(
+                  PhosphorIcons.cloudArrowUp(PhosphorIconsStyle.fill),
+                  color: AppTheme.accentColor,
                 ),
-                ListTile(
-                  leading: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppTheme.warningColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      PhosphorIcons.download(),
-                      color: AppTheme.warningColor,
-                    ),
-                  ),
-                  title: Text(
-                    AppLocalizations.of(context)!.importBackup,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppTheme.darkTextPrimary
-                          : AppTheme.lightTextPrimary,
-                    ),
-                  ),
-                  subtitle: Text(
-                    AppLocalizations.of(context)!.restoreFromJson,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? AppTheme.darkTextSecondary
-                          : AppTheme.lightTextSecondary,
-                    ),
-                  ),
-                  onTap: () async {
-                    final success = await ref
-                        .read(backupServiceProvider)
-                        .importData();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            success
-                                ? AppLocalizations.of(context)!.importSuccessful
-                                : AppLocalizations.of(context)!.importFailed,
-                          ),
-                          backgroundColor: success ? Colors.green : Colors.red,
-                        ),
-                      );
-
-                      // Refresh providers to reflect new data
-                      if (success) {
-                        ref.read(pagesProvider.notifier).refresh();
-                        ref.read(foldersProvider.notifier).refresh();
-                        ref.read(clipboardItemsProvider.notifier).refresh();
-                      }
-                    }
-                  },
+              ),
+              title: Text(
+                AppLocalizations.of(context)!.backupAndRestore,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppTheme.darkTextPrimary
+                      : AppTheme.lightTextPrimary,
                 ),
-              ],
+              ),
+              subtitle: Text(
+                AppLocalizations.of(context)!.autoBackupDesc,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark
+                      ? AppTheme.darkTextSecondary
+                      : AppTheme.lightTextSecondary,
+                ),
+              ),
+              trailing: Icon(PhosphorIcons.caretRight()),
+              onTap: () => context.push('/backup-restore'),
             ),
           ),
 
@@ -518,18 +439,23 @@ class SettingsScreen extends ConsumerWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                  ),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                  ),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
                   child: Image.asset(
                     isDark
-                        ? 'assets/onboarding/welcome_image_dark.png'
-                        : 'assets/onboarding/welcome_image_light.png',
-                    fit: BoxFit.cover,
+                        ? 'assets/onboarding/welcome_image_light.png'
+                        : 'assets/onboarding/welcome_image_dark.png',
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
