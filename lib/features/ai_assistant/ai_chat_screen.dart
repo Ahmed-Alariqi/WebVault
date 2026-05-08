@@ -23,12 +23,17 @@ import 'widgets/zad_mermaid_view.dart';
 import 'widgets/zad_plantuml_view.dart';
 import 'utils/plantuml_encoder.dart';
 import 'widgets/chat_prompt_bridge.dart';
-
+import '../../data/services/code_exec_service.dart';
+import '../../data/models/web_tools_models.dart';
+import '../zad_expert/zad_expert_screen.dart' show CodeExecResultWidget;
+import 'widgets/html_preview.dart';
 
 class CodeElementBuilder extends MarkdownElementBuilder {
   final bool isDark;
   final BuildContext context;
-  CodeElementBuilder(this.isDark, this.context);
+  final void Function(String prompt)? onActionRequested;
+  final String messageContent;
+  CodeElementBuilder(this.isDark, this.context, {this.onActionRequested, this.messageContent = ''});
 
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
@@ -46,10 +51,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
 
     // ── MERMAID RENDERING ──
     if (language == 'mermaid') {
-      return _MermaidChartWidget(
-        codeText: codeText,
-        isDark: isDark,
-      );
+      return _MermaidChartWidget(codeText: codeText, isDark: isDark);
     }
 
     // ── PLANTUML RENDERING ──
@@ -74,71 +76,994 @@ class CodeElementBuilder extends MarkdownElementBuilder {
 
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF282C34) : const Color(0xFFFAFAFA),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.08)
-                : Colors.black.withValues(alpha: 0.08),
+      child: _CodeBlockWithExec(
+        codeText: codeText,
+        language: language,
+        isDark: isDark,
+        onActionRequested: onActionRequested,
+        messageContent: messageContent,
+      ),
+    );
+  }
+}
+
+/// Wrapper that hosts a code block + an optional execution result below it.
+/// Needed because the "Run" button lives in the header Row (inline), but
+/// the result widget must render BELOW the entire code block (block-level).
+class _CodeBlockWithExec extends StatefulWidget {
+  final String codeText;
+  final String language;
+  final bool isDark;
+  final void Function(String prompt)? onActionRequested;
+  final String messageContent;
+
+  const _CodeBlockWithExec({
+    required this.codeText,
+    required this.language,
+    required this.isDark,
+    this.onActionRequested,
+    this.messageContent = '',
+  });
+
+  @override
+  State<_CodeBlockWithExec> createState() => _CodeBlockWithExecState();
+}
+
+class _CodeBlockWithExecState extends State<_CodeBlockWithExec> {
+  bool _isRunning = false;
+  bool _needsStdin = false;
+  bool _stdinDetectedPreRun = false;
+  bool _showWebPreview = false;
+  List<String> _inputPrompts = [];
+  final List<TextEditingController> _stdinControllers = [];
+  CodeExecResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _analyzeCode();
+  }
+
+  /// Analyze code to extract input prompts before running.
+  void _analyzeCode() {
+    _inputPrompts = _extractInputPrompts(widget.codeText, widget.language);
+    if (_inputPrompts.isNotEmpty) {
+      _stdinDetectedPreRun = true;
+      _stdinControllers.clear();
+      for (var _ in _inputPrompts) {
+        _stdinControllers.add(TextEditingController());
+      }
+    }
+  }
+
+  /// Extract input prompt texts from source code.
+  static List<String> _extractInputPrompts(String code, String lang) {
+    final prompts = <String>[];
+    final lower = lang.toLowerCase();
+
+    // Strip comments to avoid false positives (simple implementation)
+    String cleanCode = code;
+    if (lower == 'python' || lower == 'python3') {
+      cleanCode = code.replaceAll(RegExp(r'#.*'), '');
+    } else if (lower == 'java' || lower == 'c' || lower == 'cpp' || lower == 'c++' || lower == 'javascript' || lower == 'js' || lower == 'node') {
+      cleanCode = code.replaceAll(RegExp(r'//.*|/\*[\s\S]*?\*/'), '');
+    }
+
+    if (lower == 'python' || lower == 'python3') {
+      // Match input("prompt") or input('prompt')
+      final regex = RegExp(r'''input\s*\(\s*['"](.*?)['"]\s*\)''');
+      for (final m in regex.allMatches(cleanCode)) {
+        prompts.add(m.group(1) ?? 'قيمة إدخال');
+      }
+      // Match bare input() with no prompt
+      final bareRegex = RegExp(r'''input\s*\(\s*\)''');
+      for (var _ in bareRegex.allMatches(cleanCode)) {
+        prompts.add('قيمة إدخال');
+      }
+      // Re-check count to avoid duplicates from the two regexes above
+      final totalInputs = RegExp(r'''input\s*\(''').allMatches(cleanCode).length;
+      while (prompts.length > totalInputs) {
+        prompts.removeLast();
+      }
+    } else if (lower == 'java') {
+      // Scanner: nextInt(), nextLine(), nextDouble(), next()
+      final regex = RegExp(r'\.next\w*\(\s*\)');
+      for (var _ in regex.allMatches(cleanCode)) {
+        prompts.add('قيمة إدخال');
+      }
+    } else if (lower == 'c' || lower == 'cpp' || lower == 'c++') {
+      // scanf or cin >>
+      final scanfCount = RegExp(r'scanf\s*\(').allMatches(cleanCode).length;
+      final cinCount = RegExp(r'cin\s*>>').allMatches(cleanCode).length;
+      for (var i = 0; i < scanfCount + cinCount; i++) {
+        prompts.add('قيمة إدخال');
+      }
+    } else if (lower == 'javascript' || lower == 'js' || lower == 'node') {
+      final regex = RegExp(r'readline\s*\(|prompt\s*\(');
+      for (var _ in regex.allMatches(cleanCode)) {
+        prompts.add('قيمة إدخال');
+      }
+    }
+
+    // Try to find print/cout/System.out statements right before input calls
+    // to provide better hints for the user.
+    if (prompts.isNotEmpty) {
+      final lines = code.split('\n');
+      int promptIdx = 0;
+      for (int i = 0; i < lines.length && promptIdx < prompts.length; i++) {
+        final line = lines[i].trim();
+        final hasInput = RegExp(
+          r'input\s*\(|scanf\s*\(|cin\s*>>|\.next\w*\(|readline\s*\(',
+        ).hasMatch(line);
+        if (hasInput) {
+          // Priority 1: Inline prompt inside the call
+          final inlinePrompt = RegExp(
+            r'''input\s*\(\s*['"](.*?)['"]\s*\)''',
+          ).firstMatch(line);
+          
+          if (inlinePrompt != null && inlinePrompt.group(1)!.isNotEmpty) {
+            prompts[promptIdx] = inlinePrompt.group(1)!;
+          } else if (i > 0) {
+            // Priority 2: Look at the line immediately preceding the input call
+            final prevLine = lines[i - 1].trim();
+            final printMatch = RegExp(
+              r'''print\s*\(\s*['"](.*?)['"]\s*\)|cout\s*<<\s*['"](.*?)['"]\s*|System\.out\.print\w*\(\s*['"](.*?)['"]\s*\)''',
+            ).firstMatch(prevLine);
+            if (printMatch != null) {
+              final hint =
+                  printMatch.group(1) ??
+                  printMatch.group(2) ??
+                  printMatch.group(3) ??
+                  '';
+              if (hint.isNotEmpty) {
+                prompts[promptIdx] = hint;
+              }
+            }
+          }
+          promptIdx++;
+        }
+      }
+    }
+
+    return prompts;
+  }
+
+  String _buildStdinFromControllers() {
+    return _stdinControllers.map((c) => c.text.trim()).join('\n');
+  }
+
+  @override
+  void dispose() {
+    for (final c in _stdinControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _run({String? stdin, String? codeOverride}) async {
+    setState(() {
+      _isRunning = true;
+      _result = null;
+      _needsStdin = false;
+    });
+    try {
+      final result = await CodeExecService.execute(
+        language: widget.language,
+        code: codeOverride ?? widget.codeText,
+        stdin: stdin,
+      );
+      if (mounted) {
+        setState(() {
+          _result = result;
+          // If failed due to missing stdin AND we didn't already show fields
+          if (result.isStdinError && !_stdinDetectedPreRun) {
+            _needsStdin = true;
+            if (_stdinControllers.isEmpty) {
+              _stdinControllers.add(TextEditingController());
+              _inputPrompts = ['قيمة إدخال'];
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _result = CodeExecResult(
+            stdout: '',
+            stderr: e.toString(),
+            compileOutput: '',
+            statusId: -1,
+            statusDescription: 'Error',
+          );
+        });
+      }
+    } finally {
+      if (mounted) setState(() => _isRunning = false);
+    }
+  }
+
+  /// Check if this is a web-previewable language (HTML/CSS/JS with DOM).
+  bool get _isWebPreviewable {
+    final lang = widget.language.toLowerCase();
+    return lang == 'html' || lang == 'css' || lang == 'htm';
+  }
+
+  /// Check if JS code uses DOM APIs (should be previewed, not executed via Judge0).
+  bool get _isJsWithDom {
+    final lang = widget.language.toLowerCase();
+    if (lang != 'javascript' && lang != 'js') return false;
+    final code = widget.codeText.toLowerCase();
+    return code.contains('document.') ||
+        code.contains('innerhtml') ||
+        code.contains('getelementby') ||
+        code.contains('queryselector') ||
+        code.contains('appendchild') ||
+        code.contains('createelement') ||
+        code.contains('addeventlistener') ||
+        code.contains('classlist');
+  }
+
+  /// True if this language is SQL/SQLite.
+  bool get _isSql {
+    final lang = widget.language.toLowerCase();
+    return lang == 'sql' || lang == 'sqlite';
+  }
+
+  bool get _isPython =>
+      widget.language.toLowerCase() == 'python' ||
+      widget.language.toLowerCase() == 'python3';
+
+  /// Get preceding blocks of the same language in the same message for chaining.
+  List<String> _getPrecedingBlocks() {
+    if (widget.messageContent.isEmpty) return [];
+    final blocks = <String>[];
+    final lang = widget.language.toLowerCase();
+    
+    // Pattern to match code blocks of the target language
+    // Note: this is a simple markdown parser and might miss blocks inside 
+    // blockquotes or other nested structures, but matches the current app's behavior.
+    final pattern = (lang == 'sql' || lang == 'sqlite') 
+        ? r'```(?:sql|sqlite)\s*\n(.*?)```'
+        : (lang == 'python' || lang == 'python3')
+            ? r'```(?:python|python3)\s*\n(.*?)```'
+            : '```$lang\\s*\\n(.*?)```';
+            
+    final regex = RegExp(pattern, caseSensitive: false, dotAll: true);
+    for (final match in regex.allMatches(widget.messageContent)) {
+      final blockCode = match.group(1)?.trim() ?? '';
+      // If we've reached our own code text, stop (prevents cycles or running future blocks)
+      if (blockCode == widget.codeText.trim()) break;
+      if (blockCode.isNotEmpty) blocks.add(blockCode);
+    }
+    return blocks;
+  }
+
+  /// Extract ALL web-related code blocks from the message.
+  /// Returns a map: {'html': [...], 'css': [...], 'javascript': [...]}
+  Map<String, List<String>> _getAllWebBlocks() {
+    if (widget.messageContent.isEmpty) return {};
+    final result = <String, List<String>>{};
+    final regex = RegExp(r'```(html?|css|javascript|js)\s*\n(.*?)```', caseSensitive: false, dotAll: true);
+    for (final match in regex.allMatches(widget.messageContent)) {
+      final lang = (match.group(1) ?? '').toLowerCase();
+      final code = match.group(2)?.trim() ?? '';
+      if (code.isEmpty) continue;
+      // Normalize lang key
+      final key = (lang == 'js') ? 'javascript' : (lang == 'htm') ? 'html' : lang;
+      result.putIfAbsent(key, () => []).add(code);
+    }
+    return result;
+  }
+
+  /// True if this block is the last web block in the message.
+  bool get _isLastWebBlock {
+    if (widget.messageContent.isEmpty) return false;
+    final regex = RegExp(r'```(?:html?|css|javascript|js)\s*\n(.*?)```', caseSensitive: false, dotAll: true);
+    final matches = regex.allMatches(widget.messageContent).toList();
+    if (matches.isEmpty) return false;
+    final lastCode = matches.last.group(1)?.trim() ?? '';
+    return lastCode == widget.codeText.trim();
+  }
+
+  /// True if there are multiple web blocks in the message (sibling blocks).
+  bool get _hasMultipleWebBlocks {
+    final allBlocks = _getAllWebBlocks();
+    int total = 0;
+    for (final list in allBlocks.values) {
+      total += list.length;
+    }
+    return total > 1;
+  }
+
+  /// Build a full HTML document from the code block.
+  String _buildHtmlDocument() {
+    final lang = widget.language.toLowerCase();
+    final code = widget.codeText;
+
+    if (lang == 'css') {
+      return '''<!DOCTYPE html>
+<html dir="rtl">
+<head><meta charset="UTF-8"><style>
+$code
+</style></head>
+<body>
+  <div class="preview">
+    <h1>معاينة CSS</h1>
+    <p>هذا نص تجريبي لعرض التنسيق</p>
+    <button>زر تجريبي</button>
+    <a href="#">رابط تجريبي</a>
+    <ul><li>عنصر 1</li><li>عنصر 2</li><li>عنصر 3</li></ul>
+  </div>
+</body>
+</html>''';
+    }
+
+    if ((lang == 'javascript' || lang == 'js') && _isJsWithDom) {
+      return '''<!DOCTYPE html>
+<html dir="rtl">
+<head><meta charset="UTF-8"></head>
+<body>
+  <div id="app"></div>
+  <script>
+$code
+  </script>
+</body>
+</html>''';
+    }
+
+    // HTML
+    if (code.contains('<html') || code.contains('<!DOCTYPE') || code.contains('<!doctype')) {
+      return code;
+    }
+    return '''<!DOCTYPE html>
+<html dir="rtl">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body>
+$code
+</body>
+</html>''';
+  }
+
+  /// Build a MERGED HTML document combining all web blocks in the message.
+  String _buildMergedHtmlDocument() {
+    final allBlocks = _getAllWebBlocks();
+    final htmlParts = allBlocks['html'] ?? [];
+    final cssParts = allBlocks['css'] ?? [];
+    final jsParts = allBlocks['javascript'] ?? [];
+
+    final htmlBody = htmlParts.map((h) {
+      // Strip <html>, <head>, <body> wrappers if present
+      var clean = h;
+      clean = clean.replaceAll(RegExp(r'<!DOCTYPE[^>]*>', caseSensitive: false), '');
+      clean = clean.replaceAll(RegExp(r'</?html[^>]*>', caseSensitive: false), '');
+      clean = clean.replaceAll(RegExp(r'</?head[^>]*>', caseSensitive: false), '');
+      clean = clean.replaceAll(RegExp(r'</?body[^>]*>', caseSensitive: false), '');
+      // Extract any inline <style> and <script> blocks
+      return clean.trim();
+    }).join('\n');
+
+    final cssBlock = cssParts.isNotEmpty ? '<style>\n${cssParts.join('\n')}\n</style>' : '';
+    final jsBlock = jsParts.isNotEmpty ? '<script>\n${jsParts.join('\n')}\n</script>' : '';
+
+    return '''<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  $cssBlock
+</head>
+<body>
+$htmlBody
+$jsBlock
+</body>
+</html>''';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+    final canExec = CodeExecService.isExecutable(widget.language);
+    final isWebPreview = _isWebPreviewable || _isJsWithDom;
+    final showStdinFields = _stdinDetectedPreRun || _needsStdin;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Code block container ──
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF282C34) : const Color(0xFFFAFAFA),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.08),
+            ),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // ── Code block header: language + copy ──
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.04)
-                    : Colors.black.withValues(alpha: 0.03),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Header: language + copy + run ──
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.04)
+                      : Colors.black.withValues(alpha: 0.03),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(10),
+                    topRight: Radius.circular(10),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      widget.language,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
+                    ),
+                    const Spacer(),
+                    _CopyCodeButton(code: widget.codeText, isDark: isDark),
+                    // ── Web preview button (HTML/CSS/JS-DOM) ──
+                    if (isWebPreview) ...[
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => setState(() => _showWebPreview = !_showWebPreview),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _showWebPreview ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                              size: 14,
+                              color: const Color(0xFF3B82F6),
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              _showWebPreview ? '\u0625\u062e\u0641\u0627\u0621' : '\u0645\u0639\u0627\u064a\u0646\u0629',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3B82F6),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else if (canExec) ...[
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: _isRunning
+                            ? null
+                            : () {
+                                // Auto-chain for SQL or Python with preceding blocks
+                                final preceding = _getPrecedingBlocks();
+                                if (preceding.isNotEmpty) {
+                                  final separator = _isSql ? ';\n' : '\n\n';
+                                  final combined = [...preceding, widget.codeText.trim()].join(separator);
+                                  
+                                  final stdin = showStdinFields
+                                      ? _buildStdinFromControllers()
+                                      : null;
+                                      
+                                  _run(
+                                    codeOverride: combined,
+                                    stdin: (stdin != null && stdin.isNotEmpty)
+                                        ? stdin
+                                        : null,
+                                  );
+                                  return;
+                                }
+                                
+                                final stdin = showStdinFields
+                                    ? _buildStdinFromControllers()
+                                    : null;
+                                _run(
+                                  stdin: (stdin != null && stdin.isNotEmpty)
+                                      ? stdin
+                                      : null,
+                                );
+                              },
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _isRunning
+                              ? SizedBox(
+                                  key: const ValueKey('running'),
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: isDark
+                                        ? Colors.white38
+                                        : Colors.black38,
+                                  ),
+                                )
+                              : Row(
+                                  key: const ValueKey('run'),
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.play_arrow_rounded,
+                                      size: 14,
+                                      color: const Color(0xFF22C55E),
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      '\u0646\u0641\u0651\u0630',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF22C55E),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  Text(
-                    language,
-                    style: TextStyle(
-                      fontSize: 11,
+              // ── Code body ──
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(10),
+                  bottomRight: Radius.circular(10),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: HighlightView(
+                    widget.codeText,
+                    language: widget.language,
+                    theme: isDark ? atomOneDarkTheme : githubTheme,
+                    padding: const EdgeInsets.all(12),
+                    textStyle: const TextStyle(
                       fontFamily: 'monospace',
-                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ── Smart STDIN fields (pre-detected or post-error) ──
+        if (showStdinFields)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+                    : Colors.orange.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.keyboard_rounded,
+                      size: 16,
+                      color: isDark
+                          ? const Color(0xFF6366F1)
+                          : Colors.orange[700],
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        _needsStdin
+                            ? 'الكود يحتاج مدخلات — أدخل ${_inputPrompts.length == 1 ? "القيمة" : "القيم"} ثم اضغط نفّذ'
+                            : _inputPrompts.length == 1
+                                ? 'أدخل القيمة المطلوبة ثم اضغط نفّذ'
+                                : 'أدخل ${_inputPrompts.length} قيم مطلوبة ثم اضغط نفّذ',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Cairo',
+                          color: isDark ? Colors.white70 : Colors.orange[900],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ...List.generate(_inputPrompts.length, (i) {
+                  final label = _inputPrompts[i];
+                  final isGeneric = label == 'قيمة إدخال';
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: i < _inputPrompts.length - 1 ? 6 : 0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Show label above field if we have a specific prompt
+                        if (!isGeneric || _inputPrompts.length > 1)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4, right: 4),
+                            child: Row(
+                              children: [
+                                if (_inputPrompts.length > 1) ...[
+                                  Container(
+                                    width: 18,
+                                    height: 18,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.white10
+                                          : Colors.orange.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      '${i + 1}',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.orange[800],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  isGeneric ? 'المدخل ${i + 1}' : label,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white54 : Colors.orange[800],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        TextField(
+                          controller: _stdinControllers[i],
+                          textDirection: TextDirection.ltr,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontFamily: 'monospace',
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: isGeneric
+                                ? 'أدخل القيمة هنا...'
+                                : label,
+                            hintStyle: TextStyle(
+                              color: isDark ? Colors.white24 : Colors.black26,
+                              fontSize: 12,
+                            ),
+                            filled: true,
+                            fillColor: isDark
+                                ? const Color(0xFF121212)
+                                : Colors.white,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(6),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: _isRunning
+                        ? null
+                        : () {
+                            // Support chaining even when running from the STDIN field
+                            final preceding = _getPrecedingBlocks();
+                            final stdin = _buildStdinFromControllers();
+                            
+                            if (preceding.isNotEmpty) {
+                              final separator = _isSql ? ';\n' : '\n\n';
+                              final combined = [...preceding, widget.codeText.trim()].join(separator);
+                              _run(
+                                codeOverride: combined,
+                                stdin: stdin.isNotEmpty ? stdin : null,
+                              );
+                            } else {
+                              _run(
+                                stdin: stdin.isNotEmpty ? stdin : null,
+                              );
+                            }
+                          },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isRunning
+                            ? (isDark ? Colors.white24 : Colors.black26)
+                            : const Color(0xFF22C55E),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: _isRunning
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: isDark ? Colors.white54 : Colors.white,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.play_arrow_rounded, size: 16, color: Colors.white),
+                                SizedBox(width: 4),
+                                Text(
+                                  'تنفيذ الكود',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'Cairo',
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // ── Smart auto-chain indicator (SQL/Python) ──
+        if ((_isSql || _isPython) && _getPrecedingBlocks().isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFFA855F7).withValues(alpha: 0.08)
+                  : const Color(0xFFA855F7).withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.account_tree_rounded,
+                  size: 12,
+                  color: const Color(0xFFA855F7).withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'سيتم تنفيذه مع ${_getPrecedingBlocks().length} ${_getPrecedingBlocks().length == 1 ? "جزء سابق" : "أجزاء سابقة"} تلقائياً',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontFamily: 'Cairo',
+                    color: const Color(0xFFA855F7).withValues(alpha: 0.8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // ── Web Preview (individual block) ──
+        if (_showWebPreview && isWebPreview)
+          HtmlPreviewWidget(
+            htmlContent: _buildHtmlDocument(),
+            isDark: isDark,
+          ),
+
+        // ── Unified Web Merge Card (only on last web block when siblings exist) ──
+        if (isWebPreview && _isLastWebBlock && _hasMultipleWebBlocks)
+          _WebMergeCard(
+            isDark: isDark,
+            webBlocks: _getAllWebBlocks(),
+            mergedHtml: _buildMergedHtmlDocument(),
+          ),
+
+        // ── Execution result ──
+        if (_isRunning)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: _TerminalSkeleton(isDark: isDark),
+          )
+        else if (_result != null && !_needsStdin)
+          CodeExecResultWidget(
+            result: _result!,
+            onActionRequested: widget.onActionRequested,
+          ),
+      ],
+    );
+  }
+}
+
+/// Unified merge-and-preview card shown after the last web block
+/// when a message contains multiple HTML/CSS/JS blocks.
+class _WebMergeCard extends StatefulWidget {
+  final bool isDark;
+  final Map<String, List<String>> webBlocks;
+  final String mergedHtml;
+
+  const _WebMergeCard({
+    required this.isDark,
+    required this.webBlocks,
+    required this.mergedHtml,
+  });
+
+  @override
+  State<_WebMergeCard> createState() => _WebMergeCardState();
+}
+
+class _WebMergeCardState extends State<_WebMergeCard> {
+  bool _showPreview = false;
+
+  /// Build language tags (e.g. "HTML", "CSS", "JavaScript")
+  List<String> get _langTags {
+    final tags = <String>[];
+    if (widget.webBlocks.containsKey('html')) tags.add('HTML');
+    if (widget.webBlocks.containsKey('css')) tags.add('CSS');
+    if (widget.webBlocks.containsKey('javascript')) tags.add('JS');
+    return tags;
+  }
+
+  int get _totalBlocks {
+    int total = 0;
+    for (final list in widget.webBlocks.values) {
+      total += list.length;
+    }
+    return total;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = widget.isDark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // ── Merge card ──
+        Container(
+          margin: const EdgeInsets.only(top: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [
+                      const Color(0xFF3B82F6).withValues(alpha: 0.08),
+                      const Color(0xFF8B5CF6).withValues(alpha: 0.06),
+                    ]
+                  : [
+                      const Color(0xFF3B82F6).withValues(alpha: 0.05),
+                      const Color(0xFF8B5CF6).withValues(alpha: 0.04),
+                    ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isDark
+                  ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
+                  : const Color(0xFF3B82F6).withValues(alpha: 0.12),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.merge_rounded,
+                    size: 16,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'دمج ومعاينة الصفحة كاملة',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: 'Cairo',
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              // Language tags
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  ..._langTags.map((tag) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : const Color(0xFF3B82F6).withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      tag,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'monospace',
+                        color: isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF3B82F6),
+                      ),
+                    ),
+                  )),
+                  Text(
+                    '· $_totalBlocks أجزاء',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontFamily: 'Cairo',
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),
                   ),
-                  const Spacer(),
-                  _CopyCodeButton(code: codeText, isDark: isDark),
                 ],
               ),
-            ),
-            // ── Code body ──
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(10),
-                bottomRight: Radius.circular(10),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: HighlightView(
-                  codeText,
-                  language: language,
-                  theme: isDark ? atomOneDarkTheme : githubTheme,
-                  padding: const EdgeInsets.all(12),
-                  textStyle: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 13,
+              const SizedBox(height: 8),
+              // Preview button
+              GestureDetector(
+                onTap: () => setState(() => _showPreview = !_showPreview),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3B82F6),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _showPreview ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _showPreview ? 'إخفاء المعاينة' : 'معاينة مباشرة',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Cairo',
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
+        // ── Merged Preview ──
+        if (_showPreview)
+          HtmlPreviewWidget(
+            htmlContent: widget.mergedHtml,
+            isDark: isDark,
+          ),
+      ],
     );
   }
 }
@@ -188,6 +1113,71 @@ class _CopyCodeButtonState extends State<_CopyCodeButton> {
   }
 }
 
+class _TerminalSkeleton extends StatefulWidget {
+  final bool isDark;
+  const _TerminalSkeleton({required this.isDark});
+
+  @override
+  State<_TerminalSkeleton> createState() => _TerminalSkeletonState();
+}
+
+class _TerminalSkeletonState extends State<_TerminalSkeleton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: Tween<double>(begin: 0.4, end: 1.0).animate(_ctrl),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: widget.isDark
+              ? const Color(0xFF1E1E1E)
+              : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Color(0xFF6366F1),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'جاري الاتصال بالسيرفر لتنفيذ الكود...',
+                  style: TextStyle(
+                    color: widget.isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 12,
+                    fontFamily: 'Cairo',
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mermaid Chart Widget — renders diagrams locally using flutter_mermaid
 // ─────────────────────────────────────────────────────────────────────────────
@@ -195,10 +1185,7 @@ class _MermaidChartWidget extends StatefulWidget {
   final String codeText;
   final bool isDark;
 
-  const _MermaidChartWidget({
-    required this.codeText,
-    required this.isDark,
-  });
+  const _MermaidChartWidget({required this.codeText, required this.isDark});
 
   @override
   State<_MermaidChartWidget> createState() => _MermaidChartWidgetState();
@@ -331,19 +1318,27 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
             ),
             const SizedBox(height: 4),
             ListTile(
-              leading: Icon(PhosphorIcons.image(PhosphorIconsStyle.fill),
-                  color: const Color(0xFF10B981)),
+              leading: Icon(
+                PhosphorIcons.image(PhosphorIconsStyle.fill),
+                color: const Color(0xFF10B981),
+              ),
               title: const Text('صورة PNG (للمشاركة السريعة)'),
-              subtitle: const Text('دقة عالية × 3 — جاهزة للنشر',
-                  style: TextStyle(fontSize: 11)),
+              subtitle: const Text(
+                'دقة عالية × 3 — جاهزة للنشر',
+                style: TextStyle(fontSize: 11),
+              ),
               onTap: () => Navigator.pop(ctx, 'png'),
             ),
             ListTile(
-              leading: Icon(PhosphorIcons.fileSvg(),
-                  color: const Color(0xFF6366F1)),
+              leading: Icon(
+                PhosphorIcons.fileSvg(),
+                color: const Color(0xFF6366F1),
+              ),
               title: const Text('ملف SVG (متجهي قابل للتكبير)'),
-              subtitle: const Text('مناسب للطباعة بدقة لا متناهية',
-                  style: TextStyle(fontSize: 11)),
+              subtitle: const Text(
+                'مناسب للطباعة بدقة لا متناهية',
+                style: TextStyle(fontSize: 11),
+              ),
               onTap: () => Navigator.pop(ctx, 'svg'),
             ),
             const SizedBox(height: 8),
@@ -358,15 +1353,20 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(
-        content: Row(children: [
-          SizedBox(
+        content: Row(
+          children: [
+            SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white)),
-          SizedBox(width: 12),
-          Text('جارٍ تجهيز الملف...'),
-        ]),
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('جارٍ تجهيز الملف...'),
+          ],
+        ),
         duration: Duration(seconds: 3),
       ),
     );
@@ -378,31 +1378,21 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
         if (bytes == null || bytes.isEmpty) {
           throw Exception('فشل تجهيز الصورة');
         }
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              bytes,
-              name: 'mermaid_$ts.png',
-              mimeType: 'image/png',
-            ),
-          ],
-          text: 'مخطط من خبير زاد',
-        );
+        await Share.shareXFiles([
+          XFile.fromData(bytes, name: 'mermaid_$ts.png', mimeType: 'image/png'),
+        ], text: 'مخطط من خبير زاد');
       } else if (choice == 'svg') {
         final svg = await _mermaidCtl.getSvg();
         if (svg == null || svg.isEmpty) {
           throw Exception('فشل تجهيز ملف SVG');
         }
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              Uint8List.fromList(utf8.encode(svg)),
-              name: 'mermaid_$ts.svg',
-              mimeType: 'image/svg+xml',
-            ),
-          ],
-          text: 'مخطط من خبير زاد',
-        );
+        await Share.shareXFiles([
+          XFile.fromData(
+            Uint8List.fromList(utf8.encode(svg)),
+            name: 'mermaid_$ts.svg',
+            mimeType: 'image/svg+xml',
+          ),
+        ], text: 'مخطط من خبير زاد');
       }
     } catch (e) {
       if (!mounted) return;
@@ -451,8 +1441,11 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
               ),
               child: Row(
                 children: [
-                  Icon(PhosphorIcons.treeStructure(PhosphorIconsStyle.bold),
-                      size: 16, color: const Color(0xFF10B981)),
+                  Icon(
+                    PhosphorIcons.treeStructure(PhosphorIconsStyle.bold),
+                    size: 16,
+                    color: const Color(0xFF10B981),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'مخطط ذكي',
@@ -489,7 +1482,8 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
                           backgroundColor: const Color(0xFF10B981),
                           duration: const Duration(seconds: 1),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       );
                     },
@@ -587,10 +1581,14 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
       height: 120,
       margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Center(
@@ -654,8 +1652,11 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
-                  size: 18, color: amber),
+              Icon(
+                PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                size: 18,
+                color: amber,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -675,9 +1676,7 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.5,
-                        color: widget.isDark
-                            ? Colors.white70
-                            : Colors.black87,
+                        color: widget.isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ],
@@ -706,38 +1705,40 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
                     ),
                   ),
                   onPressed: _askAiToFix,
-                  icon: Icon(PhosphorIcons.magicWand(PhosphorIconsStyle.fill),
-                      size: 16),
+                  icon: Icon(
+                    PhosphorIcons.magicWand(PhosphorIconsStyle.fill),
+                    size: 16,
+                  ),
                   label: const Text(
                     'اطلب من AI تصحيح المخطط',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      widget.isDark ? Colors.white70 : Colors.black87,
+                  foregroundColor: widget.isDark
+                      ? Colors.white70
+                      : Colors.black87,
                   side: BorderSide(
                     color: widget.isDark
                         ? Colors.white.withValues(alpha: 0.15)
                         : Colors.black.withValues(alpha: 0.15),
                   ),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                onPressed: () =>
-                    setState(() => _showCode = !_showCode),
+                onPressed: () => setState(() => _showCode = !_showCode),
                 icon: Icon(
-                    _showCode
-                        ? PhosphorIcons.eyeSlash()
-                        : PhosphorIcons.code(),
-                    size: 14),
+                  _showCode ? PhosphorIcons.eyeSlash() : PhosphorIcons.code(),
+                  size: 14,
+                ),
                 label: Text(
                   _showCode ? 'إخفاء الكود' : 'الكود',
                   style: const TextStyle(fontSize: 12),
@@ -799,7 +1800,9 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
                   child: Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(24),
@@ -829,21 +1832,22 @@ class _MermaidChartWidgetState extends State<_MermaidChartWidget>
                           // the user pinches.
                           if (fsCtl.transformationController != null)
                             ValueListenableBuilder<Matrix4>(
-                              valueListenable:
-                                  fsCtl.transformationController!,
+                              valueListenable: fsCtl.transformationController!,
                               builder: (_, m, _) {
-                                final pct =
-                                    (m.getMaxScaleOnAxis() * 100).round();
+                                final pct = (m.getMaxScaleOnAxis() * 100)
+                                    .round();
                                 return GestureDetector(
                                   onTap: () => fsCtl.zoomReset(),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white
-                                          .withValues(alpha: 0.08),
-                                      borderRadius:
-                                          BorderRadius.circular(8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       '$pct%',
@@ -911,8 +1915,11 @@ class _MermaidActionButton extends StatelessWidget {
                 : Colors.black.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(6),
           ),
-          child: Icon(icon,
-              size: 14, color: isDark ? Colors.white54 : Colors.black45),
+          child: Icon(
+            icon,
+            size: 14,
+            color: isDark ? Colors.white54 : Colors.black45,
+          ),
         ),
       ),
     );
@@ -1064,19 +2071,27 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
             ),
             const SizedBox(height: 4),
             ListTile(
-              leading: Icon(PhosphorIcons.image(PhosphorIconsStyle.fill),
-                  color: const Color(0xFF10B981)),
+              leading: Icon(
+                PhosphorIcons.image(PhosphorIconsStyle.fill),
+                color: const Color(0xFF10B981),
+              ),
               title: const Text('صورة PNG (للمشاركة السريعة)'),
-              subtitle: const Text('من خادم PlantUML — جاهزة للنشر',
-                  style: TextStyle(fontSize: 11)),
+              subtitle: const Text(
+                'من خادم PlantUML — جاهزة للنشر',
+                style: TextStyle(fontSize: 11),
+              ),
               onTap: () => Navigator.pop(ctx, 'png'),
             ),
             ListTile(
-              leading: Icon(PhosphorIcons.fileSvg(),
-                  color: const Color(0xFF6366F1)),
+              leading: Icon(
+                PhosphorIcons.fileSvg(),
+                color: const Color(0xFF6366F1),
+              ),
               title: const Text('ملف SVG (متجهي قابل للتكبير)'),
-              subtitle: const Text('مناسب للطباعة بدقة لا متناهية',
-                  style: TextStyle(fontSize: 11)),
+              subtitle: const Text(
+                'مناسب للطباعة بدقة لا متناهية',
+                style: TextStyle(fontSize: 11),
+              ),
               onTap: () => Navigator.pop(ctx, 'svg'),
             ),
             const SizedBox(height: 8),
@@ -1090,15 +2105,20 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
     final messenger = ScaffoldMessenger.of(context);
     messenger.showSnackBar(
       const SnackBar(
-        content: Row(children: [
-          SizedBox(
+        content: Row(
+          children: [
+            SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white)),
-          SizedBox(width: 12),
-          Text('جارٍ تجهيز الملف...'),
-        ]),
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('جارٍ تجهيز الملف...'),
+          ],
+        ),
         duration: Duration(seconds: 4),
       ),
     );
@@ -1110,31 +2130,25 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
         if (bytes == null || bytes.isEmpty) {
           throw Exception('فشل تجهيز الصورة');
         }
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              bytes,
-              name: 'plantuml_$ts.png',
-              mimeType: 'image/png',
-            ),
-          ],
-          text: 'مخطط من خبير زاد',
-        );
+        await Share.shareXFiles([
+          XFile.fromData(
+            bytes,
+            name: 'plantuml_$ts.png',
+            mimeType: 'image/png',
+          ),
+        ], text: 'مخطط من خبير زاد');
       } else if (choice == 'svg') {
         final svg = await _ctl.getSvg();
         if (svg == null || svg.isEmpty) {
           throw Exception('فشل تجهيز ملف SVG');
         }
-        await Share.shareXFiles(
-          [
-            XFile.fromData(
-              Uint8List.fromList(utf8.encode(svg)),
-              name: 'plantuml_$ts.svg',
-              mimeType: 'image/svg+xml',
-            ),
-          ],
-          text: 'مخطط من خبير زاد',
-        );
+        await Share.shareXFiles([
+          XFile.fromData(
+            Uint8List.fromList(utf8.encode(svg)),
+            name: 'plantuml_$ts.svg',
+            mimeType: 'image/svg+xml',
+          ),
+        ], text: 'مخطط من خبير زاد');
       }
     } catch (e) {
       if (!mounted) return;
@@ -1170,8 +2184,7 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
           children: [
             // Header
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: widget.isDark ? Colors.black26 : Colors.white,
                 border: Border(
@@ -1184,16 +2197,18 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
               ),
               child: Row(
                 children: [
-                  Icon(PhosphorIcons.diamond(PhosphorIconsStyle.bold),
-                      size: 16, color: const Color(0xFF6366F1)),
+                  Icon(
+                    PhosphorIcons.diamond(PhosphorIconsStyle.bold),
+                    size: 16,
+                    color: const Color(0xFF6366F1),
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     _labelFor(widget.languageLabel),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color:
-                          widget.isDark ? Colors.white70 : Colors.black87,
+                      color: widget.isDark ? Colors.white70 : Colors.black87,
                     ),
                   ),
                   const Spacer(),
@@ -1211,8 +2226,7 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                     tooltip: 'نسخ الكود',
                     isDark: widget.isDark,
                     onTap: () {
-                      Clipboard.setData(
-                          ClipboardData(text: widget.rawCode));
+                      Clipboard.setData(ClipboardData(text: widget.rawCode));
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: const Text('تم نسخ كود المخطط'),
@@ -1220,7 +2234,8 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                           backgroundColor: const Color(0xFF6366F1),
                           duration: const Duration(seconds: 1),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       );
                     },
@@ -1390,8 +2405,11 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
-                  size: 18, color: amber),
+              Icon(
+                PhosphorIcons.warningCircle(PhosphorIconsStyle.fill),
+                size: 18,
+                color: amber,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -1411,9 +2429,7 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                       style: TextStyle(
                         fontSize: 11,
                         height: 1.5,
-                        color: widget.isDark
-                            ? Colors.white70
-                            : Colors.black87,
+                        color: widget.isDark ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   ],
@@ -1441,27 +2457,31 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                     ),
                   ),
                   onPressed: _askAiToFix,
-                  icon: Icon(PhosphorIcons.magicWand(PhosphorIconsStyle.fill),
-                      size: 16),
+                  icon: Icon(
+                    PhosphorIcons.magicWand(PhosphorIconsStyle.fill),
+                    size: 16,
+                  ),
                   label: const Text(
                     'اطلب من AI تصحيح المخطط',
-                    style: TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor:
-                      widget.isDark ? Colors.white70 : Colors.black87,
+                  foregroundColor: widget.isDark
+                      ? Colors.white70
+                      : Colors.black87,
                   side: BorderSide(
                     color: widget.isDark
                         ? Colors.white.withValues(alpha: 0.15)
                         : Colors.black.withValues(alpha: 0.15),
                   ),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -1529,7 +2549,9 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                   child: Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.55),
                         borderRadius: BorderRadius.circular(24),
@@ -1556,21 +2578,22 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
                           const SizedBox(width: 8),
                           if (fsCtl.transformationController != null)
                             ValueListenableBuilder<Matrix4>(
-                              valueListenable:
-                                  fsCtl.transformationController!,
+                              valueListenable: fsCtl.transformationController!,
                               builder: (_, m, _) {
-                                final pct =
-                                    (m.getMaxScaleOnAxis() * 100).round();
+                                final pct = (m.getMaxScaleOnAxis() * 100)
+                                    .round();
                                 return GestureDetector(
                                   onTap: () => fsCtl.zoomReset(),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white
-                                          .withValues(alpha: 0.08),
-                                      borderRadius:
-                                          BorderRadius.circular(8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
                                       '$pct%',
@@ -1611,15 +2634,13 @@ class _PlantUmlChartWidgetState extends State<_PlantUmlChartWidget>
   }
 }
 
-
-
 class AiChatScreen extends ConsumerStatefulWidget {
   final WebsiteModel site;
   final bool isFromBrowser;
   final bool showHeader;
 
   const AiChatScreen({
-    super.key, 
+    super.key,
     required this.site,
     this.isFromBrowser = false,
     this.showHeader = true,
@@ -1630,13 +2651,13 @@ class AiChatScreen extends ConsumerStatefulWidget {
 }
 
 class _AiChatScreenState extends ConsumerState<AiChatScreen> {
-  final _controller      = TextEditingController();
+  final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  final _focusNode        = FocusNode();
+  final _focusNode = FocusNode();
 
   // ── Voice input (STT) ────────────────────────────────────────────────
   final stt.SpeechToText _speechToText = stt.SpeechToText();
-  bool _isRecording    = false; // mic is capturing audio
+  bool _isRecording = false; // mic is capturing audio
   bool _speechInitialized = false;
 
   bool _isScanningMode = true;
@@ -1696,7 +2717,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       if (!available && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('التعرف على الصوت غير متاح. تأكد من إذن الميكروفون.'),
+            content: const Text(
+              'التعرف على الصوت غير متاح. تأكد من إذن الميكروفون.',
+            ),
             backgroundColor: Colors.red.shade700,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1801,12 +2824,14 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
   void _sendMessage(String text) {
     if (text.trim().isEmpty) return;
     HapticFeedback.lightImpact();
-    
-    final pageContent = widget.isFromBrowser 
+
+    final pageContent = widget.isFromBrowser
         ? ref.read(extractedBrowserContentProvider)
         : null;
-        
-    ref.read(aiChatProvider(widget.site).notifier).sendMessage(text, pageContent);
+
+    ref
+        .read(aiChatProvider(widget.site).notifier)
+        .sendMessage(text, pageContent);
     _controller.clear();
     _scrollToBottom();
   }
@@ -1825,20 +2850,27 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     final lang = _detectLanguage(lastUserMessage);
     final lower = lastAiContent.toLowerCase();
     final hasCode = lastAiContent.contains('```');
-    final mentionsInstall = lower.contains('install') ||
+    final mentionsInstall =
+        lower.contains('install') ||
         lower.contains('npm ') ||
         lower.contains('pip ') ||
         lower.contains('brew ') ||
         lower.contains('apt ') ||
         lower.contains('\u062a\u062b\u0628\u064a\u062a') ||
         lower.contains('setup');
-    final mentionsUsage = lower.contains('how to use') ||
+    final mentionsUsage =
+        lower.contains('how to use') ||
         lower.contains('usage') ||
         lower.contains('run the') ||
         lower.contains('execute') ||
-        lower.contains('\u0643\u064a\u0641 \u062a\u0633\u062a\u062e\u062f\u0645') ||
-        lower.contains('\u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u0627\u0633\u062a\u062e\u062f\u0627\u0645');
-    final mentionsFeature = lower.contains('feature') ||
+        lower.contains(
+          '\u0643\u064a\u0641 \u062a\u0633\u062a\u062e\u062f\u0645',
+        ) ||
+        lower.contains(
+          '\u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u0627\u0633\u062a\u062e\u062f\u0627\u0645',
+        );
+    final mentionsFeature =
+        lower.contains('feature') ||
         lower.contains('support') ||
         lower.contains('capability') ||
         lower.contains('\u0645\u064a\u0632\u0629') ||
@@ -1846,26 +2878,66 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
     if (lang == 'ar') {
       if (mentionsInstall && !hasCode) {
-        return ['\u0623\u0639\u0637\u0646\u064a \u0643\u0648\u062f \u0627\u0644\u062a\u062b\u0628\u064a\u062a', '\u0645\u0627 \u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629\u061f', '\u0643\u064a\u0641 \u0623\u062a\u062d\u0642\u0642 \u0645\u0645\u0646 \u0627\u0644\u062a\u062b\u0628\u064a\u062a\u061f'];
+        return [
+          '\u0623\u0639\u0637\u0646\u064a \u0643\u0648\u062f \u0627\u0644\u062a\u062b\u0628\u064a\u062a',
+          '\u0645\u0627 \u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0627\u0644\u0623\u0633\u0627\u0633\u064a\u0629\u061f',
+          '\u0643\u064a\u0641 \u0623\u062a\u062d\u0642\u0642 \u0645\u0645\u0646 \u0627\u0644\u062a\u062b\u0628\u064a\u062a\u061f',
+        ];
       } else if (hasCode) {
-        return ['\u0627\u0634\u0631\u062d \u0627\u0644\u0643\u0648\u062f \u0628\u0634\u0643\u0644 \u0623\u0628\u0633\u0637', '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062e\u0637\u0627\u0621 \u0634\u0627\u0626\u0639\u0629\u061f', '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a \u0647\u0630\u0647 \u0627\u0644\u0623\u062f\u0627\u0629\u061f'];
+        return [
+          '\u0627\u0634\u0631\u062d \u0627\u0644\u0643\u0648\u062f \u0628\u0634\u0643\u0644 \u0623\u0628\u0633\u0637',
+          '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062e\u0637\u0627\u0621 \u0634\u0627\u0626\u0639\u0629\u061f',
+          '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a \u0647\u0630\u0647 \u0627\u0644\u0623\u062f\u0627\u0629\u061f',
+        ];
       } else if (mentionsUsage) {
-        return ['\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0639\u0645\u0644\u064a', '\u0645\u0627 \u0623\u0647\u0645 \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a\u061f', '\u0645\u0627 \u0627\u0644\u0623\u062e\u0637\u0627\u0621 \u0627\u0644\u0634\u0627\u0626\u0639\u0629\u061f'];
+        return [
+          '\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0639\u0645\u0644\u064a',
+          '\u0645\u0627 \u0623\u0647\u0645 \u0627\u0644\u0625\u0639\u062f\u0627\u062f\u0627\u062a\u061f',
+          '\u0645\u0627 \u0627\u0644\u0623\u062e\u0637\u0627\u0621 \u0627\u0644\u0634\u0627\u0626\u0639\u0629\u061f',
+        ];
       } else if (mentionsFeature) {
-        return ['\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f', '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a\u0647\u0627\u061f', '\u0647\u0644 \u062a\u0648\u062c\u062f \u0646\u0633\u062e\u0629 \u0645\u062c\u0627\u0646\u064a\u0629\u061f'];
+        return [
+          '\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f',
+          '\u0643\u064a\u0641 \u0623\u062b\u0628\u0651\u062a\u0647\u0627\u061f',
+          '\u0647\u0644 \u062a\u0648\u062c\u062f \u0646\u0633\u062e\u0629 \u0645\u062c\u0627\u0646\u064a\u0629\u061f',
+        ];
       }
-      return ['\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f', '\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0643\u0648\u062f', '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062f\u0627\u0629 \u0628\u062f\u064a\u0644\u0629\u061f'];
+      return [
+        '\u0643\u064a\u0641 \u0623\u0633\u062a\u062e\u062f\u0645\u0647\u0627\u061f',
+        '\u0623\u0639\u0637\u0646\u064a \u0645\u062b\u0627\u0644 \u0643\u0648\u062f',
+        '\u0647\u0644 \u0647\u0646\u0627\u0643 \u0623\u062f\u0627\u0629 \u0628\u062f\u064a\u0644\u0629\u061f',
+      ];
     } else {
       if (mentionsInstall && !hasCode) {
-        return ['Show me the install code', 'What are the prerequisites?', 'How to verify installation?'];
+        return [
+          'Show me the install code',
+          'What are the prerequisites?',
+          'How to verify installation?',
+        ];
       } else if (hasCode) {
-        return ['Explain the code further', 'What are common errors?', 'How do I install this?'];
+        return [
+          'Explain the code further',
+          'What are common errors?',
+          'How do I install this?',
+        ];
       } else if (mentionsUsage) {
-        return ['Give me a practical example', 'What are key settings?', 'What are common pitfalls?'];
+        return [
+          'Give me a practical example',
+          'What are key settings?',
+          'What are common pitfalls?',
+        ];
       } else if (mentionsFeature) {
-        return ['How do I use it?', 'How do I install it?', 'Is there a free plan?'];
+        return [
+          'How do I use it?',
+          'How do I install it?',
+          'Is there a free plan?',
+        ];
       }
-      return ['How do I use it?', 'Show me a code example', 'Is there an alternative?'];
+      return [
+        'How do I use it?',
+        'Show me a code example',
+        'Is there an alternative?',
+      ];
     }
   }
 
@@ -1884,13 +2956,18 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           final i = entry.key;
           final label = entry.value;
           return _SuggestionChip(
-            label: label,
-            isDark: isDark,
-            onTap: () => _sendMessage(label),
-          )
+                label: label,
+                isDark: isDark,
+                onTap: () => _sendMessage(label),
+              )
               .animate()
               .fadeIn(delay: (i * 90).ms, duration: 220.ms)
-              .slideY(begin: 0.15, end: 0, delay: (i * 90).ms, duration: 220.ms);
+              .slideY(
+                begin: 0.15,
+                end: 0,
+                delay: (i * 90).ms,
+                duration: 220.ms,
+              );
         }).toList(),
       ),
     );
@@ -1937,27 +3014,26 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       body: ChatPromptBridge(
         inject: injectPromptAndFocus,
         child: Column(
-        children: [
-          // ── Premium Header (Hidden in Bottom Sheet) ──
-          if (widget.showHeader)
-            _buildHeader(context, isDark, loc),
-          // ── Chat Body ──
-          Expanded(
-            child: _isScanningMode
-                ? _buildScanningView(context, isDark, loc)
-                : (chatState.messages.isEmpty
-                      ? _buildWelcomeView(context, isDark, loc)
-                      : _buildChatList(context, isDark, chatState)),
-          ),
-          // ── Input Bar ──
-          _buildInputBar(
-            context,
-            isDark,
-            loc,
-            chatState.isLoading || _isScanningMode,
-            chatState.messages.isEmpty,
-          ),
-        ],
+          children: [
+            // ── Premium Header (Hidden in Bottom Sheet) ──
+            if (widget.showHeader) _buildHeader(context, isDark, loc),
+            // ── Chat Body ──
+            Expanded(
+              child: _isScanningMode
+                  ? _buildScanningView(context, isDark, loc)
+                  : (chatState.messages.isEmpty
+                        ? _buildWelcomeView(context, isDark, loc)
+                        : _buildChatList(context, isDark, chatState)),
+            ),
+            // ── Input Bar ──
+            _buildInputBar(
+              context,
+              isDark,
+              loc,
+              chatState.isLoading || _isScanningMode,
+              chatState.messages.isEmpty,
+            ),
+          ],
         ),
       ),
     );
@@ -2018,8 +3094,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                   ),
                   // Clear chat button
                   GestureDetector(
-                    onTap: () =>
-                        ref.read(aiChatProvider(widget.site).notifier).clearChat(),
+                    onTap: () => ref
+                        .read(aiChatProvider(widget.site).notifier)
+                        .clearChat(),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -2246,21 +3323,21 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     AppLocalizations loc,
   ) {
-    final suggestions = widget.isFromBrowser 
-      ? [
-          "لخص هذه الصفحة",
-          "اشرح الفكرة الرئيسية",
-          "ما هي أهم النقاط؟",
-          "هل يوجد روابط أو مصادر هامة؟"
-        ]
-      : [
-          loc.aiSuggestWhat,
-          loc.aiSuggestHow,
-          loc.aiSuggestFeatures,
-          loc.aiSuggestUse,
-          loc.aiSuggestFit,
-          loc.aiSuggestSimplify,
-        ];
+    final suggestions = widget.isFromBrowser
+        ? [
+            "لخص هذه الصفحة",
+            "اشرح الفكرة الرئيسية",
+            "ما هي أهم النقاط؟",
+            "هل يوجد روابط أو مصادر هامة؟",
+          ]
+        : [
+            loc.aiSuggestWhat,
+            loc.aiSuggestHow,
+            loc.aiSuggestFeatures,
+            loc.aiSuggestUse,
+            loc.aiSuggestFit,
+            loc.aiSuggestSimplify,
+          ];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -2353,7 +3430,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     final chipsIndex = messages.length;
     final typingIndex = messages.length + (showDynamicChips ? 1 : 0);
     final totalCount =
-        messages.length + (showDynamicChips ? 1 : 0) + (chatState.isLoading ? 1 : 0);
+        messages.length +
+        (showDynamicChips ? 1 : 0) +
+        (chatState.isLoading ? 1 : 0);
 
     return ListView.builder(
       controller: _scrollController,
@@ -2407,9 +3486,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           break;
         }
       }
-      final isLastUser = !chatState.isLoading &&
-          lastUserIndex != -1 &&
-          index == lastUserIndex;
+      final isLastUser =
+          !chatState.isLoading && lastUserIndex != -1 && index == lastUserIndex;
       return _AiUserBubble(
         msg: msg,
         isDark: isDark,
@@ -2431,108 +3509,129 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     return Align(
           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Column(
-            crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment: isUser
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.82,
-            ),
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isUser
-                  ? AppTheme.primaryColor
-                  : (isDark ? AppTheme.darkSurface : Colors.white),
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(18),
-                topRight: const Radius.circular(18),
-                bottomLeft: Radius.circular(isUser ? 18 : 4),
-                bottomRight: Radius.circular(isUser ? 4 : 18),
-              ),
-              border: isUser
-                  ? null
-                  : Border.all(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.06)
-                          : Colors.black.withValues(alpha: 0.06),
-                    ),
-              boxShadow: [
-                BoxShadow(
-                  color: isUser
-                      ? AppTheme.primaryColor.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.82,
                 ),
-              ],
-            ),
-            child: isUser
-                ? Text(
-                    msg.content,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Selection toolbar adds an "اسأل عن هذا" item that
-                      // injects the highlighted passage as a markdown quote
-                      // into the input bar for a precise follow-up question.
-                      SelectionArea(
-                        contextMenuBuilder: (ctx, sel) {
-                          return AdaptiveTextSelectionToolbar.buttonItems(
-                            anchors: sel.contextMenuAnchors,
-                            buttonItems: [
-                              ContextMenuButtonItem(
-                                label: 'نسخ',
-                                onPressed: () {
-                                  // ignore: deprecated_member_use
-                                  sel.copySelection(
-                                      SelectionChangedCause.toolbar);
-                                },
-                              ),
-                              ContextMenuButtonItem(
-                                label: 'اسأل عن هذا',
-                                onPressed: () async {
-                                  // ignore: deprecated_member_use
-                                  sel.copySelection(
-                                      SelectionChangedCause.toolbar);
-                                  sel.hideToolbar();
-                                  final cd = await Clipboard.getData(
-                                      Clipboard.kTextPlain);
-                                  final text = cd?.text ?? '';
-                                  if (text.isEmpty || !mounted) return;
-                                  final quoted = text
-                                      .split('\n')
-                                      .map((l) => '> $l')
-                                      .join('\n');
-                                  injectPromptAndFocus('$quoted\n\n');
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                        child: _TypewriterMarkdown(
-                          content: msg.content,
-                          isDark: isDark,
-                          animate: index ==
-                              ref
-                                      .read(aiChatProvider(widget.site))
-                                      .messages
-                                      .length -
-                                  1,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                    ],
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: isUser
+                      ? AppTheme.primaryColor
+                      : (isDark ? AppTheme.darkSurface : Colors.white),
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(18),
+                    topRight: const Radius.circular(18),
+                    bottomLeft: Radius.circular(isUser ? 18 : 4),
+                    bottomRight: Radius.circular(isUser ? 4 : 18),
                   ),
+                  border: isUser
+                      ? null
+                      : Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.06)
+                              : Colors.black.withValues(alpha: 0.06),
+                        ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isUser
+                          ? AppTheme.primaryColor.withValues(alpha: 0.2)
+                          : Colors.black.withValues(
+                              alpha: isDark ? 0.15 : 0.04,
+                            ),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: isUser
+                    ? Text(
+                        msg.content,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Selection toolbar adds an "اسأل عن هذا" item that
+                          // injects the highlighted passage as a markdown quote
+                          // into the input bar for a precise follow-up question.
+                          SelectionArea(
+                            contextMenuBuilder: (ctx, sel) {
+                              return AdaptiveTextSelectionToolbar.buttonItems(
+                                anchors: sel.contextMenuAnchors,
+                                buttonItems: [
+                                  ContextMenuButtonItem(
+                                    label: 'نسخ',
+                                    onPressed: () {
+                                      // ignore: deprecated_member_use
+                                      sel.copySelection(
+                                        SelectionChangedCause.toolbar,
+                                      );
+                                    },
+                                  ),
+                                  ContextMenuButtonItem(
+                                    label: 'اسأل عن هذا',
+                                    onPressed: () async {
+                                      // ignore: deprecated_member_use
+                                      sel.copySelection(
+                                        SelectionChangedCause.toolbar,
+                                      );
+                                      sel.hideToolbar();
+                                      final cd = await Clipboard.getData(
+                                        Clipboard.kTextPlain,
+                                      );
+                                      final text = cd?.text ?? '';
+                                      if (text.isEmpty || !mounted) return;
+                                      final quoted = text
+                                          .split('\n')
+                                          .map((l) => '> $l')
+                                          .join('\n');
+                                      injectPromptAndFocus('$quoted\n\n');
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                            child: _TypewriterMarkdown(
+                              content: msg.content,
+                              isDark: isDark,
+                              animate:
+                                  index ==
+                                  ref
+                                          .read(aiChatProvider(widget.site))
+                                          .messages
+                                          .length -
+                                      1,
+                              onActionRequested: (prompt) {
+                                ref
+                                    .read(aiChatProvider(widget.site).notifier)
+                                    .sendMessage(prompt);
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                      ),
               ),
               if (!isUser) // Action buttons for AI messages
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 14, right: 8, left: 8, top: 4),
+                  padding: const EdgeInsets.only(
+                    bottom: 14,
+                    right: 8,
+                    left: 8,
+                    top: 4,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -2543,21 +3642,32 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                             Clipboard.setData(ClipboardData(text: msg.content));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: const Text('تم النسخ', style: TextStyle()),
+                                content: const Text(
+                                  'تم النسخ',
+                                  style: TextStyle(),
+                                ),
                                 behavior: SnackBarBehavior.floating,
                                 backgroundColor: AppTheme.primaryColor,
                                 duration: const Duration(seconds: 1),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
                             );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(PhosphorIcons.copy(), size: 14, color: isDark ? Colors.white38 : Colors.black38),
+                            child: Icon(
+                              PhosphorIcons.copy(),
+                              size: 14,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
                           ),
                         ),
                       ),
@@ -2569,17 +3679,23 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Icon(PhosphorIcons.shareNetwork(), size: 14, color: isDark ? Colors.white38 : Colors.black38),
+                            child: Icon(
+                              PhosphorIcons.shareNetwork(),
+                              size: 14,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 )
-              else 
+              else
                 const SizedBox(height: 14),
             ],
           ),
@@ -2681,143 +3797,162 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           // The generic quick prompts above input bar have been removed to save space
           // and prevent duplication with the welcome screen suggestions.
           Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.06),
-                ),
-              ),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                enabled: !isLoading,
-                textInputAction: TextInputAction.send,
-                onSubmitted: (text) => _sendMessage(text),
-                maxLines: 3,
-                minLines: 1,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: isDark
-                      ? AppTheme.darkTextPrimary
-                      : AppTheme.lightTextPrimary,
-                ),
-                decoration: InputDecoration(
-                  hintText: loc.aiTypeMessage,
-                  hintStyle: TextStyle(
-                    color: isDark ? Colors.white30 : Colors.black26,
-                    fontSize: 14,
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.04),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : Colors.black.withValues(alpha: 0.06),
+                    ),
                   ),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // ── Microphone button (Voice Input / STT) ───────────────────
-          GestureDetector(
-            onTap: isLoading
-                ? null
-                : (_isRecording ? _stopVoiceInput : _startVoiceInput),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: _isRecording
-                    ? Colors.red.shade500
-                    : (isDark
-                        ? Colors.white.withValues(alpha: 0.07)
-                        : Colors.black.withValues(alpha: 0.05)),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _isRecording
-                      ? Colors.red.shade400
-                      : (isDark
-                          ? Colors.white.withValues(alpha: 0.1)
-                          : Colors.black.withValues(alpha: 0.08)),
-                ),
-                boxShadow: _isRecording
-                    ? [
-                        BoxShadow(
-                          color: Colors.red.withValues(alpha: 0.4),
-                          blurRadius: 14,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                _isRecording
-                    ? PhosphorIcons.stop(PhosphorIconsStyle.fill)
-                    : PhosphorIcons.microphone(PhosphorIconsStyle.fill),
-                color: _isRecording
-                    ? Colors.white
-                    : (isDark ? Colors.white60 : Colors.black45),
-                size: 20,
-              ),
-            )
-            .animate(target: _isRecording ? 1.0 : 0.0)
-            .scaleXY(begin: 1.0, end: 1.08, duration: 600.ms, curve: Curves.easeInOut)
-            .then()
-            .scaleXY(begin: 1.08, end: 1.0, duration: 600.ms, curve: Curves.easeInOut),
-          ),
-
-          const SizedBox(width: 8),
-
-          // ── Send button ─────────────────────────────────────────────
-          GestureDetector(
-            onTap: isLoading ? null : () => _sendMessage(_controller.text),
-            child: Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                gradient: isLoading
-                    ? null
-                    : LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.accentColor],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+                  child: TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    enabled: !isLoading,
+                    textInputAction: TextInputAction.send,
+                    onSubmitted: (text) => _sendMessage(text),
+                    maxLines: 3,
+                    minLines: 1,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: loc.aiTypeMessage,
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white30 : Colors.black26,
+                        fontSize: 14,
                       ),
-                color: isLoading
-                    ? (isDark ? Colors.white10 : Colors.black12)
-                    : null,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: isLoading
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+
+              // ── Microphone button (Voice Input / STT) ───────────────────
+              GestureDetector(
+                onTap: isLoading
                     ? null
-                    : [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                    : (_isRecording ? _stopVoiceInput : _startVoiceInput),
+                child:
+                    AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: _isRecording
+                                ? Colors.red.shade500
+                                : (isDark
+                                      ? Colors.white.withValues(alpha: 0.07)
+                                      : Colors.black.withValues(alpha: 0.05)),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: _isRecording
+                                  ? Colors.red.shade400
+                                  : (isDark
+                                        ? Colors.white.withValues(alpha: 0.1)
+                                        : Colors.black.withValues(alpha: 0.08)),
+                            ),
+                            boxShadow: _isRecording
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.red.withValues(alpha: 0.4),
+                                      blurRadius: 14,
+                                      spreadRadius: 2,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Icon(
+                            _isRecording
+                                ? PhosphorIcons.stop(PhosphorIconsStyle.fill)
+                                : PhosphorIcons.microphone(
+                                    PhosphorIconsStyle.fill,
+                                  ),
+                            color: _isRecording
+                                ? Colors.white
+                                : (isDark ? Colors.white60 : Colors.black45),
+                            size: 20,
+                          ),
+                        )
+                        .animate(target: _isRecording ? 1.0 : 0.0)
+                        .scaleXY(
+                          begin: 1.0,
+                          end: 1.08,
+                          duration: 600.ms,
+                          curve: Curves.easeInOut,
+                        )
+                        .then()
+                        .scaleXY(
+                          begin: 1.08,
+                          end: 1.0,
+                          duration: 600.ms,
+                          curve: Curves.easeInOut,
                         ),
-                      ],
               ),
-              child: Icon(
-                PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
-                color: isLoading ? Colors.grey : Colors.white,
-                size: 20,
+
+              const SizedBox(width: 8),
+
+              // ── Send button ─────────────────────────────────────────────
+              GestureDetector(
+                onTap: isLoading ? null : () => _sendMessage(_controller.text),
+                child: Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    gradient: isLoading
+                        ? null
+                        : LinearGradient(
+                            colors: [
+                              AppTheme.primaryColor,
+                              AppTheme.accentColor,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    color: isLoading
+                        ? (isDark ? Colors.white10 : Colors.black12)
+                        : null,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: isLoading
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                  ),
+                  child: Icon(
+                    PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
+                    color: isLoading ? Colors.grey : Colors.white,
+                    size: 20,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
-      ],
-      ),
     );
   }
+
   // _buildQuickPrompts was removed in favor of unified context-aware welcome view
 }
 
@@ -2826,11 +3961,13 @@ class _TypewriterMarkdown extends StatefulWidget {
   final String content;
   final bool isDark;
   final bool animate;
+  final void Function(String prompt)? onActionRequested;
 
   const _TypewriterMarkdown({
     required this.content,
     required this.isDark,
     this.animate = false,
+    this.onActionRequested,
   });
 
   @override
@@ -2911,36 +4048,38 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
           launchUrl(Uri.parse(href), mode: LaunchMode.externalApplication);
         }
       },
-      builders: {'code': CodeElementBuilder(widget.isDark, context)},
+      builders: {
+        'code': CodeElementBuilder(
+          widget.isDark,
+          context,
+          onActionRequested: widget.onActionRequested,
+          messageContent: widget.content,
+        ),
+      },
       styleSheet: MarkdownStyleSheet(
         p: TextStyle(
           color: widget.isDark ? Colors.white : Colors.black87,
           fontSize: 14,
           height: 1.6,
-          
         ),
         h1: TextStyle(
           color: widget.isDark ? Colors.white : Colors.black87,
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          
         ),
         h2: TextStyle(
           color: widget.isDark ? Colors.white : Colors.black87,
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          
         ),
         h3: TextStyle(
           color: widget.isDark ? Colors.white : Colors.black87,
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          
         ),
         strong: TextStyle(
           color: widget.isDark ? Colors.white : Colors.black87,
           fontWeight: FontWeight.bold,
-          
         ),
         code: TextStyle(
           color: AppTheme.primaryColor,
@@ -2956,10 +4095,7 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
         ),
         blockquoteDecoration: BoxDecoration(
           border: Border(
-            left: BorderSide(
-              color: AppTheme.primaryColor,
-              width: 3,
-            ),
+            left: BorderSide(color: AppTheme.primaryColor, width: 3),
           ),
         ),
         listBullet: TextStyle(
@@ -3089,18 +4225,18 @@ class _SuggestionChipState extends State<_SuggestionChip> {
           decoration: BoxDecoration(
             color: _pressed
                 ? (widget.isDark
-                    ? Colors.white.withValues(alpha: 0.13)
-                    : AppTheme.primaryColor.withValues(alpha: 0.09))
+                      ? Colors.white.withValues(alpha: 0.13)
+                      : AppTheme.primaryColor.withValues(alpha: 0.09))
                 : (widget.isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.04)),
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.04)),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: _pressed
                   ? AppTheme.primaryColor.withValues(alpha: 0.45)
                   : (widget.isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.06)),
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black.withValues(alpha: 0.06)),
             ),
           ),
           child: Row(
@@ -3198,75 +4334,80 @@ class _AiUserBubbleState extends State<_AiUserBubble> {
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
     return Align(
-      alignment: Alignment.centerRight,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.82,
-            ),
-            margin: const EdgeInsets.only(bottom: 6),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(18),
-                topRight: Radius.circular(18),
-                bottomLeft: Radius.circular(18),
-                bottomRight: Radius.circular(4),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+          alignment: Alignment.centerRight,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.82,
                 ),
-              ],
-            ),
-            child: _editing
-                ? _buildEditField()
-                : Text(
-                    widget.msg.content,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(18),
+                    topRight: Radius.circular(18),
+                    bottomLeft: Radius.circular(18),
+                    bottomRight: Radius.circular(4),
                   ),
-          ),
-          if (widget.isLast && widget.onEdit != null && !_editing)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Tooltip(
-                    message: 'تعديل وإعادة إرسال',
-                    child: GestureDetector(
-                      onTap: _startEditing,
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? Colors.white.withValues(alpha: 0.05)
-                              : Colors.black.withValues(alpha: 0.03),
-                          borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: _editing
+                    ? _buildEditField()
+                    : Text(
+                        widget.msg.content,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          height: 1.5,
                         ),
-                        child: Icon(PhosphorIcons.pencilSimple(),
-                            size: 14,
-                            color: isDark ? Colors.white38 : Colors.black38),
                       ),
-                    ),
-                  ),
-                ],
               ),
-            )
-          else if (!_editing)
-            const SizedBox(height: 6),
-        ],
-      ),
-    )
+              if (widget.isLast && widget.onEdit != null && !_editing)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Tooltip(
+                        message: 'تعديل وإعادة إرسال',
+                        child: GestureDetector(
+                          onTap: _startEditing,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              PhosphorIcons.pencilSimple(),
+                              size: 14,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!_editing)
+                const SizedBox(height: 6),
+            ],
+          ),
+        )
         .animate()
         .fadeIn(duration: 250.ms)
         .slideX(begin: 0.1, end: 0, duration: 250.ms);
@@ -3275,84 +4416,89 @@ class _AiUserBubbleState extends State<_AiUserBubble> {
   Widget _buildEditField() {
     final controller = _editController!;
     return Shortcuts(
-      shortcuts: const {
-        SingleActivator(LogicalKeyboardKey.escape): _DismissIntent(),
-      },
-      child: Actions(
-        actions: {
-          _DismissIntent: CallbackAction<_DismissIntent>(
-            onInvoke: (_) {
-              _cancelEditing();
-              return null;
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.escape): _DismissIntent(),
+          },
+          child: Actions(
+            actions: {
+              _DismissIntent: CallbackAction<_DismissIntent>(
+                onInvoke: (_) {
+                  _cancelEditing();
+                  return null;
+                },
+              ),
             },
-          ),
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header: small label so the user knows the bubble is now in
-            // edit mode, not just a styled message.
-            Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  PhosphorIcons.pencilSimpleLine(PhosphorIconsStyle.fill),
-                  size: 12,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'تعديل الرسالة',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            EditTextField(
-              controller: controller,
-              accent: AppTheme.primaryColor,
-              hint: 'عدّل رسالتك ثم اضغط إعادة الإرسال…',
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'سيتم استبدال الرد السابق وإعادة توليده',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 10,
-                      fontStyle: FontStyle.italic,
+                // Header: small label so the user knows the bubble is now in
+                // edit mode, not just a styled message.
+                Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.pencilSimpleLine(PhosphorIconsStyle.fill),
+                      size: 12,
+                      color: Colors.white.withValues(alpha: 0.85),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'تعديل الرسالة',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                _EditActionButton(
-                  label: 'إلغاء',
-                  icon: PhosphorIcons.x(),
-                  onTap: _cancelEditing,
-                  isPrimary: false,
-                  primaryColor: AppTheme.primaryColor,
+                const SizedBox(height: 8),
+                EditTextField(
+                  controller: controller,
+                  accent: AppTheme.primaryColor,
+                  hint: 'عدّل رسالتك ثم اضغط إعادة الإرسال…',
                 ),
-                const SizedBox(width: 8),
-                _EditActionButton(
-                  label: 'إعادة الإرسال',
-                  icon: PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
-                  onTap: _submitEdit,
-                  isPrimary: true,
-                  primaryColor: AppTheme.primaryColor,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'سيتم استبدال الرد السابق وإعادة توليده',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _EditActionButton(
+                      label: 'إلغاء',
+                      icon: PhosphorIcons.x(),
+                      onTap: _cancelEditing,
+                      isPrimary: false,
+                      primaryColor: AppTheme.primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    _EditActionButton(
+                      label: 'إعادة الإرسال',
+                      icon: PhosphorIcons.paperPlaneRight(
+                        PhosphorIconsStyle.fill,
+                      ),
+                      onTap: _submitEdit,
+                      isPrimary: true,
+                      primaryColor: AppTheme.primaryColor,
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(duration: 180.ms).scaleXY(begin: 0.97, end: 1, duration: 180.ms);
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 180.ms)
+        .scaleXY(begin: 0.97, end: 1, duration: 180.ms);
   }
 }
 

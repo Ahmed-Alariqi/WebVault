@@ -167,11 +167,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 width: size.width * 0.6,
                 height: size.width * 0.6,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryLight.withValues(alpha: 0.5),
+                  color: isDark 
+                      ? AppTheme.primaryColor.withValues(alpha: 0.1) 
+                      : AppTheme.primaryLight.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
+          // New Top-Right subtle bubble
+          Positioned(
+            top: 40,
+            right: -20,
+            child: Container(
+              width: size.width * 0.4,
+              height: size.width * 0.4,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    isDark ? Colors.purpleAccent.withValues(alpha: 0.15) : Colors.purpleAccent.withValues(alpha: 0.1),
+                    Colors.transparent,
+                  ],
+                ),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
             Positioned.fill(
               child: BackdropFilter(
                 filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
@@ -184,19 +204,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
                 children: [
-                  SizedBox(height: size.height * 0.02),
+                  SizedBox(height: size.height * 0.01),
 
                   // Logo / Branding
                   _buildLogo(isDark),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
                   // Login Card
                   _buildLoginCard(isDark),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Sign Up Link
                   _buildSignUpLink(isDark),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -213,20 +233,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Text(
           AppLocalizations.of(context)!.signIn,
           style: TextStyle(
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
             color: isDark ? Colors.white : const Color(0xFF1A1A2E),
           ),
         ).animate().fadeIn(duration: 400.ms),
-        const SizedBox(height: 0),
 
         // Welcome image
         Image.asset(
               isDark
                   ? 'assets/onboarding/welcome_image_light.png'
                   : 'assets/onboarding/welcome_image_dark.png',
-              height: 200,
+              height: 190,
               fit: BoxFit.contain,
             )
             .animate()
@@ -445,7 +464,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Google Button
                 OutlinedButton.icon(
@@ -459,7 +478,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),

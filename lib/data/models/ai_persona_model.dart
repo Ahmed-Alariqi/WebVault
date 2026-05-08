@@ -17,6 +17,7 @@ class AiPersonaModel {
   final int sortOrder;
   final List<Map<String, String>> quickActions;
   final List<AiPersonaMode> modes;
+  final List<String> enabledTools;
 
   const AiPersonaModel({
     required this.id,
@@ -34,7 +35,21 @@ class AiPersonaModel {
     required this.sortOrder,
     required this.quickActions,
     this.modes = const [],
+    this.enabledTools = const [],
   });
+
+  // ── Tool availability helpers ─────────────────────────────────────────────
+  /// True when at least one tool is enabled for this persona.
+  bool get hasTools => enabledTools.isNotEmpty;
+
+  /// True when web search (s.jina.ai) is available.
+  bool get hasWebSearch => enabledTools.contains('web_search');
+
+  /// True when URL content reading (r.jina.ai) is available.
+  bool get hasUrlReader => enabledTools.contains('url_reader');
+
+  /// True when code execution (Judge0) is available.
+  bool get hasCodeExec => enabledTools.contains('code_exec');
 
   /// True when this persona exposes specialised modes (cards UX).
   bool get hasModes => modes.where((m) => m.enabled).isNotEmpty;
@@ -97,6 +112,9 @@ class AiPersonaModel {
       sortOrder: json['sort_order'] as int? ?? 0,
       quickActions: actions,
       modes: modes,
+      enabledTools: (json['enabled_tools'] is List)
+          ? (json['enabled_tools'] as List).map((e) => e.toString()).toList()
+          : const [],
     );
   }
 
@@ -115,6 +133,7 @@ class AiPersonaModel {
         'sort_order': sortOrder,
         'quick_actions': quickActions,
         'modes': modes.map((m) => m.toJson()).toList(),
+        'enabled_tools': enabledTools,
       };
 
   // Identity is keyed off the stable [id] so that Riverpod family providers

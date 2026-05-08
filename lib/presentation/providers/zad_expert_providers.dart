@@ -140,12 +140,14 @@ class ExpertSessionsState {
   final List<ExpertChatSession> sessions;
   final String? activeSessionId;
   final bool isLoading;
+  final String? toolLoadingLabel;
   final String? error;
 
   const ExpertSessionsState({
     this.sessions = const [],
     this.activeSessionId,
     this.isLoading = false,
+    this.toolLoadingLabel,
     this.error,
   });
 
@@ -158,13 +160,16 @@ class ExpertSessionsState {
     List<ExpertChatSession>? sessions,
     String? activeSessionId,
     bool? isLoading,
+    String? toolLoadingLabel,
     String? error,
     bool clearError = false,
+    bool clearToolLabel = false,
   }) {
     return ExpertSessionsState(
       sessions: sessions ?? this.sessions,
       activeSessionId: activeSessionId ?? this.activeSessionId,
       isLoading: isLoading ?? this.isLoading,
+      toolLoadingLabel: clearToolLabel ? null : (toolLoadingLabel ?? this.toolLoadingLabel),
       error: clearError ? null : (error ?? this.error),
     );
   }
@@ -268,6 +273,10 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     _saveAllSessions();
   }
 
+  void setToolLoading(String? label) {
+    state = state.copyWith(toolLoadingLabel: label);
+  }
+
   void clearActiveSession() {
     final id = state.activeSessionId;
     if (id == null) return;
@@ -283,7 +292,11 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     _saveAllSessions();
   }
 
-  Future<void> sendMessage(String content) async {
+  Future<void> sendMessage(
+    String content, {
+    String? webContext,
+    Future<String?> Function()? webToolTask,
+  }) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
     // Offline guard: if we know there's no connectivity, surface a friendly
@@ -319,6 +332,13 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     _saveAllSessions();
     state = state.copyWith(isLoading: true, clearError: true);
 
+    String? finalWebContext = webContext;
+    if (webToolTask != null) {
+      finalWebContext = await webToolTask();
+      // Clear tool loading label when done
+      if (mounted) state = state.copyWith(clearToolLabel: true);
+    }
+
     // Insert an empty assistant placeholder we'll progressively fill from the
     // SSE stream. The UI sees content grow chunk-by-chunk for a "live typing"
     // experience and we never hit the 90s timeout window again.
@@ -337,6 +357,7 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
         personaId: personaId,
         chatHistory: updatedMessages,
         modeKey: modeKey,
+        webContext: finalWebContext,
       )) {
         buffer.write(chunk);
         aiMsg = aiMsg.copyWith(content: buffer.toString());
@@ -352,6 +373,7 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
             personaId: personaId,
             chatHistory: updatedMessages,
             modeKey: modeKey,
+            webContext: webContext,
           );
           if (fallback.trim().isNotEmpty) {
             aiMsg = aiMsg.copyWith(content: fallback);

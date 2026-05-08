@@ -104,6 +104,7 @@ class ZadExpertService {
     required String personaId,
     required List<AiChatMessage> chatHistory,
     String? modeKey,
+    String? webContext,
   }) async {
     final messages = chatHistory
         .where((m) => !m.isLoading)
@@ -125,6 +126,7 @@ class ZadExpertService {
             'persona_id': personaId,
             'messages': messages,
             if (modeKey != null && modeKey.isNotEmpty) 'mode_key': modeKey,
+            if (webContext != null && webContext.isNotEmpty) 'web_context': webContext,
           }),
         )
         .timeout(const Duration(minutes: 3));
@@ -155,6 +157,7 @@ class ZadExpertService {
     required String personaId,
     required List<AiChatMessage> chatHistory,
     String? modeKey,
+    String? webContext,
   }) async* {
     final messages = chatHistory
         .where((m) => !m.isLoading)
@@ -175,6 +178,7 @@ class ZadExpertService {
         'messages': messages,
         'stream': true,
         if (modeKey != null && modeKey.isNotEmpty) 'mode_key': modeKey,
+        if (webContext != null && webContext.isNotEmpty) 'web_context': webContext,
       });
 
       final res = await client

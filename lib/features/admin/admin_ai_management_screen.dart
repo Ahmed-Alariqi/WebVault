@@ -281,6 +281,9 @@ class _PersonasTab extends ConsumerWidget {
     final newActionLabelCtrl = TextEditingController();
     final newActionPromptCtrl = TextEditingController();
 
+    // Tool toggles — per-persona control over web search, URL reader, code exec.
+    final List<String> enabledTools = List<String>.from(existing?.enabledTools ?? const []);
+
     if (!context.mounted) return;
 
     final confirmed = await showModalBottomSheet<bool>(
@@ -613,6 +616,53 @@ class _PersonasTab extends ConsumerWidget {
                         activeThumbColor: const Color(0xFF8B5CF6),
                         contentPadding: EdgeInsets.zero,
                       ),
+                      const SizedBox(height: 16),
+
+                      // ── AI Tools per persona ──────────────────────────
+                      _label('الأدوات المتاحة', isDark),
+                      const SizedBox(height: 6),
+                      _ToolToggle(
+                        icon: Icons.search,
+                        label: 'البحث في الإنترنت',
+                        subtitle: 'web_search — بحث Jina AI',
+                        value: enabledTools.contains('web_search'),
+                        isDark: isDark,
+                        onChanged: (v) => setModalState(() {
+                          if (v) {
+                            if (!enabledTools.contains('web_search')) enabledTools.add('web_search');
+                          } else {
+                            enabledTools.remove('web_search');
+                          }
+                        }),
+                      ),
+                      _ToolToggle(
+                        icon: Icons.link,
+                        label: 'قراءة الروابط',
+                        subtitle: 'url_reader — Jina Reader',
+                        value: enabledTools.contains('url_reader'),
+                        isDark: isDark,
+                        onChanged: (v) => setModalState(() {
+                          if (v) {
+                            if (!enabledTools.contains('url_reader')) enabledTools.add('url_reader');
+                          } else {
+                            enabledTools.remove('url_reader');
+                          }
+                        }),
+                      ),
+                      _ToolToggle(
+                        icon: Icons.play_arrow_rounded,
+                        label: 'تنفيذ الأكواد',
+                        subtitle: 'code_exec — Judge0 CE',
+                        value: enabledTools.contains('code_exec'),
+                        isDark: isDark,
+                        onChanged: (v) => setModalState(() {
+                          if (v) {
+                            if (!enabledTools.contains('code_exec')) enabledTools.add('code_exec');
+                          } else {
+                            enabledTools.remove('code_exec');
+                          }
+                        }),
+                      ),
                       const SizedBox(height: 12),
 
                       // ── Quick actions (suggested prompts) ──
@@ -840,6 +890,7 @@ class _PersonasTab extends ConsumerWidget {
         quickActions: List<Map<String, String>>.from(quickActions),
         // Preserve sub-persona modes — they are managed in a dedicated sheet.
         modes: existing?.modes ?? const [],
+        enabledTools: List<String>.from(enabledTools),
       );
 
       try {
@@ -906,6 +957,7 @@ class _PersonasTab extends ConsumerWidget {
       sortOrder: p.sortOrder,
       quickActions: p.quickActions,
       modes: p.modes,
+      enabledTools: p.enabledTools,
     );
     await ZadExpertService.savePersona(updated, existingId: p.id);
     ref.invalidate(adminAllPersonasProvider);
@@ -953,6 +1005,68 @@ class _PersonasTab extends ConsumerWidget {
           fontSize: 13,
           color: isDark ? Colors.white70 : Colors.black54),
       textDirection: TextDirection.rtl,
+    );
+  }
+}
+
+// ── Tool Toggle widget for persona editor ────────────────────────────────────
+class _ToolToggle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool value;
+  final bool isDark;
+  final ValueChanged<bool> onChanged;
+
+  const _ToolToggle({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.isDark,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accentColor = value ? const Color(0xFF8B5CF6) : (isDark ? Colors.white38 : Colors.black38);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: value
+            ? const Color(0xFF8B5CF6).withValues(alpha: 0.08)
+            : (isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02)),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: value
+              ? const Color(0xFF8B5CF6).withValues(alpha: 0.3)
+              : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05)),
+        ),
+      ),
+      child: SwitchListTile(
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        value: value,
+        onChanged: onChanged,
+        activeThumbColor: const Color(0xFF8B5CF6),
+        secondary: Icon(icon, size: 20, color: accentColor),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? Colors.white38 : Colors.black38,
+          ),
+        ),
+      ),
     );
   }
 }

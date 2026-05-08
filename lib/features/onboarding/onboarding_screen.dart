@@ -34,54 +34,54 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   int _currentPage = 0;
 
   final List<_OnboardingPage> _pages = const [
-  // Screen 1 — المشكلة
-  _OnboardingPage(
-    title: 'كل شيء مفيد… يضيع بسهولة',
-    description:
-        'روابط، أدوات، مفاتيح API، أكواد، ومصادر تمر عليك يوميًا… لكن الوصول لها لاحقًا ليس دائمًا سهل.\n\nزاد التقني يجمعها لك في مكان واحد.',
-    imagePath: 'assets/onboarding/onboarding_1.png',
-  ),
+    // Screen 1 — المشكلة
+    _OnboardingPage(
+      title: 'كل شيء مفيد… يضيع بسهولة',
+      description:
+          'روابط، أدوات، مفاتيح API، أكواد، ومصادر تمر عليك يوميًا… لكن الوصول لها لاحقًا ليس دائمًا سهل.\n\nزاد التقني يجمعها لك في مكان واحد.',
+      imagePath: 'assets/onboarding/onboarding_1.png',
+    ),
 
-  // Screen 2 — المستكشف
-  _OnboardingPage(
-    title: 'اكتشف ما يفيدك فعلًا',
-    description:
-        'أفضل الأدوات، المواقع، الكورسات، والعروض التقنية — مختارة بعناية بعيدًا عن التشتت والتكرار.',
-    imagePath: 'assets/onboarding/onboarding_2.png',
-  ),
+    // Screen 2 — المستكشف
+    _OnboardingPage(
+      title: 'اكتشف ما يفيدك فعلًا',
+      description:
+          'أفضل الأدوات، المواقع، الكورسات، والعروض التقنية — مختارة بعناية بعيدًا عن التشتت والتكرار.',
+      imagePath: 'assets/onboarding/onboarding_2.png',
+    ),
 
-  // Screen 3 — الحفظ والتنظيم
-  _OnboardingPage(
-    title: 'احفظ كل ما تحتاجه',
-    description:
-        'من روابطك المهمة إلى مفاتيح API، الأكواد، الحسابات، وأي قيمة تستخدمها… كل شيء منظم وسهل الوصول.',
-    imagePath: 'assets/onboarding/onboarding_3.png',
-  ),
+    // Screen 3 — الحفظ والتنظيم
+    _OnboardingPage(
+      title: 'احفظ كل ما تحتاجه',
+      description:
+          'من روابطك المهمة إلى مفاتيح API، الأكواد، الحسابات، وأي قيمة تستخدمها… كل شيء منظم وسهل الوصول.',
+      imagePath: 'assets/onboarding/onboarding_3.png',
+    ),
 
-  // Screen 4 — الحافظة الذكية
-  _OnboardingPage(
-    title: 'احفظ من أي مكان… فورًا',
-    description:
-        'حدد أي نص أو قيمة وشاركها مباشرة إلى زاد التقني.\nبدون خطوات معقدة، وبدون مغادرة ما تعمل عليه.',
-    imagePath: 'assets/onboarding/onboarding_4.png',
-  ),
+    // Screen 4 — الحافظة الذكية
+    _OnboardingPage(
+      title: 'احفظ من أي مكان… فورًا',
+      description:
+          'حدد أي نص أو قيمة وشاركها مباشرة إلى زاد التقني.\nبدون خطوات معقدة، وبدون مغادرة ما تعمل عليه.',
+      imagePath: 'assets/onboarding/onboarding_4.png',
+    ),
 
-  // Screen 5 — المجتمع
-  _OnboardingPage(
-    title: 'لست وحدك في رحلتك التقنية',
-    description:
-        'مجتمع تقني يشارك الأدوات، الخبرات، والتجارب — لتتعلم أسرع وتبقى دائمًا في المقدمة.',
-    imagePath: 'assets/onboarding/onboarding_5.png',
-  ),
+    // Screen 5 — المجتمع
+    _OnboardingPage(
+      title: 'لست وحدك في رحلتك التقنية',
+      description:
+          'مجتمع تقني يشارك الأدوات، الخبرات، والتجارب — لتتعلم أسرع وتبقى دائمًا في المقدمة.',
+      imagePath: 'assets/onboarding/onboarding_5.png',
+    ),
 
-  // Screen 6 — الشاشة الأخيرة
-  _OnboardingPage(
-    title: 'كل ما تحتاجه… في مكان واحد',
-    description:
-        'زاد التقني هو مركزك الذكي لتنظيم كل ما يهمك على الإنترنت والوصول إليه في أي وقت.',
-    imagePath: 'assets/onboarding/onboarding_6.png',
-  ),
-];
+    // Screen 6 — الشاشة الأخيرة
+    _OnboardingPage(
+      title: 'كل ما تحتاجه… في مكان واحد',
+      description:
+          'زاد التقني هو مركزك الذكي لتنظيم كل ما يهمك على الإنترنت والوصول إليه في أي وقت.',
+      imagePath: 'assets/onboarding/onboarding_6.png',
+    ),
+  ];
 
   @override
   void initState() {
@@ -129,9 +129,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final isFirstPage = _currentPage == 0;
 
     return Scaffold(
-      backgroundColor: isDark
-          ? AppTheme.darkBg
-          : const Color(0xFFF8F9FA),
+      backgroundColor: isDark ? AppTheme.darkBg : const Color(0xFFF8F9FA),
       body: Stack(
         children: [
           // Subtle background decoration (Glassmorphism blobs)

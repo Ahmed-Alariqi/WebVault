@@ -19,6 +19,8 @@ import '../../utils/text_utils.dart';
 import '../../core/services/analytics_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../features/ai_assistant/ai_chat_screen.dart';
+import 'custom_quill_editor.dart';
+
 
 class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
@@ -423,9 +425,12 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                       ),
                                       child: QuillEditor.basic(
                                         controller: quillController,
-                                        config: const QuillEditorConfig(
+                                        config: QuillEditorConfig(
                                           showCursor: false,
                                           scrollable: false,
+                                          embedBuilders: [
+                                            MentionEmbedBuilder(),
+                                          ],
                                         ),
                                       ),
                                     ),

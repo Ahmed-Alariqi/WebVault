@@ -127,7 +127,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { persona_id, messages, stream, mode_key } = body;
+    const { persona_id, messages, stream, mode_key, web_context } = body;
 
     if (!messages || !Array.isArray(messages)) {
       logUsage({ userId, personaId: null, providerId: null, keySuffix: null,
@@ -194,6 +194,14 @@ Deno.serve(async (req: Request) => {
         modeContent += `\n\n## قالب الإخراج الموصى به\n${mode.output_template}`;
       }
       sections.push(modeContent);
+    }
+
+    // Layer 2.5 — web context (search results / URL content injected by Flutter)
+    // This layer is populated when the client performed a web search or URL
+    // read before calling zad-expert. It gives the model grounded, real-time
+    // information to base its answer on.
+    if (typeof web_context === 'string' && web_context.trim().length > 0) {
+      sections.push(`# سياق من الإنترنت (معلومات حية تم جلبها الآن)\n\nاستند على المعلومات التالية في إجابتك. اذكر المصادر عند الاقتباس.\n\n${web_context}`);
     }
 
     // Layer 3 — suggestions protocol (UI integration; least identity-defining).

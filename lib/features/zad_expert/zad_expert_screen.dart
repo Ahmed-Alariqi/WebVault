@@ -28,6 +28,8 @@ import '../../data/models/ai_chat_model.dart';
 import '../../data/models/ai_persona_model.dart';
 
 import '../../data/models/ai_persona_mode.dart';
+import '../../data/models/web_tools_models.dart';
+import '../../data/services/web_tools_service.dart';
 
 import '../../presentation/providers/zad_expert_providers.dart';
 
@@ -298,6 +300,14 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
   final stt.SpeechToText _speech = stt.SpeechToText();
 
   bool _isListening = false;
+  String? _activeToolMode;
+
+  final _webSearchPatterns = RegExp(r'(ابحث|ما هو|من هو|اخبار|سعر|طقس|هل تعلم|بحث عن|اريد ان اعرف|اخر الاخبار|تفاصيل عن)', caseSensitive: false);
+  final _urlRegex = RegExp(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)');
+
+  bool _shouldAutoSearch(String text) => _webSearchPatterns.hasMatch(text);
+  bool _containsUrl(String text) => _urlRegex.hasMatch(text);
+  String? _extractUrl(String text) => _urlRegex.stringMatch(text);
 
   bool _sttAvailable = true;
 
@@ -421,20 +431,114 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
 
 
-  void _sendMessage(String text) {
-
+  void _sendMessage(String text) async {
     final persona = ref.read(selectedPersonaProvider);
-
     if (text.trim().isEmpty || persona == null) return;
-
     HapticFeedback.lightImpact();
 
-    ref.read(expertChatProvider(persona).notifier).sendMessage(text);
+    Future<String?> Function()? toolTask;
+
+    if (_activeToolMode == 'search' && persona.hasWebSearch) {
+      toolTask = () => _performWebSearch(persona, text.trim());
+      _clearToolMode();
+    } else if (_activeToolMode == 'url' && persona.hasUrlReader) {
+      toolTask = () => _performUrlRead(persona, text.trim());
+      _clearToolMode();
+    } else if (persona.hasWebSearch && _shouldAutoSearch(text.trim())) {
+      toolTask = () => _performWebSearch(persona, text.trim());
+    } else if (persona.hasUrlReader && _containsUrl(text.trim())) {
+      final url = _extractUrl(text.trim());
+      if (url != null) {
+        toolTask = () => _performUrlRead(persona, url);
+      }
+    }
+
+    if (!mounted) return;
+    ref.read(expertChatProvider(persona).notifier).sendMessage(text, webToolTask: toolTask);
 
     _controller.clear();
-
     _scrollToBottom();
+  }
 
+  Future<String?> _performWebSearch(AiPersonaModel persona, String query) async {
+    final provider = ref.read(expertChatProvider(persona).notifier);
+    provider.setToolLoading('🔍 جارٍ البحث في الإنترنت...');
+    try {
+      final results = await WebToolsService.search(query);
+      if (results.isEmpty) return null;
+
+      provider.setToolLoading('📖 جارٍ تحليل وقراءة أهم 3 مصادر...');
+
+      final buffer = StringBuffer('## نتائج البحث عن: $query\n\n');
+      final topResults = results.take(3).toList();
+      final readFutures = topResults.map((r) async {
+        try {
+          return await WebToolsService.readUrl(r.url);
+        } catch (_) {
+          return null; 
+        }
+      });
+      final readResults = await Future.wait(readFutures);
+
+      for (var i = 0; i < results.length; i++) {
+        final r = results[i];
+        buffer.writeln('### [${i + 1}] ${r.title}');
+        buffer.writeln('الرابط: ${r.url}');
+        
+        if (i < 3 && readResults[i] != null && readResults[i]!.content.isNotEmpty) {
+          buffer.writeln('المحتوى التفصيلي للصفحة:');
+          buffer.writeln(readResults[i]!.content);
+        } else {
+          buffer.writeln('وصف مختصر:');
+          buffer.writeln(r.description);
+        }
+        buffer.writeln();
+      }
+
+      provider.setToolLoading('🤖 جارٍ تجهيز وصياغة الرد الاحترافي...');
+      buffer.writeln('## تعليمات هامة جداً لصياغة الرد والمصادر:');
+      buffer.writeln('1. قدم إجابة مفصلة، دقيقة، وقيمة جداً للمستخدم، ولا تقتصر على إجابة سطحية.');
+      buffer.writeln('2. في نهاية إجابتك، أضف قسماً بعنوان "المصادر:" وضع فيه قائمة نقطية بأسماء المواقع لتكون قابلة للضغط كروابط.');
+      buffer.writeln('3. صيغة المصادر يجب أن تكون روابط Markdown صريحة هكذا: [اسم الموقع](رابط الموقع).');
+      buffer.writeln('4. لا تضع أي مصادر أو أرقام كمصادر وسط النص، فقط في النهاية تحت قسم المصادر.');
+
+      await Future.delayed(const Duration(milliseconds: 600));
+      return buffer.toString();
+    } catch (e) {
+      debugPrint('Web search error: $e');
+      return null;
+    }
+  }
+
+  Future<String?> _performUrlRead(AiPersonaModel persona, String url) async {
+    final provider = ref.read(expertChatProvider(persona).notifier);
+    provider.setToolLoading('📖 جارٍ قراءة وتحليل الرابط المرفق...');
+    try {
+      final result = await WebToolsService.readUrl(url);
+      provider.setToolLoading('🤖 جارٍ تجهيز الرد...');
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      return '## محتوى الرابط: $url\n\n${result.content}\n\n'
+             '## تعليمات هامة لصياغة الرد:\n'
+             'قدم إجابة تحليلية ومفيدة جداً بناءً على محتوى الرابط. في نهاية الإجابة اذكر المصدر كرابط قابل للضغط هكذا: [مصدر المحتوى]($url).';
+    } catch (e) {
+      debugPrint('URL read error: $e');
+      return null;
+    }
+  }
+
+  void _toggleToolMode(String mode) {
+    setState(() {
+      if (_activeToolMode == mode) {
+        _activeToolMode = null;
+      } else {
+        _activeToolMode = mode;
+      }
+    });
+  }
+
+  void _clearToolMode() {
+    if (mounted) setState(() => _activeToolMode = null);
   }
 
 
@@ -902,7 +1006,15 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
                 _buildInputBar(
 
-                    isDark, chatState.isLoading, personaColor),
+                  isDark,
+
+                  chatState.isLoading,
+
+                  personaColor,
+
+                  selectedPersona,
+
+                ),
 
               ],
 
@@ -2500,12 +2612,8 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     // the placeholder is created OR if the last message is the user's.
 
     final last = messages.isNotEmpty ? messages.last : null;
-
-    final showTyping = chatState.isLoading &&
-
-        (last == null || last.role == 'user');
-
-
+    final showTyping = chatState.isLoading && (last == null || last.role == 'user');
+    final showLoader = showTyping || chatState.toolLoadingLabel != null;
 
     // Locate the index of the most recent user-authored message so we can
 
@@ -2541,14 +2649,10 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
       padding: const EdgeInsets.all(16),
 
-      itemCount: messages.length + (showTyping ? 1 : 0),
-
+      itemCount: messages.length + (showLoader ? 1 : 0),
       itemBuilder: (ctx, i) {
-
-        if (i == messages.length && showTyping) {
-
-          return _buildTypingIndicator(isDark, personaColor);
-
+        if (i == messages.length && showLoader) {
+          return _buildTypingIndicator(isDark, personaColor, toolLabel: chatState.toolLoadingLabel);
         }
 
         final msg = messages[i];
@@ -2607,104 +2711,73 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
   // ── Typing indicator ──
 
-  Widget _buildTypingIndicator(bool isDark, Color personaColor) {
-
+  Widget _buildTypingIndicator(bool isDark, Color personaColor, {String? toolLabel}) {
     return Align(
-
       alignment: Alignment.centerRight,
-
       child: Container(
-
         margin: const EdgeInsets.only(bottom: 16),
-
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-
         decoration: BoxDecoration(
-
           color: isDark ? AppTheme.darkSurface : Colors.white,
-
           borderRadius: BorderRadius.circular(20)
-
               .copyWith(bottomRight: const Radius.circular(4)),
-
           boxShadow: [
-
             BoxShadow(
-
                 color: Colors.black.withValues(alpha: 0.05),
-
                 blurRadius: 10,
-
                 offset: const Offset(0, 4)),
-
           ],
-
         ),
-
         child: AnimatedBuilder(
-
           animation: _typingDotController,
-
           builder: (_, _) {
-
-            return Row(
-
+            final dots = Row(
               mainAxisSize: MainAxisSize.min,
-
               children: List.generate(3, (index) {
-
                 final delay = index * 0.33;
-
                 final phase =
-
                     (_typingDotController.value - delay).clamp(0.0, 1.0);
-
                 final opacity =
-
                     (0.3 + 0.7 * _bounceCurve(phase)).clamp(0.3, 1.0);
-
                 final scale = 0.7 + 0.3 * _bounceCurve(phase);
-
                 return Container(
-
                   margin: const EdgeInsets.symmetric(horizontal: 3),
-
                   child: Transform.scale(
-
                     scale: scale,
-
                     child: Container(
-
                       width: 9,
-
                       height: 9,
-
                       decoration: BoxDecoration(
-
                         color: personaColor.withValues(alpha: opacity),
-
                         shape: BoxShape.circle,
-
                       ),
-
                     ),
-
                   ),
-
                 );
-
               }),
-
             );
 
+            if (toolLabel == null) return dots;
+
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                dots,
+                const SizedBox(width: 12),
+                Text(
+                  toolLabel,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: personaColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            );
           },
-
         ),
-
       ),
-
     );
-
   }
 
 
@@ -2859,7 +2932,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
   // is what fixes the "sharp inner edges over the rounded outer container"
   // visual bug.
 
-  Widget _buildInputBar(bool isDark, bool isLoading, Color personaColor) {
+  Widget _buildInputBar(bool isDark, bool isLoading, Color personaColor, AiPersonaModel? persona) {
 
     final hasText = _controller.text.trim().isNotEmpty;
     final isFocused = _focusNode.hasFocus;
@@ -3006,7 +3079,11 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                               isCollapsed: true,
                               hintText: _isListening
                                   ? 'جارٍ الاستماع…'
-                                  : 'اكتب رسالتك هنا…',
+                                  : (_activeToolMode == 'search'
+                                      ? 'اكتب سؤالك، سيتم البحث في الإنترنت...'
+                                      : (_activeToolMode == 'url'
+                                          ? 'أرفق الرابط لقراءة محتواه...'
+                                          : 'اكتب رسالتك هنا…')),
                               hintStyle: TextStyle(
                                 fontSize: 15,
                                 color: _isListening
@@ -3027,6 +3104,30 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                           ),
                         ),
                       ),
+                      
+                      // Web Search Tool
+                      if (persona != null && persona.hasWebSearch && (_activeToolMode == null || _activeToolMode == 'search'))
+                        _InlineToolIcon(
+                          icon: PhosphorIcons.globe(),
+                          activeIcon: PhosphorIcons.globe(PhosphorIconsStyle.fill),
+                          tooltip: 'بحث الويب',
+                          isActive: _activeToolMode == 'search',
+                          activeColor: personaColor,
+                          isDark: isDark,
+                          onTap: isLoading ? null : () => _toggleToolMode('search'),
+                        ),
+                        
+                      // URL Reader Tool
+                      if (persona != null && persona.hasUrlReader && (_activeToolMode == null || _activeToolMode == 'url'))
+                        _InlineToolIcon(
+                          icon: PhosphorIcons.link(),
+                          activeIcon: PhosphorIcons.link(PhosphorIconsStyle.bold),
+                          tooltip: 'قراءة الرابط',
+                          isActive: _activeToolMode == 'url',
+                          activeColor: personaColor,
+                          isDark: isDark,
+                          onTap: isLoading ? null : () => _toggleToolMode('url'),
+                        ),
 
                       // Send button (trailing in RTL = left side)
                       _ComposerSendButton(
@@ -3988,7 +4089,7 @@ class _ExpertBubbleState extends State<_ExpertBubble> {
 
                           builders: {
 
-                            'code': CodeElementBuilder(isDark, context),
+                            'code': CodeElementBuilder(isDark, context, onActionRequested: onSuggestionSelected, messageContent: msg.content),
 
                           },
 
@@ -5661,4 +5762,301 @@ class _ChasingBorderPainter extends CustomPainter {
       old.progress != progress ||
       old.color != color ||
       old.radius != radius;
+}
+
+class CodeExecResultWidget extends StatefulWidget {
+  final CodeExecResult result;
+  final void Function(String prompt)? onActionRequested;
+  
+  const CodeExecResultWidget({super.key, required this.result, this.onActionRequested});
+
+  @override
+  State<CodeExecResultWidget> createState() => _CodeExecResultWidgetState();
+}
+
+class _CodeExecResultWidgetState extends State<CodeExecResultWidget> {
+  bool _isExpanded = false;
+
+  bool _isBase64Image(String text) {
+    final t = text.trim();
+    if (t.startsWith('iVBORw0KGgo') || t.startsWith('/9j/')) return true;
+    if (t.startsWith('data:image')) return true;
+    return false;
+  }
+
+  Widget _buildImage(String text) {
+    try {
+      String b64 = text.trim();
+      if (b64.contains(',')) {
+        b64 = b64.split(',').last;
+      }
+      b64 = b64.replaceAll(RegExp(r'\s+'), '');
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: Image.memory(
+          const Base64Decoder().convert(b64),
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Text('فشل عرض الصورة.', style: TextStyle(color: Colors.red)),
+        ),
+      );
+    } catch (e) {
+      return Text('بيانات الصورة غير صالحة: $e', style: const TextStyle(color: Colors.red));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final res = widget.result;
+    final color = res.isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444);
+    
+    var output = res.displayOutput.trim();
+    if (res.isSuccess && (output == 'Accepted' || output.isEmpty)) {
+      output = '✅ تم التنفيذ بنجاح.\n(ملاحظة: هذا الأمر لا يملك مخرجات نصية لعرضها. استخدم استعلام SELECT لرؤية البيانات)';
+    }
+
+    final isImage = _isBase64Image(output);
+    
+    final lines = output.split('\n');
+    final hasLongOutput = !isImage && lines.length > 8;
+    final displayText = hasLongOutput && !_isExpanded 
+        ? '${lines.take(8).join('\n')}\n...' 
+        : output;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF121212) : const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Title Bar (Terminal Style) ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF2D2D2D),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  PhosphorIcons.terminalWindow(PhosphorIconsStyle.fill),
+                  size: 16,
+                  color: res.isSuccess ? color : const Color(0xFFEF4444),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  res.isSuccess ? 'Terminal - Success' : 'Terminal - Error',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                if (res.memoryFormatted != null) ...[
+                  Text(
+                    res.memoryFormatted!,
+                    style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                if (res.time != null)
+                  Text(
+                    '${res.time}s',
+                    style: const TextStyle(color: Colors.white38, fontSize: 10, fontFamily: 'monospace'),
+                  ),
+              ],
+            ),
+          ),
+          
+          // ── Output Area ──
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border(right: BorderSide(color: color, width: 3)),
+            ),
+            child: isImage 
+              ? _buildImage(output)
+              : SelectableText(
+                  displayText,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 13,
+                    height: 1.5,
+                    color: res.isSuccess ? Colors.white : const Color(0xFFFFA5A5),
+                  ),
+                ),
+          ),
+
+          // ── Smart AI Actions & Expand ──
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.05),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+            ),
+            child: Row(
+              children: [
+                if (widget.onActionRequested != null)
+                  GestureDetector(
+                    onTap: () {
+                      if (!res.isSuccess) {
+                        widget.onActionRequested!('الرجاء تحليل هذا الخطأ البرمجي الذي ظهر أثناء التنفيذ وإصلاحه:\n\n```\n$output\n```');
+                      } else {
+                        widget.onActionRequested!('الرجاء شرح هذه المخرجات التي ظهرت أثناء تنفيذ الكود:\n\n```\n$output\n```');
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: res.isSuccess ? Colors.blue.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: res.isSuccess ? Colors.blue.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            res.isSuccess ? Icons.lightbulb_outline : Icons.bug_report_outlined,
+                            size: 14,
+                            color: res.isSuccess ? Colors.blue[300] : Colors.red[300],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            res.isSuccess ? 'اشرح المخرجات' : 'أصلح الخطأ',
+                            style: TextStyle(
+                              color: res.isSuccess ? Colors.blue[300] : Colors.red[300],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                if (hasLongOutput)
+                  GestureDetector(
+                    onTap: () => setState(() => _isExpanded = !_isExpanded),
+                    child: Text(
+                      _isExpanded ? 'عرض أقل' : 'عرض المزيد (${lines.length - 8} أسطر)',
+                      style: TextStyle(
+                        color: isDark ? Colors.white54 : Colors.black54,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineToolIcon extends StatelessWidget {
+  final IconData icon;
+  final IconData? activeIcon;
+  final String tooltip;
+  final bool isActive;
+  final Color activeColor;
+  final bool isDark;
+  final VoidCallback? onTap;
+
+  const _InlineToolIcon({
+    required this.icon,
+    this.activeIcon,
+    required this.tooltip,
+    required this.isActive,
+    required this.activeColor,
+    required this.isDark,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+      decoration: BoxDecoration(
+        color: isActive 
+          ? activeColor.withValues(alpha: 0.15) 
+          : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isActive 
+            ? activeColor.withValues(alpha: 0.3) 
+            : Colors.transparent,
+          width: 1,
+        ),
+      ),
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) => ScaleTransition(scale: anim, child: child),
+                child: Stack(
+                  key: ValueKey<bool>(isActive),
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isActive ? (activeIcon ?? icon) : icon,
+                      size: 20,
+                      color: isActive ? activeColor : (isDark ? Colors.white54 : Colors.black45),
+                    ),
+                    if (isActive)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF1A1A2E) : const Color(0xFFF4F5F7),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            PhosphorIcons.x(PhosphorIconsStyle.bold),
+                            size: 8,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
