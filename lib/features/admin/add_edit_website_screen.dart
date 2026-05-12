@@ -366,6 +366,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
               .toList();
           await SupabaseConfig.client.from('collection_items').insert(inserts);
         }
+
+        // Auto-sync the is_premium_only flag based on collection membership
+        await syncWebsitePremiumFlag(newItemId);
       }
 
       // Link draft if applicable

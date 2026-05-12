@@ -599,7 +599,7 @@ class _ManageDraftsScreenState extends ConsumerState<ManageDraftsScreen> {
                           ? AppLocalizations.of(context)!.draftsPrepAi 
                           : AppLocalizations.of(context)!.draftsImproveAi,
                       icon: PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
-                      color: const Color(0xFF8B5CF6),
+                      color: AppTheme.primaryColor,
                       isDark: isDark,
                       onTap: () => _convertWithAI(draft),
                     ),

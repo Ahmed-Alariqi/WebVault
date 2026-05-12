@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../l10n/app_localizations.dart';
 
@@ -190,7 +191,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         icon: PhosphorIcons.lightbulb(
                           PhosphorIconsStyle.duotone,
                         ),
-                        color: const Color(0xFF8B5CF6),
+                        color: AppTheme.primaryColor,
                         isDark: isDark,
                         onTap: () => context.push('/admin/suggestions'),
                         delay: 0,
@@ -292,7 +293,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         icon: PhosphorIcons.presentationChart(
                           PhosphorIconsStyle.duotone,
                         ),
-                        color: const Color(0xFF8B5CF6),
+                        color: AppTheme.primaryColor,
                         isDark: isDark,
                         onTap: () => context.push('/admin/advertisements'),
                         delay: 335,
@@ -332,11 +333,30 @@ class AdminDashboardScreen extends ConsumerWidget {
                         icon: PhosphorIcons.brain(
                           PhosphorIconsStyle.duotone,
                         ),
-                        color: const Color(0xFF8B5CF6),
+                        color: AppTheme.primaryColor,
                         isDark: isDark,
                         onTap: () => context.push('/admin/ai-management'),
                         delay: 350,
                       ),
+
+                    // Membership Management
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final pendingCount = ref.watch(pendingMembershipCountProvider).valueOrNull ?? 0;
+                        return _ActionCard(
+                          title: 'إدارة العضوية',
+                          subtitle: 'الدعوات والطلبات',
+                          icon: PhosphorIcons.crownSimple(
+                            PhosphorIconsStyle.duotone,
+                          ),
+                          color: const Color(0xFFD946EF),
+                          isDark: isDark,
+                          onTap: () => context.push('/admin/membership'),
+                          delay: 355,
+                          badge: pendingCount > 0 ? _buildBadge(pendingCount) : null,
+                        );
+                      },
+                    ),
 
                     Consumer(
                       builder: (context, ref, _) {

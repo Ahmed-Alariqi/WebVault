@@ -231,7 +231,7 @@ class _AdminPersonaModesSheetState
               child: Row(
                 children: [
                   Icon(PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
-                      color: const Color(0xFF8B5CF6), size: 20),
+                      color: AppTheme.primaryColor, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -260,7 +260,7 @@ class _AdminPersonaModesSheetState
                   ElevatedButton(
                     onPressed: _saving ? null : _persist,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6),
+                      backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
@@ -326,8 +326,8 @@ class _AdminPersonaModesSheetState
                         borderRadius: BorderRadius.circular(14)),
                     side: BorderSide(
                         color:
-                            const Color(0xFF8B5CF6).withValues(alpha: 0.5)),
-                    foregroundColor: const Color(0xFF8B5CF6),
+                            AppTheme.primaryColor.withValues(alpha: 0.5)),
+                    foregroundColor: AppTheme.primaryColor,
                   ),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('إضافة وضع جديد'),
@@ -658,7 +658,7 @@ class _ModeEditorSheetState extends State<_ModeEditorSheet> {
     _systemPrompt = TextEditingController(text: m?.systemPrompt ?? '');
     _outputTemplate = TextEditingController(text: m?.outputTemplate ?? '');
     _selectedIcon = m?.icon ?? 'sparkle';
-    _selectedColor = m?.color ?? '#8B5CF6';
+    _selectedColor = m?.color ?? '#2563EB';
     _quickActions = [
       for (final a in (m?.quickActions ?? const <Map<String, String>>[]))
         {'label': a['label'] ?? '', 'prompt': a['prompt'] ?? ''}

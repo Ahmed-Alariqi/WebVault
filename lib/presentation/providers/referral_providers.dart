@@ -3,8 +3,39 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/referral_model.dart';
+import '../../data/models/membership_request_model.dart';
+import 'zad_expert_providers.dart';
 
 final _supabase = SupabaseConfig.client;
+
+/// The fixed UUID for the default (always-on) membership campaign.
+const kDefaultMembershipCampaignId = '00000000-0000-0000-0000-000000000001';
+
+// ══════════════════════════════════════════════════════
+//  APP CONFIG PROVIDERS
+// ══════════════════════════════════════════════════════
+
+/// Global app settings (key-value from app_settings table).
+final appSettingsProvider = FutureProvider<Map<String, String>>((ref) async {
+  final response = await _supabase.from('app_settings').select();
+  final map = <String, String>{};
+  for (final row in response as List) {
+    map[row['key'] as String] = row['value'] as String;
+  }
+  return map;
+});
+
+/// Default number of invites required (from app_settings).
+final defaultRequiredInvitesProvider = FutureProvider<int>((ref) async {
+  final settings = await ref.watch(appSettingsProvider.future);
+  return int.tryParse(settings['default_required_invites'] ?? '3') ?? 3;
+});
+
+/// Whether membership requests are enabled.
+final membershipRequestsEnabledProvider = FutureProvider<bool>((ref) async {
+  final settings = await ref.watch(appSettingsProvider.future);
+  return settings['membership_requests_enabled'] == 'true';
+});
 
 // ══════════════════════════════════════════════════════
 //  CAMPAIGN PROVIDERS
@@ -108,6 +139,21 @@ final myReferralsProvider = FutureProvider<List<Referral>>((ref) async {
       .order('created_at', ascending: false);
 
   return (response as List).map((j) => Referral.fromJson(j)).toList();
+});
+
+/// Total confirmed referrals across ALL campaigns (including default).
+/// This is used for the "default invite" system when no specific campaign exists.
+final myTotalConfirmedReferralsProvider = FutureProvider<int>((ref) async {
+  final uid = _supabase.auth.currentUser?.id;
+  if (uid == null) return 0;
+
+  final response = await _supabase
+      .from('referrals')
+      .select('id')
+      .eq('referrer_id', uid)
+      .eq('status', 'confirmed');
+
+  return (response as List).length;
 });
 
 /// Confirmed referral count for current user for a specific campaign
@@ -351,6 +397,7 @@ final isEligibleForCollectionProvider = FutureProvider.family<bool, String>((
 
 /// Submit a referral code (called by the referred user)
 /// Referral stays as 'pending' until activity verification passes.
+/// Now works even without an active campaign by using the default system campaign.
 Future<String?> submitReferralCode(String code, WidgetRef ref) async {
   final uid = _supabase.auth.currentUser?.id;
   if (uid == null) return 'Not logged in';
@@ -381,16 +428,14 @@ Future<String?> submitReferralCode(String code, WidgetRef ref) async {
     return 'self_referral';
   }
 
-  // 4. Find active campaign
+  // 4. Find active campaign OR fall back to default membership campaign
   final campaign = await ref.read(activeReferralCampaignProvider.future);
-  if (campaign == null) {
-    return 'no_active_campaign';
-  }
+  final campaignId = campaign?.id ?? kDefaultMembershipCampaignId;
 
   // 5. Insert the referral as PENDING (no auto-confirm)
   try {
     await _supabase.from('referrals').insert({
-      'campaign_id': campaign.id,
+      'campaign_id': campaignId,
       'referrer_id': referralCode.userId,
       'referred_id': uid,
       'status': 'pending',
@@ -404,6 +449,7 @@ Future<String?> submitReferralCode(String code, WidgetRef ref) async {
 
     ref.invalidate(hasBeenReferredProvider);
     ref.invalidate(myReferralsProvider);
+    ref.invalidate(myTotalConfirmedReferralsProvider);
     return null; // success
   } catch (e) {
     if (e.toString().contains('duplicate') || e.toString().contains('unique')) {
@@ -603,6 +649,34 @@ Future<void> _grantReward(String referrerId, ReferralCampaign campaign) async {
       // Admin handles manually — no automatic action
       break;
   }
+
+  // Send notification for reward
+  String title = '🎁 مبروك! لقد حصلت على مكافأة';
+  String body = '';
+
+  switch (campaign.rewardType) {
+    case 'giveaway_entry':
+      body = 'تم تسجيلك في السحب بنجاح لتجاوزك عدد الإحالات المطلوبة.';
+      break;
+    case 'giveaway_boost':
+      body = 'تم تعزيز فرصك في السحب بـ 3 مشاركات إضافية.';
+      break;
+    case 'collection_access':
+      body = 'تم منحك صلاحية الوصول للمحتوى المميز بنجاح.';
+      break;
+    case 'custom':
+      body = campaign.rewardDescription ?? 'تواصل مع الدعم لاستلام مكافأتك.';
+      break;
+  }
+
+  if (body.isNotEmpty) {
+    await sendNotification(
+      userId: referrerId,
+      title: title,
+      body: body,
+      type: 'reward',
+    );
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -695,4 +769,217 @@ Future<void> approveReferral(String referralId, WidgetRef ref) async {
   ref.invalidate(campaignReferralsProvider(campaignId));
   ref.invalidate(campaignStatsProvider(campaignId));
   ref.invalidate(topReferrersProvider(campaignId));
+}
+
+// ══════════════════════════════════════════════════════
+//  MEMBERSHIP REQUEST PROVIDERS & ACTIONS
+// ══════════════════════════════════════════════════════
+
+/// Current user's membership request status (latest one).
+final myMembershipRequestProvider = FutureProvider<MembershipRequest?>(
+  (ref) async {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) return null;
+
+    final response = await _supabase
+        .from('membership_requests')
+        .select()
+        .eq('user_id', uid)
+        .order('created_at', ascending: false)
+        .limit(1);
+
+    if ((response as List).isEmpty) return null;
+    return MembershipRequest.fromJson(response.first);
+  },
+);
+
+/// All membership requests (admin view).
+final adminMembershipRequestsProvider =
+    FutureProvider<List<MembershipRequest>>((ref) async {
+  final response = await _supabase
+      .from('membership_requests')
+      .select('*, profiles(full_name, username, email)')
+      .order('created_at', ascending: false);
+
+  return (response as List)
+      .map((j) => MembershipRequest.fromJson(j))
+      .toList();
+});
+
+/// Pending membership requests count (for admin badge).
+final pendingMembershipCountProvider = FutureProvider<int>((ref) async {
+  final response = await _supabase
+      .from('membership_requests')
+      .select('id')
+      .eq('status', 'pending');
+  return (response as List).length;
+});
+
+/// Submit a membership request.
+Future<String?> submitMembershipRequest({
+  required WidgetRef ref,
+  required String requestType,
+  String? targetId,
+  String? reason,
+}) async {
+  final uid = _supabase.auth.currentUser?.id;
+  if (uid == null) return 'Not logged in';
+
+  try {
+    await _supabase.from('membership_requests').insert({
+      'user_id': uid,
+      'request_type': requestType,
+      'target_id': targetId,
+      'reason': reason,
+    });
+    ref.invalidate(myMembershipRequestProvider);
+    ref.invalidate(adminMembershipRequestsProvider);
+    ref.invalidate(pendingMembershipCountProvider);
+    return null; // success
+  } catch (e) {
+    return 'error';
+  }
+}
+
+/// Approve a membership request (admin).
+Future<void> approveMembershipRequest(String requestId, WidgetRef ref) async {
+  final adminId = _supabase.auth.currentUser?.id;
+  await _supabase.from('membership_requests').update({
+    'status': 'approved',
+    'reviewed_by': adminId,
+    'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+  }).eq('id', requestId);
+
+  ref.invalidate(adminMembershipRequestsProvider);
+  ref.invalidate(pendingMembershipCountProvider);
+
+  // Send notification to the user
+  try {
+    final req = await _supabase
+        .from('membership_requests')
+        .select('user_id')
+        .eq('id', requestId)
+        .single();
+    final userId = req['user_id'] as String;
+
+    await sendNotification(
+      userId: userId,
+      title: '🎉 تم قبول طلب العضوية',
+      body: 'تهانينا! تم قبول طلبك للحصول على العضوية المميزة. يمكنك الآن الاستمتاع بكافة المزايا.',
+      type: 'membership_approved',
+    );
+  } catch (e) {
+    debugPrint('Error sending approval notification: $e');
+  }
+}
+
+/// Send a targeted notification to a user (In-app + Push)
+Future<void> sendNotification({
+  required String userId,
+  required String title,
+  required String body,
+  String type = 'general',
+  String? targetUrl,
+}) async {
+  try {
+    // 1. Insert into DB for in-app history
+    await _supabase.from('notifications').insert({
+      'user_id': userId,
+      'title': title,
+      'body': body,
+      'type': type,
+      'target_url': targetUrl,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    });
+
+    // 2. Trigger Edge Function for Push Notification
+    try {
+      await _supabase.functions.invoke(
+        'send-notification',
+        body: {
+          'title': title,
+          'body': body,
+          'type': type,
+          'target_url': targetUrl,
+          'target_user_id': userId,
+          'mode': 'direct_to_user', // Mode for targeted push
+        },
+      );
+    } catch (e) {
+      debugPrint('Error triggering push notification: $e');
+    }
+  } catch (e) {
+    debugPrint('Error inserting notification: $e');
+  }
+}
+
+/// Reject a membership request (admin).
+Future<void> rejectMembershipRequest(String requestId, WidgetRef ref) async {
+  final adminId = _supabase.auth.currentUser?.id;
+  await _supabase.from('membership_requests').update({
+    'status': 'rejected',
+    'reviewed_by': adminId,
+    'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+  }).eq('id', requestId);
+
+  ref.invalidate(adminMembershipRequestsProvider);
+  ref.invalidate(pendingMembershipCountProvider);
+}
+
+/// Update a global app setting (admin).
+Future<void> updateAppSetting(
+  String key,
+  String value,
+  WidgetRef ref,
+) async {
+  await _supabase
+      .from('app_settings')
+      .upsert({'key': key, 'value': value, 'updated_at': DateTime.now().toUtc().toIso8601String()});
+  ref.invalidate(appSettingsProvider);
+  ref.invalidate(defaultRequiredInvitesProvider);
+  ref.invalidate(membershipRequestsEnabledProvider);
+}
+
+/// Toggle persona premium status (admin).
+Future<void> togglePersonaPremium(
+  String personaId,
+  bool isPremium,
+  WidgetRef ref,
+) async {
+  await _supabase
+      .from('ai_personas')
+      .update({'is_premium': isPremium})
+      .eq('id', personaId);
+  
+  // Invalidate the main personas provider so users see the change immediately
+  ref.invalidate(expertPersonasProvider);
+}
+
+// ══════════════════════════════════════════════════════
+//  ALL REFERRALS ACROSS ALL CAMPAIGNS (Admin — for
+//  the new membership management tab)
+// ══════════════════════════════════════════════════════
+
+/// All referrals across all campaigns (admin view for membership management).
+final allReferralsProvider = FutureProvider<List<Referral>>((ref) async {
+  final response = await _supabase
+      .from('referrals')
+      .select(
+        '*, referred:referred_id(full_name, username), referrer:referrer_id(full_name, username)',
+      )
+      .order('created_at', ascending: false);
+
+  return (response as List).map((j) => Referral.fromJson(j)).toList();
+});
+
+/// Instant-confirm a pending referral (admin shortcut).
+Future<void> instantConfirmReferral(String referralId, WidgetRef ref) async {
+  await _supabase.from('referrals').update({
+    'status': 'confirmed',
+    'confirmed_at': DateTime.now().toUtc().toIso8601String(),
+    'verified_at': DateTime.now().toUtc().toIso8601String(),
+  }).eq('id', referralId);
+
+  ref.invalidate(allReferralsProvider);
+  ref.invalidate(myTotalConfirmedReferralsProvider);
 }

@@ -25,6 +25,8 @@ import 'widgets/discover_filter_bottom_sheet.dart';
 import 'widgets/discover_quick_filter_bar.dart';
 import 'widgets/active_giveaway_banner.dart';
 import 'widgets/active_poll_card.dart';
+import 'widgets/premium_unlock_sheet.dart';
+import 'dart:ui';
 
 class DiscoverScreen extends ConsumerStatefulWidget {
   const DiscoverScreen({super.key});
@@ -926,12 +928,50 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     bool showBadge,
     int index,
   ) {
+    final premiumAccessIds = ref.watch(userPremiumCollectionIdsProvider).valueOrNull ?? const <String>{};
+    final bool isLocked = site.isPremiumOnly;
+
     return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (ctx) => WebsiteDetailsDialog(site: site),
-        );
+      onTap: () async {
+        if (isLocked) {
+          // Check if user has access
+          final collection = await findPremiumCollectionForItem(site.id);
+          if (collection != null && premiumAccessIds.contains(collection.id)) {
+            // User has access — show details
+            if (context.mounted) {
+              showDialog(
+                context: context,
+                builder: (ctx) => WebsiteDetailsDialog(site: site),
+              );
+            }
+          } else {
+            // Locked — show unlock sheet
+            HapticFeedback.mediumImpact();
+            if (context.mounted) {
+              final isDarkNow = Theme.of(context).brightness == Brightness.dark;
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (_) => PremiumFeatureSheet.fromWebsite(
+                  site: site,
+                  collection: collection,
+                  isDark: isDarkNow,
+                  onAction: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                    context.push('/share-hub');
+                  },
+                ),
+              );
+            }
+          }
+        } else {
+          showDialog(
+            context: context,
+            builder: (ctx) => WebsiteDetailsDialog(site: site),
+          );
+        }
       },
       child: Container(
         width: 260,
@@ -965,42 +1005,34 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   SizedBox(
                     height: 120,
                     width: double.infinity,
-                    child: GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => WebsiteDetailsDialog(site: site),
-                        );
-                      },
-                      child: site.imageUrl != null && site.imageUrl!.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: site.imageUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (ctx, url) => Container(
-                                color: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withValues(alpha: 0.05),
-                                child: Center(
-                                  child: Icon(
-                                    _typeIcon(site.contentType),
-                                    color: isDark
-                                        ? Colors.white24
-                                        : Colors.black12,
-                                  ),
+                    child: site.imageUrl != null && site.imageUrl!.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: site.imageUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (ctx, url) => Container(
+                              color: isDark
+                                  ? Colors.white10
+                                  : Colors.black.withValues(alpha: 0.05),
+                              child: Center(
+                                child: Icon(
+                                  _typeIcon(site.contentType),
+                                  color: isDark
+                                      ? Colors.white24
+                                      : Colors.black12,
                                 ),
                               ),
-                              errorWidget: (ctx, url, err) => _placeholderImage(
-                                context,
-                                isDark,
-                                site.contentType,
-                              ),
-                            )
-                          : _placeholderImage(
+                            ),
+                            errorWidget: (ctx, url, err) => _placeholderImage(
                               context,
                               isDark,
                               site.contentType,
                             ),
-                    ),
+                          )
+                        : _placeholderImage(
+                            context,
+                            isDark,
+                            site.contentType,
+                          ),
                   ),
                   // Trending badge
                   if (showBadge)
@@ -1049,6 +1081,60 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                 duration: 2000.ms,
                                 color: Colors.white.withValues(alpha: 0.3),
                               ),
+                    ),
+                  // Premium PRO badge
+                  if (isLocked)
+                    Positioned(
+                      top: 8,
+                      left: showBadge ? 80 : 8,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color(0xFFFFC107),
+                                  Color(0xFFFF9800),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFFC107).withValues(alpha: 0.4),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  PhosphorIcons.crown(PhosphorIconsStyle.fill),
+                                  size: 11,
+                                  color: Colors.black87,
+                                ),
+                                const SizedBox(width: 3),
+                                const Text(
+                                  'PRO',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   // Content type badge
                   if (site.contentType != 'website')
@@ -1350,8 +1436,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       ),
                     ],
                     const SizedBox(height: 8),
-                    // ── Dynamic Action Buttons ──
-                    _buildActionButtons(context, ref, site, isDark),
+                    // ── Dynamic Action Buttons (gated for premium) ──
+                    if (isLocked)
+                      _buildLockedActionRow(context, isDark)
+                    else
+                      _buildActionButtons(context, ref, site, isDark),
                   ],
                 ),
               ),
@@ -1360,6 +1449,44 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         ),
       ),
     ).animate(delay: (index * 100).ms).fadeIn().slideX(begin: 0.1);
+  }
+
+  // ── Locked Premium Row (replaces action buttons) ──
+  Widget _buildLockedActionRow(BuildContext context, bool isDark) {
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.amber.withValues(alpha: isDark ? 0.15 : 0.1),
+            Colors.amber.withValues(alpha: isDark ? 0.05 : 0.03),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.amber.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            PhosphorIcons.lock(PhosphorIconsStyle.fill),
+            size: 13,
+            color: Colors.amber,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'محتوى حصري — اضغط للتفاصيل',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: Colors.amber.withValues(alpha: 0.8),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   // ── Action Buttons per content type ──

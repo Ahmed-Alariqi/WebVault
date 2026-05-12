@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -14,6 +15,8 @@ import 'website_details_dialog.dart';
 import 'event_detail_dialogs.dart';
 import '../../presentation/providers/events_providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/providers/discover_providers.dart';
+import '../../features/discover/widgets/premium_unlock_sheet.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
   final NotificationModel notification;
@@ -400,9 +403,48 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                             final site = WebsiteModel.fromJson(
                                               resp,
                                             );
-                                            GoRouter.of(
-                                              navContext,
-                                            ).go('/discover');
+
+                                            // Premium check
+                                            if (site.isPremiumOnly) {
+                                              final isDarkNow = Theme.of(navContext).brightness == Brightness.dark;
+                                              final premiumIds = ref.read(
+                                                userPremiumCollectionIdsProvider,
+                                              ).valueOrNull ?? const <String>{};
+                                              final collection = await findPremiumCollectionForItem(site.id);
+                                              if (collection == null || !premiumIds.contains(collection.id)) {
+                                                // Show unlock sheet instead
+                                                if (navContext.mounted) {
+                                                  GoRouter.of(navContext).go('/discover');
+                                                  await Future.delayed(const Duration(milliseconds: 300));
+                                                  if (navContext.mounted) {
+                                                    showModalBottomSheet(
+                                                      context: navContext,
+                                                      isScrollControlled: true,
+                                                      backgroundColor: Colors.transparent,
+                                                      builder: (_) => PremiumFeatureSheet.fromWebsite(
+                                                        site: site,
+                                                        collection: collection,
+                                                        isDark: isDarkNow,
+                                                        onAction: () {
+                                                          HapticFeedback.lightImpact();
+                                                          if (navContext.mounted) {
+                                                            Navigator.of(navContext).pop();
+                                                            GoRouter.of(navContext).push('/share-hub');
+                                                          }
+                                                        },
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                                return;
+                                              }
+                                            }
+
+                                             if (!navContext.mounted) return;
+                                             
+                                             GoRouter.of(
+                                               navContext,
+                                             ).go('/discover');
                                             // Small delay to let route settle
                                             await Future.delayed(
                                               const Duration(milliseconds: 300),

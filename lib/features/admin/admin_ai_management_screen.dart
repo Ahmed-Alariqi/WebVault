@@ -60,7 +60,7 @@ class _AdminAiManagementScreenState
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(PhosphorIcons.brain(PhosphorIconsStyle.fill),
-                size: 22, color: const Color(0xFF8B5CF6)),
+                size: 22, color: AppTheme.primaryColor),
             const SizedBox(width: 8),
             const Text('إدارة الذكاء الاصطناعي',
                 style: TextStyle()),
@@ -69,8 +69,8 @@ class _AdminAiManagementScreenState
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: const Color(0xFF8B5CF6),
-          labelColor: const Color(0xFF8B5CF6),
+          indicatorColor: AppTheme.primaryColor,
+          labelColor: AppTheme.primaryColor,
           unselectedLabelColor:
               isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
           labelStyle: const TextStyle(
@@ -227,7 +227,7 @@ class _PersonasTab extends ConsumerWidget {
                   onPressed: () =>
                       _showPersonaEditor(context, ref, isDark, null),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
+                    backgroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -351,7 +351,7 @@ class _PersonasTab extends ConsumerWidget {
                           ElevatedButton(
                             onPressed: () => Navigator.pop(ctx, true),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF8B5CF6),
+                              backgroundColor: AppTheme.primaryColor,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10)),
                             ),
@@ -478,7 +478,7 @@ class _PersonasTab extends ConsumerWidget {
                         min: 0.0,
                         max: 1.0,
                         divisions: 20,
-                        activeColor: const Color(0xFF8B5CF6),
+                        activeColor: AppTheme.primaryColor,
                         onChanged: (v) =>
                             setModalState(() => temperature = v),
                       ),
@@ -491,7 +491,7 @@ class _PersonasTab extends ConsumerWidget {
                         min: 256,
                         max: 16384,
                         divisions: 32,
-                        activeColor: const Color(0xFF8B5CF6),
+                        activeColor: AppTheme.primaryColor,
                         onChanged: (v) =>
                             setModalState(() => maxTokens = v.toInt()),
                       ),
@@ -613,7 +613,7 @@ class _PersonasTab extends ConsumerWidget {
                                 fontWeight: FontWeight.w600,
                                 color:
                                     isDark ? Colors.white : Colors.black87)),
-                        activeThumbColor: const Color(0xFF8B5CF6),
+                        activeThumbColor: AppTheme.primaryColor,
                         contentPadding: EdgeInsets.zero,
                       ),
                       const SizedBox(height: 16),
@@ -703,7 +703,7 @@ class _PersonasTab extends ConsumerWidget {
                                     Icon(
                                       PhosphorIcons.sparkle(PhosphorIconsStyle.fill),
                                       size: 14,
-                                      color: const Color(0xFF8B5CF6),
+                                      color: AppTheme.primaryColor,
                                     ),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -750,10 +750,10 @@ class _PersonasTab extends ConsumerWidget {
                         margin: const EdgeInsets.only(top: 4),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.06),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.2),
                           ),
                         ),
                         child: Column(
@@ -803,7 +803,7 @@ class _PersonasTab extends ConsumerWidget {
                               width: double.infinity,
                               child: ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF8B5CF6),
+                                  backgroundColor: AppTheme.primaryColor,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(10),
@@ -1029,18 +1029,18 @@ class _ToolToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = value ? const Color(0xFF8B5CF6) : (isDark ? Colors.white38 : Colors.black38);
+    final accentColor = value ? AppTheme.primaryColor : (isDark ? Colors.white38 : Colors.black38);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: value
-            ? const Color(0xFF8B5CF6).withValues(alpha: 0.08)
+            ? AppTheme.primaryColor.withValues(alpha: 0.08)
             : (isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02)),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: value
-              ? const Color(0xFF8B5CF6).withValues(alpha: 0.3)
+              ? AppTheme.primaryColor.withValues(alpha: 0.3)
               : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.05)),
         ),
       ),
@@ -1049,7 +1049,7 @@ class _ToolToggle extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         value: value,
         onChanged: onChanged,
-        activeThumbColor: const Color(0xFF8B5CF6),
+        activeThumbColor: AppTheme.primaryColor,
         secondary: Icon(icon, size: 20, color: accentColor),
         title: Text(
           label,
@@ -1131,7 +1131,7 @@ class _ProvidersTab extends ConsumerWidget {
                   backgroundColor:
                       WidgetStateProperty.resolveWith<Color>((states) {
                     if (states.contains(WidgetState.selected)) {
-                      return const Color(0xFF8B5CF6).withValues(alpha: 0.2);
+                      return AppTheme.primaryColor.withValues(alpha: 0.2);
                     }
                     return Colors.transparent;
                   }),
@@ -1274,7 +1274,7 @@ class _ProvidersTab extends ConsumerWidget {
                       context, ref, isDark, null,
                       defaultPurpose: filter),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
+                    backgroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -1371,7 +1371,7 @@ class _ProvidersTab extends ConsumerWidget {
                       ElevatedButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF8B5CF6),
+                          backgroundColor: AppTheme.primaryColor,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                         ),
@@ -1428,7 +1428,7 @@ class _ProvidersTab extends ConsumerWidget {
                               WidgetStateProperty.resolveWith<Color>(
                                   (states) {
                             if (states.contains(WidgetState.selected)) {
-                              return const Color(0xFF8B5CF6)
+                              return AppTheme.primaryColor
                                   .withValues(alpha: 0.2);
                             }
                             return Colors.transparent;
@@ -1593,7 +1593,7 @@ class _ProvidersTab extends ConsumerWidget {
                                 
                                 color:
                                     isDark ? Colors.white : Colors.black87)),
-                        activeThumbColor: const Color(0xFF8B5CF6),
+                        activeThumbColor: AppTheme.primaryColor,
                         contentPadding: EdgeInsets.zero,
                       ),
                     ],
@@ -1917,7 +1917,7 @@ class _ChipListInputState extends State<_ChipListInput> {
         : Colors.black.withValues(alpha: 0.03);
     final borderColor =
         isDark ? AppTheme.darkDivider : AppTheme.lightDivider;
-    const accent = Color(0xFF8B5CF6);
+    final accent = AppTheme.primaryColor;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1943,7 +1943,7 @@ class _ChipListInputState extends State<_ChipListInput> {
               ),
               child: Text(
                 '${widget.values.length}',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: accent),
@@ -2041,7 +2041,7 @@ class _ChipListInputState extends State<_ChipListInput> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        const BorderSide(color: accent, width: 1.4),
+                        BorderSide(color: accent, width: 1.4),
                   ),
                 ),
               ),
@@ -2096,7 +2096,7 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = isDark
         ? Colors.white.withValues(alpha: 0.08)
-        : const Color(0xFF8B5CF6).withValues(alpha: 0.10);
+        : AppTheme.primaryColor.withValues(alpha: 0.10);
     final fg = isDark ? Colors.white : const Color(0xFF5B21B6);
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 6, 4, 6),
@@ -2106,7 +2106,7 @@ class _Chip extends StatelessWidget {
         border: Border.all(
           color: isDark
               ? Colors.white.withValues(alpha: 0.10)
-              : const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+              : AppTheme.primaryColor.withValues(alpha: 0.25),
         ),
       ),
       child: Row(
@@ -2133,7 +2133,7 @@ class _Chip extends StatelessWidget {
               child: Icon(
                 PhosphorIcons.x(PhosphorIconsStyle.bold),
                 size: 14,
-                color: isDark ? Colors.white70 : const Color(0xFF8B5CF6),
+                color: isDark ? Colors.white70 : AppTheme.primaryColor,
               ),
             ),
           ),

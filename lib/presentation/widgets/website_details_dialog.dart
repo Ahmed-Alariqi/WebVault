@@ -35,6 +35,7 @@ class WebsiteDetailsDialog extends ConsumerStatefulWidget {
 class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
   final ScrollController _scrollController = ScrollController();
   bool _isFabTextVisible = true;
+  bool _isFullScreen = false;
 
   @override
   void initState() {
@@ -146,13 +147,18 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
     return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: _isFullScreen ? 0 : 20,
+            vertical: _isFullScreen ? 0 : 24,
           ),
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeOutCubic,
             width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 420, maxHeight: 650),
+            constraints: BoxConstraints(
+              maxWidth: _isFullScreen ? double.infinity : 420,
+              maxHeight: _isFullScreen ? double.infinity : 650,
+            ),
             decoration: BoxDecoration(
               color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
               borderRadius: BorderRadius.circular(28),
@@ -604,14 +610,16 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                               ),
                               const SizedBox(height: 16),
                             ],
+                            const SizedBox(height: 80),
                           ],
                         ),
                       ),
                     ),
 
                     // Pinned Action Buttons Footer
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
+                    if (widget.site.hasUrl || widget.site.contentType == 'prompt' || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue))
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
                       decoration: BoxDecoration(
                         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
                         boxShadow: [
@@ -650,6 +658,45 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                   ],
                 ),
 
+                // Fullscreen Toggle Button
+                PositionedDirectional(
+                  top: 12,
+                  end: 52,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() => _isFullScreen = !_isFullScreen);
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.35),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              _isFullScreen
+                                  ? Icons.fullscreen_exit_rounded
+                                  : Icons.fullscreen_rounded,
+                              key: ValueKey(_isFullScreen),
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
                 // Close Button Overlay with Glassmorphism
                 PositionedDirectional(
                   top: 12,
@@ -682,7 +729,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
                 // Floating AI Assistant Button (Bottom Center Pill)
                 Positioned(
-                  bottom: 100,
+                  bottom: (widget.site.hasUrl || widget.site.contentType == 'prompt' || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue)) ? 100 : 20,
                   left: 0,
                   right: 0,
                   child: Align(
@@ -705,10 +752,10 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
+                                  gradient: LinearGradient(
                                     colors: [
-                                      Color(0xFF7C3AED),
-                                      Color(0xFF3B82F6),
+                                      AppTheme.primaryColor,
+                                      AppTheme.primaryColor.withValues(alpha: 0.85),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -716,9 +763,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(
-                                        0xFF7C3AED,
-                                      ).withValues(alpha: 0.25),
+                                      color: AppTheme.primaryColor.withValues(alpha: 0.35),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),

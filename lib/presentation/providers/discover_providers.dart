@@ -402,9 +402,18 @@ class PaginatedNotificationsNotifier
       final from = state.items.length;
       final to = from + kNotificationsPageSize - 1;
 
-      final response = await _client
+      final userId = _client.auth.currentUser?.id;
+      var query = _client
           .from('notifications')
-          .select()
+          .select();
+      
+      if (userId != null) {
+        query = query.or('user_id.is.null,user_id.eq.$userId');
+      } else {
+        query = query.filter('user_id', 'is', null);
+      }
+
+      final response = await query
           .order('created_at', ascending: false)
           .range(from, to);
 
@@ -552,4 +561,120 @@ Future<void> toggleBookmark(String websiteId) async {
       'website_id': websiteId,
     });
   }
+}
+
+// --------------- Premium Access ---------------
+
+/// Set of premium collection IDs the current user has access to.
+/// Combines: (1) manual admin grants, (2) referral campaign rewards,
+/// (3) approved membership requests, and (4) default invite threshold.
+final userPremiumCollectionIdsProvider = FutureProvider<Set<String>>((ref) async {
+  final user = _client.auth.currentUser;
+  if (user == null) return const <String>{};
+
+  final uid = user.id;
+
+  // 1. Collections where user is in manual_user_ids
+  final allCollections = await _client
+      .from('featured_collections')
+      .select('id, manual_user_ids, is_referral_exclusive')
+      .eq('is_referral_exclusive', true);
+
+  final premiumCollectionIds = <String>{};
+  final manualAccess = <String>{};
+  for (final c in allCollections as List) {
+    premiumCollectionIds.add(c['id'] as String);
+    final ids = (c['manual_user_ids'] as List?)?.map((e) => e.toString()).toSet() ?? <String>{};
+    if (ids.contains(uid)) {
+      manualAccess.add(c['id'] as String);
+    }
+  }
+
+  // 2. Referral-earned access (campaign-based)
+  final campaigns = await _client
+      .from('referral_campaigns')
+      .select('id, reward_collection_id, required_referrals')
+      .eq('reward_type', 'collection_access')
+      .eq('is_active', true);
+
+  final referralAccess = <String>{};
+  for (final c in campaigns as List) {
+    final campaignId = c['id'] as String;
+    final collectionId = c['reward_collection_id'] as String?;
+    final required = (c['required_referrals'] as num).toInt();
+    if (collectionId == null) continue;
+
+    final referrals = await _client
+        .from('referrals')
+        .select('id')
+        .eq('campaign_id', campaignId)
+        .eq('referrer_id', uid)
+        .eq('status', 'confirmed');
+
+    if ((referrals as List).length >= required) {
+      referralAccess.add(collectionId);
+    }
+  }
+
+  // 3. Approved membership request → opens ALL premium collections
+  final membershipReq = await _client
+      .from('membership_requests')
+      .select('id')
+      .eq('user_id', uid)
+      .eq('status', 'approved')
+      .limit(1);
+  final hasApprovedMembership = (membershipReq as List).isNotEmpty;
+
+  // 4. Default invite threshold → if total confirmed >= required, opens ALL
+  bool metDefaultThreshold = false;
+  if (!hasApprovedMembership) {
+    final settingsResp = await _client
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'default_required_invites')
+        .limit(1);
+    final defaultRequired = (settingsResp as List).isNotEmpty
+        ? int.tryParse(settingsResp.first['value'] as String? ?? '3') ?? 3
+        : 3;
+
+    final totalConfirmed = await _client
+        .from('referrals')
+        .select('id')
+        .eq('referrer_id', uid)
+        .eq('status', 'confirmed');
+
+    if ((totalConfirmed as List).length >= defaultRequired) {
+      metDefaultThreshold = true;
+    }
+  }
+
+  // Combine all access paths
+  if (hasApprovedMembership || metDefaultThreshold) {
+    return {...premiumCollectionIds, ...manualAccess, ...referralAccess};
+  }
+  return {...manualAccess, ...referralAccess};
+});
+
+
+/// Given a website ID that is premium-only, find the parent premium collection.
+/// Returns the first matching CollectionModel or null.
+Future<CollectionModel?> findPremiumCollectionForItem(String websiteId) async {
+  final rows = await _client
+      .from('collection_items')
+      .select('collection_id')
+      .eq('website_id', websiteId);
+
+  if ((rows as List).isEmpty) return null;
+
+  final collectionIds = rows.map((r) => r['collection_id'] as String).toList();
+
+  final collections = await _client
+      .from('featured_collections')
+      .select()
+      .inFilter('id', collectionIds)
+      .eq('is_referral_exclusive', true)
+      .limit(1);
+
+  if ((collections as List).isEmpty) return null;
+  return CollectionModel.fromJson(collections.first);
 }

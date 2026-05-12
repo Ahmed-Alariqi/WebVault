@@ -136,11 +136,24 @@ final aiRecentErrorsProvider =
 // Expert Chat — per-persona multi-session with local storage
 // ─────────────────────────────────────────────────────────────────────────────
 
+class ToolStep {
+  final String label;
+  final List<String> details;
+  final bool isDone;
+
+  const ToolStep({
+    required this.label,
+    this.details = const [],
+    this.isDone = false,
+  });
+}
+
 class ExpertSessionsState {
   final List<ExpertChatSession> sessions;
   final String? activeSessionId;
   final bool isLoading;
   final String? toolLoadingLabel;
+  final List<ToolStep>? toolSteps;
   final String? error;
 
   const ExpertSessionsState({
@@ -148,6 +161,7 @@ class ExpertSessionsState {
     this.activeSessionId,
     this.isLoading = false,
     this.toolLoadingLabel,
+    this.toolSteps,
     this.error,
   });
 
@@ -161,6 +175,7 @@ class ExpertSessionsState {
     String? activeSessionId,
     bool? isLoading,
     String? toolLoadingLabel,
+    List<ToolStep>? toolSteps,
     String? error,
     bool clearError = false,
     bool clearToolLabel = false,
@@ -170,6 +185,7 @@ class ExpertSessionsState {
       activeSessionId: activeSessionId ?? this.activeSessionId,
       isLoading: isLoading ?? this.isLoading,
       toolLoadingLabel: clearToolLabel ? null : (toolLoadingLabel ?? this.toolLoadingLabel),
+      toolSteps: clearToolLabel ? null : (toolSteps ?? this.toolSteps),
       error: clearError ? null : (error ?? this.error),
     );
   }
@@ -273,8 +289,8 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     _saveAllSessions();
   }
 
-  void setToolLoading(String? label) {
-    state = state.copyWith(toolLoadingLabel: label);
+  void setToolLoading(String? label, {List<ToolStep>? steps}) {
+    state = state.copyWith(toolLoadingLabel: label, toolSteps: steps);
   }
 
   void clearActiveSession() {

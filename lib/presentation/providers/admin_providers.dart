@@ -757,6 +757,8 @@ Future<void> adminAddItemToCollection(
     'collection_id': collectionId,
     'website_id': websiteId,
   });
+  // Auto-sync: if collection is premium → mark item as premium
+  await syncWebsitePremiumFlag(websiteId);
 }
 
 Future<void> adminRemoveItemFromCollection(
@@ -768,6 +770,37 @@ Future<void> adminRemoveItemFromCollection(
       .delete()
       .eq('collection_id', collectionId)
       .eq('website_id', websiteId);
+  // Auto-sync: re-check if item still belongs to any premium collection
+  await syncWebsitePremiumFlag(websiteId);
+}
+
+/// Core sync helper: sets is_premium_only = true if the website belongs
+/// to at least one referral-exclusive collection, false otherwise.
+Future<void> syncWebsitePremiumFlag(String websiteId) async {
+  // Get all collection IDs this website belongs to
+  final rows = await _client
+      .from('collection_items')
+      .select('collection_id')
+      .eq('website_id', websiteId);
+  final collectionIds = (rows as List)
+      .map((r) => r['collection_id'] as String)
+      .toList();
+
+  bool shouldBePremium = false;
+  if (collectionIds.isNotEmpty) {
+    // Check if ANY of those collections is referral-exclusive
+    final premiumCols = await _client
+        .from('featured_collections')
+        .select('id')
+        .inFilter('id', collectionIds)
+        .eq('is_referral_exclusive', true)
+        .limit(1);
+    shouldBePremium = (premiumCols as List).isNotEmpty;
+  }
+
+  await _client.from('websites').update({
+    'is_premium_only': shouldBePremium,
+  }).eq('id', websiteId);
 }
 
 final collectionItemsProvider =

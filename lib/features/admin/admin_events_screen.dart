@@ -309,7 +309,7 @@ class _GiveawayCard extends ConsumerWidget {
         ? AppTheme.successColor
         : giveaway.isActive
         ? AppTheme.primaryColor
-        : (isDark ? Colors.white38 : Colors.black38);
+        : (isDark ? Colors.white54 : Colors.black45);
 
     final statusLabel = giveaway.isDrawn
         ? l10n.drawn
@@ -395,14 +395,19 @@ class _GiveawayCard extends ConsumerWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.9),
+                    color: (giveaway.isActive || giveaway.isDrawn)
+                        ? statusColor.withValues(alpha: 0.9)
+                        : (isDark
+                            ? Colors.white.withValues(alpha: 0.1)
+                            : Colors.black.withValues(alpha: 0.05)),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
+                      if (giveaway.isActive || giveaway.isDrawn)
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
                     ],
                   ),
                   child: Row(
@@ -412,10 +417,12 @@ class _GiveawayCard extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Text(
                         statusLabel,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: (giveaway.isActive || giveaway.isDrawn)
+                              ? Colors.white
+                              : statusColor,
                           letterSpacing: 0.5,
                         ),
                       ),
@@ -1398,7 +1405,7 @@ class _PollCard extends ConsumerWidget {
     final isActive = poll.isActive;
     final statusColor = isActive
         ? AppTheme.accentColor
-        : (isDark ? Colors.white38 : Colors.black38);
+        : (isDark ? Colors.white54 : Colors.black45);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -1449,14 +1456,19 @@ class _PollCard extends ConsumerWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.9),
+                        color: isActive
+                            ? statusColor.withValues(alpha: 0.9)
+                            : (isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.05)),
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
-                          BoxShadow(
-                            color: statusColor.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
+                          if (isActive)
+                            BoxShadow(
+                              color: statusColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
                         ],
                       ),
                       child: Row(
@@ -1476,10 +1488,10 @@ class _PollCard extends ConsumerWidget {
                           const SizedBox(width: 6),
                           Text(
                             isActive ? l10n.active : l10n.ended,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                              color: isActive ? Colors.white : statusColor,
                               letterSpacing: 0.5,
                             ),
                           ),

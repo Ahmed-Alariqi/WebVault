@@ -126,9 +126,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         const Color(0xFF020617), // Slate 950
                       ]
                     : [
-                        const Color(0xFFF8FAFC),
-                        const Color(0xFFEEF2FF),
-                        const Color(0xFFF1F5F9),
+                        const Color(0xFFF8FAFC), // Slate 50
+                        const Color(0xFFF1F5F9), // Slate 100
+                        const Color(0xFFEFF6FF), // Very soft blue (Indigo 50 equivalent)
                       ],
               ),
             ),
@@ -147,19 +147,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ),
           ),
-          if (isDark)
-            Positioned(
-              bottom: -150,
-              left: -100,
-              child: Container(
-                width: size.width * 0.9,
-                height: size.width * 0.9,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
-                ),
+          Positioned(
+            bottom: -150,
+            left: -100,
+            child: Container(
+              width: size.width * 0.9,
+              height: size.width * 0.9,
+              decoration: BoxDecoration(
+                color: isDark 
+                    ? AppTheme.primaryColor.withValues(alpha: 0.05)
+                    : AppTheme.primaryColor.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
               ),
             ),
+          ),
           Positioned(
               bottom: 50,
               left: -50,
@@ -169,11 +170,65 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 decoration: BoxDecoration(
                   color: isDark 
                       ? AppTheme.primaryColor.withValues(alpha: 0.1) 
-                      : AppTheme.primaryLight.withValues(alpha: 0.5),
+                      : AppTheme.primaryColor.withValues(alpha: 0.06),
                   shape: BoxShape.circle,
                 ),
               ),
             ),
+          // Center-ish blue glow behind the card for Light Mode
+          if (!isDark) ...[
+            Positioned(
+              top: size.height * 0.3,
+              left: size.width * 0.1,
+              right: size.width * 0.1,
+              child: Container(
+                width: size.width * 0.8,
+                height: size.width * 0.6,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.12),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Extra top-right spot for Light Mode
+            Positioned(
+              top: -50,
+              right: -50,
+              child: Container(
+                width: size.width * 0.7,
+                height: size.width * 0.7,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.1),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Extra bottom-left spot for Light Mode
+            Positioned(
+              bottom: -100,
+              left: -100,
+              child: Container(
+                width: size.width * 0.8,
+                height: size.width * 0.8,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      AppTheme.primaryColor.withValues(alpha: 0.08),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           // New Top-Right subtle bubble
           Positioned(
             top: 40,
@@ -267,20 +322,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         child: Container(
           padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white.withValues(alpha: 0.9),
+            color: isDark ? Colors.white.withValues(alpha: 0.04) : Colors.white.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(AppTheme.borderRadiusLg),
             border: Border.all(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.white,
+                  : Colors.white.withValues(alpha: 0.7),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
+                color: isDark 
+                    ? Colors.black.withValues(alpha: 0.4) 
+                    : AppTheme.primaryColor.withValues(alpha: 0.08),
                 blurRadius: 40,
                 offset: const Offset(0, 20),
               ),
+              if (!isDark)
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
             ],
           ),
           child: Form(

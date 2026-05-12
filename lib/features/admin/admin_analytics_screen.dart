@@ -35,7 +35,7 @@ class AdminAnalyticsScreen extends ConsumerWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF8B5CF6),
+                      AppTheme.primaryColor,
                       Color(0xFF3B82F6),
                     ], // Violet to Blue
                   ),

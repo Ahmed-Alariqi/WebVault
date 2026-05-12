@@ -63,6 +63,7 @@ import '../../features/ai_assistant/zad_share_hub_screen.dart';
 import '../../features/ai_assistant/external_ai_chat_screen.dart';
 import '../../features/zad_expert/zad_expert_screen.dart';
 import '../../features/admin/admin_ai_management_screen.dart';
+import '../../features/admin/admin_membership_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -423,6 +424,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AdminDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/admin/membership',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const AdminMembershipScreen(),
       ),
       GoRoute(
         path: '/admin/websites',

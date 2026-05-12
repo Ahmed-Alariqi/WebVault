@@ -123,7 +123,7 @@ class _PeriodSelector extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? const Color(0xFF8B5CF6)
+                      ? AppTheme.primaryColor
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -170,7 +170,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF8B5CF6)),
+          Icon(icon, size: 18, color: AppTheme.primaryColor),
           const SizedBox(width: 8),
           Text(
             title,
@@ -206,7 +206,7 @@ class _OverviewSection extends ConsumerWidget {
             child: _StatCard(
               isDark: isDark,
               icon: PhosphorIcons.chatCircleDots(PhosphorIconsStyle.fill),
-              color: const Color(0xFF8B5CF6),
+              color: AppTheme.primaryColor,
               value: _fmtCount(s.total),
               label: 'الطلبات',
             ),
@@ -364,7 +364,7 @@ class _TopPersonasSection extends ConsumerWidget {
                 label: list[i].name,
                 count: list[i].count,
                 ratio: maxCount > 0 ? list[i].count / maxCount : 0,
-                color: const Color(0xFF8B5CF6),
+                color: AppTheme.primaryColor,
               ),
               if (i < list.length - 1) const Divider(height: 14),
             ],
@@ -385,11 +385,11 @@ class _PersonaAvatar extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+        color: AppTheme.primaryColor.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(personaIconFromName(icon),
-          size: 16, color: const Color(0xFF8B5CF6)),
+          size: 16, color: AppTheme.primaryColor),
     );
   }
 }

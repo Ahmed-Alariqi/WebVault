@@ -198,13 +198,10 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 
 
-      // 2. Check if a campaign exists
+      // 2. Show referral dialog — works with or without a campaign
+      // The default membership system will handle codes even without a campaign
 
       final campaign = await ref.read(activeReferralCampaignProvider.future);
-
-      if (campaign == null) return;
-
-
 
       if (mounted) {
 
@@ -260,7 +257,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 
 
-  Future<void> _showReferralCodeDialog(ReferralCampaign campaign) async {
+  Future<void> _showReferralCodeDialog(ReferralCampaign? campaign) async {
 
     if (!mounted) return;
 
@@ -280,41 +277,46 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     String rewardText = '';
 
-    switch (campaign.referredRewardType) {
+    if (campaign != null) {
+      switch (campaign.referredRewardType) {
 
-      case 'giveaway_entry':
+        case 'giveaway_entry':
 
-        rewardText =
+          rewardText =
 
-            'تذكرة انضمام مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
+              'تذكرة انضمام مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
 
-        break;
+          break;
 
-      case 'giveaway_boost':
+        case 'giveaway_boost':
 
-        rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
+          rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
 
-        break;
+          break;
 
-      case 'collection_access':
+        case 'collection_access':
 
-        rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
+          rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
 
-        break;
+          break;
 
-      case 'custom':
+        case 'custom':
 
-      default:
+        default:
 
-        rewardText = campaign.referredRewardDescription?.isNotEmpty == true
+          rewardText = campaign.referredRewardDescription?.isNotEmpty == true
 
-            ? campaign.referredRewardDescription!
+              ? campaign.referredRewardDescription!
 
-            : 'مزايا حصرية 🎁';
+              : 'مزايا حصرية 🎁';
 
+      }
+    } else {
+      rewardText = 'الوصول إلى المحتوى المميز والميزات الحصرية ✨';
     }
 
     final String dynamicDesc = 'أدخل الكود الآن واحصل على:\n$rewardText';
+
 
 
 

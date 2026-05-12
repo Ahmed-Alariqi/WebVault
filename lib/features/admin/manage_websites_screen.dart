@@ -536,6 +536,12 @@ class _ManageWebsitesScreenState extends ConsumerState<ManageWebsitesScreen> {
                             const Color(0xFF4CAF50),
                             isDark,
                           ),
+                        if (site.isPremiumOnly)
+                          _badge(
+                            'PRO',
+                            const Color(0xFFFFD700), // Gold
+                            isDark,
+                          ),
                         if (catName != null)
                           _badge(catName!, AppTheme.primaryColor, isDark),
                       ],

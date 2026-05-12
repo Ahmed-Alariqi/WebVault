@@ -300,7 +300,7 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
                                   AppLocalizations.of(
                                     context,
                                   )!.roleContentCreator.toUpperCase(),
-                                  const Color(0xFF8B5CF6),
+                                  AppTheme.primaryColor,
                                 ),
                               ],
                               if (hasCustomPerms) ...[
@@ -445,7 +445,7 @@ class _UserDialogState extends State<_UserDialog> {
   // Section definitions for the permission grid
   static const _sectionDefs = [
     ('analytics', Icons.bar_chart, Color(0xFF6366F1)),
-    ('suggestions', Icons.lightbulb_outline, Color(0xFF8B5CF6)),
+    ('suggestions', Icons.lightbulb_outline, AppTheme.primaryColor),
     ('websites', Icons.language, Color(0xFF3B82F6)),
     ('drafts', Icons.edit_note, Color(0xFFF59E0B)),
     ('categories', Icons.sell_outlined, Color(0xFF10B981)),
@@ -453,10 +453,10 @@ class _UserDialogState extends State<_UserDialog> {
     ('in_app_messages', Icons.campaign, Color(0xFF14B8A6)),
     ('users', Icons.people_outline, Color(0xFFEC4899)),
     ('community', Icons.public, Color(0xFFEAB308)),
-    ('advertisements', Icons.ad_units, Color(0xFF8B5CF6)),
+    ('advertisements', Icons.ad_units, AppTheme.primaryColor),
     ('collections', Icons.folder_special, Color(0xFF06B6D4)),
     ('events', Icons.celebration, Color(0xFFE11D48)),
-    ('ai_management', Icons.psychology, Color(0xFF8B5CF6)),
+    ('ai_management', Icons.psychology, AppTheme.primaryColor),
   ];
 
   @override
@@ -676,7 +676,7 @@ class _UserDialogState extends State<_UserDialog> {
             _buildRoleCard(
               role: 'content_creator',
               icon: PhosphorIcons.pencilLine(PhosphorIconsStyle.duotone),
-              color: const Color(0xFF8B5CF6),
+              color: AppTheme.primaryColor,
               title: l.roleContentCreator,
               subtitle: l.roleContentCreatorDesc,
               isDark: isDark,
@@ -711,15 +711,15 @@ class _UserDialogState extends State<_UserDialog> {
                   return Chip(
                     avatar: Icon(
                       Icons.check_circle,
-                      color: const Color(0xFF8B5CF6),
+                      color: AppTheme.primaryColor,
                       size: 18,
                     ),
                     label: Text(_sectionLabel(context, key)),
                     backgroundColor: const Color(
-                      0xFF8B5CF6,
+                      0xFF2563EB,
                     ).withValues(alpha: 0.08),
                     side: BorderSide(
-                      color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
                     ),
                   );
                 }).toList(),

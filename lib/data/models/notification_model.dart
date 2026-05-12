@@ -13,6 +13,7 @@ class NotificationModel {
   final int sentCount;
   final int failedCount;
   final int totalTargeted;
+  final String? userId;
 
   const NotificationModel({
     required this.id,
@@ -28,6 +29,7 @@ class NotificationModel {
     this.sentCount = 0,
     this.failedCount = 0,
     this.totalTargeted = 0,
+    this.userId,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +46,7 @@ class NotificationModel {
       sentCount: json['sent_count'] as int? ?? 0,
       failedCount: json['failed_count'] as int? ?? 0,
       totalTargeted: json['total_targeted'] as int? ?? 0,
+      userId: json['user_id'] as String?,
     );
   }
 
@@ -64,6 +67,7 @@ class NotificationModel {
       sentCount: sentCount,
       failedCount: failedCount,
       totalTargeted: totalTargeted,
+      userId: userId,
     );
   }
 
@@ -77,6 +81,7 @@ class NotificationModel {
       'sent_count': sentCount,
       'failed_count': failedCount,
       'total_targeted': totalTargeted,
+      'user_id': userId,
     };
   }
 }

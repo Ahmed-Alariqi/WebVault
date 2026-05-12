@@ -21,6 +21,7 @@ class WebsiteModel {
   final bool isActive; // Manual on/off toggle
   final String? videoUrl; // Optional tutorial/explainer video
   final String pricingModel; // 'free', 'freemium', 'paid'
+  final bool isPremiumOnly;
 
   const WebsiteModel({
     required this.id,
@@ -42,6 +43,7 @@ class WebsiteModel {
     this.isActive = true,
     this.videoUrl,
     this.pricingModel = 'free',
+    this.isPremiumOnly = false,
   });
 
   /// Whether this item has expired
@@ -73,6 +75,7 @@ class WebsiteModel {
     bool? isActive,
     String? videoUrl,
     String? pricingModel,
+    bool? isPremiumOnly,
   }) {
     return WebsiteModel(
       id: id,
@@ -94,6 +97,7 @@ class WebsiteModel {
       isActive: isActive ?? this.isActive,
       videoUrl: videoUrl ?? this.videoUrl,
       pricingModel: pricingModel ?? this.pricingModel,
+      isPremiumOnly: isPremiumOnly ?? this.isPremiumOnly,
     );
   }
 
@@ -120,6 +124,7 @@ class WebsiteModel {
       isActive: json['is_active'] as bool? ?? true,
       videoUrl: json['video_url'] as String?,
       pricingModel: json['pricing_model'] as String? ?? 'free',
+      isPremiumOnly: json['is_premium_only'] as bool? ?? false,
     );
   }
 
@@ -140,6 +145,7 @@ class WebsiteModel {
       'is_active': isActive,
       'video_url': videoUrl,
       'pricing_model': pricingModel,
+      'is_premium_only': isPremiumOnly,
     };
   }
 }

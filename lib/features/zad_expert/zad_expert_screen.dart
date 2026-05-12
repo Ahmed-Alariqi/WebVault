@@ -40,6 +40,10 @@ import '../ai_assistant/ai_chat_screen.dart'; // For CodeElementBuilder
 import '../ai_assistant/widgets/chat_prompt_bridge.dart';
 
 import 'widgets/mode_cards_view.dart';
+import 'persona_selector_sheet.dart';
+import '../discover/widgets/premium_unlock_sheet.dart';
+import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/providers/auth_providers.dart';
 
 
 
@@ -454,6 +458,31 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     }
 
     if (!mounted) return;
+
+    // Premium Check
+    final premiumCollectionIds = ref.read(userPremiumCollectionIdsProvider).valueOrNull ?? {};
+    final isAdmin = ref.read(isAdminProvider).valueOrNull ?? false;
+    final hasAccess = !persona.isPremium || isAdmin || premiumCollectionIds.isNotEmpty;
+
+    if (!hasAccess) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => PremiumFeatureSheet(
+          title: 'شخصيات خبير زاد PRO 👑',
+          description: 'هذه الشخصية من فئة المحترفين. يتطلب استخدامها عضوية مفعلة في النظام.',
+          icon: PhosphorIcons.brain(PhosphorIconsStyle.fill),
+          onAction: () => Navigator.pop(ctx),
+          actionLabel: 'فهمت',
+          themeColor: const Color(0xFFF59E0B),
+          isDark: isDark,
+        ),
+      );
+      return;
+    }
+
     ref.read(expertChatProvider(persona).notifier).sendMessage(text, webToolTask: toolTask);
 
     _controller.clear();
@@ -462,32 +491,101 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
   Future<String?> _performWebSearch(AiPersonaModel persona, String query) async {
     final provider = ref.read(expertChatProvider(persona).notifier);
-    provider.setToolLoading('🔍 جارٍ البحث في الإنترنت...');
-    try {
-      final results = await WebToolsService.search(query);
-      if (results.isEmpty) return null;
+    
+    // Initial State: Search start
+    final steps = [
+      ToolStep(label: 'جارٍ البحث في الإنترنت عن: $query', details: []),
+    ];
+    provider.setToolLoading(null, steps: steps);
 
-      provider.setToolLoading('📖 جارٍ تحليل وقراءة أهم 3 مصادر...');
+    try {
+      // 1. Search Query
+      final results = await WebToolsService.search(query);
+      if (results.isEmpty) {
+        provider.setToolLoading(null, steps: [
+          ToolStep(label: 'لم يتم العثور على نتائج للبحث', isDone: true),
+        ]);
+        return null;
+      }
+
+      // 2. Pre-fetching & Parallel Execution
+      // We take the top 5 results and start reading them simultaneously
+      final topResults = results.take(5).toList();
+      
+      steps[0] = ToolStep(
+        label: 'تم العثور على ${results.length} نتائج بحث',
+        details: topResults.map((r) => r.domain).toList(),
+        isDone: true,
+      );
+      
+      // Add a placeholder for reading progress
+      steps.add(ToolStep(
+        label: 'جارٍ تحليل وقراءة أهم ${topResults.length} مصادر...',
+        details: topResults.map((r) => '⏳ ${r.domain}').toList(),
+      ));
+      provider.setToolLoading(null, steps: List.from(steps));
+
+      final readContents = List<String?>.filled(topResults.length, null);
+      int completedCount = 0;
+
+      // Launch all read requests in parallel
+      final List<Future<void>> readFutures = [];
+      for (int i = 0; i < topResults.length; i++) {
+        final index = i;
+        final r = topResults[index];
+        
+        readFutures.add(() async {
+          try {
+            final res = await WebToolsService.readUrl(r.url);
+            readContents[index] = res.content;
+          } catch (e) {
+            debugPrint('Error reading ${r.url}: $e');
+            // We don't fail the whole process if one URL fails
+          } finally {
+            completedCount++;
+            // Real-time UI Update: Mark this specific source as done in the tree
+            // We use the same order to keep the UI stable
+            steps[1] = ToolStep(
+              label: 'جارٍ قراءة المصادر ($completedCount/${topResults.length})...',
+              details: List.generate(topResults.length, (idx) {
+                if (readContents[idx] != null || (idx < index && completedCount > idx)) {
+                   return '✓ ${topResults[idx].domain}';
+                }
+                if (idx == index && readContents[idx] == null) {
+                   // If it finished with error or just finished
+                   return '✓ ${topResults[idx].domain}';
+                }
+                return '... ${topResults[idx].domain}';
+              }),
+            );
+            provider.setToolLoading(null, steps: List.from(steps));
+          }
+        }());
+      }
+
+      // Wait for all parallel reading tasks to finish
+      await Future.wait(readFutures);
+
+      // Final Step: Formatting and AI Handover
+      steps[1] = ToolStep(
+        label: 'تم الانتهاء من قراءة وتحليل المصادر بنجاح',
+        details: topResults.map((res) => '✓ ${res.domain}').toList(),
+        isDone: true,
+      );
+      
+      steps.add(const ToolStep(label: '🤖 جارٍ تجهيز وصياغة الرد الاحترافي...', details: []));
+      provider.setToolLoading(null, steps: List.from(steps));
 
       final buffer = StringBuffer('## نتائج البحث عن: $query\n\n');
-      final topResults = results.take(3).toList();
-      final readFutures = topResults.map((r) async {
-        try {
-          return await WebToolsService.readUrl(r.url);
-        } catch (_) {
-          return null; 
-        }
-      });
-      final readResults = await Future.wait(readFutures);
-
       for (var i = 0; i < results.length; i++) {
         final r = results[i];
         buffer.writeln('### [${i + 1}] ${r.title}');
         buffer.writeln('الرابط: ${r.url}');
         
-        if (i < 3 && readResults[i] != null && readResults[i]!.content.isNotEmpty) {
+        // If we have content from our top 5 read results, include it
+        if (i < topResults.length && readContents[i] != null && readContents[i]!.isNotEmpty) {
           buffer.writeln('المحتوى التفصيلي للصفحة:');
-          buffer.writeln(readResults[i]!.content);
+          buffer.writeln(readContents[i]!);
         } else {
           buffer.writeln('وصف مختصر:');
           buffer.writeln(r.description);
@@ -495,14 +593,13 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
         buffer.writeln();
       }
 
-      provider.setToolLoading('🤖 جارٍ تجهيز وصياغة الرد الاحترافي...');
       buffer.writeln('## تعليمات هامة جداً لصياغة الرد والمصادر:');
       buffer.writeln('1. قدم إجابة مفصلة، دقيقة، وقيمة جداً للمستخدم، ولا تقتصر على إجابة سطحية.');
       buffer.writeln('2. في نهاية إجابتك، أضف قسماً بعنوان "المصادر:" وضع فيه قائمة نقطية بأسماء المواقع لتكون قابلة للضغط كروابط.');
       buffer.writeln('3. صيغة المصادر يجب أن تكون روابط Markdown صريحة هكذا: [اسم الموقع](رابط الموقع).');
       buffer.writeln('4. لا تضع أي مصادر أو أرقام كمصادر وسط النص، فقط في النهاية تحت قسم المصادر.');
 
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 300));
       return buffer.toString();
     } catch (e) {
       debugPrint('Web search error: $e');
@@ -512,11 +609,25 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
   Future<String?> _performUrlRead(AiPersonaModel persona, String url) async {
     final provider = ref.read(expertChatProvider(persona).notifier);
-    provider.setToolLoading('📖 جارٍ قراءة وتحليل الرابط المرفق...');
+    final domain = Uri.tryParse(url)?.host.replaceFirst('www.', '') ?? url;
+    
+    final steps = [
+      ToolStep(label: 'جارٍ قراءة وتحليل الرابط: $domain', details: []),
+    ];
+    provider.setToolLoading(null, steps: steps);
+
     try {
       final result = await WebToolsService.readUrl(url);
-      provider.setToolLoading('🤖 جارٍ تجهيز الرد...');
-      await Future.delayed(const Duration(milliseconds: 600));
+      
+      steps[0] = ToolStep(
+        label: 'تمت قراءة المحتوى بنجاح',
+        details: ['✓ $domain'],
+        isDone: true,
+      );
+      steps.add(const ToolStep(label: '🤖 جارٍ تجهيز الرد...', details: []));
+      provider.setToolLoading(null, steps: steps);
+
+      await Future.delayed(const Duration(milliseconds: 400));
 
       return '## محتوى الرابط: $url\n\n${result.content}\n\n'
              '## تعليمات هامة لصياغة الرد:\n'
@@ -1324,26 +1435,39 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
                       children: [
 
-                        Text(
-
-                          persona.name,
-
-                          maxLines: 1,
-
-                          overflow: TextOverflow.ellipsis,
-
-                          style: const TextStyle(
-
-                            color: Colors.white,
-
-                            fontSize: 14,
-
-                            fontWeight: FontWeight.w900,
-
-                            letterSpacing: -0.3,
-
-                          ),
-
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              persona.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            if (persona.isPremium) ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'PRO',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
 
                         if (chatState.isLoading)
@@ -1475,7 +1599,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
                 onTap: () {
 
-                  ref.read(expertChatProvider(persona).notifier).clearActiveSession();
+                  ref.read(expertChatProvider(persona).notifier).startNewSession();
 
                   HapticFeedback.lightImpact();
 
@@ -1600,250 +1724,23 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
 
   void _showPersonaSelector(List<AiPersonaModel> personas) {
-
     if (personas.isEmpty) return;
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-
-
     showModalBottomSheet(
-
       context: context,
-
-      backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
-
-      shape: const RoundedRectangleBorder(
-
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-
-      ),
-
       isScrollControlled: true,
-
-      builder: (ctx) => Container(
-
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-
-        constraints: BoxConstraints(
-
-          maxHeight: MediaQuery.of(ctx).size.height * 0.7,
-
-        ),
-
-        child: Column(
-
-          mainAxisSize: MainAxisSize.min,
-
-          children: [
-
-            Container(
-
-              width: 40,
-
-              height: 4,
-
-              decoration: BoxDecoration(
-
-                color: Colors.grey.withValues(alpha: 0.3),
-
-                borderRadius: BorderRadius.circular(2),
-
-              ),
-
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-
-              'اختر خبيرك الاستراتيجي',
-
-              style: TextStyle(
-
-                fontSize: 18,
-
-                fontWeight: FontWeight.bold,
-
-              ),
-
-            ),
-
-            const SizedBox(height: 24),
-
-            Expanded(
-
-              child: GridView.builder(
-
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-
-                  crossAxisCount: 2,
-
-                  crossAxisSpacing: 10,
-
-                  mainAxisSpacing: 10,
-
-                  childAspectRatio: 1.35, // Slimmer height, wider width
-
-                ),
-
-                itemCount: personas.length,
-
-                itemBuilder: (context, index) {
-
-                  final p = personas[index];
-
-                  final isSelected = p.slug == ref.watch(selectedPersonaProvider)?.slug;
-
-                  final pColor = hexToColor(p.color);
-
-
-
-                  return InkWell(
-
-                    onTap: () {
-
-                      Navigator.pop(ctx);
-
-                      ref.read(selectedPersonaProvider.notifier).state = p;
-
-                    },
-
-                    borderRadius: BorderRadius.circular(18),
-
-                    child: Container(
-
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-
-                      decoration: BoxDecoration(
-
-                        color: isSelected
-
-                            ? pColor.withValues(alpha: 0.12)
-
-                            : (isDark ? Colors.white.withValues(alpha: 0.04) : Colors.grey.withValues(alpha: 0.06)),
-
-                        borderRadius: BorderRadius.circular(18),
-
-                        border: Border.all(
-
-                          color: isSelected ? pColor : Colors.transparent,
-
-                          width: 2,
-
-                        ),
-
-                      ),
-
-                      child: Column(
-
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-
-                          Container(
-
-                            padding: const EdgeInsets.all(8),
-
-                            decoration: BoxDecoration(
-
-                              color: pColor,
-
-                              borderRadius: BorderRadius.circular(14),
-
-                              boxShadow: isSelected ? [
-
-                                BoxShadow(
-
-                                  color: pColor.withValues(alpha: 0.3),
-
-                                  blurRadius: 8,
-
-                                  offset: const Offset(0, 4),
-
-                                )
-
-                              ] : null,
-
-                            ),
-
-                            child: Icon(
-
-                              personaIconFromName(p.icon),
-
-                              color: Colors.white,
-
-                              size: 20,
-
-                            ),
-
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-
-                            p.name,
-
-                            textAlign: TextAlign.center,
-
-                            maxLines: 1,
-
-                            style: const TextStyle(
-
-                              fontSize: 15,
-
-                              fontWeight: FontWeight.w900,
-
-                            ),
-
-                          ),
-
-                          Text(
-
-                            p.description,
-
-                            textAlign: TextAlign.center,
-
-                            maxLines: 1,
-
-                            overflow: TextOverflow.ellipsis,
-
-                            style: TextStyle(
-
-                              fontSize: 10,
-
-                              fontWeight: FontWeight.w500,
-
-                              color: isDark ? Colors.white38 : Colors.black54,
-
-                            ),
-
-                          ),
-
-                        ],
-
-                      ),
-
-                    ),
-
-                  );
-
-                },
-
-              ),
-
-            ),
-
-          ],
-
-        ),
-
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => PersonaSelectorSheet(
+        personas: personas,
+        selectedSlug: ref.watch(selectedPersonaProvider)?.slug,
+        onSelect: (p) {
+          ref.read(selectedPersonaProvider.notifier).state = p;
+          Navigator.pop(ctx);
+        },
       ),
-
     );
-
   }
+
+
 
 
 
@@ -2613,7 +2510,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
     final last = messages.isNotEmpty ? messages.last : null;
     final showTyping = chatState.isLoading && (last == null || last.role == 'user');
-    final showLoader = showTyping || chatState.toolLoadingLabel != null;
+    final showLoader = showTyping || chatState.toolLoadingLabel != null || (chatState.toolSteps?.isNotEmpty == true);
 
     // Locate the index of the most recent user-authored message so we can
 
@@ -2652,7 +2549,12 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
       itemCount: messages.length + (showLoader ? 1 : 0),
       itemBuilder: (ctx, i) {
         if (i == messages.length && showLoader) {
-          return _buildTypingIndicator(isDark, personaColor, toolLabel: chatState.toolLoadingLabel);
+          return _buildTypingIndicator(
+            isDark, 
+            personaColor, 
+            toolLabel: chatState.toolLoadingLabel,
+            toolSteps: chatState.toolSteps,
+          );
         }
 
         final msg = messages[i];
@@ -2711,15 +2613,16 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
   // ── Typing indicator ──
 
-  Widget _buildTypingIndicator(bool isDark, Color personaColor, {String? toolLabel}) {
+  Widget _buildTypingIndicator(bool isDark, Color personaColor, {String? toolLabel, List<ToolStep>? toolSteps}) {
     return Align(
       alignment: Alignment.centerRight,
       child: Container(
+        width: double.infinity,
         margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkSurface : Colors.white,
-          borderRadius: BorderRadius.circular(20)
+          borderRadius: BorderRadius.circular(24)
               .copyWith(bottomRight: const Radius.circular(4)),
           boxShadow: [
             BoxShadow(
@@ -2728,57 +2631,64 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                 offset: const Offset(0, 4)),
           ],
         ),
-        child: AnimatedBuilder(
-          animation: _typingDotController,
-          builder: (_, _) {
-            final dots = Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (index) {
-                final delay = index * 0.33;
-                final phase =
-                    (_typingDotController.value - delay).clamp(0.0, 1.0);
-                final opacity =
-                    (0.3 + 0.7 * _bounceCurve(phase)).clamp(0.3, 1.0);
-                final scale = 0.7 + 0.3 * _bounceCurve(phase);
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  child: Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      width: 9,
-                      height: 9,
-                      decoration: BoxDecoration(
-                        color: personaColor.withValues(alpha: opacity),
-                        shape: BoxShape.circle,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (toolSteps != null && toolSteps.isNotEmpty)
+              _ToolExecutionTree(steps: toolSteps, accentColor: personaColor, isDark: isDark)
+            else
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _typingDotController,
+                    builder: (_, _) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(3, (index) {
+                          final delay = index * 0.33;
+                          final phase =
+                              (_typingDotController.value - delay).clamp(0.0, 1.0);
+                          final opacity =
+                              (0.3 + 0.7 * _bounceCurve(phase)).clamp(0.3, 1.0);
+                          final scale = 0.7 + 0.3 * _bounceCurve(phase);
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            child: Transform.scale(
+                              scale: scale,
+                              child: Container(
+                                width: 8,
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: personaColor.withValues(alpha: opacity),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                  ),
+                  if (toolLabel != null) ...[
+                    const SizedBox(width: 12),
+                    Text(
+                      toolLabel,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: personaColor,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                );
-              }),
-            );
-
-            if (toolLabel == null) return dots;
-
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                dots,
-                const SizedBox(width: 12),
-                Text(
-                  toolLabel,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: personaColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            );
-          },
+                  ],
+                ],
+              ),
+          ],
         ),
       ),
     );
   }
+
 
 
 
@@ -3181,6 +3091,134 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
 }
 
+// ── Tool Execution Tree Widget ─────────────────────────────────────────────
+
+class _ToolExecutionTree extends StatelessWidget {
+  final List<ToolStep> steps;
+  final Color accentColor;
+  final bool isDark;
+
+  const _ToolExecutionTree({
+    required this.steps,
+    required this.accentColor,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (int i = 0; i < steps.length; i++)
+          _buildStep(steps[i], i == steps.length - 1),
+      ],
+    );
+  }
+
+  Widget _buildStep(ToolStep step, bool isLast) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _buildStepIcon(step.isDone),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                step.label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: step.isDone ? FontWeight.w600 : FontWeight.w800,
+                  color: step.isDone
+                      ? (isDark ? Colors.white54 : Colors.black45)
+                      : accentColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (step.details.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 24, top: 4, bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final detail in step.details)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 1,
+                          color: isDark ? Colors.white10 : Colors.black12,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          detail,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white38 : Colors.black38,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: Container(
+              width: 1,
+              height: step.details.isNotEmpty ? 10 : 15,
+              color: isDark ? Colors.white10 : Colors.black12,
+            ),
+          ),
+      ],
+    ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.05, end: 0);
+  }
+
+  Widget _buildStepIcon(bool isDone) {
+    if (isDone) {
+      return Icon(
+        PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
+        size: 16,
+        color: const Color(0xFF10B981),
+      );
+    }
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: accentColor.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+        border: Border.all(color: accentColor.withValues(alpha: 0.3), width: 1.5),
+      ),
+      child: Center(
+        child: Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: accentColor,
+            shape: BoxShape.circle,
+          ),
+        ).animate(onPlay: (c) => c.repeat()).scale(
+              begin: const Offset(0.5, 0.5),
+              end: const Offset(1.2, 1.2),
+              duration: 800.ms,
+              curve: Curves.easeInOut,
+            ).then().scale(
+              begin: const Offset(1.2, 1.2),
+              end: const Offset(0.5, 0.5),
+            ),
+      ),
+    );
+  }
+}
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Composer sub-widgets
 // ─────────────────────────────────────────────────────────────────────────────
@@ -3270,32 +3308,44 @@ class _ComposerIconButtonState extends State<_ComposerIconButton>
     );
 
     if (widget.pulse) {
-      btn = Stack(
-        alignment: Alignment.center,
-        children: [
-          AnimatedBuilder(
-            animation: _pulseCtrl,
-            builder: (_, _) {
-              // Calmer mic halo: smaller expansion + softer alpha so the icon
-              // feels alive without the heavy "throb" that distorted the
-              // composer. We also keep the halo strictly behind the icon by
-              // bounding its growth to the available padding around the button.
-              final t = _pulseCtrl.value;
-              return Container(
-                width: 40 + 8 * t,
-                height: 40 + 8 * t,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: widget.activeColor
-                      .withValues(alpha: (1 - t) * 0.16),
-                ),
-              );
-            },
-          ),
-          btn,
-        ],
+      btn = SizedBox(
+        width: 44,
+        height: 44,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            AnimatedBuilder(
+              animation: _pulseCtrl,
+              builder: (_, _) {
+                // Calmer mic halo: smaller expansion + softer alpha so the icon
+                // feels alive without the heavy "throb" that distorted the
+                // composer. We also keep the halo strictly behind the icon by
+                // bounding its growth to the available padding around the button.
+                final t = _pulseCtrl.value;
+                return Container(
+                  width: 40 + 12 * t,
+                  height: 40 + 12 * t,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: widget.activeColor
+                        .withValues(alpha: (1 - t) * 0.18),
+                  ),
+                );
+              },
+            ),
+            btn,
+          ],
+        ),
+      );
+    } else {
+      btn = SizedBox(
+        width: 44,
+        height: 44,
+        child: Center(child: btn),
       );
     }
+
 
     if (widget.tooltip != null) {
       btn = Tooltip(message: widget.tooltip!, child: btn);
@@ -5998,15 +6048,23 @@ class _InlineToolIcon extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
       decoration: BoxDecoration(
         color: isActive 
-          ? activeColor.withValues(alpha: 0.15) 
+          ? activeColor.withValues(alpha: isDark ? 0.12 : 0.10) 
           : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isActive 
-            ? activeColor.withValues(alpha: 0.3) 
-            : Colors.transparent,
-          width: 1,
+            ? activeColor.withValues(alpha: 0.4) 
+            : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+          width: 1.2,
         ),
+        boxShadow: isActive ? [
+          BoxShadow(
+            color: activeColor.withValues(alpha: isDark ? 0.25 : 0.15),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 2),
+          ),
+        ] : null,
       ),
       child: Tooltip(
         message: tooltip,

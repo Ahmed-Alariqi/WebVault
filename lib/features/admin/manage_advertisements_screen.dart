@@ -298,7 +298,7 @@ class _AdCard extends ConsumerWidget {
                 Switch(
                   value: ad.isActive,
                   onChanged: (val) => _toggleActive(ref, context, val),
-                  activeThumbColor: const Color(0xFF8B5CF6),
+                  activeThumbColor: AppTheme.primaryColor,
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit, color: Colors.blue),

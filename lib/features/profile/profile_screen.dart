@@ -618,7 +618,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 كل شيء تحتاجه كـ شخص رقمي… صار بمكان واحد 👌
 
 ⬇️ حمّل التطبيق الآن:
-https://webvault.app/download
+https://zaadtech.netlify.app
 
 جرب زاد الآن… ورتب الفوضى التي تعيشها يومياً في مكان واحد 🚀'''
                   : '''Student, designer, developer, cybersec specialist, or AI engineer? Then you know the "chaos" of scattered resources and tools! 🤯
@@ -641,7 +641,7 @@ Zad App is designed to be your "Second Brain".. the smart home that organizes yo
 Everything you need as a digital professional, all in one place 👌
 
 ⬇️ Download now:
-https://webvault.app/download
+https://zaadtech.netlify.app
 
 Try Zad now and organize your daily workflow! 🚀''';
               Share.share(text);
@@ -713,6 +713,7 @@ Try Zad now and organize your daily workflow! 🚀''';
           ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
         }
         final hasUsername = _originalUsername.isNotEmpty;
+        final myCodeAsync = ref.watch(myReferralCodeProvider);
 
         return GestureDetector(
           onTap: () {
@@ -792,11 +793,50 @@ Try Zad now and organize your daily workflow! 🚀''';
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                  color: isDark ? Colors.white38 : Colors.black26,
-                ),
+                if (hasUsername)
+                  IconButton(
+                    onPressed: () async {
+                      final code = myCodeAsync.valueOrNull?.code;
+                      if (code == null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ReferralShareScreen()),
+                        );
+                        return;
+                      }
+                      
+                      const appLink = 'https://zaadtech.netlify.app';
+                      String rewardMention = campaign.referredRewardDescription ?? '';
+                      
+                      final message = '''
+🚀 انضم إليّ في 'زاد'.. عقلك الثاني لتنظيم حياتك الرقمية! 🧠
+
+لقد بدأت باستخدام تطبيق 'زاد' لتنظيم كل روابطي، مفاتيحي، وأدواتي التقنية في مكان واحد، وأردت مشاركة الفائدة معك!
+
+${rewardMention.isNotEmpty ? '🎁 مكافأة خاصة بانتظارك: $rewardMention' : ''}
+
+✨ استخدم كود الدعوة الخاص بي عند التسجيل للحصول على الامتيازات:
+📌 $code
+
+⬇️ حمّل التطبيق الآن وابدأ رحلة التنظيم:
+$appLink
+
+زاد.. حيث تبدأ إنتاجيتك الرقمية الحقيقية! 🚀''';
+                      
+                      Share.share(message);
+                    },
+                    icon: Icon(PhosphorIcons.shareNetwork(), size: 20, color: AppTheme.primaryColor),
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                      padding: const EdgeInsets.all(8),
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: isDark ? Colors.white38 : Colors.black26,
+                  ),
               ],
             ),
           ),

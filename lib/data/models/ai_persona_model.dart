@@ -18,6 +18,7 @@ class AiPersonaModel {
   final List<Map<String, String>> quickActions;
   final List<AiPersonaMode> modes;
   final List<String> enabledTools;
+  final bool isPremium;
 
   const AiPersonaModel({
     required this.id,
@@ -36,6 +37,7 @@ class AiPersonaModel {
     required this.quickActions,
     this.modes = const [],
     this.enabledTools = const [],
+    this.isPremium = false,
   });
 
   // ── Tool availability helpers ─────────────────────────────────────────────
@@ -115,6 +117,7 @@ class AiPersonaModel {
       enabledTools: (json['enabled_tools'] is List)
           ? (json['enabled_tools'] as List).map((e) => e.toString()).toList()
           : const [],
+      isPremium: json['is_premium'] as bool? ?? false,
     );
   }
 
@@ -134,6 +137,7 @@ class AiPersonaModel {
         'quick_actions': quickActions,
         'modes': modes.map((m) => m.toJson()).toList(),
         'enabled_tools': enabledTools,
+        'is_premium': isPremium,
       };
 
   // Identity is keyed off the stable [id] so that Riverpod family providers
