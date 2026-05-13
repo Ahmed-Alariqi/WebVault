@@ -443,7 +443,7 @@ class _UserDialogState extends State<_UserDialog> {
   bool get _isEditing => widget.user != null;
 
   // Section definitions for the permission grid
-  static const _sectionDefs = [
+  static final _sectionDefs = [
     ('analytics', Icons.bar_chart, Color(0xFF6366F1)),
     ('suggestions', Icons.lightbulb_outline, AppTheme.primaryColor),
     ('websites', Icons.language, Color(0xFF3B82F6)),
@@ -457,6 +457,7 @@ class _UserDialogState extends State<_UserDialog> {
     ('collections', Icons.folder_special, Color(0xFF06B6D4)),
     ('events', Icons.celebration, Color(0xFFE11D48)),
     ('ai_management', Icons.psychology, AppTheme.primaryColor),
+    ('membership', PhosphorIcons.crownSimple(), Color(0xFFD946EF)),
   ];
 
   @override
@@ -578,6 +579,8 @@ class _UserDialogState extends State<_UserDialog> {
         return l.draftsTitle;
       case 'ai_management':
         return 'إدارة الذكاء الاصطناعي';
+      case 'membership':
+        return 'إدارة العضوية';
       default:
         return key;
     }

@@ -9,11 +9,14 @@ import '../../presentation/providers/referral_providers.dart';
 import '../../data/models/referral_model.dart';
 import '../../data/models/membership_request_model.dart';
 import '../../core/utils/admin_ui_utils.dart';
+import '../../presentation/providers/membership_providers.dart';
+import '../../presentation/providers/auth_providers.dart';
 
 final adminPersonasProvider = FutureProvider<List<dynamic>>((ref) async {
   final resp = await SupabaseConfig.client
       .from('ai_personas')
       .select('id, name, icon, is_premium')
+      .eq('is_premium', true)
       .order('sort_order');
   return resp as List;
 });
@@ -22,6 +25,7 @@ final adminCollectionsProvider = FutureProvider<List<dynamic>>((ref) async {
   final resp = await SupabaseConfig.client
       .from('featured_collections')
       .select('id, title, is_referral_exclusive')
+      .eq('is_referral_exclusive', true)
       .order('sort_order');
   return resp as List;
 });
@@ -53,6 +57,42 @@ Future<void> updateAppSetting(String key, String value, WidgetRef ref) async {
   }
 }
 
+Future<void> approveMembershipRequest({
+  required String requestId,
+  required String userId,
+  required Duration duration,
+  required MembershipScope scope,
+  required WidgetRef ref,
+  List<String>? targetIds,
+}) async {
+  try {
+    final supabase = SupabaseConfig.client;
+
+    // 1. Grant actual membership logic via provider
+    // This is the most critical step - we do it FIRST so if it fails,
+    // the request status remains 'pending' and we don't give false feedback.
+    await ref.read(membershipManagementProvider).grantMembership(
+          userId: userId,
+          duration: duration,
+          scope: scope,
+          targetIds: targetIds,
+        );
+
+    // 2. Update request status only after successful grant
+    await supabase.from('membership_requests').update({
+      'status': 'approved',
+      'reviewed_at': DateTime.now().toIso8601String(),
+      'reviewed_by': supabase.auth.currentUser?.id,
+    }).eq('id', requestId);
+
+    ref.invalidate(adminMembershipRequestsProvider);
+    ref.invalidate(userProfileProvider);
+  } catch (e) {
+    debugPrint('Error approving: $e');
+    rethrow;
+  }
+}
+
 class AdminMembershipScreen extends ConsumerStatefulWidget {
   const AdminMembershipScreen({super.key});
   @override
@@ -66,7 +106,7 @@ class _AdminMembershipScreenState extends ConsumerState<AdminMembershipScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 3, vsync: this);
+    _tabCtrl = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -160,6 +200,7 @@ class _AdminMembershipScreenState extends ConsumerState<AdminMembershipScreen>
                       Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(PhosphorIcons.gear(), size: 16), const SizedBox(width: 4), const Text('الإعدادات')])),
                       Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(PhosphorIcons.envelopeSimple(), size: 16), const SizedBox(width: 4), const Text('الطلبات')])),
                       Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(PhosphorIcons.usersThree(), size: 16), const SizedBox(width: 4), const Text('الدعوات')])),
+                      Tab(child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(PhosphorIcons.identificationCard(), size: 16), const SizedBox(width: 4), const Text('الأعضاء')])),
                     ],
                   ),
                 ),
@@ -173,6 +214,7 @@ class _AdminMembershipScreenState extends ConsumerState<AdminMembershipScreen>
             _SettingsTab(isDark: isDark),
             _RequestsTab(isDark: isDark),
             _ReferralsTab(isDark: isDark),
+            _MembersTab(isDark: isDark),
           ],
         ),
       ),
@@ -446,8 +488,22 @@ class _RequestCard extends ConsumerWidget {
                 _ActionBtn(
                   icon: PhosphorIcons.check(), color: AppTheme.successColor, label: 'قبول',
                   onTap: () async {
-                    await approveMembershipRequest(request.id, ref);
-                    if (context.mounted) AdminUIUtils.showSuccess(context, 'تم قبول الطلب');
+                    final result = await showDialog<Map<String, dynamic>>(
+                      context: context,
+                      builder: (ctx) => _MembershipGrantDialog(userName: request.userName ?? 'المستخدم'),
+                    );
+
+                    if (result != null) {
+                      await approveMembershipRequest(
+                        requestId: request.id,
+                        userId: request.userId,
+                        duration: result['duration'] as Duration,
+                        scope: result['scope'] as MembershipScope,
+                        targetIds: result['targetIds'] as List<String>?,
+                        ref: ref,
+                      );
+                      if (context.mounted) AdminUIUtils.showSuccess(context, 'تم تفعيل العضوية للمستخدم بنجاح');
+                    }
                   },
                 ),
                 const SizedBox(width: 8),
@@ -457,6 +513,56 @@ class _RequestCard extends ConsumerWidget {
                     await rejectMembershipRequest(request.id, ref);
                     if (context.mounted) AdminUIUtils.showSuccess(context, 'تم رفض الطلب');
                   },
+                ),
+              ] else ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (request.status == 'rejected')
+                      IconButton(
+                        onPressed: () async {
+                          final result = await showDialog<Map<String, dynamic>>(
+                            context: context,
+                            builder: (ctx) => _MembershipGrantDialog(userName: request.userName ?? 'المستخدم'),
+                          );
+
+                          if (result != null) {
+                            await approveMembershipRequest(
+                              requestId: request.id,
+                              userId: request.userId,
+                              duration: result['duration'] as Duration,
+                              scope: result['scope'] as MembershipScope,
+                              targetIds: result['targetIds'] as List<String>?,
+                              ref: ref,
+                            );
+                            if (context.mounted) AdminUIUtils.showSuccess(context, 'تم تفعيل العضوية للمستخدم بنجاح');
+                          }
+                        },
+                        icon: Icon(PhosphorIcons.checkCircle(), size: 20, color: AppTheme.successColor.withValues(alpha: 0.7)),
+                        tooltip: 'قبول الآن',
+                      ),
+                    IconButton(
+                      onPressed: () async {
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('حذف السجل؟'),
+                            content: const Text('سيتم حذف هذا الطلب من السجل. سيتمكن المستخدم من إرسال طلب جديد.'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حذف', style: TextStyle(color: Colors.red))),
+                            ],
+                          ),
+                        );
+                        if (confirmed == true) {
+                          await deleteMembershipRequest(request.id, ref);
+                          if (context.mounted) AdminUIUtils.showSuccess(context, 'تم حذف السجل بنجاح');
+                        }
+                      },
+                      icon: Icon(PhosphorIcons.trash(), size: 18, color: isDark ? Colors.white24 : Colors.black26),
+                      tooltip: 'حذف السجل',
+                    ),
+                  ],
                 ),
               ],
             ],
@@ -849,6 +955,130 @@ class _ActivityDot extends StatelessWidget {
   }
 }
 
+class _MembershipGrantDialog extends StatefulWidget {
+  final String userName;
+  const _MembershipGrantDialog({required this.userName});
+
+  @override
+  State<_MembershipGrantDialog> createState() => _MembershipGrantDialogState();
+}
+
+class _MembershipGrantDialogState extends State<_MembershipGrantDialog> {
+  Duration _selectedDuration = const Duration(days: 7);
+  MembershipScope _selectedScope = MembershipScope.global;
+  final List<String> _selectedIds = [];
+
+  final List<Map<String, dynamic>> _durations = [
+    {'label': '3 أيام (تجريبي)', 'value': const Duration(days: 3)},
+    {'label': 'أسبوع واحد', 'value': const Duration(days: 7)},
+    {'label': 'شهر كامل', 'value': const Duration(days: 30)},
+    {'label': 'دائم (عضوية مفتوحة)', 'value': const Duration(days: 36500)},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Consumer(builder: (context, ref, _) {
+      final personas = ref.watch(adminPersonasProvider);
+      final collections = ref.watch(adminCollectionsProvider);
+
+      return AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('تحديد تفاصيل العضوية لـ ${widget.userName}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('مدة العضوية:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const SizedBox(height: 12),
+              ..._durations.map((d) => RadioListTile<Duration>(
+                    value: d['value'] as Duration,
+                    groupValue: _selectedDuration,
+                    title: Text(d['label'] as String, style: const TextStyle(fontSize: 14)),
+                    onChanged: (val) => setState(() => _selectedDuration = val!),
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  )),
+              const Divider(height: 32),
+              const Text('نطاق الوصول:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<MembershipScope>(
+                value: _selectedScope,
+                decoration: _adminInputDecoration(isDark, label: 'اختر النطاق').copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                items: const [
+                  DropdownMenuItem(value: MembershipScope.global, child: Text('وصول كامل لكل الميزات')),
+                  DropdownMenuItem(value: MembershipScope.collection, child: Text('مجموعات محددة فقط')),
+                  DropdownMenuItem(value: MembershipScope.persona, child: Text('شخصيات خبير زاد محددة')),
+                ],
+                onChanged: (val) => setState(() {
+                  _selectedScope = val!;
+                  _selectedIds.clear();
+                }),
+              ),
+              if (_selectedScope != MembershipScope.global) ...[
+                const SizedBox(height: 20),
+                const Text('اختر العناصر المحددة:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                const SizedBox(height: 8),
+                if (_selectedScope == MembershipScope.persona)
+                  personas.maybeWhen(
+                    data: (items) => Wrap(
+                      spacing: 8,
+                      children: items.map((p) {
+                        final id = p['id'] as String;
+                        final isSelected = _selectedIds.contains(id);
+                        return FilterChip(
+                          label: Text(p['name'] as String, style: const TextStyle(fontSize: 12)),
+                          selected: isSelected,
+                          onSelected: (val) => setState(() => val ? _selectedIds.add(id) : _selectedIds.remove(id)),
+                        );
+                      }).toList(),
+                    ),
+                    orElse: () => const Center(child: CircularProgressIndicator()),
+                  )
+                else
+                  collections.maybeWhen(
+                    data: (items) => Wrap(
+                      spacing: 8,
+                      children: items.map((c) {
+                        final id = c['id'] as String;
+                        final isSelected = _selectedIds.contains(id);
+                        return FilterChip(
+                          label: Text(c['title'] as String, style: const TextStyle(fontSize: 12)),
+                          selected: isSelected,
+                          onSelected: (val) => setState(() => val ? _selectedIds.add(id) : _selectedIds.remove(id)),
+                        );
+                      }).toList(),
+                    ),
+                    orElse: () => const Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('إلغاء')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, {
+              'duration': _selectedDuration,
+              'scope': _selectedScope,
+              'targetIds': _selectedIds.isEmpty ? null : _selectedIds,
+            }),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('تأكيد ومنح الوصول'),
+          ),
+        ],
+      );
+    });
+  }
+}
+
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   final Widget child;
   _TabBarDelegate(this.child);
@@ -860,4 +1090,153 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext ctx, double shrinkOffset, bool overlaps) => child;
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate old) => false;
+}
+
+InputDecoration _adminInputDecoration(bool isDark, {required String label}) {
+  return InputDecoration(
+    labelText: label,
+    filled: true,
+    fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  );
+}
+class _MembersTab extends ConsumerWidget {
+  final bool isDark;
+  const _MembersTab({required this.isDark});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final membersAsync = ref.watch(activePremiumUsersProvider);
+
+    return membersAsync.when(
+      data: (members) {
+        if (members.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(PhosphorIcons.users(PhosphorIconsStyle.duotone), size: 64, color: isDark ? Colors.white12 : Colors.black12),
+                const SizedBox(height: 12),
+                Text('لا يوجد أعضاء مفعّلون حالياً', style: TextStyle(color: isDark ? Colors.white38 : Colors.black38)),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async => ref.invalidate(activePremiumUsersProvider),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: members.length,
+            itemBuilder: (context, i) {
+              final m = members[i];
+              final premiumUntil = m['premium_until'] != null ? DateTime.parse(m['premium_until']) : null;
+              final isExpired = premiumUntil != null && premiumUntil.isBefore(DateTime.now());
+              final isPermanent = premiumUntil != null && premiumUntil.year > 2099;
+              
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.darkCard : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48, height: 48,
+                      decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: const Center(child: Icon(Icons.person, color: AppTheme.primaryColor)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(m['full_name'] ?? m['username'] ?? 'مستخدم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(isPermanent ? 'عضوية دائمة ♾️' : 'تنتهي: ${DateFormat('yyyy/MM/dd').format(premiumUntil!)}', 
+                              style: TextStyle(fontSize: 12, color: isExpired ? AppTheme.errorColor : (isDark ? Colors.white38 : Colors.black38))),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(PhosphorIcons.dotsThreeOutlineVertical(PhosphorIconsStyle.fill), size: 20),
+                      onPressed: () => _showMemberActions(context, ref, m, isDark),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('خطأ: $e')),
+    );
+  }
+
+  void _showMemberActions(BuildContext context, WidgetRef ref, Map<String, dynamic> member, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? AppTheme.darkSurface : Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: isDark ? Colors.white12 : Colors.black12, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 20),
+            Text('إدارة عضوية ${member['full_name'] ?? member['username']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.history, color: Colors.orange),
+              title: const Text('إعادة ضبط لشهر واحد (30 يوم)'),
+              subtitle: const Text('سيتم تقليص المدة لتنتهي بعد شهر من الآن'),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(membershipManagementProvider).updateMembership(
+                  userId: member['id'],
+                  premiumUntil: DateTime.now().add(const Duration(days: 30)),
+                );
+                ref.invalidate(activePremiumUsersProvider);
+                if (context.mounted) AdminUIUtils.showSuccess(context, 'تم إعادة ضبط العضوية');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.all_inclusive, color: Colors.blue),
+              title: const Text('ترقية لعضوية دائمة'),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(membershipManagementProvider).updateMembership(
+                  userId: member['id'],
+                  premiumUntil: DateTime(2100, 1, 1),
+                );
+                ref.invalidate(activePremiumUsersProvider);
+                if (context.mounted) AdminUIUtils.showSuccess(context, 'تمت الترقية لعضوية دائمة');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.no_accounts, color: AppTheme.errorColor),
+              title: const Text('إلغاء العضوية فوراً', style: TextStyle(color: AppTheme.errorColor, fontWeight: FontWeight.bold)),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await ref.read(membershipManagementProvider).updateMembership(
+                  userId: member['id'],
+                  premiumUntil: null,
+                  permissions: [], // Clear permissions too
+                );
+                ref.invalidate(activePremiumUsersProvider);
+                if (context.mounted) AdminUIUtils.showWarning(context, 'تم إلغاء العضوية');
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
 }

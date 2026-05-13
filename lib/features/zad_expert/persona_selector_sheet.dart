@@ -6,10 +6,10 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../data/models/ai_persona_model.dart';
-import '../../presentation/providers/discover_providers.dart';
-import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../discover/widgets/premium_unlock_sheet.dart';
 import 'zad_expert_screen.dart' show hexToColor, personaIconFromName;
+import '../../presentation/providers/membership_providers.dart';
 
 /// Bottom sheet for choosing a persona — card grid layout.
 class PersonaSelectorSheet extends ConsumerWidget {
@@ -27,8 +27,6 @@ class PersonaSelectorSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final premiumCollectionIds = ref.watch(userPremiumCollectionIdsProvider).valueOrNull ?? {};
-    final isAdmin = ref.watch(isAdminProvider).valueOrNull ?? false;
 
     return Container(
       margin: const EdgeInsets.all(12),
@@ -110,17 +108,16 @@ class PersonaSelectorSheet extends ConsumerWidget {
                     final color = hexToColor(p.color);
                     final isSelected = p.slug == selectedSlug;
                     final isPremium = p.isPremium;
-                    // For now, personas don't have a specific collectionId linked,
-                    // so we assume if isPremium is true, it's gated by the global premium status.
-                    // If the user has ANY premium collection ID or is admin, they have access.
-                    final hasAccess = !isPremium || isAdmin || premiumCollectionIds.isNotEmpty;
+                    final memStatus = ref.watch(membershipStatusProvider);
+                    final hasAccess = !isPremium || memStatus.hasAccessTo(type: 'persona', id: p.id);
+                    final isAdmin = memStatus.isAdmin;
 
                     return GestureDetector(
                         onTap: () {
                           HapticFeedback.selectionClick();
                           // In the selector, we always allow admins to enter, but we show the sheet if they aren't admin and don't have access.
                           if (!hasAccess && !isAdmin) {
-                            _showPremiumLock(context, isDark);
+                            _showPremiumLock(context, ref, isDark, p);
                             return;
                           }
                           onSelect(p);
@@ -271,17 +268,20 @@ class PersonaSelectorSheet extends ConsumerWidget {
     );
   }
 
-  void _showPremiumLock(BuildContext context, bool isDark) {
+  void _showPremiumLock(BuildContext context, WidgetRef ref, bool isDark, AiPersonaModel persona) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => PremiumFeatureSheet(
         title: 'شخصيات خبير زاد PRO 👑',
-        description: 'هذه الشخصية من فئة المحترفين. يتطلب الوصول إليها عضوية مفعلة في النظام.',
+        description: 'الوصول إلى شخصية "${persona.name}" يتطلب تفعيل العضوية. يمكنك فتحها الآن من خلال دعوة أصدقائك للتطبيق.',
         icon: PhosphorIcons.brain(PhosphorIconsStyle.fill),
-        onAction: () => Navigator.pop(ctx),
-        actionLabel: 'فهمت',
+        onAction: () async {
+          HapticFeedback.lightImpact();
+          await shareViralInvitation(ref);
+        },
+        actionLabel: 'ادعُ أصدقاءك لفتح الميزة',
         themeColor: const Color(0xFFF59E0B),
         isDark: isDark,
       ),

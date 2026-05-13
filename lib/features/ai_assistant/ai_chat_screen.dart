@@ -3815,9 +3815,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                     controller: _controller,
                     focusNode: _focusNode,
                     enabled: !isLoading,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (text) => _sendMessage(text),
-                    maxLines: 3,
+                    textInputAction: TextInputAction.newline,
+                    maxLines: 5,
                     minLines: 1,
                     style: TextStyle(
                       fontSize: 14,

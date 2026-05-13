@@ -196,6 +196,8 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
   final String personaId;
   final Ref _ref;
 
+  StreamSubscription? _streamingSubscription;
+
   ExpertSessionsNotifier({
     required this.personaSlug,
     required this.personaId,
@@ -256,6 +258,15 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
       final data = state.sessions.map((s) => s.toJson()).toList();
       box.put(_hiveKey, data);
     } catch (_) {}
+  }
+
+  void stopGeneration() {
+    if (_streamingSubscription != null) {
+      _streamingSubscription?.cancel();
+      _streamingSubscription = null;
+    }
+    state = state.copyWith(isLoading: false);
+    _saveAllSessions();
   }
 
   void startNewSession() {
@@ -369,16 +380,32 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
     try {
       final modeKey = _activeModeKey;
       final buffer = StringBuffer();
-      await for (final chunk in ZadExpertService.sendMessageStream(
+      
+      final stream = ZadExpertService.sendMessageStream(
         personaId: personaId,
         chatHistory: updatedMessages,
         modeKey: modeKey,
         webContext: finalWebContext,
-      )) {
-        buffer.write(chunk);
-        aiMsg = aiMsg.copyWith(content: buffer.toString());
-        _updateSessionMessages([...updatedMessages, aiMsg], isAiReply: true);
-      }
+      );
+
+      final completer = Completer<void>();
+      _streamingSubscription = stream.listen(
+        (chunk) {
+          buffer.write(chunk);
+          aiMsg = aiMsg.copyWith(content: buffer.toString());
+          _updateSessionMessages([...updatedMessages, aiMsg], isAiReply: true);
+        },
+        onError: (e) {
+          if (!completer.isCompleted) completer.completeError(e);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete();
+        },
+        cancelOnError: true,
+      );
+
+      await completer.future;
+      _streamingSubscription = null;
 
       // Defensive fallback: if streaming silently produced nothing (network
       // proxy stripping SSE, provider misconfig, …) try the classic
@@ -412,6 +439,7 @@ class ExpertSessionsNotifier extends StateNotifier<ExpertSessionsState> {
       state = state.copyWith(isLoading: false);
       _saveAllSessions();
     } catch (e) {
+      _streamingSubscription = null;
       // Drop the (possibly partial) assistant placeholder so we don't keep
       // a half-typed message in history when the stream errored.
       _updateSessionMessages(updatedMessages);

@@ -339,24 +339,24 @@ class AdminDashboardScreen extends ConsumerWidget {
                         delay: 350,
                       ),
 
-                    // Membership Management
-                    Consumer(
-                      builder: (context, ref, _) {
-                        final pendingCount = ref.watch(pendingMembershipCountProvider).valueOrNull ?? 0;
-                        return _ActionCard(
-                          title: 'إدارة العضوية',
-                          subtitle: 'الدعوات والطلبات',
-                          icon: PhosphorIcons.crownSimple(
-                            PhosphorIconsStyle.duotone,
-                          ),
-                          color: const Color(0xFFD946EF),
-                          isDark: isDark,
-                          onTap: () => context.push('/admin/membership'),
-                          delay: 355,
-                          badge: pendingCount > 0 ? _buildBadge(pendingCount) : null,
-                        );
-                      },
-                    ),
+                    if (perms.contains('membership'))
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final pendingCount = ref.watch(pendingMembershipCountProvider).valueOrNull ?? 0;
+                          return _ActionCard(
+                            title: 'إدارة العضوية',
+                            subtitle: 'الدعوات والطلبات',
+                            icon: PhosphorIcons.crownSimple(
+                              PhosphorIconsStyle.duotone,
+                            ),
+                            color: const Color(0xFFD946EF),
+                            isDark: isDark,
+                            onTap: () => context.push('/admin/membership'),
+                            delay: 355,
+                            badge: pendingCount > 0 ? _buildBadge(pendingCount) : null,
+                          );
+                        },
+                      ),
 
                     Consumer(
                       builder: (context, ref, _) {

@@ -105,9 +105,50 @@ async function searchWithJina(query: string, maxResults: number) {
 
 // ── Content Reading ──
 
+const SUPADATA_KEYS = getKeysFromEnv('SUPADATA_API_KEY', 'sd_762ce38665cec5a29b20cdabbffe1efb');
+const SUPADATA_URL = 'https://api.supadata.ai/v1/transcript';
+
 async function readUrl(targetUrl: string) {
+  let normalizedUrl = targetUrl;
   const isYouTube = /youtube\.com|youtu\.be/.test(targetUrl);
-  const url = `${JINA_READ_URL}${targetUrl}`;
+  
+  if (isYouTube) {
+    // 🔗 Normalize YouTube URLs
+    const ytIdMatch = targetUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([^?&]+)/);
+    if (ytIdMatch && ytIdMatch[1]) {
+      normalizedUrl = `https://www.youtube.com/watch?v=${ytIdMatch[1]}`;
+    }
+
+    // 🚀 Method 1: Supadata (Multi-Key Support)
+    try {
+      const sRes = await fetchWithFallback(SUPADATA_KEYS, (key) => {
+        const supadataFullUrl = `${SUPADATA_URL}?url=${encodeURIComponent(normalizedUrl)}&text=true&mode=auto`;
+        return fetch(supadataFullUrl, {
+          headers: { 
+            'x-api-key': key,
+            'Accept': 'application/json'
+          }
+        });
+      });
+      
+      if (sRes.ok) {
+        const sJson = await sRes.json();
+        if (sJson.content) {
+          console.log("Supadata transcript extracted successfully.");
+          return {
+            title: sJson.title || "YouTube Content",
+            url: normalizedUrl,
+            content: "### [محتوى فيديو يوتيوب - نص الحوار]\n\n" + sJson.content
+          };
+        }
+      }
+    } catch (e) {
+      console.warn("All Supadata keys failed or connection error, falling back to Jina:", e.message);
+    }
+  }
+
+  // 🚀 Method 2: Jina Reader (Fallback for YouTube or primary for web pages)
+  const url = `${JINA_READ_URL}${normalizedUrl}`;
   
   const res = await fetchWithFallback(JINA_KEYS, (key) => {
     const headers: Record<string, string> = {
@@ -115,9 +156,12 @@ async function readUrl(targetUrl: string) {
       'Authorization': `Bearer ${key}`,
       'X-Return-Format': 'markdown',
     };
+
     if (isYouTube) {
-      // 📹 Optimized YouTube Headers
-      headers['X-With-Generated-Alt'] = 'true';
+      // 📹 Jina YouTube Headers (Fallback mode)
+      headers['X-With-Links-Summary'] = 'false';
+      headers['X-With-Images-Summary'] = 'false';
+      headers['X-No-Cache'] = 'true';
     } else {
       // 📄 Clean Web Page Headers
       headers['X-Remove-Selector'] = 'nav, footer, script, style, .ads, .sidebar, #comments, header, aside';
@@ -135,10 +179,11 @@ async function readUrl(targetUrl: string) {
     content = content.slice(0, MAX_READ_CONTENT_LENGTH) + '\n\n[... تم اختصار المحتوى لضمان جودة الأداء المتبقي ...]';
   }
 
-  const prefix = isYouTube ? "### [محتوى فيديو يوتيوب - نص الحوار]\n\n" : "";
+  const prefix = isYouTube ? "### [محتوى فيديو يوتيوب - نص الحوار (Jina Fallback)]\n\n" : "";
+  
   return { 
     title: data.title ?? (isYouTube ? "YouTube Content" : ""), 
-    url: data.url ?? targetUrl, 
+    url: data.url ?? normalizedUrl, 
     content: prefix + content 
   };
 }

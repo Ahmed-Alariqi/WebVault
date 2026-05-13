@@ -10,6 +10,7 @@ import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/providers.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/providers/membership_providers.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../data/models/page_model.dart';
@@ -1268,9 +1269,10 @@ class _HeaderAvatar extends ConsumerWidget {
         final initial = fullName.trim().isNotEmpty
             ? fullName.trim()[0].toUpperCase()
             : '?';
-        return _buildShell(child: _buildInitial(initial));
+        return _buildShell(ref: ref, child: _buildInitial(initial));
       },
       loading: () => _buildShell(
+        ref: ref,
         child: const SizedBox(
           width: 18,
           height: 18,
@@ -1281,6 +1283,7 @@ class _HeaderAvatar extends ConsumerWidget {
         ),
       ),
       error: (_, _) => _buildShell(
+        ref: ref,
         child: Icon(
           PhosphorIcons.user(PhosphorIconsStyle.bold),
           color: Colors.white,
@@ -1290,7 +1293,7 @@ class _HeaderAvatar extends ConsumerWidget {
     );
   }
 
-  Widget _buildShell({required Widget child}) {
+  Widget _buildShell({required WidgetRef ref, required Widget child}) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -1331,6 +1334,36 @@ class _HeaderAvatar extends ConsumerWidget {
             ),
           ),
         ),
+        
+        // PRO badge for active members
+        if (ref.watch(membershipStatusProvider).isActive)
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.star_rounded,
+                color: Colors.white,
+                size: 10,
+              ),
+            ),
+          ).animate().scale(delay: 400.ms, curve: Curves.elasticOut),
 
         if (hasUnreadChats)
           Positioned(

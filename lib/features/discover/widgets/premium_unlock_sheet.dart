@@ -91,7 +91,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
                     // Handle
                     Container(
                       width: 45, height: 5,
-                      margin: const EdgeInsets.only(bottom: 32),
+                      margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
                         color: isDark ? Colors.white24 : Colors.black12,
                         borderRadius: BorderRadius.circular(2.5),
@@ -100,14 +100,14 @@ class PremiumFeatureSheet extends ConsumerWidget {
 
                     // Icon with Glow
                     _buildIcon(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
                     // Title
                     Text(
                       title,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 26, fontWeight: FontWeight.w900,
+                        fontSize: 22, fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
                         color: isDark ? Colors.white : const Color(0xFF1E293B),
                         height: 1.2,
@@ -115,15 +115,15 @@ class PremiumFeatureSheet extends ConsumerWidget {
                     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
 
                     if (teaserText != null) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         teaserText!,
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: themeColor),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: themeColor),
                       ).animate().fadeIn(delay: 300.ms),
                     ],
 
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
 
                     // Description
                     Padding(
@@ -132,14 +132,14 @@ class PremiumFeatureSheet extends ConsumerWidget {
                         description,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                          height: 1.6, fontWeight: FontWeight.w500,
+                          height: 1.5, fontWeight: FontWeight.w500,
                         ),
                       ),
                     ).animate().fadeIn(delay: 400.ms),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
 
                     // ── Smart Progress Section ──
                     _buildProgressSection(
@@ -148,12 +148,12 @@ class PremiumFeatureSheet extends ConsumerWidget {
                       hasCampaign: campaignAsync.valueOrNull != null,
                     ),
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
                     // Collection Card
                     if (collection != null) ...[
                       _buildCollectionInfo(context, collection!),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 12),
                     ],
 
                     // Action Button
@@ -174,9 +174,9 @@ class PremiumFeatureSheet extends ConsumerWidget {
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         foregroundColor: isDark ? Colors.white38 : Colors.black38,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 4),
                       ),
-                      child: const Text('ليس الآن', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      child: const Text('ليس الآن', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
                     ).animate().fadeIn(delay: 600.ms),
                   ],
                 ),
@@ -193,7 +193,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
       alignment: Alignment.center,
       children: [
         Container(
-          width: 100, height: 100,
+          width: 80, height: 80,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: RadialGradient(colors: [themeColor.withValues(alpha: 0.3), themeColor.withValues(alpha: 0)]),
@@ -202,13 +202,13 @@ class PremiumFeatureSheet extends ConsumerWidget {
           begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2), duration: 2000.ms,
         ),
         Container(
-          width: 76, height: 76,
+          width: 64, height: 64,
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: [themeColor, themeColor.withValues(alpha: 0.7)]),
             shape: BoxShape.circle,
             boxShadow: [BoxShadow(color: themeColor.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))],
           ),
-          child: Icon(icon, size: 32, color: Colors.white),
+          child: Icon(icon, size: 28, color: Colors.white),
         ).animate().scale(curve: Curves.elasticOut, duration: 800.ms),
       ],
     );
@@ -280,7 +280,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
 
   Widget _buildActionButton(BuildContext context) {
     return Container(
-      width: double.infinity, height: 60,
+      width: double.infinity, height: 54,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(colors: [themeColor, themeColor.withValues(alpha: 0.8)]),
@@ -316,33 +316,38 @@ class PremiumFeatureSheet extends ConsumerWidget {
   }) {
     if (!enabled) return const SizedBox.shrink();
 
-    // Already has a request
+    // Already has an active or pending request
     if (existingRequest != null) {
       final status = existingRequest.status as String;
       final isPending = status == 'pending';
       final isApproved = status == 'approved';
-      final color = isPending ? Colors.amber : isApproved ? const Color(0xFF10B981) : Colors.red;
-      final label = isPending ? 'طلبك قيد المراجعة ⏳' : isApproved ? 'تم قبول طلبك ✅' : 'تم رفض طلبك';
+      
+      // If it's rejected, we want to allow them to try again, so we don't return here.
+      // We only show the status card for pending/approved.
+      if (isPending || isApproved) {
+        final color = isPending ? Colors.amber : const Color(0xFF10B981);
+        final label = isPending ? 'طلبك قيد المراجعة ⏳' : 'تم قبول طلبك ✅';
 
-      return Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(isPending ? PhosphorIcons.clock() : PhosphorIcons.checkCircle(), size: 16, color: color),
+                const SizedBox(width: 8),
+                Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(isPending ? PhosphorIcons.clock() : PhosphorIcons.checkCircle(), size: 16, color: color),
-              const SizedBox(width: 8),
-              Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
-            ],
-          ),
-        ),
-      ).animate().fadeIn(delay: 550.ms);
+        ).animate().fadeIn(delay: 550.ms);
+      }
     }
 
     // Show request button
@@ -390,13 +395,13 @@ class PremiumFeatureSheet extends ConsumerWidget {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: () => _showRequestDialog(context, ref),
-              icon: Icon(PhosphorIcons.envelopeSimple(), size: 18),
-              label: const Text('طلب تفعيل عضوية '),
+              icon: Icon(PhosphorIcons.envelopeSimple(), size: 16),
+              label: const Text('طلب تفعيل عضوية', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: isDark ? Colors.white70 : Colors.black54,
                 side: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),

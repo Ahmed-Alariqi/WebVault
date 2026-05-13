@@ -1,10 +1,14 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/supabase_config.dart';
 import '../../data/models/referral_model.dart';
 import '../../data/models/membership_request_model.dart';
 import 'zad_expert_providers.dart';
+import 'membership_providers.dart';
+import 'auth_providers.dart';
 
 final _supabase = SupabaseConfig.client;
 
@@ -341,14 +345,22 @@ final hasBeenReferredProvider = FutureProvider<bool>((ref) async {
 
 /// Check if user qualifies for a specific referral-exclusive collection
 /// (either via referrals OR via a manual admin grant).
-final isEligibleForCollectionProvider = FutureProvider.family<bool, String>((
-  ref,
-  collectionId,
-) async {
+final isEligibleForCollectionProvider =
+    FutureProvider.family<bool, String>((ref, collectionId) async {
+  // 1. Check if user is an admin
+  final isAdmin = await ref.watch(isAdminProvider.future);
+  if (isAdmin) return true;
+
+  // 2. Check the new robust membership status
+  final memStatus = ref.watch(membershipStatusProvider);
+  if (memStatus.hasAccessTo(type: 'collection', id: collectionId)) {
+    return true;
+  }
+
   final uid = _supabase.auth.currentUser?.id;
   if (uid == null) return false;
 
-  // 1. Manual admin grant takes precedence
+  // 3. Fallback to existing manual_user_ids check for backward compatibility
   try {
     final col = await _supabase
         .from('featured_collections')
@@ -360,11 +372,9 @@ final isEligibleForCollectionProvider = FutureProvider.family<bool, String>((
             .toList() ??
         const <String>[];
     if (ids.contains(uid)) return true;
-  } catch (_) {
-    // Ignore and fall through to referral check
-  }
+  } catch (_) {}
 
-  // 2. Referral-based eligibility
+  // 4. Referral-based eligibility (fallback to check if any campaign rewards this collection)
   final campaigns = await _supabase
       .from('referral_campaigns')
       .select('id, required_referrals')
@@ -603,13 +613,30 @@ Future<void> _processRewardsIfComplete(
 
   for (final entry in counts.entries) {
     if (entry.value >= campaign.requiredReferrals) {
-      await _grantReward(entry.key, campaign);
+      await _grantReward(entry.key, campaign, ref);
     }
   }
 }
 
-/// Grant reward to a referrer
-Future<void> _grantReward(String referrerId, ReferralCampaign campaign) async {
+Future<void> _grantReward(String referrerId, ReferralCampaign campaign, WidgetRef ref) async {
+  // NEW: Always grant Permanent Global Premium as a bonus reward for completing any campaign goal
+  try {
+    await ref.read(membershipManagementProvider).grantMembership(
+      userId: referrerId,
+      duration: const Duration(days: 36500), // ~100 years = Permanent
+      scope: MembershipScope.global,
+    );
+
+    // Send a more specific referral-success notification
+    await ref.read(membershipManagementProvider).sendMembershipNotification(
+      userId: referrerId,
+      title: 'إنجاز رائع! 🏆',
+      body: 'لقد حققت هدف الدعوات بنجاح! تم منحك العضوية الدائمة كجائزة على مجهودك.',
+    );
+  } catch (e) {
+    debugPrint('Error granting auto-membership reward: $e');
+  }
+
   switch (campaign.rewardType) {
     case 'giveaway_entry':
       if (campaign.rewardGiveawayId == null) return;
@@ -793,26 +820,30 @@ final myMembershipRequestProvider = FutureProvider<MembershipRequest?>(
   },
 );
 
-/// All membership requests (admin view).
+/// All membership requests (admin view) - Real-time
 final adminMembershipRequestsProvider =
-    FutureProvider<List<MembershipRequest>>((ref) async {
-  final response = await _supabase
+    StreamProvider<List<MembershipRequest>>((ref) {
+  return _supabase
       .from('membership_requests')
-      .select('*, profiles(full_name, username, email)')
-      .order('created_at', ascending: false);
+      .stream(primaryKey: ['id'])
+      .asyncMap((_) async {
+        final response = await _supabase
+            .from('membership_requests')
+            .select('*, profiles(full_name, username, email)')
+            .order('created_at', ascending: false);
 
-  return (response as List)
-      .map((j) => MembershipRequest.fromJson(j))
-      .toList();
+        return (response as List)
+            .map((j) => MembershipRequest.fromJson(j))
+            .toList();
+      });
 });
 
-/// Pending membership requests count (for admin badge).
-final pendingMembershipCountProvider = FutureProvider<int>((ref) async {
-  final response = await _supabase
+/// Pending membership requests count (for admin badge) - Real-time
+final pendingMembershipCountProvider = StreamProvider<int>((ref) {
+  return _supabase
       .from('membership_requests')
-      .select('id')
-      .eq('status', 'pending');
-  return (response as List).length;
+      .stream(primaryKey: ['id'])
+      .map((list) => list.where((row) => row['status'] == 'pending').length);
 });
 
 /// Submit a membership request.
@@ -918,9 +949,17 @@ Future<void> rejectMembershipRequest(String requestId, WidgetRef ref) async {
   final adminId = _supabase.auth.currentUser?.id;
   await _supabase.from('membership_requests').update({
     'status': 'rejected',
-    'reviewed_by': adminId,
     'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+    'reviewed_by': adminId,
   }).eq('id', requestId);
+
+  ref.invalidate(adminMembershipRequestsProvider);
+  ref.invalidate(pendingMembershipCountProvider);
+}
+
+/// Delete a membership request (admin).
+Future<void> deleteMembershipRequest(String requestId, WidgetRef ref) async {
+  await _supabase.from('membership_requests').delete().eq('id', requestId);
 
   ref.invalidate(adminMembershipRequestsProvider);
   ref.invalidate(pendingMembershipCountProvider);
@@ -961,15 +1000,18 @@ Future<void> togglePersonaPremium(
 // ══════════════════════════════════════════════════════
 
 /// All referrals across all campaigns (admin view for membership management).
-final allReferralsProvider = FutureProvider<List<Referral>>((ref) async {
-  final response = await _supabase
+/// All referrals for all users (admin view) - Real-time
+final allReferralsProvider = StreamProvider<List<Referral>>((ref) {
+  return _supabase
       .from('referrals')
-      .select(
-        '*, referred:referred_id(full_name, username), referrer:referrer_id(full_name, username)',
-      )
-      .order('created_at', ascending: false);
+      .stream(primaryKey: ['id'])
+      .asyncMap((_) async {
+        final response = await _supabase.from('referrals').select(
+              '*, referred:referred_id(full_name, username), referrer:referrer_id(full_name, username)',
+            ).order('created_at', ascending: false);
 
-  return (response as List).map((j) => Referral.fromJson(j)).toList();
+        return (response as List).map((j) => Referral.fromJson(j)).toList();
+      });
 });
 
 /// Instant-confirm a pending referral (admin shortcut).
@@ -982,4 +1024,83 @@ Future<void> instantConfirmReferral(String referralId, WidgetRef ref) async {
 
   ref.invalidate(allReferralsProvider);
   ref.invalidate(myTotalConfirmedReferralsProvider);
+}
+
+/// Short, viral invitation message for quick sharing (e.g. from Premium Sheets).
+Future<void> shareViralInvitation(WidgetRef ref) async {
+  try {
+    final codeObj = await ensureReferralCode(ref);
+    final code = codeObj.code;
+    final campaign = await ref.read(activeReferralCampaignProvider.future);
+    final rewardMention = campaign?.referredRewardDescription ?? '';
+    const appLink = 'https://zaadtech.netlify.app';
+    
+    final message = '''
+🚀 انضم إليّ في 'زاد'.. عقلك الثاني لتنظيم حياتك الرقمية! 🧠
+
+لقد بدأت باستخدام تطبيق 'زاد' لتنظيم كل روابطي، مفاتيحي، وأدواتي التقنية في مكان واحد، وأردت مشاركة الفائدة معك!
+
+ماذا ستحصل عليه في زاد؟
+🔖 تنظيم ذكي للمواقع والأدوات.
+🤖 مساعد AI متقدم لشرح وتلخيص المحتوى.
+🧠 خبير زاد: استشارات تقنية فورية من خبراء ذكاء اصطناعي.
+⚡ تصفح ذكي وأتمتة للحافظة (Clipboard) توفر وقتك.
+🧭 استكشاف أفضل المصادر التقنية المحدثة.
+
+${rewardMention.isNotEmpty ? '🎁 مكافأة خاصة بانتظارك: $rewardMention' : ''}
+
+✨ استخدم كود الدعوة الخاص بي عند التسجيل للحصول على الامتيازات:
+📌 $code
+
+⬇️ حمّل التطبيق الآن وابدأ رحلة التنظيم:
+$appLink
+
+زاد.. حيث تبدأ إنتاجيتك الرقمية الحقيقية! 🚀''';
+
+    await Clipboard.setData(ClipboardData(text: message));
+    await Share.share(message);
+  } catch (e) {
+    debugPrint('Error sharing viral invitation: $e');
+  }
+}
+
+/// Long, detailed invitation message for the Profile screen.
+/// Combines the full marketing pitch with the referral code.
+Future<void> shareDetailedInvitation(WidgetRef ref) async {
+  try {
+    final codeObj = await ensureReferralCode(ref);
+    final code = codeObj.code;
+    final campaign = await ref.read(activeReferralCampaignProvider.future);
+    final rewardMention = campaign?.referredRewardDescription ?? '';
+    const appLink = 'https://zaadtech.netlify.app';
+
+    final message = '''
+لو كنت طالب، تقني، مصمم، مبرمج، مختص أمن سيبراني أو مهندس ذكاء اصطناعي.. فأكيد تعرف "دوامة" تشتت المصادر والروابط والأدوات! 🤯
+
+تطبيق "زاد" صُمم ليكون "عقلك الثاني".. المكان الذكي الذي ينظم اهتماماتك الرقمية في مكان واحد 👌
+
+🔖 احفظ أي موقع أو أداة مفيدة بنقرة.
+🔐 خزّن مفاتيحك (API، أكواد، حسابات…) بأمان.
+🤖 مساعد ذكي (AI) لشرح وتلخيص أي أداة أو موقع.
+🧠 خبير زاد: مستشارك التقني الخاص من خبراء الذكاء الاصطناعي.
+🌐 متصفح زاد الذكي: تصفح واجعل الـ AI يلخص لك المحتوى بلمحة بصر.
+⚡ النسخ المتقدم وأتمتة الحافظة (Clipboard) لتوفير وقتك.
+🧭 استكشف أفضل الأدوات والكورسات والمصادر التقنية المحدثة.
+💬 مجتمع تقني حي لتبادل الخبرات.
+
+${rewardMention.isNotEmpty ? '🎁 مكافأة خاصة بانتظارك عبر رابطي: $rewardMention' : ''}
+
+✨ استخدم كود الدعوة الخاص بي عند التسجيل للحصول على الامتيازات:
+📌 $code
+
+⬇️ حمّل التطبيق الآن وابدأ رحلة التنظيم:
+$appLink
+
+زاد.. حيث تبدأ إنتاجيتك الرقمية الحقيقية! 🚀''';
+
+    await Clipboard.setData(ClipboardData(text: message));
+    await Share.share(message);
+  } catch (e) {
+    debugPrint('Error sharing detailed invitation: $e');
+  }
 }

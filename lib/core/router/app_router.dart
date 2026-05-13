@@ -177,6 +177,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             'community',
             'advertisements',
             'events',
+            'ai_management',
+            'membership',
           ];
         } else if (role == 'content_creator') {
           perms = const [
@@ -236,6 +238,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/admin';
         }
         if (location.startsWith('/admin/events') && !perms.contains('events')) {
+          return '/admin';
+        }
+        if (location.startsWith('/admin/ai-management') && !perms.contains('ai_management')) {
+          return '/admin';
+        }
+        if (location.startsWith('/admin/membership') && !perms.contains('membership')) {
           return '/admin';
         }
       }

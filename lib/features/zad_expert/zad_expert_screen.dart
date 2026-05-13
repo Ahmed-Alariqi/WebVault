@@ -16,8 +16,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:share_plus/share_plus.dart';
-
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import '../../presentation/providers/membership_providers.dart';
 
 
 
@@ -42,8 +42,7 @@ import '../ai_assistant/widgets/chat_prompt_bridge.dart';
 import 'widgets/mode_cards_view.dart';
 import 'persona_selector_sheet.dart';
 import '../discover/widgets/premium_unlock_sheet.dart';
-import '../../presentation/providers/discover_providers.dart';
-import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 
 
 
@@ -306,7 +305,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
   bool _isListening = false;
   String? _activeToolMode;
 
-  final _webSearchPatterns = RegExp(r'(ابحث|ما هو|من هو|اخبار|سعر|طقس|هل تعلم|بحث عن|اريد ان اعرف|اخر الاخبار|تفاصيل عن)', caseSensitive: false);
+  final _webSearchPatterns = RegExp(r'(ابحث|إبحث|ابحث عن|إبحث عن|ابحث في الإنترنت|إبحث في الإنترنت|اخر اخبار|آخر أخبار|آخر اخبار|اخر أخبار|اخر تحديث|آخر تحديث|في 2026|عام 2026)', caseSensitive: false);
   final _urlRegex = RegExp(r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)');
 
   bool _shouldAutoSearch(String text) => _webSearchPatterns.hasMatch(text);
@@ -460,9 +459,8 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
     if (!mounted) return;
 
     // Premium Check
-    final premiumCollectionIds = ref.read(userPremiumCollectionIdsProvider).valueOrNull ?? {};
-    final isAdmin = ref.read(isAdminProvider).valueOrNull ?? false;
-    final hasAccess = !persona.isPremium || isAdmin || premiumCollectionIds.isNotEmpty;
+    final memStatus = ref.read(membershipStatusProvider);
+    final hasAccess = !persona.isPremium || memStatus.hasAccessTo(type: 'persona', id: persona.id);
 
     if (!hasAccess) {
       final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -472,10 +470,13 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
         backgroundColor: Colors.transparent,
         builder: (ctx) => PremiumFeatureSheet(
           title: 'شخصيات خبير زاد PRO 👑',
-          description: 'هذه الشخصية من فئة المحترفين. يتطلب استخدامها عضوية مفعلة في النظام.',
+          description: 'الوصول إلى شخصية "${persona.name}" يتطلب تفعيل العضوية. يمكنك فتحها الآن من خلال دعوة أصدقائك للتطبيق.',
           icon: PhosphorIcons.brain(PhosphorIconsStyle.fill),
-          onAction: () => Navigator.pop(ctx),
-          actionLabel: 'فهمت',
+          onAction: () async {
+            HapticFeedback.lightImpact();
+            await shareViralInvitation(ref);
+          },
+          actionLabel: 'ادعُ أصدقاءك لفتح الميزة',
           themeColor: const Color(0xFFF59E0B),
           isDark: isDark,
         ),
@@ -2964,8 +2965,7 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                             controller: _controller,
                             focusNode: _focusNode,
                             enabled: !isLoading,
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: _sendMessage,
+                            textInputAction: TextInputAction.newline,
                             keyboardType: TextInputType.multiline,
                             maxLines: 6,
                             minLines: 1,
@@ -3039,13 +3039,19 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                           onTap: isLoading ? null : () => _toggleToolMode('url'),
                         ),
 
-                      // Send button (trailing in RTL = left side)
+                      // Send/Stop button (trailing in RTL = left side)
                       _ComposerSendButton(
                         isLoading: isLoading,
-                        isEnabled: hasText && !isLoading,
+                        isEnabled: hasText || isLoading,
                         color: personaColor,
                         isDark: isDark,
                         onTap: () => _sendMessage(_controller.text),
+                        onStop: () {
+                          HapticFeedback.mediumImpact();
+                          if (persona != null) {
+                            ref.read(expertChatProvider(persona).notifier).stopGeneration();
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -3362,6 +3368,7 @@ class _ComposerSendButton extends StatelessWidget {
   final bool isDark;
   final Color color;
   final VoidCallback onTap;
+  final VoidCallback? onStop;
 
   const _ComposerSendButton({
     required this.isLoading,
@@ -3369,6 +3376,7 @@ class _ComposerSendButton extends StatelessWidget {
     required this.isDark,
     required this.color,
     required this.onTap,
+    this.onStop,
   });
 
   @override
@@ -3410,19 +3418,29 @@ class _ComposerSendButton extends StatelessWidget {
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: (isEnabled && !isLoading) ? onTap : null,
+          onTap: isLoading ? onStop : (isEnabled ? onTap : null),
           customBorder: const CircleBorder(),
           child: Center(
             child: isLoading
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.2,
-                      valueColor: AlwaysStoppedAnimation(
-                        isDark ? Colors.white70 : Colors.black54,
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.0,
+                          valueColor: AlwaysStoppedAnimation(
+                            isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
                       ),
-                    ),
+                      Icon(
+                        PhosphorIcons.square(PhosphorIconsStyle.fill),
+                        size: 10,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ],
                   )
                 : AnimatedSwitcher(
                     duration: const Duration(milliseconds: 180),

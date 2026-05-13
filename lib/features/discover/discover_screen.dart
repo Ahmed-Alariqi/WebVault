@@ -14,6 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/website_model.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../presentation/widgets/notification_badge.dart';
 import '../../presentation/widgets/website_details_dialog.dart';
 import '../../presentation/widgets/shimmer_loading.dart';
@@ -957,10 +958,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   site: site,
                   collection: collection,
                   isDark: isDarkNow,
-                  onAction: () {
+                  onAction: () async {
                     HapticFeedback.lightImpact();
-                    Navigator.pop(context);
-                    context.push('/share-hub');
+                    await shareViralInvitation(ref);
                   },
                 ),
               );

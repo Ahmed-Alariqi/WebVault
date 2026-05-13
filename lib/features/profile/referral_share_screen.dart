@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/referral_providers.dart';
@@ -738,40 +737,8 @@ class _ReferralShareScreenState extends ConsumerState<ReferralShareScreen> {
     ).animate(delay: 100.ms).fadeIn().slideY(begin: 0.1);
   }
 
-  void _shareViralMessage(ReferralCampaign campaign) {
-    final code = _myCode?.code ?? '';
-    const appLink = 'https://zaadtech.netlify.app';
-
-    // Build the reward mention for the referred user
-    String rewardMention = '';
-    if (campaign.referredRewardDescription != null &&
-        campaign.referredRewardDescription!.isNotEmpty) {
-      rewardMention = campaign.referredRewardDescription!;
-    }
-
-    final message = '''
-🚀 انضم إليّ في 'زاد'.. عقلك الثاني لتنظيم حياتك الرقمية! 🧠
-
-لقد بدأت باستخدام تطبيق 'زاد' لتنظيم كل روابطي، مفاتيحي، وأدواتي التقنية في مكان واحد، وأردت مشاركة الفائدة معك!
-
-ماذا ستحصل عليه في زاد؟
-🔖 تنظيم ذكي للمواقع والأدوات.
-🤖 مساعد AI متقدم لشرح وتلخيص المحتوى.
-🧠 خبير زاد: استشارات تقنية فورية من خبراء ذكاء اصطناعي.
-⚡ تصفح ذكي وأتمتة للحافظة (Clipboard) توفر وقتك.
-🧭 استكشاف أفضل المصادر التقنية المحدثة.
-
-${rewardMention.isNotEmpty ? '🎁 مكافأة خاصة بانتظارك: $rewardMention' : ''}
-
-✨ استخدم كود الدعوة الخاص بي عند التسجيل للحصول على الامتيازات:
-📌 $code
-
-⬇️ حمّل التطبيق الآن وابدأ رحلة التنظيم:
-$appLink
-
-زاد.. حيث تبدأ إنتاجيتك الرقمية الحقيقية! 🚀''';
-
-    Share.share(message);
+  void _shareViralMessage(ReferralCampaign campaign) async {
+    await shareViralInvitation(ref);
   }
 
   // ═══════════════════════════════════════════

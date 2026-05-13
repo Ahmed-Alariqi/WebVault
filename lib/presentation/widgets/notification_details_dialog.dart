@@ -16,6 +16,7 @@ import 'event_detail_dialogs.dart';
 import '../../presentation/providers/events_providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../presentation/providers/discover_providers.dart';
+import '../../presentation/providers/referral_providers.dart';
 import '../../features/discover/widgets/premium_unlock_sheet.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
@@ -425,12 +426,9 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                                         site: site,
                                                         collection: collection,
                                                         isDark: isDarkNow,
-                                                        onAction: () {
+                                                        onAction: () async {
                                                           HapticFeedback.lightImpact();
-                                                          if (navContext.mounted) {
-                                                            Navigator.of(navContext).pop();
-                                                            GoRouter.of(navContext).push('/share-hub');
-                                                          }
+                                                          await shareViralInvitation(ref);
                                                         },
                                                       ),
                                                     );

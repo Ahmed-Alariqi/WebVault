@@ -5,6 +5,7 @@ import '../../data/models/tool_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/collection_model.dart';
+import '../../presentation/providers/membership_providers.dart';
 
 // --------------- Supabase Client ---------------
 
@@ -616,43 +617,47 @@ final userPremiumCollectionIdsProvider = FutureProvider<Set<String>>((ref) async
     }
   }
 
-  // 3. Approved membership request → opens ALL premium collections
-  final membershipReq = await _client
-      .from('membership_requests')
-      .select('id')
-      .eq('user_id', uid)
-      .eq('status', 'approved')
-      .limit(1);
-  final hasApprovedMembership = (membershipReq as List).isNotEmpty;
+  // 3. Granular Membership Access (from profile permissions)
+  final memStatus = ref.watch(membershipStatusProvider);
+  
+  if (memStatus.isGlobal) {
+    return {...premiumCollectionIds, ...manualAccess, ...referralAccess};
+  }
+
+  // Add specific collections from permissions
+  final grantedCollectionIds = memStatus.permissions
+      .where((p) => p.startsWith('premium:col_'))
+      .map((p) => p.replaceFirst('premium:col_', ''))
+      .toSet();
 
   // 4. Default invite threshold → if total confirmed >= required, opens ALL
   bool metDefaultThreshold = false;
-  if (!hasApprovedMembership) {
-    final settingsResp = await _client
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'default_required_invites')
-        .limit(1);
-    final defaultRequired = (settingsResp as List).isNotEmpty
-        ? int.tryParse(settingsResp.first['value'] as String? ?? '3') ?? 3
-        : 3;
+  // We only check threshold if they don't already have global access
+  final settingsResp = await _client
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'default_required_invites')
+      .limit(1);
+  final defaultRequired = (settingsResp as List).isNotEmpty
+      ? int.tryParse(settingsResp.first['value'] as String? ?? '3') ?? 3
+      : 3;
 
-    final totalConfirmed = await _client
-        .from('referrals')
-        .select('id')
-        .eq('referrer_id', uid)
-        .eq('status', 'confirmed');
+  final totalConfirmed = await _client
+      .from('referrals')
+      .select('id')
+      .eq('referrer_id', uid)
+      .eq('status', 'confirmed');
 
-    if ((totalConfirmed as List).length >= defaultRequired) {
-      metDefaultThreshold = true;
-    }
+  if ((totalConfirmed as List).length >= defaultRequired) {
+    metDefaultThreshold = true;
   }
 
   // Combine all access paths
-  if (hasApprovedMembership || metDefaultThreshold) {
+  if (metDefaultThreshold) {
     return {...premiumCollectionIds, ...manualAccess, ...referralAccess};
   }
-  return {...manualAccess, ...referralAccess};
+  
+  return {...manualAccess, ...referralAccess, ...grantedCollectionIds};
 });
 
 

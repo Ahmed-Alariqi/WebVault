@@ -11,6 +11,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../presentation/providers/username_check_provider.dart';
 import '../../presentation/providers/referral_providers.dart';
+import '../../presentation/providers/membership_providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'referral_share_screen.dart';
@@ -122,7 +123,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         slivers: [
           // ─── Hero Header ───
           SliverAppBar(
-            expandedHeight: 220,
+            expandedHeight: 280,
             floating: false,
             pinned: true,
             backgroundColor: AppTheme.primaryColor,
@@ -137,11 +138,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 child: SafeArea(
                   child: profile.when(
-                    data: (p) => _buildHeroContent(p, user, isDark),
+                    data: (p) => _buildHeroContent(p, user, isDark, l10n),
                     loading: () => const Center(
                       child: CircularProgressIndicator(color: Colors.white),
                     ),
-                    error: (_, _) => _buildHeroContent(null, user, isDark),
+                    error: (_, _) => _buildHeroContent(null, user, isDark, l10n),
                   ),
                 ),
               ),
@@ -173,7 +174,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   // ─── Hero Header Content ───
-  Widget _buildHeroContent(Map<String, dynamic>? p, dynamic user, bool isDark) {
+  Widget _buildHeroContent(Map<String, dynamic>? p, dynamic user, bool isDark, AppLocalizations l10n) {
     final fullName = p?['full_name'] as String? ?? '';
     final username = p?['username'] as String? ?? '';
     final role = p?['role'] as String? ?? 'user';
@@ -212,18 +213,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 50),
+            const SizedBox(height: 10),
             // Header Title
-            const Text(
-              "Account Profile",
-              style: TextStyle(
+            Text(
+              l10n.personalInfo.toUpperCase(),
+              style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
                 letterSpacing: 2,
               ),
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
 
             // Full name
             if (fullName.isNotEmpty)
@@ -231,9 +232,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fullName,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.8,
                 ),
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
 
@@ -265,6 +266,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 if (username.isNotEmpty) const SizedBox(width: 8),
                 _buildRoleBadge(role),
+                if (ref.watch(membershipStatusProvider).isActive) ...[
+                  const SizedBox(width: 8),
+                  _buildProBadge(),
+                ],
               ],
             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
 
@@ -279,9 +284,105 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fontWeight: FontWeight.w500,
               ),
             ).animate().fadeIn(delay: 400.ms),
+
+            // Membership Duration (Integrated)
+            if (ref.watch(membershipStatusProvider).isActive) ...[
+              const SizedBox(height: 16),
+              _buildIntegratedMembershipInfo(ref.watch(membershipStatusProvider)),
+            ],
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildIntegratedMembershipInfo(MembershipStatus status) {
+    final remainingText = status.remainingTimeText ?? 'نشط';
+    final isPermanent = status.premiumUntil?.year == 2100;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF59E0B),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.workspace_premium_rounded,
+              color: Colors.white,
+              size: 10,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            isPermanent ? 'حساب مفعل بالكامل • وصول دائم' : 'عضوية PRO نشطة • متبقي $remainingText',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF59E0B), Color(0xFFFFD700)],
+        ),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.star_rounded,
+            size: 14,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 4),
+          const Text(
+            'PRO',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -335,32 +436,68 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     AppLocalizations l10n,
   ) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ─── Personal Info Section ───
-          _buildPersonalInfoSection(isDark, l10n),
+          // Group 1: Account Settings
+          _ProfileSectionCard(
+            title: 'إعدادات الحساب',
+            icon: PhosphorIcons.user(PhosphorIconsStyle.fill),
+            isDark: isDark,
+            children: [
+              _buildPersonalInfoContent(isDark, l10n),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildSaveButton(isDark, l10n),
+              ),
+              const SizedBox(height: 4),
+            ],
+          ),
 
-          const SizedBox(height: 16),
+          // Group 2: Membership & Rewards
+          _ProfileSectionCard(
+            title: 'الدعوات والمكافأت',
+            icon: PhosphorIcons.gift(PhosphorIconsStyle.fill),
+            isDark: isDark,
+            children: [
+              _buildReferralInputCard(isDark, profile, l10n),
+              _buildReferralCard(isDark, l10n),
+            ],
+          ),
 
-          // ─── Contact & Support Section ───
-          _buildContactSupportTile(isDark, l10n),
+          // Group 3: Support & Security
+          _ProfileSectionCard(
+            title: 'الدعم والأمان',
+            icon: PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+            isDark: isDark,
+            children: [
+              _ProfileListTile(
+                title: l10n.changePassword,
+                subtitle: 'تأمين حسابك بكلمة مرور جديدة',
+                icon: PhosphorIcons.lockKey(PhosphorIconsStyle.fill),
+                iconColor: Colors.blue,
+                isDark: isDark,
+                onTap: _changePassword,
+              ),
+              _ProfileListTile(
+                title: l10n.contactSupport,
+                subtitle: l10n.messageAdmin,
+                icon: PhosphorIcons.chatTeardropDots(PhosphorIconsStyle.fill),
+                iconColor: AppTheme.primaryColor,
+                isDark: isDark,
+                showDivider: false,
+                onTap: () => context.push('/chat'),
+                trailing: _buildUnreadBadge(isDark),
+              ),
+            ],
+          ),
 
           const SizedBox(height: 12),
 
-          // ─── Referral Input Section (24 hours window) ───
-          _buildReferralInputCard(isDark, profile, l10n),
-
-          const SizedBox(height: 12),
-
-          // ─── Referral Share Section ───
-          _buildReferralCard(isDark, l10n),
-
-          const SizedBox(height: 12),
-
-          // ─── Account Section ───
-          _buildAccountSection(isDark, l10n),
+          // Standalone Sign Out
+          _buildSignOutTile(isDark, l10n),
 
           const SizedBox(height: 40),
         ],
@@ -368,44 +505,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  // ─── Personal Information Card ───
-  Widget _buildPersonalInfoSection(bool isDark, AppLocalizations l10n) {
+  Widget _buildSignOutTile(bool isDark, AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            )
-          else
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-        ],
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
         ),
       ),
+      child: ListTile(
+        onTap: _confirmSignOut,
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: AppTheme.errorColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            PhosphorIcons.signOut(PhosphorIconsStyle.fill),
+            color: AppTheme.errorColor,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          l10n.signOutLabel,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.errorColor,
+          ),
+        ),
+        trailing: Icon(
+          PhosphorIcons.caretLeft(),
+          size: 16,
+          color: AppTheme.errorColor.withValues(alpha: 0.4),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnreadBadge(bool isDark) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final unreadCountAsync = ref.watch(userUnreadCountStreamProvider);
+        final unreadCount = unreadCountAsync.valueOrNull ?? 0;
+        if (unreadCount == 0) return Icon(PhosphorIcons.caretRight(), size: 16, color: isDark ? Colors.white24 : Colors.black26);
+        
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppTheme.errorColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            '$unreadCount',
+            style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPersonalInfoContent(bool isDark, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Form(
         key: _formKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildSectionHeader(
-              l10n.personalInfo,
-              PhosphorIcons.userCircle(PhosphorIconsStyle.fill),
-              isDark,
-            ),
-            const SizedBox(height: 24),
-
-            // Full Name field
             _buildValidatedField(
               controller: _nameCtrl,
               label: l10n.fullName,
@@ -418,10 +587,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               },
               onChanged: (_) => setState(() {}),
             ),
-
             const SizedBox(height: 16),
-
-            // Username field
             _buildValidatedField(
               controller: _usernameCtrl,
               label: l10n.username,
@@ -447,23 +613,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 _onUsernameChanged(v);
               },
             ),
-
-            // Username status indicator
-            if (_usernameStatus != _UsernameStatus.idle &&
-                _usernameCtrl.text.trim() != _originalUsername)
-              _buildUsernameStatusWidget(l10n),
-
-            const SizedBox(height: 32),
-
-            // Save button
-            _buildSaveButton(isDark, l10n),
+            _buildUsernameStatus(l10n),
           ],
         ),
       ),
-    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1);
+    );
   }
 
-  Widget _buildUsernameStatusWidget(AppLocalizations l10n) {
+  Widget _buildUsernameStatus(AppLocalizations l10n) {
     IconData icon;
     Color color;
     String text;
@@ -713,8 +870,6 @@ Try Zad now and organize your daily workflow! 🚀''';
           ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
         }
         final hasUsername = _originalUsername.isNotEmpty;
-        final myCodeAsync = ref.watch(myReferralCodeProvider);
-
         return GestureDetector(
           onTap: () {
             if (!hasUsername) {
@@ -734,27 +889,8 @@ Try Zad now and organize your daily workflow! 🚀''';
               MaterialPageRoute(builder: (_) => const ReferralShareScreen()),
             );
           },
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: hasUsername
-                    ? [
-                        AppTheme.primaryColor.withValues(alpha: 0.15),
-                        AppTheme.accentColor.withValues(alpha: 0.08),
-                      ]
-                    : [
-                        Colors.grey.withValues(alpha: 0.15),
-                        Colors.grey.withValues(alpha: 0.08),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: hasUsername
-                    ? AppTheme.primaryColor.withValues(alpha: 0.25)
-                    : Colors.grey.withValues(alpha: 0.25),
-              ),
-            ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
               children: [
                 Container(
@@ -796,34 +932,7 @@ Try Zad now and organize your daily workflow! 🚀''';
                 if (hasUsername)
                   IconButton(
                     onPressed: () async {
-                      final code = myCodeAsync.valueOrNull?.code;
-                      if (code == null) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const ReferralShareScreen()),
-                        );
-                        return;
-                      }
-                      
-                      const appLink = 'https://zaadtech.netlify.app';
-                      String rewardMention = campaign.referredRewardDescription ?? '';
-                      
-                      final message = '''
-🚀 انضم إليّ في 'زاد'.. عقلك الثاني لتنظيم حياتك الرقمية! 🧠
-
-لقد بدأت باستخدام تطبيق 'زاد' لتنظيم كل روابطي، مفاتيحي، وأدواتي التقنية في مكان واحد، وأردت مشاركة الفائدة معك!
-
-${rewardMention.isNotEmpty ? '🎁 مكافأة خاصة بانتظارك: $rewardMention' : ''}
-
-✨ استخدم كود الدعوة الخاص بي عند التسجيل للحصول على الامتيازات:
-📌 $code
-
-⬇️ حمّل التطبيق الآن وابدأ رحلة التنظيم:
-$appLink
-
-زاد.. حيث تبدأ إنتاجيتك الرقمية الحقيقية! 🚀''';
-                      
-                      Share.share(message);
+                      await shareDetailedInvitation(ref);
                     },
                     icon: Icon(PhosphorIcons.shareNetwork(), size: 20, color: AppTheme.primaryColor),
                     style: IconButton.styleFrom(
@@ -847,259 +956,7 @@ $appLink
     );
   }
 
-  // ─── Contact Support Tile ───
-  Widget _buildContactSupportTile(bool isDark, AppLocalizations l10n) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            )
-          else
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-        ],
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
-        ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Consumer(
-            builder: (context, ref, child) {
-              final unreadCountAsync = ref.watch(userUnreadCountStreamProvider);
-              final unreadCount = unreadCountAsync.valueOrNull ?? 0;
-
-              return Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    PhosphorIcons.chatTeardropDots(PhosphorIconsStyle.fill),
-                    color: AppTheme.primaryColor,
-                    size: 24,
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: AppTheme.errorColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isDark ? AppTheme.darkCard : Colors.white,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-        title: Text(
-          l10n.contactSupport,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        subtitle: Text(
-          l10n.messageAdmin,
-          style: TextStyle(
-            fontSize: 13,
-            color: isDark ? Colors.white54 : Colors.black54,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.04),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            PhosphorIcons.caretRight(),
-            size: 16,
-            color: isDark ? Colors.white54 : Colors.black54,
-          ),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        onTap: () => context.push('/chat'),
-      ),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1);
-  }
-
-  // ─── Account Section ───
-  Widget _buildAccountSection(bool isDark, AppLocalizations l10n) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            )
-          else
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-        ],
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 24,
-              top: 24,
-              right: 24,
-              bottom: 8,
-            ),
-            child: _buildSectionHeader(
-              l10n.accountActions,
-              PhosphorIcons.gear(PhosphorIconsStyle.fill),
-              isDark,
-            ),
-          ),
-
-          // Change Password
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 4,
-            ),
-            leading: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: Colors.blue.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.lock_reset_rounded,
-                color: Colors.blue,
-                size: 22,
-              ),
-            ),
-            title: Text(
-              l10n.changePassword,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            trailing: Icon(
-              PhosphorIcons.caretRight(),
-              size: 16,
-              color: isDark ? Colors.white38 : Colors.black38,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            onTap: _changePassword,
-          ),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Divider(
-              height: 16,
-              color: isDark
-                  ? Colors.white10
-                  : Colors.black.withValues(alpha: 0.06),
-            ),
-          ),
-
-          // Sign Out
-          ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 4,
-            ),
-            leading: Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: AppTheme.errorColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                PhosphorIcons.signOut(PhosphorIconsStyle.fill),
-                color: AppTheme.errorColor,
-                size: 22,
-              ),
-            ),
-            title: Text(
-              l10n.signOutLabel,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.errorColor,
-              ),
-            ),
-            trailing: Icon(
-              PhosphorIcons.caretRight(),
-              size: 16,
-              color: AppTheme.errorColor.withValues(alpha: 0.5),
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            onTap: _confirmSignOut,
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    ).animate().fadeIn(delay: 250.ms).slideY(begin: 0.1);
-  }
-
   // ─── Helpers ───
-  Widget _buildSectionHeader(String title, IconData icon, bool isDark) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: AppTheme.primaryColor),
-        const SizedBox(width: 10),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
-            color: isDark ? Colors.white : Colors.black87,
-            letterSpacing: -0.3,
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildValidatedField({
     required TextEditingController controller,
@@ -1176,8 +1033,7 @@ $appLink
     final newUsername = _usernameCtrl.text.trim();
     final usernameChanged =
         newUsername != _originalUsername && newUsername.isNotEmpty;
-
-    // ─── Username cooldown check ───
+    // ─── Username status indicator ───
     if (usernameChanged) {
       final profile = ref.read(userProfileProvider).valueOrNull;
       final changedAtRaw = profile?['username_changed_at'];
@@ -1437,23 +1293,8 @@ $appLink
         }
         final String dynamicDesc = 'أدخل الكود الآن واحصل على:\n$rewardText';
 
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.darkCard : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1462,13 +1303,14 @@ $appLink
                   Icon(
                     PhosphorIcons.gift(PhosphorIconsStyle.fill),
                     color: AppTheme.primaryColor,
+                    size: 20,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'هل تمتلك رمز دعوة؟',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w800,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
@@ -1944,6 +1786,141 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
                 ),
         ),
       ),
+    );
+  }
+}
+
+class _ProfileSectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+  final bool isDark;
+
+  const _ProfileSectionCard({
+    required this.title,
+    required this.icon,
+    required this.children,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkCard : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Row(
+              children: [
+                Icon(icon, size: 16, color: AppTheme.primaryColor.withValues(alpha: 0.7)),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...children,
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileListTile extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final bool isDark;
+  final bool showDivider;
+
+  const _ProfileListTile({
+    required this.title,
+    this.subtitle,
+    required this.icon,
+    required this.iconColor,
+    this.onTap,
+    this.trailing,
+    required this.isDark,
+    this.showDivider = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          leading: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white54 : Colors.black54,
+                  ),
+                )
+              : null,
+          trailing: trailing ??
+              Icon(
+                PhosphorIcons.caretRight(),
+                size: 16,
+                color: isDark ? Colors.white24 : Colors.black26,
+              ),
+        ),
+        if (showDivider)
+          Padding(
+            padding: const EdgeInsets.only(left: 76, right: 24),
+            child: Divider(
+              height: 1,
+              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+            ),
+          ),
+      ],
     );
   }
 }
