@@ -10,6 +10,7 @@ class PageModel {
   final DateTime? lastOpened;
   final DateTime createdAt;
   final double scrollPosition;
+  final bool syncEnabled;
 
   const PageModel({
     required this.id,
@@ -23,6 +24,7 @@ class PageModel {
     this.lastOpened,
     required this.createdAt,
     this.scrollPosition = 0.0,
+    this.syncEnabled = true,
   });
 
   PageModel copyWith({
@@ -37,6 +39,7 @@ class PageModel {
     DateTime? lastOpened,
     DateTime? createdAt,
     double? scrollPosition,
+    bool? syncEnabled,
   }) {
     return PageModel(
       id: id ?? this.id,
@@ -50,6 +53,7 @@ class PageModel {
       lastOpened: lastOpened ?? this.lastOpened,
       createdAt: createdAt ?? this.createdAt,
       scrollPosition: scrollPosition ?? this.scrollPosition,
+      syncEnabled: syncEnabled ?? this.syncEnabled,
     );
   }
 
@@ -66,6 +70,7 @@ class PageModel {
       'lastOpened': lastOpened?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'scrollPosition': scrollPosition,
+      'syncEnabled': syncEnabled,
     };
   }
 
@@ -84,6 +89,26 @@ class PageModel {
           : null,
       createdAt: DateTime.parse(json['createdAt'] as String),
       scrollPosition: (json['scrollPosition'] as num?)?.toDouble() ?? 0.0,
+      syncEnabled: json['syncEnabled'] as bool? ?? true,
+    );
+  }
+
+  factory PageModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return PageModel(
+      id: json['id'] as String,
+      url: json['url'] as String,
+      title: json['title'] as String,
+      notes: json['notes'] as String? ?? '',
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>() ?? [],
+      folderId: json['folder_id'] as String?,
+      isFavorite: json['is_favorite'] as bool? ?? false,
+      visitCount: json['visit_count'] as int? ?? 0,
+      lastOpened: json['last_opened'] != null
+          ? DateTime.parse(json['last_opened'] as String)
+          : null,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      scrollPosition: (json['scroll_position'] as num?)?.toDouble() ?? 0.0,
+      syncEnabled: true,
     );
   }
 }

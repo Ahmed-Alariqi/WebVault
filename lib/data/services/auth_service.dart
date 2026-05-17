@@ -64,13 +64,14 @@ class AuthService {
     const iosClientId =
         '344480808876-r1qbuol918n8s6arkcrncap49off5tah.apps.googleusercontent.com';
 
+    // Use the specific API available in this project's version of google_sign_in
     await gs.GoogleSignIn.instance.initialize(
       clientId: iosClientId,
       serverClientId: webClientId,
     );
 
     final googleUser = await gs.GoogleSignIn.instance.authenticate();
-
+    
     final googleAuth = googleUser.authentication;
     final idToken = googleAuth.idToken;
 

@@ -3,29 +3,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/admin_ui_utils.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/supabase_config.dart';
 import '../../presentation/providers/referral_providers.dart';
 import '../../data/models/referral_model.dart';
 import '../../data/models/membership_request_model.dart';
-import '../../core/utils/admin_ui_utils.dart';
 import '../../presentation/providers/membership_providers.dart';
 import '../../presentation/providers/auth_providers.dart';
+import '../../presentation/providers/admin_providers.dart';
 
 final adminPersonasProvider = FutureProvider<List<dynamic>>((ref) async {
   final resp = await SupabaseConfig.client
       .from('ai_personas')
       .select('id, name, icon, is_premium')
-      .eq('is_premium', true)
       .order('sort_order');
   return resp as List;
 });
+
+final adminCampaignsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  return SupabaseConfig.client
+      .from('app_campaigns')
+      .stream(primaryKey: ['id'])
+      .order('created_at');
+});
+
 
 final adminCollectionsProvider = FutureProvider<List<dynamic>>((ref) async {
   final resp = await SupabaseConfig.client
       .from('featured_collections')
       .select('id, title, is_referral_exclusive')
-      .eq('is_referral_exclusive', true)
       .order('sort_order');
   return resp as List;
 });
@@ -276,6 +283,47 @@ class _SettingsTab extends ConsumerWidget {
             ).animate().fadeIn(delay: 50.ms).slideY(begin: 0.05),
             const SizedBox(height: 12),
 
+            // Referral Reward Days
+            _SettingCard(
+              icon: PhosphorIconsFill.gift,
+              color: const Color(0xFFF59E0B),
+              title: 'مكافأة المدعو',
+              subtitle: 'عدد أيام العضوية المجانية للمدعو',
+              isDark: isDark,
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      final current = int.tryParse(settings['referral_referred_reward_days'] ?? '3') ?? 3;
+                      if (current > 1) {
+                        updateAppSetting('referral_referred_reward_days', '${current - 1}', ref);
+                      }
+                    },
+                    icon: Icon(PhosphorIcons.minus(), size: 18, color: isDark ? Colors.white54 : Colors.black45),
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  ),
+                  Container(
+                    width: 44, height: 36,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(child: Text(settings['referral_referred_reward_days'] ?? '3', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: isDark ? Colors.white : Colors.black87))),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      final current = int.tryParse(settings['referral_referred_reward_days'] ?? '3') ?? 3;
+                      updateAppSetting('referral_referred_reward_days', '${current + 1}', ref);
+                    },
+                    icon: Icon(PhosphorIcons.plus(), size: 18, color: isDark ? Colors.white54 : Colors.black45),
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: 75.ms).slideY(begin: 0.05),
+            const SizedBox(height: 12),
+
             // Membership Requests Toggle
             _SettingCard(
               icon: PhosphorIcons.envelopeOpen(PhosphorIconsStyle.fill),
@@ -285,7 +333,7 @@ class _SettingsTab extends ConsumerWidget {
               isDark: isDark,
               trailing: Switch.adaptive(
                 value: reqEnabled,
-                activeColor: AppTheme.primaryColor,
+                activeTrackColor: AppTheme.primaryColor,
                 onChanged: (v) => updateAppSetting('membership_requests_enabled', v ? 'true' : 'false', ref),
               ),
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05),
@@ -315,7 +363,7 @@ class _SettingsTab extends ConsumerWidget {
                     isDark: isDark,
                     trailing: Switch.adaptive(
                       value: isPrem,
-                      activeColor: AppTheme.primaryColor,
+                      activeTrackColor: AppTheme.primaryColor,
                       onChanged: (v) async {
                         await togglePersonaPremium(p['id'] as String, v, ref);
                         ref.invalidate(adminPersonasProvider);
@@ -354,7 +402,7 @@ class _SettingsTab extends ConsumerWidget {
                     isDark: isDark,
                     trailing: Switch.adaptive(
                       value: isPrem,
-                      activeColor: const Color(0xFFF59E0B),
+                      activeTrackColor: const Color(0xFFF59E0B),
                       onChanged: (v) async {
                         await toggleCollectionPremium(c['id'] as String, v, ref);
                         ref.invalidate(adminCollectionsProvider);
@@ -367,11 +415,316 @@ class _SettingsTab extends ConsumerWidget {
               error: (e, _) => Padding(padding: const EdgeInsets.all(20), child: Center(child: Text('خطأ: $e', style: const TextStyle(color: Colors.red)))),
             ),
             const SizedBox(height: 40),
+            
+            // Campaigns Management
+            Row(
+              children: [
+                Icon(PhosphorIcons.megaphone(PhosphorIconsStyle.bold), size: 20, color: const Color(0xFFA855F7)),
+                const SizedBox(width: 8),
+                Text('العروض والحملات الذكية', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: isDark ? Colors.white : Colors.black87)),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text('تحكم في الحملات الترويجية لفتح العضوية مؤقتاً', style: TextStyle(fontSize: 13, color: isDark ? Colors.white54 : Colors.black45)),
+            const SizedBox(height: 12),
+            _ActiveCampaignsSection(isDark: isDark),
+            const SizedBox(height: 40),
           ],
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('خطأ: $e')),
+    );
+  }
+}
+
+class _ActiveCampaignsSection extends ConsumerStatefulWidget {
+  final bool isDark;
+  const _ActiveCampaignsSection({required this.isDark});
+
+  @override
+  ConsumerState<_ActiveCampaignsSection> createState() => _ActiveCampaignsSectionState();
+}
+
+class _ActiveCampaignsSectionState extends ConsumerState<_ActiveCampaignsSection> {
+  Future<void> _toggleCampaign(String id, bool isActive) async {
+    try {
+      await SupabaseConfig.client.from('app_campaigns').update({'is_active': isActive}).eq('id', id);
+      if (mounted) {
+        if (isActive) {
+          AdminUIUtils.showSuccess(context, 'تم تفعيل الحملة بنجاح ✅');
+        } else {
+          AdminUIUtils.showInfo(context, 'تم إيقاف الحملة مؤقتاً ⏸️');
+        }
+      }
+    } catch (e) {
+      if (mounted) AdminUIUtils.showError(context, 'فشل تحديث الحملة: $e');
+    }
+  }
+
+  Future<void> _deleteCampaign(String id) async {
+    try {
+      await SupabaseConfig.client.from('app_campaigns').delete().eq('id', id);
+      if (mounted) {
+        AdminUIUtils.showSuccess(context, 'تمت إزالة الحملة بنجاح من النظام 🗑️');
+      }
+    } catch (e) {
+      if (mounted) AdminUIUtils.showError(context, 'فشل حذف الحملة: $e');
+    }
+  }
+
+  Future<void> _showCreateOrEditDialog([Map<String, dynamic>? editCampaign]) async {
+    final isEdit = editCampaign != null;
+    final titleCtrl = TextEditingController(text: isEdit ? editCampaign['title'] : '');
+    final promoCtrl = TextEditingController(text: isEdit ? editCampaign['promo_text'] : '');
+    String targetType = isEdit ? editCampaign['target_type'] : 'global';
+    String? targetId = isEdit ? editCampaign['target_id'] : null;
+    int days = isEdit ? DateTime.parse(editCampaign['end_at']).difference(DateTime.now()).inDays.clamp(1, 365) : 3;
+    bool sendNotification = !isEdit; // Default ON for new, OFF for edit
+
+    List<dynamic> personas = [];
+    List<dynamic> collections = [];
+    try {
+      personas = await ref.read(adminPersonasProvider.future);
+      collections = await ref.read(adminCollectionsProvider.future);
+    } catch (_) {}
+
+    if (!mounted) return;
+
+    bool _isSaving = false;
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (dialogCtx, setDialogState) {
+          List<DropdownMenuItem<String>>? targetItems;
+          if (targetType == 'persona' && personas.isNotEmpty) {
+            targetItems = personas.map((p) => DropdownMenuItem<String>(value: p['id'] as String, child: Text(p['name'] as String))).toList();
+          } else if (targetType == 'collection' && collections.isNotEmpty) {
+            targetItems = collections.map((c) => DropdownMenuItem<String>(value: c['id'] as String, child: Text(c['title'] as String))).toList();
+          }
+
+          // Ensure targetId is valid for the current list
+          if (targetType != 'global' && targetItems != null && targetItems.isNotEmpty) {
+            if (!targetItems.any((item) => item.value == targetId)) {
+              targetId = targetItems.first.value;
+            }
+          }
+
+          return AlertDialog(
+            backgroundColor: widget.isDark ? AppTheme.darkSurface : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text(isEdit ? 'تعديل الحملة' : 'إضافة حملة جديدة', style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: titleCtrl,
+                    enabled: !_isSaving,
+                    decoration: const InputDecoration(labelText: 'اسم الحملة (للإدارة فقط)', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: promoCtrl,
+                    enabled: !_isSaving,
+                    decoration: const InputDecoration(labelText: 'نص الترويج (يظهر للمستخدم)', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: targetType,
+                    decoration: const InputDecoration(labelText: 'الاستهداف', border: OutlineInputBorder()),
+                    items: const [
+                      DropdownMenuItem(value: 'global', child: Text('عام (فتح الكل)')),
+                      DropdownMenuItem(value: 'persona', child: Text('شخصية ذكاء اصطناعي محددة')),
+                      DropdownMenuItem(value: 'collection', child: Text('مجموعة محددة')),
+                    ],
+                    onChanged: _isSaving ? null : (v) => setDialogState(() {
+                      targetType = v!;
+                      targetId = null; // reset specific selection
+                    }),
+                  ),
+                  if (targetType != 'global' && targetItems != null) ...[
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: targetId,
+                      decoration: const InputDecoration(labelText: 'تحديد العنصر المستهدف', border: OutlineInputBorder()),
+                      items: targetItems,
+                      onChanged: _isSaving ? null : (v) => setDialogState(() => targetId = v),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Text('مدة العرض (أيام):', style: TextStyle(fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: (_isSaving || days <= 1) ? null : () => setDialogState(() => days--), 
+                        icon: const Icon(Icons.remove)
+                      ),
+                      Text('$days', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      IconButton(
+                        onPressed: _isSaving ? null : () => setDialogState(() => days++), 
+                        icon: const Icon(Icons.add)
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('إرسال إشعار للمستخدمين؟', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ),
+                      Switch.adaptive(
+                        value: sendNotification,
+                        activeTrackColor: const Color(0xFFA855F7),
+                        onChanged: _isSaving ? null : (v) => setDialogState(() => sendNotification = v),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: _isSaving ? null : () => Navigator.pop(ctx), 
+                child: const Text('إلغاء')
+              ),
+              ElevatedButton(
+                onPressed: _isSaving ? null : () async {
+                  if (titleCtrl.text.isEmpty) return;
+                  if (targetType != 'global' && targetId == null) return;
+
+                  setDialogState(() => _isSaving = true);
+
+                  final endAt = DateTime.now().add(Duration(days: days));
+                  try {
+                    final data = {
+                      'title': titleCtrl.text,
+                      'promo_text': promoCtrl.text,
+                      'target_type': targetType,
+                      'target_id': targetType == 'global' ? null : targetId,
+                      'end_at': endAt.toUtc().toIso8601String(),
+                      'is_active': true,
+                    };
+                    
+                    if (isEdit) {
+                      await SupabaseConfig.client.from('app_campaigns').update(data).eq('id', editCampaign['id']);
+                    } else {
+                      await SupabaseConfig.client.from('app_campaigns').insert(data);
+                    }
+                    
+                    if (sendNotification) {
+                      final notificationTitle = '🎁 عرض جديد: ${titleCtrl.text}';
+                      final notificationBody = promoCtrl.text.isNotEmpty 
+                          ? promoCtrl.text 
+                          : (targetType == 'global' 
+                              ? 'خبر سار! لقد قمنا بفتح جميع المميزات المميزة مجاناً لفترة محدودة. استمتع بالتجربة الآن! ✨' 
+                              : 'هناك عرض مميز ينتظرك في التطبيق! لا تفوت فرصة الاستفادة من المميزات المفتوحة. 🚀');
+                      
+                      try {
+                        await adminSendNotification({
+                          'title': notificationTitle,
+                          'body': notificationBody,
+                          'type': 'system',
+                          'target_url': '/discover',
+                        });
+                      } catch (pushErr) {
+                        debugPrint('Push notification failed but campaign was created: $pushErr');
+                      }
+                    }
+                    
+                    if (mounted) {
+                      Navigator.pop(ctx); // Use dialog context to close
+                      AdminUIUtils.showSuccess(context, isEdit ? 'تم تحديث الحملة بنجاح' : 'تم إطلاق الحملة بنجاح! 🚀');
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      setDialogState(() => _isSaving = false);
+                      AdminUIUtils.showError(context, 'فشل حفظ الحملة: $e');
+                    }
+                  }
+                },
+                child: _isSaving 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text(isEdit ? 'حفظ التعديلات' : 'إطلاق الحملة'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final campaignsAsync = ref.watch(adminCampaignsProvider);
+
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: () => _showCreateOrEditDialog(),
+            icon: const Icon(PhosphorIconsFill.plusCircle, color: Colors.white),
+            label: const Text('إطلاق حملة جديدة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFA855F7),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        campaignsAsync.when(
+          data: (campaigns) {
+            if (campaigns.isEmpty) return Center(child: Text('لا توجد حملات', style: TextStyle(color: widget.isDark ? Colors.white54 : Colors.black54)));
+            return Column(
+              children: campaigns.reversed.map((c) {
+                final isActive = c['is_active'] as bool? ?? false;
+                final endAt = DateTime.parse(c['end_at']);
+                final isExpired = endAt.isBefore(DateTime.now());
+                
+                return Card(
+                  color: widget.isDark ? AppTheme.darkCard : Colors.white,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    onTap: () => _showCreateOrEditDialog(c),
+                    leading: Icon(PhosphorIconsFill.megaphone, color: isActive && !isExpired ? const Color(0xFFA855F7) : Colors.grey),
+                    title: Text(c['title'] as String, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(
+                      isExpired ? 'منتهية' : 'ينتهي في: ${DateFormat('yyyy-MM-dd HH:mm').format(endAt)}',
+                      style: TextStyle(color: isExpired ? Colors.red : (widget.isDark ? Colors.white60 : Colors.black54), fontSize: 11),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Switch.adaptive(
+                          value: isActive,
+                          activeTrackColor: const Color(0xFFA855F7),
+                          onChanged: isExpired ? null : (v) => _toggleCampaign(c['id'], v),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 20),
+                          onPressed: () => _showCreateOrEditDialog(c),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                          onPressed: () => _deleteCampaign(c['id']),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const CircularProgressIndicator(),
+          error: (e, _) => Text('خطأ: $e'),
+        ),
+      ],
     );
   }
 }
@@ -1006,7 +1359,7 @@ class _MembershipGrantDialogState extends State<_MembershipGrantDialog> {
               const Text('نطاق الوصول:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
               const SizedBox(height: 12),
               DropdownButtonFormField<MembershipScope>(
-                value: _selectedScope,
+                initialValue: _selectedScope,
                 decoration: _adminInputDecoration(isDark, label: 'اختر النطاق').copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                 items: const [
                   DropdownMenuItem(value: MembershipScope.global, child: Text('وصول كامل لكل الميزات')),

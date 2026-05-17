@@ -85,6 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       await authService.signInWithGoogle();
       // GoRouter handles the rest automatically
     } catch (e) {
+      debugPrint('Google Sign-In Error: $e');
       if (mounted) setState(() => _error = _parseError(e.toString(), context));
     } finally {
       if (mounted) setState(() => _loading = false);

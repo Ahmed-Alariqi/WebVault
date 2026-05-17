@@ -15,6 +15,7 @@ import '../../data/models/clipboard_item_model.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/services/backup_service.dart';
 import '../../core/services/analytics_service.dart';
+import '../../core/services/sync_engine.dart';
 export 'ai_assistant_providers.dart';
 
 // ============================================================
@@ -22,15 +23,21 @@ export 'ai_assistant_providers.dart';
 // ============================================================
 
 final pageRepositoryProvider = Provider<PageRepository>((ref) {
-  return PageRepository();
+  final repo = PageRepository();
+  repo.syncEngine = ref.read(syncEngineProvider);
+  return repo;
 });
 
 final folderRepositoryProvider = Provider<FolderRepository>((ref) {
-  return FolderRepository();
+  final repo = FolderRepository();
+  repo.syncEngine = ref.read(syncEngineProvider);
+  return repo;
 });
 
 final clipboardRepositoryProvider = Provider<ClipboardRepository>((ref) {
-  return ClipboardRepository();
+  final repo = ClipboardRepository();
+  repo.syncEngine = ref.read(syncEngineProvider);
+  return repo;
 });
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
@@ -42,6 +49,11 @@ final backupServiceProvider = Provider<BackupService>((ref) {
   final folderRepo = ref.read(folderRepositoryProvider);
   final clipboardRepo = ref.read(clipboardRepositoryProvider);
   return BackupService(pageRepo, folderRepo, clipboardRepo);
+});
+
+final syncEngineProvider = Provider<SyncEngine>((ref) {
+  final settingsRepo = ref.read(settingsRepositoryProvider);
+  return SyncEngine(SupabaseConfig.client, settingsRepo);
 });
 
 // ============================================================
@@ -136,6 +148,11 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
     await _repo.setAutoBackupFrequency(frequency);
     _loadSettings();
   }
+
+  Future<void> setCloudSyncEnabled(bool enabled) async {
+    await _repo.setCloudSyncEnabled(enabled);
+    _loadSettings();
+  }
 }
 
 // ============================================================
@@ -144,13 +161,13 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 
 final themeModeProvider = Provider<ThemeMode>((ref) {
   final settings = ref.watch(settingsProvider);
-  switch (settings['themeMode'] as String? ?? 'system') {
+  switch (settings['themeMode'] as String? ?? 'dark') {
     case 'light':
       return ThemeMode.light;
     case 'dark':
       return ThemeMode.dark;
     default:
-      return ThemeMode.system;
+      return ThemeMode.dark;
   }
 });
 
@@ -544,23 +561,36 @@ final localeProvider = Provider<Locale>((ref) {
 /// Tracks the last time the user opened the notifications screen.
 /// Notifications created after this timestamp are considered "unread".
 final lastSeenNotificationProvider = StateProvider<DateTime>((ref) {
+  final user = SupabaseConfig.client.auth.currentUser;
+  if (user == null) return DateTime.fromMillisecondsSinceEpoch(0);
+
   final box = Hive.box(kSettingsBox);
-  final stored = box.get('lastSeenNotification') as String?;
+  final key = 'lastSeenNotification_${user.id}';
+  final stored = box.get(key) as String?;
   if (stored != null) {
     return DateTime.parse(stored);
   }
-  // Default to a completely old date so all notifications show as unread if never opened
   return DateTime.fromMillisecondsSinceEpoch(0);
 });
 
 /// Counts unread notifications from Supabase (created after lastSeen timestamp).
 final notificationCountProvider = FutureProvider<int>((ref) async {
   final lastSeen = ref.watch(lastSeenNotificationProvider);
+  final user = SupabaseConfig.client.auth.currentUser;
+
   try {
-    final response = await SupabaseConfig.client
+    var query = SupabaseConfig.client
         .from('notifications')
         .select('id')
         .gt('created_at', lastSeen.toIso8601String());
+    
+    if (user != null) {
+      query = query.or('user_id.is.null,user_id.eq.${user.id}');
+    } else {
+      query = query.filter('user_id', 'is', null);
+    }
+
+    final response = await query;
     return (response as List).length;
   } catch (_) {
     return 0;
@@ -569,9 +599,15 @@ final notificationCountProvider = FutureProvider<int>((ref) async {
 
 /// Marks all notifications as read by updating the lastSeen timestamp.
 Future<void> markNotificationsRead(WidgetRef ref) async {
-  final now = DateTime.now().toUtc();
+  final user = SupabaseConfig.client.auth.currentUser;
+  if (user == null) return;
+
+  // Add 10 seconds buffer to account for server clock skew
+  final now = DateTime.now().toUtc().add(const Duration(seconds: 10));
   final box = Hive.box(kSettingsBox);
-  await box.put('lastSeenNotification', now.toIso8601String());
+  final key = 'lastSeenNotification_${user.id}';
+  
+  await box.put(key, now.toIso8601String());
   ref.read(lastSeenNotificationProvider.notifier).state = now;
   ref.invalidate(notificationCountProvider);
 }

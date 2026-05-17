@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/supabase_config.dart';
+import '../../core/constants.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/draft_model.dart';
@@ -64,6 +66,7 @@ import '../../features/ai_assistant/external_ai_chat_screen.dart';
 import '../../features/zad_expert/zad_expert_screen.dart';
 import '../../features/admin/admin_ai_management_screen.dart';
 import '../../features/admin/admin_membership_screen.dart';
+import '../../features/settings/cloud_restore_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -112,6 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         '/forgot-password',
         '/onboarding',
         '/welcome',
+        '/cloud-restore',
       ];
       final onAuthRoute = authRoutes.contains(location);
 
@@ -140,6 +144,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (location == '/forgot-password' &&
             ForgotPasswordScreen.isRecoveryInProgress) {
           return null; // Stay on forgot-password during recovery
+        }
+        // Check if this is a new device that should see cloud restore
+        if (!settingsRepo.hasRestoredFromCloud()) {
+          return '/cloud-restore';
         }
         return '/dashboard';
       }
@@ -350,6 +358,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/backup-restore',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BackupRestoreScreen(),
+      ),
+      GoRoute(
+        path: '/cloud-restore',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CloudRestoreScreen(),
       ),
       GoRoute(
         path: '/add-page',

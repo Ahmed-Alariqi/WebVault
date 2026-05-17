@@ -8,6 +8,7 @@ import 'dart:ui';
 import '../../../data/models/collection_model.dart';
 import '../../../data/models/website_model.dart';
 import '../../../presentation/providers/referral_providers.dart';
+import '../../../core/utils/admin_ui_utils.dart';
 
 /// A premium, high-end bottom sheet designed to inform users about exclusive features.
 /// Uses Glassmorphism and modern aesthetics to create a premium feel.
@@ -64,7 +65,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final confirmedAsync = ref.watch(myTotalConfirmedReferralsProvider);
     final requiredAsync = ref.watch(defaultRequiredInvitesProvider);
-    final membershipReqAsync = ref.watch(myMembershipRequestProvider);
+    final membershipReqAsync = ref.watch(myMembershipRequestsProvider);
     final membershipEnabledAsync = ref.watch(membershipRequestsEnabledProvider);
     final campaignAsync = ref.watch(activeReferralCampaignProvider);
 
@@ -307,7 +308,6 @@ class PremiumFeatureSheet extends ConsumerWidget {
     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.3, end: 0);
   }
 
-  /// Shows membership request section if enabled
   Widget _buildMembershipRequestSection({
     required BuildContext context,
     required WidgetRef ref,
@@ -316,9 +316,19 @@ class PremiumFeatureSheet extends ConsumerWidget {
   }) {
     if (!enabled) return const SizedBox.shrink();
 
-    // Already has an active or pending request
-    if (existingRequest != null) {
-      final status = existingRequest.status as String;
+    final requestsList = (existingRequest as List?) ?? [];
+    
+    // Find a request that specifically targets this collection OR is a global request
+    dynamic relevantRequest;
+    try {
+      relevantRequest = requestsList.firstWhere((r) {
+        return r.targetId == collection?.id || r.targetId == null;
+      });
+    } catch (_) {}
+
+    // Already has an active or pending request for THIS item
+    if (relevantRequest != null) {
+      final status = relevantRequest.status as String;
       final isPending = status == 'pending';
       final isApproved = status == 'approved';
       
@@ -444,9 +454,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
                 reason: reasonCtrl.text.trim().isNotEmpty ? reasonCtrl.text.trim() : null,
               );
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم إرسال طلبك بنجاح ✅'), behavior: SnackBarBehavior.floating),
-                );
+                AdminUIUtils.showSuccess(context, 'تم إرسال طلبك بنجاح');
               }
             },
             child: const Text('إرسال الطلب'),

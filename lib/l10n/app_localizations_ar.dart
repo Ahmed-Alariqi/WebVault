@@ -400,6 +400,94 @@ class AppLocalizationsAr extends AppLocalizations {
   String get invalidBackupFile => 'ملف نسخة احتياطية غير صالح';
 
   @override
+  String get cloudSync => 'المزامنة السحابية';
+
+  @override
+  String get localBackup => 'النسخ المحلي';
+
+  @override
+  String get cloudSyncDesc => 'مزامنة بياناتك بأمان مع السحابة';
+
+  @override
+  String get cloudRestoreTitle => 'مرحباً بعودتك!';
+
+  @override
+  String get cloudRestoreSubtitle =>
+      'وجدنا بياناتك المحفوظة في السحابة. هل تريد استعادتها على هذا الجهاز؟';
+
+  @override
+  String get restoreMyData => 'استعادة بياناتي';
+
+  @override
+  String get restoringData => 'جارٍ استعادة بياناتك...';
+
+  @override
+  String get skipStartFresh => 'تخطي — البدء من جديد';
+
+  @override
+  String get noCloudData => 'لا توجد بيانات محفوظة في حسابك السحابي.';
+
+  @override
+  String get clipboardGroups => 'المجموعات';
+
+  @override
+  String get restoreFromCloud => 'استعادة من السحابة';
+
+  @override
+  String get restoreFromCloudDesc => 'سحب جميع بياناتك المتزامنة من السحابة';
+
+  @override
+  String get restoreSuccess => 'تمت استعادة البيانات بنجاح!';
+
+  @override
+  String get enableSync => 'تفعيل المزامنة السحابية';
+
+  @override
+  String get disableSync => 'إيقاف المزامنة السحابية';
+
+  @override
+  String get syncedToCloud => 'مُزامن سحابياً';
+
+  @override
+  String get localOnly => 'محفوظ محلياً فقط';
+
+  @override
+  String get lastSyncTime => 'آخر مزامنة';
+
+  @override
+  String get syncNow => 'مزامنة الآن';
+
+  @override
+  String get cloudStorageUsage => 'استخدام المساحة السحابية';
+
+  @override
+  String get syncLimitReached =>
+      'عذراً، تم الوصول للحد الأقصى للمزامنة السحابية. يرجى إزالة المزامنة عن عناصر أخرى.';
+
+  @override
+  String get syncLimitWarningDesc =>
+      'سيتم حفظ العناصر الجديدة محلياً فقط. الخطة المجانية محدودة للمزامنة.';
+
+  @override
+  String get syncAllSelected => 'مزامنة الكل';
+
+  @override
+  String get unsyncAllSelected => 'إلغاء مزامنة الكل';
+
+  @override
+  String get deleteAllSelected => 'حذف الكل';
+
+  @override
+  String get selected => 'محدد';
+
+  @override
+  String get deleteSelected => 'حذف العناصر المحددة';
+
+  @override
+  String get deleteConfirm =>
+      'هل أنت متأكد من حذف العناصر المحددة؟ لا يمكن التراجع عن هذا الإجراء.';
+
+  @override
   String get personalInfo => 'المعلومات الشخصية';
 
   @override
@@ -3499,22 +3587,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get referralSkipCode => 'تخطي';
 
   @override
-  String get referralCodeSuccess => 'تم تطبيق كود الدعوة بنجاح!';
+  String get referralCodeSuccess => 'تم تطبيق كود الدعوة بنجاح! 🎉';
 
   @override
-  String get referralCodeInvalid => 'كود غير صالح. تحقق وحاول مرة أخرى.';
+  String get referralCodeInvalid =>
+      'الرمز الذي أدخلته غير صحيح، يرجى التأكد وإعادة المحاولة.';
 
   @override
-  String get referralCodeSelfError => 'لا يمكنك استخدام كودك الخاص!';
+  String get referralCodeSelfError =>
+      'عذراً، لا يمكنك استخدام رمز الدعوة الخاص بحسابك.';
 
   @override
-  String get referralCodeAlreadyUsed => 'لقد استخدمت كود دعوة من قبل.';
+  String get referralCodeAlreadyUsed =>
+      'لقد تم استخدام رمز دعوة في هذا الحساب مسبقاً.';
 
   @override
   String get referralCodeNoCampaign => 'لا توجد حملة دعوات نشطة حالياً.';
 
   @override
-  String get referralCodeError => 'حدث خطأ. حاول لاحقاً.';
+  String get referralCodeError =>
+      'واجهنا مشكلة في التحقق من الرمز، يرجى المحاولة مرة أخرى.';
 
   @override
   String get referralExclusiveCollection => 'محتوى حصري';
@@ -3636,7 +3728,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get localSaveNotice =>
-      'جميع الإعدادات والبيانات تحفظ محلياً على جهازك للأمان. نوصي بعمل نسخ احتياطية بانتظام.';
+      'زاد التقني يعتمد آلية تخزين هجين: يتم حفظ كافة بياناتك مشفرة محلياً على جهازك لضمان الخصوصية، مع إمكانية المزامنة السحابية للعناصر الهامة لتسهيل الوصول إليها من أجهزتك الأخرى.';
 
   @override
   String get tutSkip => 'تخطي';

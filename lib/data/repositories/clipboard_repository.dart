@@ -1,8 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/constants.dart';
 import '../models/clipboard_item_model.dart';
+import '../../core/services/sync_engine.dart';
 
 class ClipboardRepository {
+  SyncEngine? syncEngine;
+
   Box get _itemsBox => Hive.box(kClipboardBox);
   Box get _groupsBox => Hive.box(kClipboardGroupsBox);
 
@@ -30,16 +33,25 @@ class ClipboardRepository {
 
   Future<void> saveItem(ClipboardItemModel item) async {
     await _itemsBox.put(item.id, item.toJson());
+    if (item.syncEnabled) {
+      await syncEngine?.pushUpsert('user_clipboard', item.id, item.toJson());
+    } else {
+      await syncEngine?.pushDelete('user_clipboard', item.id);
+    }
   }
 
   Future<void> deleteItem(String id) async {
     await _itemsBox.delete(id);
+    await syncEngine?.pushDelete('user_clipboard', id);
   }
 
   Future<void> reorderItems(List<ClipboardItemModel> items) async {
     for (int i = 0; i < items.length; i++) {
       final updated = items[i].copyWith(sortOrder: i);
       await _itemsBox.put(updated.id, updated.toJson());
+      if (updated.syncEnabled) {
+        await syncEngine?.pushUpsert('user_clipboard', updated.id, updated.toJson());
+      }
     }
   }
 
@@ -49,6 +61,7 @@ class ClipboardRepository {
     for (final item in items) {
       if (item.autoDeleteAt != null && item.autoDeleteAt!.isBefore(now)) {
         await _itemsBox.delete(item.id);
+        await syncEngine?.pushDelete('user_clipboard', item.id);
       }
     }
   }
@@ -73,6 +86,11 @@ class ClipboardRepository {
 
   Future<void> saveGroup(ClipboardGroupModel group) async {
     await _groupsBox.put(group.id, group.toJson());
+    if (group.syncEnabled) {
+      await syncEngine?.pushUpsert('user_clipboard_groups', group.id, group.toJson());
+    } else {
+      await syncEngine?.pushDelete('user_clipboard_groups', group.id);
+    }
   }
 
   Future<void> deleteGroup(String id) async {
@@ -80,15 +98,20 @@ class ClipboardRepository {
     final itemsInGroup = getAllItems().where((i) => i.groupId == id).toList();
     for (final i in itemsInGroup) {
       await _itemsBox.delete(i.id);
+      await syncEngine?.pushDelete('user_clipboard', i.id);
     }
 
     await _groupsBox.delete(id);
+    await syncEngine?.pushDelete('user_clipboard_groups', id);
   }
 
   Future<void> reorderGroups(List<ClipboardGroupModel> groups) async {
     for (int i = 0; i < groups.length; i++) {
       final updated = groups[i].copyWith(sortOrder: i);
       await _groupsBox.put(updated.id, updated.toJson());
+      if (updated.syncEnabled) {
+        await syncEngine?.pushUpsert('user_clipboard_groups', updated.id, updated.toJson());
+      }
     }
   }
 }

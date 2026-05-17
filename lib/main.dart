@@ -266,6 +266,9 @@ Future<void> main() async {
     container.read(backupServiceProvider),
   ));
 
+  // Trigger sync engine to flush any pending offline actions
+  unawaited(container.read(syncEngineProvider).drainQueue());
+
   runApp(
     UncontrolledProviderScope(container: container, child: const WebVaultApp()),
   );

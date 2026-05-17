@@ -258,6 +258,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       await authService.signInWithGoogle();
       // GoRouter will pick up the valid session and route safely
     } catch (e) {
+      debugPrint('Google Sign-Up Error: $e');
       if (mounted) {
         setState(() {
           _error = _parseSignUpError(e.toString(), context);

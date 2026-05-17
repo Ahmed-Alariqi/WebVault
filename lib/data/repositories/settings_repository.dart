@@ -26,7 +26,7 @@ class SettingsRepository {
 
   // Theme
   String getThemeMode() =>
-      _box.get(kThemeMode, defaultValue: 'system') as String;
+      _box.get(kThemeMode, defaultValue: 'light') as String;
   Future<void> setThemeMode(String mode) => _box.put(kThemeMode, mode);
 
   // Auto-delete days for clipboard (-1 = never)
@@ -81,6 +81,14 @@ class SettingsRepository {
   Future<void> setHasSeenDiscoverTutorial(bool value) =>
       _box.put('has_seen_discover_tutorial', value);
 
+  bool hasSeenNotificationsTutorial() =>
+      _box.get('has_seen_notifications_tutorial', defaultValue: false) as bool;
+  Future<void> setHasSeenNotificationsTutorial(bool value) =>
+      _box.put('has_seen_notifications_tutorial', value);
+
+  String? getLastShownCampaignId() => _box.get('last_shown_campaign_id') as String?;
+  Future<void> setLastShownCampaignId(String id) => _box.put('last_shown_campaign_id', id);
+
   // Get all settings as a map
   Map<String, dynamic> getAllSettings() {
     return {
@@ -96,9 +104,11 @@ class SettingsRepository {
       'hasSeenPagesTutorial': hasSeenPagesTutorial(),
       'hasSeenBrowserTutorial': hasSeenBrowserTutorial(),
       'hasSeenDiscoverTutorial': hasSeenDiscoverTutorial(),
+      'hasSeenNotificationsTutorial': hasSeenNotificationsTutorial(),
       'autoBackupEnabled': isAutoBackupEnabled(),
       'autoBackupFrequency': getAutoBackupFrequency(),
       'locale': getLocale(),
+      kCloudSyncEnabled: isCloudSyncEnabled(),
     };
   }
 
@@ -121,4 +131,21 @@ class SettingsRepository {
       _box.get(kLastAutoBackupTime) as String?;
   Future<void> setLastAutoBackupTime(String timeIso) =>
       _box.put(kLastAutoBackupTime, timeIso);
+
+  // Cloud Sync
+  bool isCloudSyncEnabled() =>
+      _box.get(kCloudSyncEnabled, defaultValue: true) as bool;
+  Future<void> setCloudSyncEnabled(bool enabled) =>
+      _box.put(kCloudSyncEnabled, enabled);
+
+  String? getLastSyncTime() =>
+      _box.get(kLastSyncTime) as String?;
+  Future<void> setLastSyncTime(String timeIso) =>
+      _box.put(kLastSyncTime, timeIso);
+
+  bool hasRestoredFromCloud() =>
+      _box.get(kHasRestoredFromCloud, defaultValue: false) as bool;
+  Future<void> setHasRestoredFromCloud(bool value) =>
+      _box.put(kHasRestoredFromCloud, value);
 }
+

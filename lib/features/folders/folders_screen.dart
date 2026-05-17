@@ -10,6 +10,7 @@ import '../../data/models/folder_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/constants.dart';
 
 class FoldersScreen extends ConsumerWidget {
   const FoldersScreen({super.key});
@@ -156,65 +157,97 @@ class FoldersScreen extends ConsumerWidget {
           ),
         );
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 56,
-              height: 56,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    // Fix: Use lookup to ensure const IconData for tree shaking
+                    _getFolderIcon(folder.iconCodePoint),
+                    color: color,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    folder.name,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark
+                          ? AppTheme.darkTextPrimary
+                          : AppTheme.lightTextPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  AppLocalizations.of(context)!.itemCount(itemCount),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark
+                        ? AppTheme.darkTextSecondary
+                        : AppTheme.lightTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(18),
+                color: isDark 
+                    ? Colors.black.withValues(alpha: 0.3) 
+                    : Colors.white.withValues(alpha: 0.5),
+                shape: BoxShape.circle,
               ),
               child: Icon(
-                // Fix: Use lookup to ensure const IconData for tree shaking
-                _getFolderIcon(folder.iconCodePoint),
-                color: color,
-                size: 28,
+                folder.syncEnabled 
+                    ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                    : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                size: 14,
+                color: folder.syncEnabled 
+                    ? AppTheme.primaryColor 
+                    : (isDark ? Colors.white30 : Colors.black26),
+              ).animate(target: folder.syncEnabled ? 1 : 0).scale(
+                begin: const Offset(0.8, 0.8),
+                end: const Offset(1, 1),
+                duration: 300.ms,
+                curve: Curves.elasticOut,
               ),
             ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                folder.name,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: isDark
-                      ? AppTheme.darkTextPrimary
-                      : AppTheme.lightTextPrimary,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              AppLocalizations.of(context)!.itemCount(itemCount),
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark
-                    ? AppTheme.darkTextSecondary
-                    : AppTheme.lightTextSecondary,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.9, 0.9)),
     );
   }
@@ -267,6 +300,7 @@ class FoldersScreen extends ConsumerWidget {
     final nameCtrl = TextEditingController();
     int selectedColor = _folderColors[0];
     IconData selectedIcon = _folderIcons[0];
+    bool syncEnabled = true;
 
     showModalBottomSheet(
       context: context,
@@ -440,6 +474,45 @@ class FoldersScreen extends ConsumerWidget {
                     }).toList(),
                   ),
 
+                  const SizedBox(height: 24),
+
+                  // Sync Toggle
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'المزامنة السحابية',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'حفظ هذا المجلد ومحتواه سحابياً',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                      ),
+                    ),
+                    value: syncEnabled,
+                    activeTrackColor: AppTheme.primaryLight,
+                    onChanged: (val) {
+                      if (val && !syncEnabled) {
+                        final syncedCount = ref.read(foldersProvider).where((f) => f.syncEnabled).length;
+                        if (syncedCount >= kMaxSyncFolders) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+                      }
+                      setModalState(() => syncEnabled = val);
+                    },
+                  ),
+
                   const SizedBox(height: 32),
 
                   ModernFormWidgets.gradientButton(
@@ -447,11 +520,29 @@ class FoldersScreen extends ConsumerWidget {
                     icon: PhosphorIcons.plus(),
                     onPressed: () {
                       if (nameCtrl.text.trim().isEmpty) return;
+
+                      bool finalSync = syncEnabled;
+                      // Check limit if enabling sync for a NEW folder
+                      if (syncEnabled) {
+                        final syncedCount = ref.read(foldersProvider).where((f) => f.syncEnabled).length;
+                        if (syncedCount >= kMaxSyncFolders) {
+                          finalSync = false;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم الحفظ محلياً. لم يتم المزامنة لبلوغ الحد الأقصى (20).'),
+                              backgroundColor: AppTheme.warningColor,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      }
+
                       final folder = FolderModel(
                         id: const Uuid().v4(),
                         name: nameCtrl.text.trim(),
                         iconCodePoint: selectedIcon.codePoint,
                         colorValue: selectedColor,
+                        syncEnabled: finalSync,
                         createdAt: DateTime.now(),
                       );
                       ref.read(foldersProvider.notifier).addFolder(folder);

@@ -11,6 +11,7 @@ import '../../data/models/clipboard_item_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../presentation/widgets/tutorial_overlay.dart';
+import '../../core/constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
 
@@ -147,6 +148,54 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               },
             ),
             IconButton(
+              icon: Icon(Icons.cloud_done_outlined, color: AppTheme.primaryLight),
+              tooltip: AppLocalizations.of(context)!.syncAllSelected,
+              onPressed: () {
+                final allItemsInState = ref.read(clipboardItemsProvider);
+                int currentSyncedCount = allItemsInState.where((i) => i.syncEnabled).length;
+                int addedSyncCount = 0;
+
+                for (final id in _selectedIds) {
+                  final item = allItemsInState.firstWhere((i) => i.id == id);
+                  if (!item.syncEnabled) {
+                    if (currentSyncedCount >= kMaxSyncClipboardItems) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                          backgroundColor: AppTheme.errorColor,
+                        ),
+                      );
+                      break;
+                    }
+                    ref.read(clipboardItemsProvider.notifier).updateItem(item.copyWith(syncEnabled: true));
+                    currentSyncedCount++;
+                    addedSyncCount++;
+                  }
+                }
+                setState(() {
+                  _selectedIds.clear();
+                  _isMultiSelectMode = false;
+                });
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.cloud_off_outlined, color: Colors.grey),
+              tooltip: AppLocalizations.of(context)!.unsyncAllSelected,
+              onPressed: () {
+                final allItemsInState = ref.read(clipboardItemsProvider);
+                for (final id in _selectedIds) {
+                  final item = allItemsInState.firstWhere((i) => i.id == id);
+                  if (item.syncEnabled) {
+                    ref.read(clipboardItemsProvider.notifier).updateItem(item.copyWith(syncEnabled: false));
+                  }
+                }
+                setState(() {
+                  _selectedIds.clear();
+                  _isMultiSelectMode = false;
+                });
+              },
+            ),
+            IconButton(
               icon: Icon(PhosphorIcons.arrowBendUpRight()),
               tooltip: 'Move to Group',
               onPressed: () => _showMoveToGroupDialog(
@@ -167,25 +216,13 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               ),
             ),
           ] else ...[
-            Tooltip(
-              message: AppLocalizations.of(context)!.localSaveNotice,
-              textStyle: TextStyle(
-                fontSize: 12,
-                color: isDark ? Colors.white : Colors.black,
+            IconButton(
+              icon: Icon(
+                PhosphorIcons.info(PhosphorIconsStyle.fill),
+                color: AppTheme.primaryColor,
               ),
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              triggerMode: TooltipTriggerMode.tap,
-              child: IconButton(
-                icon: Icon(
-                  PhosphorIcons.info(PhosphorIconsStyle.fill),
-                  color: AppTheme.primaryColor,
-                ),
-                onPressed: () => AdminUIUtils.showInfo(
-                  context,
-                  AppLocalizations.of(context)!.localSaveNotice,
-                ),
-              ),
+              onPressed: () => AdminUIUtils.showStoragePolicy(context, isDark),
+              tooltip: 'آلية تخزين البيانات',
             ),
             IconButton(
               icon: Icon(PhosphorIcons.gear()),
@@ -754,6 +791,20 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                     icon: PhosphorIcons.floppyDisk(),
                     onPressed: () {
                       if (valueCtrl.text.trim().isEmpty) return;
+                      
+                      bool shouldSync = true;
+                      final syncedCount = ref.read(clipboardItemsProvider).where((c) => c.syncEnabled).length;
+                      if (syncedCount >= kMaxSyncClipboardItems) {
+                        shouldSync = false;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('تم الحفظ محلياً. لم يتم المزامنة سحابياً لبلوغ الحد الأقصى (200).'),
+                            backgroundColor: AppTheme.warningColor,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+
                       final item = ClipboardItemModel(
                         id: const Uuid().v4(),
                         label: labelCtrl.text.trim().isEmpty
@@ -761,6 +812,7 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                             : labelCtrl.text.trim(),
                         value: valueCtrl.text.trim(),
                         type: selectedType,
+                        syncEnabled: shouldSync,
                         createdAt: DateTime.now(),
                         groupId: assignedGroupId,
                       );
@@ -977,26 +1029,56 @@ class _ClipboardTile extends ConsumerWidget {
                   ),
                 )
               else
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.accentColor.withValues(alpha: 0.15),
-                        AppTheme.accentColor.withValues(alpha: 0.05),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.accentColor.withValues(alpha: 0.15),
+                          AppTheme.accentColor.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    child: Icon(
+                      _typeIcon(item.type),
+                      color: AppTheme.accentColor,
+                      size: 24,
+                    ),
                   ),
-                  child: Icon(
-                    _typeIcon(item.type),
-                    color: AppTheme.accentColor,
-                    size: 24,
+                  Positioned(
+                    top: -5,
+                    right: -5,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        item.syncEnabled 
+                            ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                            : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                        size: 14,
+                        color: item.syncEnabled 
+                            ? AppTheme.primaryColor 
+                            : (isDark ? Colors.white30 : Colors.black26),
+                      ).animate(target: item.syncEnabled ? 1 : 0).scale(
+                        begin: const Offset(0.8, 0.8),
+                        end: const Offset(1, 1),
+                        duration: 300.ms,
+                        curve: Curves.elasticOut,
+                      ),
+                    ),
                   ),
-                ),
+                ],
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -1185,6 +1267,37 @@ class _ClipboardTile extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
+            ListTile(
+              leading: Icon(
+                item.syncEnabled ? Icons.cloud_done : Icons.cloud_off,
+                color: item.syncEnabled ? AppTheme.primaryColor : Colors.grey,
+              ),
+              title: Text(item.syncEnabled ? 'المزامنة السحابية مفعلة' : 'المزامنة السحابية معطلة'),
+              trailing: Switch(
+                value: item.syncEnabled,
+                activeTrackColor: AppTheme.primaryColor,
+                onChanged: (val) {
+                  if (val && !item.syncEnabled) {
+                    final syncedCount = ref.read(clipboardItemsProvider).where((i) => i.syncEnabled).length;
+                    if (syncedCount >= kMaxSyncClipboardItems) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                          backgroundColor: AppTheme.errorColor,
+                        ),
+                      );
+                      Navigator.pop(ctx);
+                      return;
+                    }
+                  }
+                  ref.read(clipboardItemsProvider.notifier).updateItem(
+                    item.copyWith(syncEnabled: val),
+                  );
+                  Navigator.pop(ctx);
+                },
+              ),
+            ),
+            const Divider(),
             ListTile(
               leading: Icon(
                 item.isPinned
@@ -1561,7 +1674,7 @@ void _showManageGroupDialog(
     builder: (ctx) => _ManageGroupDialogBody(
       existingGroup: existingGroup,
       isDark: isDark,
-      onSave: (name, iconStr, colorHex) {
+      onSave: (name, iconStr, colorHex, syncEnabled) {
         final notifier = ref.read(clipboardGroupsProvider.notifier);
         if (existingGroup == null) {
           notifier.addGroup(
@@ -1571,6 +1684,7 @@ void _showManageGroupDialog(
               iconStr: iconStr,
               colorHex: colorHex,
               createdAt: DateTime.now(),
+              syncEnabled: syncEnabled,
             ),
           );
         } else {
@@ -1579,6 +1693,7 @@ void _showManageGroupDialog(
               name: name,
               iconStr: iconStr,
               colorHex: colorHex,
+              syncEnabled: syncEnabled,
             ),
           );
         }
@@ -1587,10 +1702,10 @@ void _showManageGroupDialog(
   );
 }
 
-class _ManageGroupDialogBody extends StatefulWidget {
+class _ManageGroupDialogBody extends ConsumerStatefulWidget {
   final ClipboardGroupModel? existingGroup;
   final bool isDark;
-  final void Function(String name, String iconStr, String colorHex) onSave;
+  final void Function(String name, String iconStr, String colorHex, bool syncEnabled) onSave;
 
   const _ManageGroupDialogBody({
     this.existingGroup,
@@ -1599,13 +1714,14 @@ class _ManageGroupDialogBody extends StatefulWidget {
   });
 
   @override
-  State<_ManageGroupDialogBody> createState() => _ManageGroupDialogBodyState();
+  ConsumerState<_ManageGroupDialogBody> createState() => _ManageGroupDialogBodyState();
 }
 
-class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
+class _ManageGroupDialogBodyState extends ConsumerState<_ManageGroupDialogBody> {
   late TextEditingController _nameCtrl;
   String _selectedIcon = 'folder';
   String _selectedColor = '#6366F1';
+  bool _syncEnabled = true;
 
   final List<Map<String, dynamic>> _availableIcons = [
     {'id': 'folder', 'icon': PhosphorIcons.folder(), 'label': 'Folder'},
@@ -1640,6 +1756,7 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
     if (widget.existingGroup != null) {
       _selectedIcon = widget.existingGroup!.iconStr;
       _selectedColor = widget.existingGroup!.colorHex;
+      _syncEnabled = widget.existingGroup!.syncEnabled;
     }
   }
 
@@ -1779,6 +1896,42 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
                 );
               }).toList(),
             ),
+            const SizedBox(height: 24),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'المزامنة السحابية',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                ),
+              ),
+              subtitle: Text(
+                'حفظ هذه المجموعة سحابياً',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                ),
+              ),
+              value: _syncEnabled,
+              activeTrackColor: AppTheme.primaryLight,
+              onChanged: (val) {
+                if (val && !_syncEnabled) {
+                  final syncedCount = ref.read(clipboardGroupsProvider).where((g) => g.syncEnabled).length;
+                  if (syncedCount >= kMaxSyncClipboardGroups) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                        backgroundColor: AppTheme.errorColor,
+                      ),
+                    );
+                    return;
+                  }
+                }
+                setState(() => _syncEnabled = val);
+              },
+            ),
           ],
         ),
       ),
@@ -1790,7 +1943,24 @@ class _ManageGroupDialogBodyState extends State<_ManageGroupDialogBody> {
         ElevatedButton(
           onPressed: () {
             if (_nameCtrl.text.trim().isEmpty) return;
-            widget.onSave(_nameCtrl.text.trim(), _selectedIcon, _selectedColor);
+            
+            bool finalSync = _syncEnabled;
+            // Check limit if enabling sync for a NEW group
+            if (_syncEnabled && widget.existingGroup == null) {
+              final syncedCount = ref.read(clipboardGroupsProvider).where((g) => g.syncEnabled).length;
+              if (syncedCount >= kMaxSyncClipboardGroups) {
+                finalSync = false;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم الحفظ محلياً. لم يتم المزامنة لبلوغ الحد الأقصى (20).'),
+                    backgroundColor: AppTheme.warningColor,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }
+
+            widget.onSave(_nameCtrl.text.trim(), _selectedIcon, _selectedColor, finalSync);
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(

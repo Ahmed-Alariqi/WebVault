@@ -6,6 +6,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/notification_model.dart';
 import '../../data/models/collection_model.dart';
 import '../../presentation/providers/membership_providers.dart';
+import 'providers.dart';
 
 // --------------- Supabase Client ---------------
 
@@ -390,7 +391,9 @@ class PaginatedNotificationsState {
 
 class PaginatedNotificationsNotifier
     extends StateNotifier<PaginatedNotificationsState> {
-  PaginatedNotificationsNotifier()
+  final Ref _ref;
+
+  PaginatedNotificationsNotifier(this._ref)
     : super(const PaginatedNotificationsState()) {
     loadMore();
   }
@@ -418,9 +421,13 @@ class PaginatedNotificationsNotifier
           .order('created_at', ascending: false)
           .range(from, to);
 
-      var newItems = (response as List)
-          .map((e) => NotificationModel.fromJson(e))
-          .toList();
+      final lastSeen = _ref.read(lastSeenNotificationProvider);
+      var newItems = (response as List).map((e) {
+        final notification = NotificationModel.fromJson(e);
+        return notification.copyWith(
+          isRead: notification.createdAt.isBefore(lastSeen),
+        );
+      }).toList();
 
       // Personalize notifications that have personalize_name enabled
       final hasPersonalized = newItems.any((n) => n.personalizeWithName);
@@ -472,7 +479,7 @@ final notificationsPaginatedProvider =
       PaginatedNotificationsNotifier,
       PaginatedNotificationsState
     >((ref) {
-      return PaginatedNotificationsNotifier();
+      return PaginatedNotificationsNotifier(ref);
     });
 
 // A legacy provider for places that still expect the old future, if any.

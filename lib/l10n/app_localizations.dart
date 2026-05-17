@@ -842,6 +842,174 @@ abstract class AppLocalizations {
   /// **'Invalid backup file'**
   String get invalidBackupFile;
 
+  /// No description provided for @cloudSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Sync'**
+  String get cloudSync;
+
+  /// No description provided for @localBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Backup'**
+  String get localBackup;
+
+  /// No description provided for @cloudSyncDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync your data securely to the cloud'**
+  String get cloudSyncDesc;
+
+  /// No description provided for @cloudRestoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Back!'**
+  String get cloudRestoreTitle;
+
+  /// No description provided for @cloudRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We found your saved data in the cloud. Would you like to restore it to this device?'**
+  String get cloudRestoreSubtitle;
+
+  /// No description provided for @restoreMyData.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore My Data'**
+  String get restoreMyData;
+
+  /// No description provided for @restoringData.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring your data...'**
+  String get restoringData;
+
+  /// No description provided for @skipStartFresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip — Start Fresh'**
+  String get skipStartFresh;
+
+  /// No description provided for @noCloudData.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved data found in your cloud account.'**
+  String get noCloudData;
+
+  /// No description provided for @clipboardGroups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get clipboardGroups;
+
+  /// No description provided for @restoreFromCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from Cloud'**
+  String get restoreFromCloud;
+
+  /// No description provided for @restoreFromCloudDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull all your synced data from the cloud'**
+  String get restoreFromCloudDesc;
+
+  /// No description provided for @restoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data restored successfully!'**
+  String get restoreSuccess;
+
+  /// No description provided for @enableSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Cloud Sync'**
+  String get enableSync;
+
+  /// No description provided for @disableSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable Cloud Sync'**
+  String get disableSync;
+
+  /// No description provided for @syncedToCloud.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced to cloud'**
+  String get syncedToCloud;
+
+  /// No description provided for @localOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Local only'**
+  String get localOnly;
+
+  /// No description provided for @lastSyncTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sync'**
+  String get lastSyncTime;
+
+  /// No description provided for @syncNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get syncNow;
+
+  /// No description provided for @cloudStorageUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud Storage Usage'**
+  String get cloudStorageUsage;
+
+  /// No description provided for @syncLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry, you have reached the maximum limit for Cloud Sync. Please unsync other items to free space.'**
+  String get syncLimitReached;
+
+  /// No description provided for @syncLimitWarningDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'New items will be saved locally only. Free tier cloud storage is limited.'**
+  String get syncLimitWarningDesc;
+
+  /// No description provided for @syncAllSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync All'**
+  String get syncAllSelected;
+
+  /// No description provided for @unsyncAllSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsync All'**
+  String get unsyncAllSelected;
+
+  /// No description provided for @deleteAllSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete All'**
+  String get deleteAllSelected;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected'**
+  String get selected;
+
+  /// No description provided for @deleteSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Selected'**
+  String get deleteSelected;
+
+  /// No description provided for @deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete the selected items? This action cannot be undone.'**
+  String get deleteConfirm;
+
   /// No description provided for @personalInfo.
   ///
   /// In en, this message translates to:
@@ -6929,7 +7097,7 @@ abstract class AppLocalizations {
   /// No description provided for @localSaveNotice.
   ///
   /// In en, this message translates to:
-  /// **'All settings and data are saved locally on your device for security. We recommend making regular backups.'**
+  /// **'WebVault uses a hybrid storage model: all your data is encrypted and saved locally on your device for privacy, with optional cloud sync for your important items to enable multi-device access.'**
   String get localSaveNotice;
 
   /// No description provided for @tutSkip.

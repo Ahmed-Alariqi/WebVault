@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +17,8 @@ import '../../presentation/providers/membership_providers.dart';
 import '../../l10n/app_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 import 'referral_share_screen.dart';
+import '../../presentation/widgets/campaign_overlay.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -34,6 +38,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   _UsernameStatus _usernameStatus = _UsernameStatus.idle;
 
   // Track original values to detect changes
+  bool _showUsernameHint = false;
   String _originalName = '';
   String _originalUsername = '';
   bool _initialized = false;
@@ -121,19 +126,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: CustomScrollView(
         slivers: [
+          // Campaign banner
+          const SliverToBoxAdapter(child: CampaignTopBanner()),
+
           // ─── Hero Header ───
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 220,
             floating: false,
             pinned: true,
+            elevation: 0,
             backgroundColor: AppTheme.primaryColor,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppTheme.primaryColor, Color(0xFF7C4DFF)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Color(0xFF4C1D95), AppTheme.primaryColor],
                   ),
                 ),
                 child: SafeArea(
@@ -213,18 +222,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 0),
             // Header Title
             Text(
               l10n.personalInfo.toUpperCase(),
               style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 2,
+                letterSpacing: 2.5,
               ),
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.2),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
             // Full name
             if (fullName.isNotEmpty)
@@ -232,13 +241,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 fullName,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: FontWeight.w900,
                   letterSpacing: -0.8,
                 ),
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
 
             // @username + role badge
             Row(
@@ -273,14 +282,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
 
             // Email
             Text(
               email,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ).animate().fadeIn(delay: 400.ms),
@@ -426,6 +435,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _usernameCtrl.text = p['username'] as String? ?? '';
     _originalName = _nameCtrl.text.trim();
     _originalUsername = _usernameCtrl.text.trim();
+
+    // Smart Hint Logic: Show if username is empty and shown < 3 times
+    if (_usernameCtrl.text.trim().isEmpty) {
+      final settingsBox = Hive.box(kSettingsBox);
+      final count = settingsBox.get(kUsernameHintShowCount, defaultValue: 0) as int;
+      if (count < 3) {
+        _showUsernameHint = true;
+        settingsBox.put(kUsernameHintShowCount, count + 1);
+      }
+    }
+
     _initialized = true;
   }
 
@@ -436,8 +456,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     AppLocalizations l10n,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Group 1: Account Settings
@@ -493,58 +514,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ],
           ),
+          // Group 4: Account Actions
+          _ProfileSectionCard(
+            title: 'إجراءات الحساب',
+            icon: PhosphorIcons.dotsThreeCircle(PhosphorIconsStyle.fill),
+            isDark: isDark,
+            children: [
+              _ProfileListTile(
+                title: l10n.signOutLabel,
+                subtitle: 'تسجيل الخروج من الحساب الحالي',
+                icon: PhosphorIcons.signOut(PhosphorIconsStyle.fill),
+                iconColor: AppTheme.errorColor,
+                isDark: isDark,
+                showDivider: false,
+                onTap: _confirmSignOut,
+              ),
+            ],
+          ),
 
-          const SizedBox(height: 12),
-
-          // Standalone Sign Out
-          _buildSignOutTile(isDark, l10n),
-
-          const SizedBox(height: 40),
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildSignOutTile(bool isDark, AppLocalizations l10n) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.04),
-        ),
-      ),
-      child: ListTile(
-        onTap: _confirmSignOut,
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppTheme.errorColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            PhosphorIcons.signOut(PhosphorIconsStyle.fill),
-            color: AppTheme.errorColor,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          l10n.signOutLabel,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.errorColor,
-          ),
-        ),
-        trailing: Icon(
-          PhosphorIcons.caretLeft(),
-          size: 16,
-          color: AppTheme.errorColor.withValues(alpha: 0.4),
-        ),
-      ),
-    );
-  }
+  // Removed _buildSignOutTile - now integrated into sections
 
   Widget _buildUnreadBadge(bool isDark) {
     return Consumer(
@@ -575,6 +569,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         key: _formKey,
         child: Column(
           children: [
+            _buildUsernameHint(isDark),
             _buildValidatedField(
               controller: _nameCtrl,
               label: l10n.fullName,
@@ -588,11 +583,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 16),
+            // Username field with conditional pulsing gold border
             _buildValidatedField(
               controller: _usernameCtrl,
               label: l10n.username,
               icon: PhosphorIcons.at(),
               isDark: isDark,
+              borderColor: _showUsernameHint ? Colors.amber.withValues(alpha: 0.6) : null,
+              pulseBorder: _showUsernameHint,
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return l10n.usernameRequired;
                 if (v.trim().length < 5) return l10n.usernameTooShort;
@@ -611,6 +609,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               onChanged: (v) {
                 setState(() {});
                 _onUsernameChanged(v);
+                if (_showUsernameHint && v.trim().isNotEmpty) {
+                  setState(() => _showUsernameHint = false);
+                }
               },
             ),
             _buildUsernameStatus(l10n),
@@ -803,69 +804,17 @@ https://zaadtech.netlify.app
 Try Zad now and organize your daily workflow! 🚀''';
               Share.share(text);
             },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.primaryColor.withValues(alpha: 0.15),
-                    AppTheme.accentColor.withValues(alpha: 0.08),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.25),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
-                      color: AppTheme.primaryColor,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.localeName.startsWith('ar')
-                              ? 'شارك الفائدة 💡'
-                              : 'Share the app 💡',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          l10n.localeName.startsWith('ar')
-                              ? 'هل تعرف أحداً قد يستفيد من التطبيق؟ ساعده يكتشف زاد التقني ✨'
-                              : 'Know someone who could use the app? Help them discover ZaadTech ✨',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.white54 : Colors.black45,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: isDark ? Colors.white38 : Colors.black26,
-                  ),
-                ],
-              ),
+            child: _ProfileListTile(
+              title: l10n.localeName.startsWith('ar')
+                  ? 'شارك الفائدة 💡'
+                  : 'Share the app 💡',
+              subtitle: l10n.localeName.startsWith('ar')
+                  ? 'هل تعرف أحداً قد يستفيد من التطبيق؟ ساعده يكتشف زاد التقني ✨'
+                  : 'Know someone who could benefit? Help them discover ZaadTech ✨',
+              icon: PhosphorIcons.shareNetwork(PhosphorIconsStyle.fill),
+              iconColor: AppTheme.primaryColor,
+              isDark: isDark,
+              showDivider: true,
             ),
           ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
         }
@@ -873,15 +822,7 @@ Try Zad now and organize your daily workflow! 🚀''';
         return GestureDetector(
           onTap: () {
             if (!hasUsername) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'يرجى حفظ اسم المستخدم الخاص بك أولاً لتمكين إنشاء و مشاركة كود الإحالة.',
-                  ),
-                  backgroundColor: Colors.orange,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              AdminUIUtils.showWarning(context, 'يرجى حفظ اسم المستخدم الخاص بك أولاً لتمكين إنشاء و مشاركة كود الإحالة.');
               return;
             }
             Navigator.push(
@@ -889,48 +830,15 @@ Try Zad now and organize your daily workflow! 🚀''';
               MaterialPageRoute(builder: (_) => const ReferralShareScreen()),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
-                    color: AppTheme.primaryColor,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.referralShareTitle,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        l10n.referralShareSubtitle,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? Colors.white54 : Colors.black45,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (hasUsername)
-                  IconButton(
+          child: _ProfileListTile(
+            title: l10n.referralShareTitle,
+            subtitle: l10n.referralShareSubtitle,
+            icon: PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+            iconColor: AppTheme.primaryColor,
+            isDark: isDark,
+            showDivider: false,
+            trailing: hasUsername
+                ? IconButton(
                     onPressed: () async {
                       await shareDetailedInvitation(ref);
                     },
@@ -940,23 +848,83 @@ Try Zad now and organize your daily workflow! 🚀''';
                       padding: const EdgeInsets.all(8),
                     ),
                   )
-                else
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: isDark ? Colors.white38 : Colors.black26,
-                  ),
-              ],
-            ),
+                : null,
           ),
         ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.05);
       },
       loading: () => const SizedBox(),
-      error: (_, _) => const SizedBox(),
+      error: (e, st) => const SizedBox(),
     );
   }
 
   // ─── Helpers ───
+
+  Widget _buildUsernameHint(bool isDark) {
+    if (!_showUsernameHint) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.withValues(alpha: isDark ? 0.15 : 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.amber.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.amber.withValues(alpha: 0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.amber.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.stars_rounded,
+              color: Colors.amber,
+              size: 18,
+            ),
+          )
+              .animate(onPlay: (controller) => controller.repeat(reverse: true))
+              .scale(
+                duration: 1000.ms,
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1),
+              )
+              .shimmer(duration: 2000.ms, color: Colors.white30),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'يجب إكمال بيانات ملفك الشخصي من أجل استخدام كافة خدمات التطبيق بشكل صحيح.',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.amber.shade100 : Colors.amber.shade900,
+                height: 1.4,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.close,
+              size: 16,
+              color: isDark ? Colors.amber.withValues(alpha: 0.5) : Colors.amber.shade800,
+            ),
+            onPressed: () => setState(() => _showUsernameHint = false),
+          ),
+        ],
+      ),
+    ).animate().fadeIn().slideY(begin: -0.1);
+  }
 
   Widget _buildValidatedField({
     required TextEditingController controller,
@@ -965,8 +933,10 @@ Try Zad now and organize your daily workflow! 🚀''';
     required bool isDark,
     String? Function(String?)? validator,
     ValueChanged<String>? onChanged,
+    Color? borderColor,
+    bool pulseBorder = false,
   }) {
-    return TextFormField(
+    final field = TextFormField(
       controller: controller,
       validator: validator,
       onChanged: onChanged,
@@ -992,22 +962,18 @@ Try Zad now and organize your daily workflow! 🚀''';
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.05),
+            color: borderColor ?? (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.05),
+            color: borderColor ?? (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+          borderSide: BorderSide(color: borderColor ?? AppTheme.primaryColor, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -1023,6 +989,30 @@ Try Zad now and organize your daily workflow! 🚀''';
         ),
       ),
     );
+
+    if (pulseBorder) {
+      return field
+          .animate(onPlay: (c) => c.repeat(reverse: true))
+          .custom(
+            duration: 1000.ms,
+            builder: (context, value, child) {
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.amber.withValues(alpha: 0.4 * value),
+                      blurRadius: 15 * value,
+                      spreadRadius: 3 * value,
+                    ),
+                  ],
+                ),
+                child: child,
+              );
+            },
+          );
+    }
+    return field;
   }
 
   // ─── Actions ───
@@ -1044,30 +1034,7 @@ Try Zad now and organize your daily workflow! 🚀''';
           final dateStr =
               '${nextAllowed.year}-${nextAllowed.month.toString().padLeft(2, '0')}-${nextAllowed.day.toString().padLeft(2, '0')}';
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(l10n.usernameCooldownError),
-                    const SizedBox(height: 4),
-                    Text(
-                      l10n.usernameNextChangeDate(dateStr),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
-                backgroundColor: Colors.orange.shade800,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            );
+            AdminUIUtils.showWarning(context, '${l10n.usernameCooldownError}\n${l10n.usernameNextChangeDate(dateStr)}');
           }
           return;
         }
@@ -1091,32 +1058,11 @@ Try Zad now and organize your daily workflow! 🚀''';
       _usernameStatus = _UsernameStatus.idle;
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                Text(l10n.profileUpdated),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AdminUIUtils.showSuccess(context, l10n.profileUpdated);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed: $e'),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminUIUtils.showError(context, 'Failed: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -1175,13 +1121,7 @@ Try Zad now and organize your daily workflow! 🚀''';
       await authService.resetPassword(user!.email!);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.forgotPasswordFailed),
-            backgroundColor: AppTheme.errorColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        AdminUIUtils.showError(context, l10n.forgotPasswordFailed);
       }
       return;
     }
@@ -1373,12 +1313,7 @@ Try Zad now and organize your daily workflow! 🚀''';
                                 ref,
                               );
                               if (result == null && mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(l10n.referralCodeSuccess),
-                                    backgroundColor: AppTheme.successColor,
-                                  ),
-                                );
+                                AdminUIUtils.showSuccess(context, l10n.referralCodeSuccess);
                               } else {
                                 if (mounted) {
                                   setState(() => _referralErrorMsg = result);
@@ -1525,22 +1460,7 @@ class _ChangePasswordSheetState extends State<_ChangePasswordSheet> {
       await authService.updatePassword(_passwordCtrl.text);
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.white, size: 20),
-                const SizedBox(width: 10),
-                Flexible(child: Text(widget.l10n.passwordUpdatedSuccess)),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        AdminUIUtils.showSuccess(context, widget.l10n.passwordUpdatedSuccess);
       }
     } catch (_) {
       setState(() => _error = widget.l10n.passwordUpdateFailed);

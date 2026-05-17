@@ -16,6 +16,8 @@ import '../../presentation/widgets/advertisement_carousel.dart';
 import '../../data/models/page_model.dart';
 import '../../data/models/clipboard_item_model.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/widgets/referral_reminder_card.dart';
+import '../../presentation/widgets/campaign_overlay.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -28,6 +30,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) CampaignOverlay.showGiftDialogIfNeeded(context, ref);
+    });
   }
 
   @override
@@ -48,12 +53,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           // Dynamic modern App Bar/Header
           SliverToBoxAdapter(child: _DashboardHeader(isDark: isDark)),
 
+          // Campaign top banner
+          const SliverToBoxAdapter(child: CampaignTopBanner()),
           // Advertisement Panel
           const SliverToBoxAdapter(
             child: AdvertisementCarousel(
               targetScreen: 'home',
               padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
             ),
+          ),
+
+          // Referral Reminder for new users
+          const SliverToBoxAdapter(
+            child: ReferralReminderCard(),
           ),
 
           SliverPadding(
@@ -877,18 +889,43 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: AppTheme.primaryColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-          color: AppTheme.primaryColor,
-          size: 18,
-        ),
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+              color: AppTheme.primaryColor,
+              size: 18,
+            ),
+          ),
+          Positioned(
+            top: -3,
+            right: -3,
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                page.syncEnabled 
+                    ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                    : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                size: 10,
+                color: page.syncEnabled 
+                    ? AppTheme.primaryColor 
+                    : (isDark ? Colors.white30 : Colors.black26),
+              ),
+            ),
+          ),
+        ],
       ),
       title: Text(
         page.title,
@@ -934,18 +971,43 @@ class _GlobalSearchSheetState extends ConsumerState<_GlobalSearchSheet> {
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      leading: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          PhosphorIcons.copySimple(),
-          color: const Color(0xFFF59E0B),
-          size: 18,
-        ),
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              PhosphorIcons.copySimple(),
+              color: const Color(0xFFF59E0B),
+              size: 18,
+            ),
+          ),
+          Positioned(
+            top: -3,
+            right: -3,
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                item.syncEnabled 
+                    ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                    : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                size: 10,
+                color: item.syncEnabled 
+                    ? AppTheme.primaryColor 
+                    : (isDark ? Colors.white30 : Colors.black26),
+              ),
+            ),
+          ),
+        ],
       ),
       title: Text(
         item.label,
@@ -1017,18 +1079,43 @@ class _TopVaultCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: AppTheme.accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Icon(
-              PhosphorIcons.crown(PhosphorIconsStyle.fill),
-              color: AppTheme.accentColor,
-              size: 28,
-            ),
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Icon(
+                  PhosphorIcons.crown(PhosphorIconsStyle.fill),
+                  color: AppTheme.accentColor,
+                  size: 28,
+                ),
+              ),
+              Positioned(
+                top: -4,
+                right: -4,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    page.syncEnabled 
+                        ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                        : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                    size: 14,
+                    color: page.syncEnabled 
+                        ? AppTheme.primaryColor 
+                        : (isDark ? Colors.white30 : Colors.black26),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1109,24 +1196,49 @@ class _RecentItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color:
-                    (index % 2 == 0
-                            ? AppTheme.primaryColor
-                            : AppTheme.accentColor)
-                        .withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-                color: index % 2 == 0
-                    ? AppTheme.primaryColor
-                    : AppTheme.accentColor,
-                size: 24,
-              ),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color:
+                        (index % 2 == 0
+                                ? AppTheme.primaryColor
+                                : AppTheme.accentColor)
+                            .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+                    color: index % 2 == 0
+                        ? AppTheme.primaryColor
+                        : AppTheme.accentColor,
+                    size: 24,
+                  ),
+                ),
+                Positioned(
+                  top: -4,
+                  right: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      page.syncEnabled 
+                          ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                          : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                      size: 12,
+                      color: page.syncEnabled 
+                          ? AppTheme.primaryColor 
+                          : (isDark ? Colors.white30 : Colors.black26),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 16),
             Expanded(

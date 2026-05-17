@@ -10,9 +10,57 @@ enum MembershipScope {
   persona,    // Specific personas
 }
 
+/// A model for an active promotional campaign
+class Campaign {
+  final String id;
+  final String targetType;
+  final String? targetId;
+  final String title;
+  final String? promoText;
+  final DateTime endAt;
+
+  Campaign({
+    required this.id,
+    required this.targetType,
+    this.targetId,
+    required this.title,
+    this.promoText,
+    required this.endAt,
+  });
+
+  factory Campaign.fromJson(Map<String, dynamic> json) {
+    return Campaign(
+      id: json['id'],
+      targetType: json['target_type'],
+      targetId: json['target_id'],
+      title: json['title'],
+      promoText: json['promo_text'],
+      endAt: DateTime.parse(json['end_at']).toLocal(),
+    );
+  }
+}
+
+/// Provider to stream active global or specific campaigns in real-time
+final activeCampaignsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
+  return SupabaseConfig.client
+      .from('app_campaigns')
+      .stream(primaryKey: ['id'])
+      .eq('is_active', true);
+});
+
 /// A centralized provider to track and calculate membership status
 final membershipStatusProvider = Provider<MembershipStatus>((ref) {
   final profileAsync = ref.watch(userProfileProvider);
+  final campaignsAsync = ref.watch(activeCampaignsProvider);
+
+  List<Campaign> activeCampaigns = [];
+  if (campaignsAsync is AsyncData) {
+    final now = DateTime.now();
+    activeCampaigns = (campaignsAsync.value ?? [])
+        .map((c) => Campaign.fromJson(c))
+        .where((c) => c.endAt.isAfter(now))
+        .toList();
+  }
   
   return profileAsync.maybeWhen(
     data: (profile) {
@@ -29,9 +77,10 @@ final membershipStatusProvider = Provider<MembershipStatus>((ref) {
         premiumUntil: premiumUntil,
         permissions: permissions,
         isAdmin: isAdmin,
+        activeCampaigns: activeCampaigns,
       );
     },
-    orElse: () => MembershipStatus.none(),
+    orElse: () => MembershipStatus.none(activeCampaigns: activeCampaigns),
   );
 });
 
@@ -39,22 +88,31 @@ class MembershipStatus {
   final DateTime? premiumUntil;
   final List<String> permissions;
   final bool isAdmin;
+  final List<Campaign> activeCampaigns;
 
   MembershipStatus({
     this.premiumUntil,
     required this.permissions,
     required this.isAdmin,
+    this.activeCampaigns = const [],
   });
 
-  factory MembershipStatus.none() => MembershipStatus(
+  factory MembershipStatus.none({List<Campaign> activeCampaigns = const []}) => MembershipStatus(
     premiumUntil: null,
     permissions: [],
     isAdmin: false,
+    activeCampaigns: activeCampaigns,
   );
 
   /// Returns true if the user has active premium status (global or specific)
   bool get isActive {
     if (isAdmin) return true;
+    
+    // Check if there are any active global campaigns
+    if (activeCampaigns.any((c) => c.targetType == 'global')) {
+      return true;
+    }
+
     if (premiumUntil == null) return false;
     return premiumUntil!.isAfter(DateTime.now());
   }
@@ -62,6 +120,11 @@ class MembershipStatus {
   /// Returns true if the user has global premium access
   bool get isGlobal {
     if (isAdmin) return true;
+    
+    if (activeCampaigns.any((c) => c.targetType == 'global')) {
+      return true;
+    }
+
     if (!isActive) return false;
     return permissions.contains('premium:all');
   }
@@ -81,8 +144,16 @@ class MembershipStatus {
   /// Check access to a specific item
   bool hasAccessTo({required String type, String? id}) {
     if (isAdmin) return true;
+    if (isGlobal) return true; // Global overrides everything (including active global campaigns checked via isGlobal property)
+    
+    // 1. Check if there's a specific campaign targeting this item
+    if (id != null) {
+      final hasCampaignAccess = activeCampaigns.any((c) => c.targetType == type && c.targetId == id);
+      if (hasCampaignAccess) return true;
+    }
+
+    // 2. Fallback to normal user permissions
     if (!isActive) return false;
-    if (isGlobal) return true;
     
     if (id == null) return false;
     
@@ -210,12 +281,13 @@ class MembershipManagement {
   }) async {
     try {
       // 1. Insert into DB for in-app history
+      // NOTE: Do NOT pass 'created_at' — let Supabase use server-side now()
+      // to avoid timezone mismatch (client DateTime.now() is local, not UTC).
       final inserted = await _client.from('notifications').insert({
         'user_id': userId,
         'title': title,
         'body': body,
         'type': 'membership',
-        'created_at': DateTime.now().toIso8601String(),
       }).select().single();
 
       final notificationId = inserted['id'];

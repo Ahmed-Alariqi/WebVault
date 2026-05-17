@@ -31,11 +31,21 @@ const String kAutoBackupEnabled = 'auto_backup_enabled';
 const String kAutoBackupFrequency = 'auto_backup_frequency';
 const String kLastAutoBackupTime = 'last_auto_backup_time';
 const String kSplashVersion = 'splash_version';
+const String kUsernameHintShowCount = 'username_hint_show_count';
+const String kCloudSyncEnabled = 'cloud_sync_enabled';
+const String kHasRestoredFromCloud = 'has_restored_from_cloud';
 // Bump this number whenever you redesign the splash and want all users to see it again
 const int kCurrentSplashVersion = 2;
 
 // Auto-lock timeout options (in seconds)
 const List<int> kAutoLockOptions = [0, 30, 60, 300, 600];
+
+// Limits
+const int kMaxSyncValueLength = 20000;
+const int kMaxSyncPages = 200;
+const int kMaxSyncClipboardItems = 100;
+const int kMaxSyncFolders = 20;
+const int kMaxSyncClipboardGroups = 20;
 
 // App info
 const String kAppName = 'ZaadTech Manager';

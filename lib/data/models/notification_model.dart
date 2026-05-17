@@ -71,6 +71,40 @@ class NotificationModel {
     );
   }
 
+  NotificationModel copyWith({
+    String? id,
+    String? title,
+    String? body,
+    String? type,
+    String? imageUrl,
+    String? targetUrl,
+    String? createdBy,
+    DateTime? createdAt,
+    bool? isRead,
+    bool? personalizeWithName,
+    int? sentCount,
+    int? failedCount,
+    int? totalTargeted,
+    String? userId,
+  }) {
+    return NotificationModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      type: type ?? this.type,
+      imageUrl: imageUrl ?? this.imageUrl,
+      targetUrl: targetUrl ?? this.targetUrl,
+      createdBy: createdBy ?? this.createdBy,
+      createdAt: createdAt ?? this.createdAt,
+      isRead: isRead ?? this.isRead,
+      personalizeWithName: personalizeWithName ?? this.personalizeWithName,
+      sentCount: sentCount ?? this.sentCount,
+      failedCount: failedCount ?? this.failedCount,
+      totalTargeted: totalTargeted ?? this.totalTargeted,
+      userId: userId ?? this.userId,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'title': title,

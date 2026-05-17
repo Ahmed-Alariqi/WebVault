@@ -1147,53 +1147,96 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
   // ── Loading ──
 
   Widget _buildLoadingView(bool isDark) {
-
     return Center(
-
       child: Column(
-
         mainAxisAlignment: MainAxisAlignment.center,
-
         children: [
+          // Premium Animated Robot Loader
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer glow circles
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                ),
+              ).animate(onPlay: (c) => c.repeat(reverse: true))
+               .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2), duration: 2000.ms, curve: Curves.easeInOut),
+              
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                ),
+              ).animate(onPlay: (c) => c.repeat(reverse: true))
+               .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.1, 1.1), duration: 1500.ms, curve: Curves.easeInOut),
 
-          SizedBox(
-
-            width: 48,
-
-            height: 48,
-
-            child: CircularProgressIndicator(
-
-              strokeWidth: 3,
-
-              color: AppTheme.primaryColor,
-
-            ),
-
+              // Main Robot Icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.primaryColor.withValues(alpha: 0.7)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  PhosphorIcons.robot(PhosphorIconsStyle.fill),
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ).animate(onPlay: (c) => c.repeat())
+               .shimmer(duration: 2000.ms, color: Colors.white24)
+               .shake(hz: 0.5, curve: Curves.easeInOut, rotation: 0.05),
+            ],
           ),
+          
+          const SizedBox(height: 32),
 
-          const SizedBox(height: 20),
+          // Loading Text with Fade effect
+          Text(
+            'خبير زاد يجهز شخصياته...',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: isDark ? Colors.white : Colors.black87,
+              fontFamily: 'Cairo',
+              letterSpacing: -0.5,
+            ),
+          ).animate(onPlay: (c) => c.repeat())
+           .fadeIn(duration: 1000.ms)
+           .then()
+           .fadeOut(duration: 1000.ms, delay: 500.ms),
+
+          const SizedBox(height: 8),
 
           Text(
-
-            'جارٍ تحميل الشخصيات...',
-
+            'جارٍ تحميل البيانات الذكية',
             style: TextStyle(
-
-              color: isDark ? Colors.white54 : Colors.black45,
-
-              
-
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white38 : Colors.black38,
+              fontFamily: 'Cairo',
             ),
-
-          ),
-
+          ).animate().fadeIn(delay: 400.ms),
         ],
-
       ),
-
     );
-
   }
 
 
@@ -3429,17 +3472,19 @@ class _ComposerSendButton extends StatelessWidget {
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2.0,
+                          strokeWidth: 1.5,
                           valueColor: AlwaysStoppedAnimation(
-                            isDark ? Colors.white : Colors.black87,
+                            isDark ? Colors.white70 : Colors.black54,
                           ),
                         ),
-                      ),
+                      ).animate(onPlay: (c) => c.repeat())
+                       .rotate(duration: 2000.ms),
                       Icon(
-                        PhosphorIcons.square(PhosphorIconsStyle.fill),
-                        size: 10,
+                        PhosphorIcons.robot(PhosphorIconsStyle.fill),
+                        size: 14,
                         color: isDark ? Colors.white : Colors.black87,
-                      ),
+                      ).animate(onPlay: (c) => c.repeat(reverse: true))
+                       .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.1, 1.1), duration: 1000.ms),
                     ],
                   )
                 : AnimatedSwitcher(
@@ -3495,48 +3540,59 @@ class _HeaderTypingIndicatorState extends State<_HeaderTypingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'يجري التفكير',
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 10.5,
-            fontWeight: FontWeight.w500,
-            letterSpacing: 0.2,
-            height: 1.0,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            PhosphorIcons.robot(PhosphorIconsStyle.fill),
+            size: 10,
+            color: Colors.white.withValues(alpha: 0.9),
+          ).animate(onPlay: (c) => c.repeat())
+           .shimmer(duration: 1500.ms, color: Colors.white54),
+          const SizedBox(width: 4),
+          Text(
+            'يجري التفكير',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              fontFamily: 'Cairo',
+              letterSpacing: 0.2,
+              height: 1.0,
+            ),
           ),
-        ),
-        const SizedBox(width: 4),
-        AnimatedBuilder(
-          animation: _ctrl,
-          builder: (_, _) {
-            final t = _ctrl.value;
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (i) {
-                final delay = i * 0.33;
-                final phase = (t - delay).clamp(0.0, 1.0);
-                final opacity = (0.3 + 0.7 * _ease(phase)).clamp(0.3, 1.0);
-                final scale = 0.6 + 0.4 * _ease(phase);
-                return Transform.scale(
-                  scale: scale,
-                  child: Container(
-                    width: 5,
-                    height: 5,
-                    margin: const EdgeInsets.symmetric(horizontal: 1.5),
+          const SizedBox(width: 4),
+          AnimatedBuilder(
+            animation: _ctrl,
+            builder: (_, _) {
+              final t = _ctrl.value;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(3, (i) {
+                  final delay = i * 0.33;
+                  final phase = (t - delay).clamp(0.0, 1.0);
+                  final opacity = (0.3 + 0.7 * _ease(phase)).clamp(0.3, 1.0);
+                  return Container(
+                    width: 2.5,
+                    height: 2.5,
+                    margin: const EdgeInsets.symmetric(horizontal: 0.8),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: opacity),
                       shape: BoxShape.circle,
                     ),
-                  ),
-                );
-              }),
-            );
-          },
-        ),
-      ],
+                  );
+                }),
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
 

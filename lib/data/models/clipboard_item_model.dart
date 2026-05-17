@@ -11,6 +11,7 @@ class ClipboardItemModel {
   final DateTime createdAt;
   final DateTime? autoDeleteAt;
   final String? groupId;
+  final bool syncEnabled;
 
   const ClipboardItemModel({
     required this.id,
@@ -23,6 +24,7 @@ class ClipboardItemModel {
     required this.createdAt,
     this.autoDeleteAt,
     this.groupId,
+    this.syncEnabled = true,
   });
 
   ClipboardItemModel copyWith({
@@ -37,6 +39,7 @@ class ClipboardItemModel {
     DateTime? autoDeleteAt,
     String? groupId,
     bool clearGroupId = false,
+    bool? syncEnabled,
   }) {
     return ClipboardItemModel(
       id: id ?? this.id,
@@ -49,6 +52,7 @@ class ClipboardItemModel {
       createdAt: createdAt ?? this.createdAt,
       autoDeleteAt: autoDeleteAt ?? this.autoDeleteAt,
       groupId: clearGroupId ? null : (groupId ?? this.groupId),
+      syncEnabled: syncEnabled ?? this.syncEnabled,
     );
   }
 
@@ -64,6 +68,25 @@ class ClipboardItemModel {
       'createdAt': createdAt.toIso8601String(),
       'autoDeleteAt': autoDeleteAt?.toIso8601String(),
       'groupId': groupId,
+      'syncEnabled': syncEnabled,
+    };
+  }
+
+  /// Converts to Supabase-compatible JSON with correct column names.
+  /// - 'value' → 'content' (Supabase column name)
+  /// - 'type' int → text string (Supabase stores as text)
+  Map<String, dynamic> toSupabaseJson() {
+    return {
+      'id': id,
+      'label': label,
+      'content': value,
+      'type': type.name,
+      'is_pinned': isPinned,
+      'sort_order': sortOrder,
+      'is_encrypted': isEncrypted,
+      'created_at': createdAt.toIso8601String(),
+      'auto_delete_at': autoDeleteAt?.toIso8601String(),
+      'group_id': groupId,
     };
   }
 
@@ -81,6 +104,34 @@ class ClipboardItemModel {
           ? DateTime.parse(json['autoDeleteAt'] as String)
           : null,
       groupId: json['groupId'] as String?,
+      syncEnabled: json['syncEnabled'] as bool? ?? true,
+    );
+  }
+
+  /// Creates from Supabase row data (snake_case columns).
+  factory ClipboardItemModel.fromSupabaseJson(Map<String, dynamic> json) {
+    ClipboardItemType resolvedType = ClipboardItemType.text;
+    final rawType = json['type'];
+    if (rawType is String) {
+      resolvedType = ClipboardItemType.values.firstWhere(
+        (e) => e.name == rawType,
+        orElse: () => ClipboardItemType.text,
+      );
+    }
+    return ClipboardItemModel(
+      id: json['id'] as String,
+      label: json['label'] as String? ?? '',
+      value: json['content'] as String? ?? '',
+      type: resolvedType,
+      isPinned: json['is_pinned'] as bool? ?? false,
+      sortOrder: json['sort_order'] as int? ?? 0,
+      isEncrypted: json['is_encrypted'] as bool? ?? false,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      autoDeleteAt: json['auto_delete_at'] != null
+          ? DateTime.parse(json['auto_delete_at'] as String)
+          : null,
+      groupId: json['group_id'] as String?,
+      syncEnabled: true,
     );
   }
 }
@@ -92,6 +143,7 @@ class ClipboardGroupModel {
   final String iconStr;
   final int sortOrder;
   final DateTime createdAt;
+  final bool syncEnabled;
 
   const ClipboardGroupModel({
     required this.id,
@@ -100,6 +152,7 @@ class ClipboardGroupModel {
     this.iconStr = 'folder', // Default icon
     this.sortOrder = 0,
     required this.createdAt,
+    this.syncEnabled = true,
   });
 
   ClipboardGroupModel copyWith({
@@ -109,6 +162,7 @@ class ClipboardGroupModel {
     String? iconStr,
     int? sortOrder,
     DateTime? createdAt,
+    bool? syncEnabled,
   }) {
     return ClipboardGroupModel(
       id: id ?? this.id,
@@ -117,6 +171,7 @@ class ClipboardGroupModel {
       iconStr: iconStr ?? this.iconStr,
       sortOrder: sortOrder ?? this.sortOrder,
       createdAt: createdAt ?? this.createdAt,
+      syncEnabled: syncEnabled ?? this.syncEnabled,
     );
   }
 
@@ -128,6 +183,7 @@ class ClipboardGroupModel {
       'iconStr': iconStr,
       'sortOrder': sortOrder,
       'createdAt': createdAt.toIso8601String(),
+      'syncEnabled': syncEnabled,
     };
   }
 
@@ -139,6 +195,30 @@ class ClipboardGroupModel {
       iconStr: json['iconStr'] as String? ?? 'folder',
       sortOrder: json['sortOrder'] as int? ?? 0,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      syncEnabled: json['syncEnabled'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toSupabaseJson() {
+    return {
+      'id': id,
+      'name': name,
+      'color_hex': colorHex,
+      'icon_str': iconStr,
+      'sort_order': sortOrder,
+      'created_at': createdAt.toIso8601String(),
+    };
+  }
+
+  factory ClipboardGroupModel.fromSupabaseJson(Map<String, dynamic> json) {
+    return ClipboardGroupModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      colorHex: json['color_hex'] as String? ?? '#6366F1',
+      iconStr: json['icon_str'] as String? ?? 'folder',
+      sortOrder: json['sort_order'] as int? ?? 0,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      syncEnabled: true,
     );
   }
 }

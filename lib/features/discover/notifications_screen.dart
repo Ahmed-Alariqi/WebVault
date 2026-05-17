@@ -29,6 +29,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       markNotificationsRead(ref);
+      ref.invalidate(notificationsPaginatedProvider);
     });
     _scrollController.addListener(_onScroll);
   }

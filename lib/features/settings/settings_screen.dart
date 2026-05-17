@@ -9,6 +9,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/chat_providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
+import '../../presentation/widgets/referral_reminder_card.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -24,19 +25,10 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.settings),
         actions: [
-          Tooltip(
-            message: AppLocalizations.of(context)!.localSaveNotice,
-            textStyle: const TextStyle(fontSize: 12, color: Colors.white),
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            triggerMode: TooltipTriggerMode.tap,
-            child: IconButton(
-              icon: Icon(PhosphorIcons.info(PhosphorIconsStyle.fill), color: AppTheme.primaryColor),
-              onPressed: () => AdminUIUtils.showInfo(
-                context,
-                AppLocalizations.of(context)!.localSaveNotice,
-              ),
-            ),
+          IconButton(
+            icon: Icon(PhosphorIcons.info(PhosphorIconsStyle.fill), color: AppTheme.primaryColor),
+            onPressed: () => AdminUIUtils.showStoragePolicy(context, isDark),
+            tooltip: 'آلية تخزين البيانات',
           ),
           const SizedBox(width: 8),
         ],
@@ -44,6 +36,11 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Referral Reminder for new users
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8.0),
+            child: ReferralReminderCard(),
+          ),
           // Account section
           _buildSectionHeader(
             AppLocalizations.of(context)!.account,

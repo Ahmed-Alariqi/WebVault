@@ -1100,22 +1100,27 @@ class _SendNotificationScreenState
     bool isDark,
   ) {
     final state = ref.watch(adminNotificationsPaginatedProvider);
+    final notifier = ref.read(adminNotificationsPaginatedProvider.notifier);
+    final isSelecting = notifier.isSelectionMode;
+    final selectedCount = notifier.selectedIds.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // ── Header row with title + actions ──
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              AppLocalizations.of(context)!.notifRecentNotifications,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black87,
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.notifRecentNotifications,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
               ),
             ),
-            if (state.items.isNotEmpty)
+            if (state.items.isNotEmpty && !isSelecting)
               TextButton.icon(
                 onPressed: () => _confirmDeleteAll(context, ref),
                 icon: Icon(PhosphorIcons.trash(), size: 16, color: Colors.red),
@@ -1126,6 +1131,79 @@ class _SendNotificationScreenState
               ),
           ],
         ),
+        // ── Selection toolbar (appears when items are selected) ──
+        if (isSelecting) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primaryColor.withValues(alpha: 0.12),
+                  AppTheme.primaryColor.withValues(alpha: 0.04),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: AppTheme.primaryColor.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                // Selected count badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$selectedCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'محدد',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    fontSize: 13,
+                  ),
+                ),
+                const Spacer(),
+                // Select All
+                _SelectionActionBtn(
+                  icon: PhosphorIcons.checkSquare(),
+                  label: 'الكل',
+                  isDark: isDark,
+                  onTap: () => notifier.selectAll(),
+                ),
+                const SizedBox(width: 6),
+                // Delete Selected
+                _SelectionActionBtn(
+                  icon: PhosphorIcons.trash(),
+                  label: 'حذف',
+                  isDark: isDark,
+                  color: Colors.redAccent,
+                  onTap: () => _confirmDeleteSelected(context, ref),
+                ),
+                const SizedBox(width: 6),
+                // Cancel
+                _SelectionActionBtn(
+                  icon: PhosphorIcons.x(),
+                  label: 'إلغاء',
+                  isDark: isDark,
+                  onTap: () => notifier.clearSelection(),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.1),
+        ],
         const SizedBox(height: 16),
         if (state.isLoading && state.isInitialLoad)
           const Center(child: CircularProgressIndicator())
@@ -1159,7 +1237,12 @@ class _SendNotificationScreenState
                 );
               }
               final notif = state.items[index];
-              return _buildNotificationItem(context, ref, notif, isDark);
+              final isSelected = notifier.selectedIds.contains(notif.id);
+              return _buildNotificationItem(
+                context, ref, notif, isDark,
+                isSelecting: isSelecting,
+                isSelected: isSelected,
+              );
             },
           ),
       ],
@@ -1170,100 +1253,142 @@ class _SendNotificationScreenState
     BuildContext context,
     WidgetRef ref,
     NotificationModel notif,
-    bool isDark,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              PhosphorIcons.bellRinging(),
-              color: AppTheme.primaryColor,
-              size: 20,
-            ),
+    bool isDark, {
+    bool isSelecting = false,
+    bool isSelected = false,
+  }) {
+    final notifier = ref.read(adminNotificationsPaginatedProvider.notifier);
+
+    return GestureDetector(
+      onLongPress: () {
+        if (!isSelecting) {
+          notifier.toggleSelection(notif.id);
+        }
+      },
+      onTap: isSelecting ? () => notifier.toggleSelection(notif.id) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: isDark ? 0.15 : 0.08)
+              : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.primaryColor.withValues(alpha: 0.5)
+                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06)),
+            width: isSelected ? 1.5 : 1,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  notif.title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: isDark ? Colors.white : Colors.black87,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Selection checkbox or notification icon
+            if (isSelecting)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppTheme.primaryColor
+                      : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04)),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : (isDark ? Colors.white24 : Colors.black26),
+                    width: 2,
                   ),
                 ),
-                if (notif.body.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                child: isSelected
+                    ? const Icon(Icons.check, color: Colors.white, size: 20)
+                    : null,
+              )
+            else
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  PhosphorIcons.bellRinging(),
+                  color: AppTheme.primaryColor,
+                  size: 20,
+                ),
+              ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    notif.body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    notif.title,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  if (notif.body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      notif.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(PhosphorIcons.users(), size: 14, color: isDark ? Colors.white54 : Colors.black54),
+                      const SizedBox(width: 4),
+                      Text(notif.totalTargeted.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 12),
+                      Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
+                      const SizedBox(width: 12),
+                      Icon(PhosphorIcons.checks(), size: 14, color: Colors.green),
+                      const SizedBox(width: 4),
+                      Text(notif.sentCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 12),
+                      Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
+                      const SizedBox(width: 12),
+                      Icon(PhosphorIcons.warningCircle(), size: 14, color: Colors.redAccent),
+                      const SizedBox(width: 4),
+                      Text(notif.failedCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    DateFormat(
+                      'MMM d, yyyy • h:mm a',
+                    ).format(notif.createdAt.toLocal()),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white38 : Colors.black38,
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(PhosphorIcons.users(), size: 14, color: isDark ? Colors.white54 : Colors.black54),
-                    const SizedBox(width: 4),
-                    Text(notif.totalTargeted.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 12),
-                    Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
-                    const SizedBox(width: 12),
-                    Icon(PhosphorIcons.checks(), size: 14, color: Colors.green),
-                    const SizedBox(width: 4),
-                    Text(notif.sentCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 12),
-                    Text('|', style: TextStyle(fontSize: 12, color: isDark ? Colors.white24 : Colors.black26)),
-                    const SizedBox(width: 12),
-                    Icon(PhosphorIcons.warningCircle(), size: 14, color: Colors.redAccent),
-                    const SizedBox(width: 4),
-                    Text(notif.failedCount.toString(), style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  DateFormat(
-                    'MMM d, yyyy • h:mm a',
-                  ).format(notif.createdAt.toLocal()),
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white38 : Colors.black38,
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          IconButton(
-            icon: Icon(
-              PhosphorIcons.trash(),
-              color: Colors.redAccent,
-              size: 20,
-            ),
-            onPressed: () => _confirmDelete(context, ref, notif.id),
-          ),
-        ],
+            if (!isSelecting)
+              IconButton(
+                icon: Icon(
+                  PhosphorIcons.trash(),
+                  color: Colors.redAccent,
+                  size: 20,
+                ),
+                onPressed: () => _confirmDelete(context, ref, notif.id),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1303,6 +1428,58 @@ class _SendNotificationScreenState
     }
   }
 
+  Future<void> _confirmDeleteSelected(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final notifier = ref.read(adminNotificationsPaginatedProvider.notifier);
+    final count = notifier.selectedIds.length;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(PhosphorIcons.trash(PhosphorIconsStyle.fill),
+                color: Colors.redAccent, size: 22),
+            const SizedBox(width: 8),
+            const Text('حذف المحدد'),
+          ],
+        ),
+        content: Text(
+          'سيتم حذف $count إشعار نهائياً. هل تريد المتابعة؟',
+          style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppLocalizations.of(context)!.notifCancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text('حذف $count'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true && context.mounted) {
+      await adminDeleteMultipleNotifications(
+          notifier.selectedIds.toList());
+      if (context.mounted) {
+        notifier.reset();
+      }
+    }
+  }
+
   Future<void> _confirmDeleteAll(BuildContext context, WidgetRef ref) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirm = await showDialog<bool>(
@@ -1329,7 +1506,7 @@ class _SendNotificationScreenState
       ),
     );
     if (confirm == true && context.mounted) {
-      await adminDeleteAllNotifications();
+      await adminDeleteAllBroadcastNotifications();
       if (context.mounted) {
         ref.read(adminNotificationsPaginatedProvider.notifier).reset();
       }
@@ -1509,6 +1686,55 @@ class _SendNotificationScreenState
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact action button used in the selection toolbar.
+class _SelectionActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isDark;
+  final Color? color;
+  final VoidCallback onTap;
+
+  const _SelectionActionBtn({
+    required this.icon,
+    required this.label,
+    required this.isDark,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? (isDark ? Colors.white70 : Colors.black54);
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: c.withValues(alpha: 0.15)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: c),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: c,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

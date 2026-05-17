@@ -7,6 +7,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/utils/admin_ui_utils.dart';
 
 class ClipboardSettingsScreen extends ConsumerStatefulWidget {
   const ClipboardSettingsScreen({super.key});
@@ -145,26 +146,33 @@ class _ClipboardSettingsScreenState
                           : Colors.amber.shade300,
                     ),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
-                        color: Colors.amber.shade700,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          AppLocalizations.of(context)!.localSaveNotice,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            height: 1.4,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => AdminUIUtils.showStoragePolicy(context, isDark),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                            color: Colors.amber.shade700,
+                            size: 24,
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(context)!.localSaveNotice,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark ? Colors.white70 : Colors.black87,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
 

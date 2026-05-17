@@ -8,19 +8,42 @@ import '../../core/utils/admin_ui_utils.dart';
 import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/notification_settings_providers.dart';
 
-/// Per-user push notification preferences.
-///
-/// Minimal UX: a single user-facing toggle — "receive every new explorer
-/// item". Critical pushes (support chat + admin broadcasts) are always on;
-/// users who want full silence use the OS-level switch.
-class NotificationSettingsScreen extends ConsumerWidget {
+import '../../presentation/widgets/tutorial_overlay.dart';
+
+class NotificationSettingsScreen extends ConsumerStatefulWidget {
   const NotificationSettingsScreen({super.key});
 
-  Future<void> _setAllContent(
-    WidgetRef ref,
-    BuildContext context,
-    bool value,
-  ) async {
+  @override
+  ConsumerState<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
+}
+
+class _NotificationSettingsScreenState extends ConsumerState<NotificationSettingsScreen> {
+  final GlobalKey _discoverKey = GlobalKey();
+  final GlobalKey _communityKey = GlobalKey();
+  bool _tutorialTriggered = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> _checkTutorial() async {
+    if (await TutorialManager.shouldShowSection(TutorialSection.notifications)) {
+      // Small delay to ensure the ListView items are fully attached to the render tree
+      await Future.delayed(const Duration(milliseconds: 150));
+      
+      if (mounted) {
+        TutorialOverlay.show(
+          context,
+          section: TutorialSection.notifications,
+          steps: TutorialManager.getNotificationsSteps(_discoverKey, _communityKey),
+          onComplete: () {},
+        );
+      }
+    }
+  }
+
+  Future<void> _setAllContent(bool value) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
@@ -31,7 +54,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           .eq('id', user.id);
       ref.invalidate(notificationPrefsProvider);
     } catch (_) {
-      if (context.mounted) {
+      if (mounted) {
         AdminUIUtils.showError(
           context,
           AppLocalizations.of(context)!.notifSettingsSaveError,
@@ -40,11 +63,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _setCommunityPosts(
-    WidgetRef ref,
-    BuildContext context,
-    bool value,
-  ) async {
+  Future<void> _setCommunityPosts(bool value) async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
@@ -55,7 +74,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
           .eq('id', user.id);
       ref.invalidate(notificationPrefsProvider);
     } catch (_) {
-      if (context.mounted) {
+      if (mounted) {
         AdminUIUtils.showError(
           context,
           AppLocalizations.of(context)!.notifSettingsSaveError,
@@ -65,7 +84,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
     final prefsAsync = ref.watch(notificationPrefsProvider);
@@ -81,27 +100,36 @@ class NotificationSettingsScreen extends ConsumerWidget {
           final communityPosts =
               prefs['notif_community_posts'] as bool? ?? false;
 
+          if (!_tutorialTriggered) {
+            _tutorialTriggered = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _checkTutorial();
+            });
+          }
+
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
               _buildToggleCard(
+                key: _discoverKey,
                 isDark: isDark,
                 icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
                 iconColor: Colors.teal,
                 title: loc.notifSettingsAllContent,
                 subtitle: loc.notifSettingsAllContentSub,
                 value: allContent,
-                onChanged: (v) => _setAllContent(ref, context, v),
+                onChanged: _setAllContent,
               ),
               const SizedBox(height: 16),
               _buildToggleCard(
+                key: _communityKey,
                 isDark: isDark,
                 icon: PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
                 iconColor: AppTheme.primaryColor,
                 title: loc.notifSettingsCommunity,
                 subtitle: loc.notifSettingsCommunitySub,
                 value: communityPosts,
-                onChanged: (v) => _setCommunityPosts(ref, context, v),
+                onChanged: _setCommunityPosts,
               ),
             ],
           );
@@ -111,6 +139,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildToggleCard({
+    Key? key,
     required bool isDark,
     required IconData icon,
     required Color iconColor,
@@ -120,6 +149,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     required ValueChanged<bool> onChanged,
   }) {
     return Container(
+      key: key,
       decoration: BoxDecoration(
         color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
         borderRadius: BorderRadius.circular(16),

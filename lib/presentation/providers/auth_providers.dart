@@ -90,7 +90,9 @@ final userPermissionsProvider = FutureProvider<List<String>>((ref) async {
 /// Returns true if the user should see the admin panel at all
 final hasAdminAccessProvider = FutureProvider<bool>((ref) async {
   final perms = await ref.watch(userPermissionsProvider.future);
-  return perms.isNotEmpty;
+  // Only grant admin access if they have at least one permission from the official admin list.
+  // This prevents 'premium:...' permissions from mistakenly triggering admin UI visibility.
+  return perms.any((p) => kAllPermissions.contains(p));
 });
 
 /// Family provider: check if user has access to a specific section

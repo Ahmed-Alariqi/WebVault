@@ -9,6 +9,8 @@ import '../../data/models/page_model.dart';
 import '../../presentation/widgets/modern_fab.dart';
 import '../../presentation/widgets/tutorial_overlay.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/constants.dart';
+import 'package:flutter/services.dart';
 
 class PagesScreen extends ConsumerStatefulWidget {
   const PagesScreen({super.key});
@@ -20,6 +22,34 @@ class PagesScreen extends ConsumerStatefulWidget {
 class _PagesScreenState extends ConsumerState<PagesScreen> {
   final GlobalKey _addButtonKey = GlobalKey();
   final GlobalKey _foldersButtonKey = GlobalKey();
+
+  bool _isMultiSelectMode = false;
+  final Set<String> _selectedIds = {};
+
+  void _exitMultiSelect() {
+    setState(() {
+      _isMultiSelectMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _enterMultiSelect(String id) {
+    setState(() {
+      _isMultiSelectMode = true;
+      _selectedIds.add(id);
+    });
+  }
+
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _exitMultiSelect();
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -50,31 +80,128 @@ class _PagesScreenState extends ConsumerState<PagesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.pages),
+        title: _isMultiSelectMode
+            ? Text('${_selectedIds.length} ${AppLocalizations.of(context)!.selected}')
+            : Text(AppLocalizations.of(context)!.pages),
+        leading: _isMultiSelectMode
+            ? IconButton(
+                icon: Icon(PhosphorIcons.x()),
+                onPressed: _exitMultiSelect,
+              )
+            : null,
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: TextButton.icon(
-              key: _foldersButtonKey,
-              onPressed: () => context.push('/folders'),
-              icon: Icon(PhosphorIcons.folder(), size: 18),
-              label: Text(
-                AppLocalizations.of(context)!.folders,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
+          if (_isMultiSelectMode) ...[
+            IconButton(
+              icon: Icon(
+                _selectedIds.length == pages.length
+                    ? PhosphorIcons.checkSquare(PhosphorIconsStyle.fill)
+                    : PhosphorIcons.square(),
               ),
-              style: TextButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                foregroundColor: AppTheme.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+              onPressed: () {
+                setState(() {
+                  if (_selectedIds.length == pages.length) {
+                    _exitMultiSelect();
+                  } else {
+                    _selectedIds.addAll(pages.map((p) => p.id));
+                  }
+                });
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.cloud_done_outlined, color: AppTheme.primaryLight),
+              tooltip: AppLocalizations.of(context)!.syncAllSelected,
+              onPressed: () {
+                final allPagesInState = ref.read(pagesProvider);
+                int currentSyncedCount = allPagesInState.where((p) => p.syncEnabled).length;
+
+                for (final id in _selectedIds) {
+                  final page = allPagesInState.firstWhere((p) => p.id == id);
+                  if (!page.syncEnabled) {
+                    if (currentSyncedCount >= kMaxSyncPages) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                          backgroundColor: AppTheme.errorColor,
+                        ),
+                      );
+                      break;
+                    }
+                    ref.read(pagesProvider.notifier).updatePage(page.copyWith(syncEnabled: true));
+                    currentSyncedCount++;
+                  }
+                }
+                _exitMultiSelect();
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.cloud_off_outlined, color: Colors.grey),
+              tooltip: AppLocalizations.of(context)!.unsyncAllSelected,
+              onPressed: () {
+                final allPagesInState = ref.read(pagesProvider);
+                for (final id in _selectedIds) {
+                  final page = allPagesInState.firstWhere((p) => p.id == id);
+                  if (page.syncEnabled) {
+                    ref.read(pagesProvider.notifier).updatePage(page.copyWith(syncEnabled: false));
+                  }
+                }
+                _exitMultiSelect();
+              },
+            ),
+            IconButton(
+              icon: Icon(PhosphorIcons.trash(), color: AppTheme.errorColor),
+              tooltip: AppLocalizations.of(context)!.deleteAllSelected,
+              onPressed: () {
+                // Confirm delete
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(AppLocalizations.of(context)!.deleteSelected),
+                    content: Text(AppLocalizations.of(context)!.deleteConfirm),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text(AppLocalizations.of(context)!.cancel),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          for (final id in _selectedIds) {
+                            ref.read(pagesProvider.notifier).deletePage(id);
+                          }
+                          Navigator.pop(ctx);
+                          _exitMultiSelect();
+                        },
+                        child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: AppTheme.errorColor)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ] else ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: TextButton.icon(
+                key: _foldersButtonKey,
+                onPressed: () => context.push('/folders'),
+                icon: Icon(PhosphorIcons.folder(), size: 18),
+                label: Text(
+                  AppLocalizations.of(context)!.folders,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                style: TextButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  foregroundColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
       body: Column(
@@ -205,16 +332,32 @@ class _PagesScreenState extends ConsumerState<PagesScreen> {
         );
       },
       child: GestureDetector(
-        onTap: () => context.push('/browser/${page.id}'),
+        onLongPress: () {
+          HapticFeedback.heavyImpact();
+          if (!_isMultiSelectMode) {
+            _enterMultiSelect(page.id);
+          }
+        },
+        onTap: () {
+          if (_isMultiSelectMode) {
+            _toggleSelection(page.id);
+            return;
+          }
+          context.push('/browser/${page.id}');
+        },
         child: Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+            color: _selectedIds.contains(page.id)
+                ? AppTheme.primaryColor.withValues(alpha: 0.1)
+                : (isDark ? AppTheme.darkCard : AppTheme.lightCard),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider,
-              width: 0.5,
+              color: _selectedIds.contains(page.id)
+                  ? AppTheme.primaryColor
+                  : (isDark ? AppTheme.darkDivider : AppTheme.lightDivider),
+              width: _selectedIds.contains(page.id) ? 1.5 : 0.5,
             ),
             boxShadow: [
               BoxShadow(
@@ -227,25 +370,55 @@ class _PagesScreenState extends ConsumerState<PagesScreen> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.12),
-                      AppTheme.primaryColor.withValues(alpha: 0.04),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor.withValues(alpha: 0.12),
+                          AppTheme.primaryColor.withValues(alpha: 0.04),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      PhosphorIcons.globe(PhosphorIconsStyle.duotone),
+                      color: AppTheme.primaryColor,
+                      size: 26,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  PhosphorIcons.globe(PhosphorIconsStyle.duotone),
-                  color: AppTheme.primaryColor,
-                  size: 26,
-                ),
+                  Positioned(
+                    top: -5,
+                    right: -5,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        page.syncEnabled 
+                            ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                            : PhosphorIcons.cloudSlash(PhosphorIconsStyle.bold),
+                        size: 14,
+                        color: page.syncEnabled 
+                            ? AppTheme.primaryColor 
+                            : (isDark ? Colors.white30 : Colors.black26),
+                      ).animate(target: page.syncEnabled ? 1 : 0).scale(
+                        begin: const Offset(0.8, 0.8),
+                        end: const Offset(1, 1),
+                        duration: 300.ms,
+                        curve: Curves.elasticOut,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(width: 14),
               Expanded(

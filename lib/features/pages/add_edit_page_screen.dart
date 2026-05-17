@@ -9,6 +9,7 @@ import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
 import '../../l10n/app_localizations.dart';
+import '../../core/constants.dart';
 
 class AddEditPageScreen extends ConsumerStatefulWidget {
   final String? pageId;
@@ -27,6 +28,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
   final _tagsController = TextEditingController();
   bool _isFavorite = false;
   bool _isEditing = false;
+  bool _syncEnabled = true;
   PageModel? _existingPage;
   String? _selectedFolderId;
 
@@ -47,6 +49,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
           setState(() {
             _isFavorite = page.isFavorite;
             _selectedFolderId = page.folderId;
+            _syncEnabled = page.syncEnabled;
           });
         }
       });
@@ -78,6 +81,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             notes: _notesController.text.trim(),
             tags: tags,
             isFavorite: _isFavorite,
+            syncEnabled: _syncEnabled,
             folderId: _selectedFolderId,
           )
         : PageModel(
@@ -89,14 +93,33 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
             notes: _notesController.text.trim(),
             tags: tags,
             isFavorite: _isFavorite,
+            syncEnabled: _syncEnabled,
             createdAt: DateTime.now(),
             folderId: _selectedFolderId,
           );
 
+    bool finalSync = _syncEnabled;
     if (_isEditing) {
       ref.read(pagesProvider.notifier).updatePage(page);
     } else {
-      ref.read(pagesProvider.notifier).addPage(page);
+      // Check limit if enabling sync for a NEW page
+      if (_syncEnabled) {
+        final syncedCount = ref.read(pagesProvider).where((p) => p.syncEnabled).length;
+        if (syncedCount >= kMaxSyncPages) {
+          finalSync = false;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم الحفظ محلياً. لم يتم المزامنة لبلوغ الحد الأقصى (20).'),
+              backgroundColor: AppTheme.warningColor,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+
+      // Re-create page with finalSync if it's a NEW page
+      final finalPage = finalSync == _syncEnabled ? page : page.copyWith(syncEnabled: finalSync);
+      ref.read(pagesProvider.notifier).addPage(finalPage);
     }
 
     context.pop();
@@ -287,6 +310,45 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
                 isDark: isDark,
               ),
             ).animate().fadeIn(delay: 300.ms),
+
+            const SizedBox(height: 16),
+
+            // Sync Toggle
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'المزامنة السحابية',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                ),
+              ),
+              subtitle: Text(
+                'حفظ هذه الصفحة سحابياً',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                ),
+              ),
+              value: _syncEnabled,
+              activeTrackColor: AppTheme.primaryLight,
+              onChanged: (val) {
+                if (val && !_syncEnabled) { // Only check when turning ON
+                  final syncedCount = ref.read(pagesProvider).where((p) => p.syncEnabled && p.id != widget.pageId).length;
+                  if (syncedCount >= kMaxSyncPages) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(AppLocalizations.of(context)!.syncLimitReached),
+                        backgroundColor: AppTheme.errorColor,
+                      ),
+                    );
+                    return;
+                  }
+                }
+                setState(() => _syncEnabled = val);
+              },
+            ).animate().fadeIn(delay: 320.ms),
 
             const SizedBox(height: 16),
 

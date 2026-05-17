@@ -336,13 +336,47 @@ final adminFCMStatsProvider = FutureProvider<Map<String, int>>((ref) async {
 
 const int kAdminNotificationsPageSize = 5;
 
+/// Types that represent individual/automated notifications (membership grants,
+/// referral rewards, etc.). These are user-specific and should NOT appear in
+/// the admin "Broadcast History" log. They remain in the DB for end-users.
+const _kIndividualNotifTypes = ['membership', 'reward', 'membership_approved'];
+
 class AdminNotificationsPaginatedNotifier
     extends StateNotifier<PaginatedAdminState<NotificationModel>> {
+  /// Currently selected notification IDs for bulk operations.
+  Set<String> _selectedIds = {};
+
   AdminNotificationsPaginatedNotifier()
     : super(const PaginatedAdminState<NotificationModel>()) {
     loadMore();
   }
 
+  // ── Selection helpers ──────────────────────────────────────────────
+  Set<String> get selectedIds => _selectedIds;
+  bool get isSelectionMode => _selectedIds.isNotEmpty;
+
+  void toggleSelection(String id) {
+    _selectedIds = Set.of(_selectedIds); // copy to trigger rebuild
+    if (_selectedIds.contains(id)) {
+      _selectedIds.remove(id);
+    } else {
+      _selectedIds.add(id);
+    }
+    // Force a state emission so listeners rebuild.
+    state = state.copyWith(items: state.items);
+  }
+
+  void selectAll() {
+    _selectedIds = state.items.map((n) => n.id).toSet();
+    state = state.copyWith(items: state.items);
+  }
+
+  void clearSelection() {
+    _selectedIds = {};
+    state = state.copyWith(items: state.items);
+  }
+
+  // ── Data loading ───────────────────────────────────────────────────
   Future<void> loadMore() async {
     if (state.isLoading || !state.hasMore) return;
     state = state.copyWith(isLoading: true, clearError: true);
@@ -351,9 +385,15 @@ class AdminNotificationsPaginatedNotifier
       final from = state.items.length;
       final to = from + kAdminNotificationsPageSize - 1;
 
+      // Only show broadcast / campaign notifications:
+      // Broadcasts have user_id = NULL (sent to everyone).
+      // We filter out individual automated notifications by type as a safety
+      // net in case some broadcast types happen to have a user_id set.
       final response = await _client
           .from('notifications')
           .select()
+          .isFilter('user_id', null)
+          .not('type', 'in', '(${_kIndividualNotifTypes.join(",")})')
           .order('created_at', ascending: false)
           .range(from, to);
 
@@ -374,6 +414,7 @@ class AdminNotificationsPaginatedNotifier
   }
 
   void reset() {
+    _selectedIds = {};
     state = const PaginatedAdminState<NotificationModel>();
     loadMore();
   }
@@ -391,13 +432,23 @@ Future<void> adminDeleteNotification(String id) async {
   await _client.from('notifications').delete().eq('id', id);
 }
 
-Future<void> adminDeleteAllNotifications() async {
-  // To delete all we can do a neq to something impossible or just eq on something always true.
-  // Using an open delete.
+/// Delete multiple notifications by IDs (bulk delete).
+Future<void> adminDeleteMultipleNotifications(List<String> ids) async {
+  if (ids.isEmpty) return;
   await _client
       .from('notifications')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000');
+      .inFilter('id', ids);
+}
+
+Future<void> adminDeleteAllBroadcastNotifications() async {
+  // Only delete broadcast notifications (user_id IS NULL), leaving individual
+  // user notifications intact so they continue to appear in user apps.
+  await _client
+      .from('notifications')
+      .delete()
+      .isFilter('user_id', null)
+      .not('type', 'in', '(${_kIndividualNotifTypes.join(",")})');
 }
 
 // --------------- Admin In-App Messages ---------------

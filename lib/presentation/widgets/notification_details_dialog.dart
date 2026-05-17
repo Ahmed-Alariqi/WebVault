@@ -18,6 +18,7 @@ import '../../l10n/app_localizations.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/providers/referral_providers.dart';
 import '../../features/discover/widgets/premium_unlock_sheet.dart';
+import '../../presentation/providers/membership_providers.dart';
 
 class NotificationDetailsDialog extends ConsumerWidget {
   final NotificationModel notification;
@@ -408,18 +409,29 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                             // Premium check
                                             if (site.isPremiumOnly) {
                                               final isDarkNow = Theme.of(navContext).brightness == Brightness.dark;
-                                              final premiumIds = ref.read(
-                                                userPremiumCollectionIdsProvider,
-                                              ).valueOrNull ?? const <String>{};
                                               final collection = await findPremiumCollectionForItem(site.id);
-                                              if (collection == null || !premiumIds.contains(collection.id)) {
+                                              bool hasAccess = false;
+                                              if (collection != null) {
+                                                final membershipAccess = ref.read(membershipStatusProvider).hasAccessTo(type: 'collection', id: collection.id);
+                                                final premiumIds = ref.read(userPremiumCollectionIdsProvider).valueOrNull ?? const <String>{};
+                                                final referralAccess = premiumIds.contains(collection.id);
+                                                
+                                                hasAccess = membershipAccess || referralAccess;
+                                              }
+
+                                              if (collection == null || !hasAccess) {
                                                 // Show unlock sheet instead
                                                 if (navContext.mounted) {
                                                   GoRouter.of(navContext).go('/discover');
                                                   await Future.delayed(const Duration(milliseconds: 300));
-                                                  if (navContext.mounted) {
+                                                  
+                                                  if (!navContext.mounted) return;
+                                                  
+                                                  // Use root navigator context to ensure it survives the route change
+                                                  final rootCtx = Navigator.of(navContext, rootNavigator: true).context;
+                                                  if (rootCtx.mounted) {
                                                     showModalBottomSheet(
-                                                      context: navContext,
+                                                      context: rootCtx,
                                                       isScrollControlled: true,
                                                       backgroundColor: Colors.transparent,
                                                       builder: (_) => PremiumFeatureSheet.fromWebsite(
@@ -440,26 +452,23 @@ class NotificationDetailsDialog extends ConsumerWidget {
 
                                              if (!navContext.mounted) return;
                                              
-                                             GoRouter.of(
-                                               navContext,
-                                             ).go('/discover');
+                                             GoRouter.of(navContext).go('/discover');
                                             // Small delay to let route settle
-                                            await Future.delayed(
-                                              const Duration(milliseconds: 300),
-                                            );
-                                            if (navContext.mounted) {
+                                            await Future.delayed(const Duration(milliseconds: 300));
+                                            
+                                            if (!navContext.mounted) return;
+                                            
+                                            final rootCtx = Navigator.of(navContext, rootNavigator: true).context;
+                                            if (rootCtx.mounted) {
                                               showDialog(
-                                                context: navContext,
-                                                builder: (ctx) =>
-                                                    WebsiteDetailsDialog(
-                                                      site: site,
-                                                    ),
+                                                context: rootCtx,
+                                                builder: (ctx) => WebsiteDetailsDialog(site: site),
                                               );
                                             }
                                             return;
                                           }
-                                        } catch (_) {
-                                          // Fallback to just navigating
+                                        } catch (e) {
+                                          debugPrint('Error navigating to item: $e');
                                         }
                                       }
                                       if (navContext.mounted) {

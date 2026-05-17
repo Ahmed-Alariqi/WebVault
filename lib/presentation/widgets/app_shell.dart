@@ -1,37 +1,25 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:go_router/go_router.dart';
-
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
-
 import '../../presentation/providers/auth_providers.dart';
-
 import '../../presentation/providers/referral_providers.dart';
-
 import '../../core/theme/app_theme.dart';
-
 import '../../core/services/in_app_message_service.dart';
-
 import '../../core/supabase_config.dart';
-
 import '../../core/constants.dart';
-
-import '../../data/models/referral_model.dart';
-
 import '../../presentation/providers/chat_providers.dart';
 
-import 'package:hive_flutter/hive_flutter.dart';
+import '../../core/utils/admin_ui_utils.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
+import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:ui';
+import 'referral_dialog.dart';
 
 import 'dart:async';
-
-
-
 class AppShell extends ConsumerStatefulWidget {
 
   final Widget child;
@@ -174,13 +162,11 @@ class _AppShellState extends ConsumerState<AppShell> {
 
       // 1. Check if user profile is less than 24 hours old
 
-      final profile = await ref.read(userProfileProvider.future);
-
-      if (profile == null) return;
+      final profileData = await ref.read(userProfileProvider.future);
+      if (profileData == null) return;
+      final profile = profileData;
 
       if (profile['referred_by'] != null) return;
-
-
 
       final createdAtStr = profile['created_at']?.toString();
 
@@ -198,15 +184,20 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 
 
-      // 2. Show referral dialog — works with or without a campaign
-      // The default membership system will handle codes even without a campaign
+      // 2. Check show count from Hive
+      final settingsBox = Hive.box(kSettingsBox);
+      final int showCount = settingsBox.get('referral_dialog_show_count', defaultValue: 0);
 
-      final campaign = await ref.read(activeReferralCampaignProvider.future);
-
-      if (mounted) {
-
-        _showReferralCodeDialog(campaign);
-
+      if (showCount < 2) {
+        final campaign = await ref.read(activeReferralCampaignProvider.future);
+        if (mounted) {
+          // Increment and save count
+          await settingsBox.put('referral_dialog_show_count', showCount + 1);
+          
+          if (mounted) {
+            showReferralCodeDialog(context, ref, campaign);
+          }
+        }
       }
 
     } catch (_) {
@@ -257,638 +248,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 
 
-  Future<void> _showReferralCodeDialog(ReferralCampaign? campaign) async {
 
-    if (!mounted) return;
-
-
-
-    final codeCtrl = TextEditingController();
-
-    final l10n = AppLocalizations.of(context)!;
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    bool submitting = false;
-
-    String? errorMsg;
-
-
-
-    String rewardText = '';
-
-    if (campaign != null) {
-      switch (campaign.referredRewardType) {
-
-        case 'giveaway_entry':
-
-          rewardText =
-
-              'تذكرة انضمام مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
-
-          break;
-
-        case 'giveaway_boost':
-
-          rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
-
-          break;
-
-        case 'collection_access':
-
-          rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
-
-          break;
-
-        case 'custom':
-
-        default:
-
-          rewardText = campaign.referredRewardDescription?.isNotEmpty == true
-
-              ? campaign.referredRewardDescription!
-
-              : 'مزايا حصرية 🎁';
-
-      }
-    } else {
-      rewardText = 'الوصول إلى المحتوى المميز والميزات الحصرية ✨';
-    }
-
-    final String dynamicDesc = 'أدخل الكود الآن واحصل على:\n$rewardText';
-
-
-
-
-    await showDialog<void>(
-
-      context: context,
-
-      barrierDismissible: false,
-
-      builder: (dialogContext) => StatefulBuilder(
-
-        builder: (ctx, setDialogState) {
-
-          return Dialog(
-
-            backgroundColor: Colors.transparent,
-
-            elevation: 0,
-
-            child: Container(
-
-              width: double.infinity,
-
-              padding: const EdgeInsets.only(bottom: 20),
-
-              decoration: BoxDecoration(
-
-                color: isDark ? AppTheme.darkCard : Colors.white,
-
-                borderRadius: BorderRadius.circular(28),
-
-                boxShadow: [
-
-                  BoxShadow(
-
-                    color: AppTheme.primaryColor.withValues(alpha: 0.15),
-
-                    blurRadius: 40,
-
-                    offset: const Offset(0, 10),
-
-                  ),
-
-                ],
-
-              ),
-
-              child: Column(
-
-                mainAxisSize: MainAxisSize.min,
-
-                children: [
-
-                  // Header Banner
-
-                  Container(
-
-                    width: double.infinity,
-
-                    padding: const EdgeInsets.symmetric(
-
-                      vertical: 24,
-
-                      horizontal: 20,
-
-                    ),
-
-                    decoration: BoxDecoration(
-
-                      gradient: LinearGradient(
-
-                        colors: [
-
-                          AppTheme.primaryColor.withValues(alpha: 0.8),
-
-                          AppTheme.primaryColor,
-
-                        ],
-
-                        begin: Alignment.topLeft,
-
-                        end: Alignment.bottomRight,
-
-                      ),
-
-                      borderRadius: const BorderRadius.only(
-
-                        topLeft: Radius.circular(28),
-
-                        topRight: Radius.circular(28),
-
-                      ),
-
-                    ),
-
-                    child: Column(
-
-                      children: [
-
-                        Container(
-
-                          padding: const EdgeInsets.all(12),
-
-                          decoration: BoxDecoration(
-
-                            color: Colors.white.withValues(alpha: 0.2),
-
-                            shape: BoxShape.circle,
-
-                          ),
-
-                          child: Icon(
-
-                            PhosphorIcons.gift(PhosphorIconsStyle.fill),
-
-                            size: 40,
-
-                            color: Colors.white,
-
-                          ),
-
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        const Text(
-
-                          'هل تمتلك رمز دعوة؟',
-
-                          style: TextStyle(
-
-                            fontSize: 20,
-
-                            fontWeight: FontWeight.w900,
-
-                            color: Colors.white,
-
-                            letterSpacing: 0.5,
-
-                          ),
-
-                          textAlign: TextAlign.center,
-
-                        ),
-
-                      ],
-
-                    ),
-
-                  ),
-
-                  const SizedBox(height: 24),
-
-
-
-                  // Description
-
-                  Padding(
-
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-
-                    child: Text(
-
-                      dynamicDesc,
-
-                      style: TextStyle(
-
-                        fontSize: 15,
-
-                        height: 1.6,
-
-                        fontWeight: FontWeight.w600,
-
-                        color: isDark ? Colors.white70 : Colors.black87,
-
-                      ),
-
-                      textAlign: TextAlign.center,
-
-                    ),
-
-                  ),
-
-                  const SizedBox(height: 24),
-
-
-
-                  // Text Field
-
-                  Padding(
-
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-
-                    child: TextField(
-
-                      controller: codeCtrl,
-
-                      autofocus: true,
-
-                      textAlign: TextAlign.center,
-
-                      style: TextStyle(
-
-                        fontSize: 20,
-
-                        fontWeight: FontWeight.w800,
-
-                        letterSpacing: 2,
-
-                        color: isDark ? Colors.white : Colors.black87,
-
-                      ),
-
-                      decoration: InputDecoration(
-
-                        hintText: l10n.referralEnterCodeHint,
-
-                        hintStyle: TextStyle(
-
-                          color: isDark ? Colors.white30 : Colors.black26,
-
-                          fontWeight: FontWeight.w500,
-
-                          letterSpacing: 0,
-
-                          fontSize: 16,
-
-                        ),
-
-                        filled: true,
-
-                        fillColor: isDark
-
-                            ? Colors.white.withValues(alpha: 0.05)
-
-                            : Colors.black.withValues(alpha: 0.03),
-
-                        contentPadding: const EdgeInsets.symmetric(
-
-                          vertical: 18,
-
-                          horizontal: 20,
-
-                        ),
-
-                        border: OutlineInputBorder(
-
-                          borderRadius: BorderRadius.circular(16),
-
-                          borderSide: BorderSide(
-
-                            color: isDark
-
-                                ? Colors.white.withValues(alpha: 0.1)
-
-                                : Colors.black.withValues(alpha: 0.1),
-
-                          ),
-
-                        ),
-
-                        focusedBorder: OutlineInputBorder(
-
-                          borderRadius: BorderRadius.circular(16),
-
-                          borderSide: const BorderSide(
-
-                            color: AppTheme.primaryColor,
-
-                            width: 2,
-
-                          ),
-
-                        ),
-
-                      ),
-
-                    ),
-
-                  ),
-
-                  if (errorMsg != null) ...[
-
-                    const SizedBox(height: 12),
-
-                    Padding(
-
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-
-                      child: Text(
-
-                        errorMsg!,
-
-                        style: const TextStyle(
-
-                          color: AppTheme.errorColor,
-
-                          fontSize: 13,
-
-                          fontWeight: FontWeight.w600,
-
-                        ),
-
-                        textAlign: TextAlign.center,
-
-                      ),
-
-                    ),
-
-                  ],
-
-                  const SizedBox(height: 28),
-
-
-
-                  // Action Buttons
-
-                  Padding(
-
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-
-                    child: Column(
-
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-
-                      children: [
-
-                        ElevatedButton(
-
-                          onPressed: submitting
-
-                              ? null
-
-                              : () async {
-
-                                  final code = codeCtrl.text.trim();
-
-                                  if (code.isEmpty) return;
-
-
-
-                                  setDialogState(() {
-
-                                    submitting = true;
-
-                                    errorMsg = null;
-
-                                  });
-
-
-
-                                  try {
-
-                                    final result = await submitReferralCode(
-
-                                      code,
-
-                                      ref,
-
-                                    );
-
-                                    if (result == null &&
-
-                                        dialogContext.mounted) {
-
-                                      Navigator.pop(dialogContext);
-
-                                      if (mounted) {
-
-                                        ScaffoldMessenger.of(
-
-                                          context,
-
-                                        ).showSnackBar(
-
-                                          SnackBar(
-
-                                            content: Text(
-
-                                              l10n.referralCodeSuccess,
-
-                                            ),
-
-                                            backgroundColor:
-
-                                                AppTheme.successColor,
-
-                                            behavior: SnackBarBehavior.floating,
-
-                                            shape: RoundedRectangleBorder(
-
-                                              borderRadius:
-
-                                                  BorderRadius.circular(10),
-
-                                            ),
-
-                                          ),
-
-                                        );
-
-                                      }
-
-                                    } else {
-
-                                      setDialogState(() {
-
-                                        submitting = false;
-
-                                        errorMsg = _errorMessage(result, l10n);
-
-                                      });
-
-                                    }
-
-                                  } catch (e) {
-
-                                    setDialogState(() {
-
-                                      submitting = false;
-
-                                      errorMsg = l10n.referralCodeError;
-
-                                    });
-
-                                  }
-
-                                },
-
-                          style: ElevatedButton.styleFrom(
-
-                            backgroundColor: AppTheme.primaryColor,
-
-                            foregroundColor: Colors.white,
-
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-
-                            elevation: 0,
-
-                            shape: RoundedRectangleBorder(
-
-                              borderRadius: BorderRadius.circular(14),
-
-                            ),
-
-                          ),
-
-                          child: submitting
-
-                              ? const SizedBox(
-
-                                  width: 20,
-
-                                  height: 20,
-
-                                  child: CircularProgressIndicator(
-
-                                    strokeWidth: 2.5,
-
-                                    color: Colors.white,
-
-                                  ),
-
-                                )
-
-                              : Text(
-
-                                  l10n.referralSubmitCode,
-
-                                  style: const TextStyle(
-
-                                    fontSize: 16,
-
-                                    fontWeight: FontWeight.w700,
-
-                                  ),
-
-                                ),
-
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        TextButton(
-
-                          onPressed: () {
-
-                            Navigator.pop(dialogContext);
-
-                          },
-
-                          style: TextButton.styleFrom(
-
-                            minimumSize: const Size(double.infinity, 50),
-
-                            shape: RoundedRectangleBorder(
-
-                              borderRadius: BorderRadius.circular(14),
-
-                            ),
-
-                          ),
-
-                          child: Text(
-
-                            l10n.referralSkipCode,
-
-                            style: TextStyle(
-
-                              fontSize: 15,
-
-                              fontWeight: FontWeight.w600,
-
-                              color: isDark ? Colors.white54 : Colors.black45,
-
-                            ),
-
-                          ),
-
-                        ),
-
-                      ],
-
-                    ),
-
-                  ),
-
-                ],
-
-              ),
-
-            ),
-
-          );
-
-        },
-
-      ),
-
-    );
-
-  }
-
-
-
-  String _errorMessage(String? result, AppLocalizations l10n) {
-
-    switch (result) {
-
-      case 'invalid':
-
-        return l10n.referralCodeInvalid;
-
-      case 'self':
-
-        return l10n.referralCodeSelfError;
-
-      case 'already_used':
-
-        return l10n.referralCodeAlreadyUsed;
-
-      case 'no_campaign':
-
-        return l10n.referralCodeNoCampaign;
-
-      default:
-
-        return l10n.referralCodeError;
-
-    }
-
-  }
 
 
 
@@ -2073,13 +1433,9 @@ class _ZadExpertFabState extends State<_ZadExpertFab>
           ),
 
           child: const Icon(
-
             PhosphorIconsFill.sparkle,
-
             color: Colors.white,
-
             size: 22,
-
           ),
 
         ),

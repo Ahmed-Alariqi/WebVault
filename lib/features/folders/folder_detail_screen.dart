@@ -317,15 +317,37 @@ class _FolderPageItem extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        page.title,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              page.title,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Cloud Sync Icon
+                          Icon(
+                            page.syncEnabled 
+                                ? PhosphorIcons.cloudCheck(PhosphorIconsStyle.fill) 
+                                : PhosphorIcons.cloudSlash(),
+                            size: 16,
+                            color: page.syncEnabled 
+                                ? AppTheme.primaryLight 
+                                : (isDark ? Colors.white24 : Colors.black12),
+                          ).animate(target: page.syncEnabled ? 1 : 0).scale(
+                            begin: const Offset(0.8, 0.8),
+                            end: const Offset(1, 1),
+                            duration: 300.ms,
+                            curve: Curves.elasticOut,
+                          ),
+                        ],
                       ),
                       Text(
                         page.url,

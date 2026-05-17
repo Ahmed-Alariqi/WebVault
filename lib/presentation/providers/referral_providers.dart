@@ -41,6 +41,12 @@ final membershipRequestsEnabledProvider = FutureProvider<bool>((ref) async {
   return settings['membership_requests_enabled'] == 'true';
 });
 
+/// Duration (in days) for the referred user reward (from app_settings).
+final referredRewardDaysProvider = FutureProvider<int>((ref) async {
+  final settings = await ref.watch(appSettingsProvider.future);
+  return int.tryParse(settings['referral_referred_reward_days'] ?? '3') ?? 3;
+});
+
 // ══════════════════════════════════════════════════════
 //  CAMPAIGN PROVIDERS
 // ══════════════════════════════════════════════════════
@@ -104,14 +110,14 @@ Future<ReferralCode> ensureReferralCode(WidgetRef ref) async {
       .single();
   final username = profile['username'] as String? ?? 'user';
 
-  // Generate random suffix: 5 chars alphanumeric
+  // Generate random suffix: 5 chars alphanumeric (UPPERCASE for professionalism)
   final rand = Random.secure();
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   final suffix = List.generate(
     5,
     (_) => chars[rand.nextInt(chars.length)],
   ).join();
-  final code = '$username-$suffix';
+  final code = '$username-$suffix'.toUpperCase();
 
   final resp = await _supabase
       .from('referral_codes')
@@ -426,7 +432,7 @@ Future<String?> submitReferralCode(String code, WidgetRef ref) async {
   final codeResp = await _supabase
       .from('referral_codes')
       .select()
-      .eq('code', code.trim())
+      .eq('code', code.trim().toUpperCase())
       .limit(1);
   if ((codeResp as List).isEmpty) {
     return 'invalid_code';
@@ -457,6 +463,22 @@ Future<String?> submitReferralCode(String code, WidgetRef ref) async {
         .update({'referred_by': referralCode.userId})
         .eq('id', uid);
 
+    // 7. NEW: Grant instant reward to the REFERRED user
+    try {
+      final rewardDays = await ref.read(referredRewardDaysProvider.future);
+      await ref.read(membershipManagementProvider).grantMembership(
+            userId: uid,
+            duration: Duration(days: rewardDays),
+            scope: MembershipScope.global,
+          );
+      
+      // Update local state so UI reflects premium status immediately
+      ref.invalidate(userProfileProvider);
+    } catch (e) {
+      debugPrint('Error granting instant referral reward: $e');
+      // We don't return error here because the referral itself succeeded
+    }
+
     ref.invalidate(hasBeenReferredProvider);
     ref.invalidate(myReferralsProvider);
     ref.invalidate(myTotalConfirmedReferralsProvider);
@@ -486,7 +508,7 @@ Future<void> checkReferralActivityAndConfirm(WidgetRef ref) async {
     // 1. Find pending referral for this user
     final pending = await _supabase
         .from('referrals')
-        .select('id, campaign_id, created_at')
+        .select('id, campaign_id, created_at, referrer_id')
         .eq('referred_id', uid)
         .eq('status', 'pending')
         .limit(1);
@@ -495,6 +517,7 @@ Future<void> checkReferralActivityAndConfirm(WidgetRef ref) async {
 
     final referralId = pending.first['id'] as String;
     final campaignId = pending.first['campaign_id'] as String;
+    final referrerId = pending.first['referrer_id'] as String;
     final createdAt = DateTime.parse(pending.first['created_at'] as String);
 
     // 2. Check if 3-day grace period has expired
@@ -579,7 +602,7 @@ Future<void> checkReferralActivityAndConfirm(WidgetRef ref) async {
       }
     }
 
-    await _processRewardsIfComplete(campaign, ref);
+    await _processRewardsIfComplete(campaign, ref, referrerId: referrerId);
     ref.invalidate(myReferralsProvider);
 
     debugPrint('Referral $referralId confirmed via activity verification');
@@ -591,13 +614,20 @@ Future<void> checkReferralActivityAndConfirm(WidgetRef ref) async {
 /// Check if referrer has reached the target and process rewards
 Future<void> _processRewardsIfComplete(
   ReferralCampaign campaign,
-  WidgetRef ref,
-) async {
-  // This gets called after a referral is confirmed
-  // We need to find the referrer from the most recently confirmed referral
-  // Actually, we should check all referrers for this campaign
+  WidgetRef ref, {
+  String? referrerId,
+}) async {
+  if (referrerId != null) {
+    final confirmedCount = await ref.read(
+      myConfirmedReferralCountProvider(campaign.id).future,
+    );
+    if (confirmedCount >= campaign.requiredReferrals) {
+      await _grantReward(referrerId, campaign, ref);
+    }
+    return;
+  }
 
-  // Get all referrers who might have just reached the target
+  // Fallback: check all referrers (rarely needed)
   final allReferrals = await _supabase
       .from('referrals')
       .select('referrer_id')
@@ -619,7 +649,23 @@ Future<void> _processRewardsIfComplete(
 }
 
 Future<void> _grantReward(String referrerId, ReferralCampaign campaign, WidgetRef ref) async {
-  // NEW: Always grant Permanent Global Premium as a bonus reward for completing any campaign goal
+  // Check if reward was already granted to avoid duplicate notifications.
+  // We check if the user already has a membership that expires far in the future (year 2100).
+  try {
+    final profile = await _supabase.from('profiles').select('premium_until').eq('id', referrerId).single();
+    final untilStr = profile['premium_until'] as String?;
+    if (untilStr != null) {
+      final until = DateTime.tryParse(untilStr);
+      if (until != null && until.year >= 2100) {
+        // Reward already granted, skip to avoid spamming notifications
+        return;
+      }
+    }
+  } catch (e) {
+    debugPrint('Error checking reward idempotency: $e');
+  }
+
+  // Always grant Permanent Global Premium as a bonus reward for completing any campaign goal
   try {
     await ref.read(membershipManagementProvider).grantMembership(
       userId: referrerId,
@@ -791,7 +837,12 @@ Future<void> approveReferral(String referralId, WidgetRef ref) async {
       .eq('id', campaignId)
       .single();
   final campaign = ReferralCampaign.fromJson(campaignResp);
-  await _processRewardsIfComplete(campaign, ref);
+  
+  // Get the referrer_id for this specific referral to target reward processing
+  final referralData = await _supabase.from('referrals').select('referrer_id').eq('id', referralId).single();
+  final referrerId = referralData['referrer_id'] as String;
+
+  await _processRewardsIfComplete(campaign, ref, referrerId: referrerId);
 
   ref.invalidate(campaignReferralsProvider(campaignId));
   ref.invalidate(campaignStatsProvider(campaignId));
@@ -802,21 +853,20 @@ Future<void> approveReferral(String referralId, WidgetRef ref) async {
 //  MEMBERSHIP REQUEST PROVIDERS & ACTIONS
 // ══════════════════════════════════════════════════════
 
-/// Current user's membership request status (latest one).
-final myMembershipRequestProvider = FutureProvider<MembershipRequest?>(
+/// Current user's membership requests (history).
+final myMembershipRequestsProvider = FutureProvider<List<MembershipRequest>>(
   (ref) async {
     final uid = _supabase.auth.currentUser?.id;
-    if (uid == null) return null;
+    if (uid == null) return [];
 
     final response = await _supabase
         .from('membership_requests')
         .select()
         .eq('user_id', uid)
-        .order('created_at', ascending: false)
-        .limit(1);
+        .order('created_at', ascending: false);
 
-    if ((response as List).isEmpty) return null;
-    return MembershipRequest.fromJson(response.first);
+    if ((response as List).isEmpty) return [];
+    return response.map((j) => MembershipRequest.fromJson(j)).toList();
   },
 );
 
@@ -863,7 +913,7 @@ Future<String?> submitMembershipRequest({
       'target_id': targetId,
       'reason': reason,
     });
-    ref.invalidate(myMembershipRequestProvider);
+    ref.invalidate(myMembershipRequestsProvider);
     ref.invalidate(adminMembershipRequestsProvider);
     ref.invalidate(pendingMembershipCountProvider);
     return null; // success
@@ -914,13 +964,14 @@ Future<void> sendNotification({
 }) async {
   try {
     // 1. Insert into DB for in-app history
+    // NOTE: Do NOT pass 'created_at' — let Supabase use server-side now()
+    // to avoid timezone mismatch (client DateTime.now() is local, not UTC).
     await _supabase.from('notifications').insert({
       'user_id': userId,
       'title': title,
       'body': body,
       'type': type,
       'target_url': targetUrl,
-      'created_at': DateTime.now().toUtc().toIso8601String(),
     });
 
     // 2. Trigger Edge Function for Push Notification

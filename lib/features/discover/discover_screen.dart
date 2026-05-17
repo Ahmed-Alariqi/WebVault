@@ -573,10 +573,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ],
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
-        ],
-      ),
-    );
+          ], // closes else ...[
+        ], // closes slivers: [
+      ), // closes CustomScrollView
+    ); // closes Scaffold
   }
 
   // ── Collections Section Builder ──

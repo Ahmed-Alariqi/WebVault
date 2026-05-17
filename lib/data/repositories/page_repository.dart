@@ -1,8 +1,11 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/constants.dart';
 import '../models/page_model.dart';
+import '../../core/services/sync_engine.dart';
 
 class PageRepository {
+  SyncEngine? syncEngine;
+
   Box get _box => Hive.box(kPagesBox);
 
   List<PageModel> getAll() {
@@ -19,10 +22,16 @@ class PageRepository {
 
   Future<void> save(PageModel page) async {
     await _box.put(page.id, page.toJson());
+    if (page.syncEnabled) {
+      await syncEngine?.pushUpsert('user_pages', page.id, page.toJson());
+    } else {
+      await syncEngine?.pushDelete('user_pages', page.id);
+    }
   }
 
   Future<void> delete(String id) async {
     await _box.delete(id);
+    await syncEngine?.pushDelete('user_pages', id);
   }
 
   List<PageModel> search(String query) {

@@ -116,4 +116,83 @@ class AdminUIUtils {
       ),
     );
   }
+
+  /// Shows the professional storage policy dialog explaining hybrid storage.
+  static void showStoragePolicy(BuildContext context, bool isDark) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Row(
+          children: [
+            Icon(Icons.shield_outlined, color: AppTheme.primaryColor),
+            const SizedBox(width: 12),
+            const Text('نظام التخزين والأمان', style: TextStyle(fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoItem(
+                Icons.storage_rounded,
+                'تخزين محلي غيـر محدود',
+                'يتم حفظ كافة بياناتك مشفرة على جهازك فقط. لا يوجد قيود على كمية البيانات التي يمكنك حفظها محلياً.',
+                isDark,
+              ),
+              _buildInfoItem(
+                Icons.backup_rounded,
+                'نسخ احتياطي مرن',
+                'يمكنك إنشاء نسخة احتياطية لكامل بياناتك أو استعادتها في أي وقت من خلال الإعدادات لضمان بقائها معك.',
+                isDark,
+              ),
+              _buildInfoItem(
+                Icons.cloud_done_rounded,
+                'مزامنة سحابية (اختيارية)',
+                'المزامنة السحابية هي ميزة إضافية تتيح لك الوصول لبياناتك من أجهزة أخرى بحدود معينة.',
+                isDark,
+              ),
+              _buildInfoItem(
+                Icons.security_rounded,
+                'نصيحة الأمان القصوى',
+                'لحماية بياناتك من الضياع عند حذف التطبيق أو فقدان الجهاز، ننصح دائماً بتصدير نسخة احتياطية وحفظها في مكان آمن.',
+                isDark,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('فهمت ذلك', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _buildInfoItem(IconData icon, String title, String desc, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: AppTheme.primaryColor.withValues(alpha: 0.7)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: isDark ? Colors.white : Colors.black87)),
+                const SizedBox(height: 4),
+                Text(desc, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black54, height: 1.4)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

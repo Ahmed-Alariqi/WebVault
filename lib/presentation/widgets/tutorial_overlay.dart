@@ -22,7 +22,7 @@ class TutorialStep {
   });
 }
 
-enum TutorialSection { clipboard, pages, browser, discover }
+enum TutorialSection { clipboard, pages, browser, discover, notifications }
 
 class TutorialOverlay extends StatefulWidget {
   final List<TutorialStep> steps;
@@ -222,7 +222,10 @@ class TutorialManager {
         return !(data['hasSeenBrowserTutorial'] as bool? ?? false);
       case TutorialSection.discover:
         return !(data['hasSeenDiscoverTutorial'] as bool? ?? false);
+      case TutorialSection.notifications:
+        return !(data['hasSeenNotificationsTutorial'] as bool? ?? false);
     }
+    return false;
   }
 
   static Future<void> markSectionSeen(TutorialSection section) async {
@@ -239,6 +242,9 @@ class TutorialManager {
         break;
       case TutorialSection.discover:
         await settings.setHasSeenDiscoverTutorial(true);
+        break;
+      case TutorialSection.notifications:
+        await settings.setHasSeenNotificationsTutorial(true);
         break;
     }
   }
@@ -372,6 +378,25 @@ class TutorialManager {
         description: l10n.tutDiscoverSaveDesc,
         icon: PhosphorIcons.folderPlus(),
         targetKey: saveKey,
+        isPointer: true,
+      ),
+    ];
+  }
+
+  static List<TutorialStep> getNotificationsSteps(GlobalKey? discoverKey, GlobalKey? communityKey) {
+    return [
+      TutorialStep(
+        title: 'إشعارات المستكشف 🌍',
+        description: 'افتراضياً، ستصلك إشعارات للمحتوى المختار والمميز فقط من قِبل الإدارة. إذا كنت ترغب في متابعة كل ما يُنشر لحظة بلحظة، قم بتفعيل هذا الخيار.',
+        icon: PhosphorIcons.bellRinging(),
+        targetKey: discoverKey,
+        isPointer: true,
+      ),
+      TutorialStep(
+        title: 'إشعارات المجتمع 👥',
+        description: 'ابقَ على تواصل مع مجتمعك! قم بتفعيل هذا الخيار لتلقي تنبيهات حول التفاعلات، الردود، والأنشطة الجديدة داخل المجتمع.',
+        icon: PhosphorIcons.usersThree(),
+        targetKey: communityKey,
         isPointer: true,
       ),
     ];

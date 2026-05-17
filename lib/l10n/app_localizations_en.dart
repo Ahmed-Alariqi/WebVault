@@ -397,6 +397,94 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidBackupFile => 'Invalid backup file';
 
   @override
+  String get cloudSync => 'Cloud Sync';
+
+  @override
+  String get localBackup => 'Local Backup';
+
+  @override
+  String get cloudSyncDesc => 'Sync your data securely to the cloud';
+
+  @override
+  String get cloudRestoreTitle => 'Welcome Back!';
+
+  @override
+  String get cloudRestoreSubtitle =>
+      'We found your saved data in the cloud. Would you like to restore it to this device?';
+
+  @override
+  String get restoreMyData => 'Restore My Data';
+
+  @override
+  String get restoringData => 'Restoring your data...';
+
+  @override
+  String get skipStartFresh => 'Skip — Start Fresh';
+
+  @override
+  String get noCloudData => 'No saved data found in your cloud account.';
+
+  @override
+  String get clipboardGroups => 'Groups';
+
+  @override
+  String get restoreFromCloud => 'Restore from Cloud';
+
+  @override
+  String get restoreFromCloudDesc => 'Pull all your synced data from the cloud';
+
+  @override
+  String get restoreSuccess => 'Data restored successfully!';
+
+  @override
+  String get enableSync => 'Enable Cloud Sync';
+
+  @override
+  String get disableSync => 'Disable Cloud Sync';
+
+  @override
+  String get syncedToCloud => 'Synced to cloud';
+
+  @override
+  String get localOnly => 'Local only';
+
+  @override
+  String get lastSyncTime => 'Last sync';
+
+  @override
+  String get syncNow => 'Sync Now';
+
+  @override
+  String get cloudStorageUsage => 'Cloud Storage Usage';
+
+  @override
+  String get syncLimitReached =>
+      'Sorry, you have reached the maximum limit for Cloud Sync. Please unsync other items to free space.';
+
+  @override
+  String get syncLimitWarningDesc =>
+      'New items will be saved locally only. Free tier cloud storage is limited.';
+
+  @override
+  String get syncAllSelected => 'Sync All';
+
+  @override
+  String get unsyncAllSelected => 'Unsync All';
+
+  @override
+  String get deleteAllSelected => 'Delete All';
+
+  @override
+  String get selected => 'Selected';
+
+  @override
+  String get deleteSelected => 'Delete Selected';
+
+  @override
+  String get deleteConfirm =>
+      'Are you sure you want to delete the selected items? This action cannot be undone.';
+
+  @override
   String get personalInfo => 'Personal Info';
 
   @override
@@ -3648,7 +3736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localSaveNotice =>
-      'All settings and data are saved locally on your device for security. We recommend making regular backups.';
+      'WebVault uses a hybrid storage model: all your data is encrypted and saved locally on your device for privacy, with optional cloud sync for your important items to enable multi-device access.';
 
   @override
   String get tutSkip => 'Skip';
