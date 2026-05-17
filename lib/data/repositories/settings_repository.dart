@@ -26,7 +26,7 @@ class SettingsRepository {
 
   // Theme
   String getThemeMode() =>
-      _box.get(kThemeMode, defaultValue: 'light') as String;
+      _box.get(kThemeMode, defaultValue: 'system') as String;
   Future<void> setThemeMode(String mode) => _box.put(kThemeMode, mode);
 
   // Auto-delete days for clipboard (-1 = never)

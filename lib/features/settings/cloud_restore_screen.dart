@@ -32,6 +32,20 @@ class _CloudRestoreScreenState extends ConsumerState<CloudRestoreScreen> {
     final syncEngine = ref.read(syncEngineProvider);
     final counts = await syncEngine.getCloudItemCounts();
     if (mounted) {
+      final total = (counts['pages'] ?? 0) +
+          (counts['folders'] ?? 0) +
+          (counts['clipboard'] ?? 0) +
+          (counts['groups'] ?? 0);
+
+      if (total == 0) {
+        final settingsRepo = SettingsRepository();
+        await settingsRepo.setHasRestoredFromCloud(true);
+        if (mounted) {
+          context.go('/dashboard');
+        }
+        return;
+      }
+
       setState(() {
         _counts = counts;
         _isLoading = false;

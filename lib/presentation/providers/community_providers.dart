@@ -280,6 +280,54 @@ final profileNameProvider = FutureProvider.family<String, String>((
   return response['full_name'] as String? ?? 'Anonymous';
 });
 
+class CommunityUserProfile {
+  final String fullName;
+  final String role;
+  final DateTime? premiumUntil;
+
+  CommunityUserProfile({
+    required this.fullName,
+    required this.role,
+    this.premiumUntil,
+  });
+
+  bool get isPremium {
+    if (role == 'admin') return true;
+    if (premiumUntil == null) return false;
+    return premiumUntil!.isAfter(DateTime.now());
+  }
+}
+
+final communityUserProfileProvider = FutureProvider.family<CommunityUserProfile, String>((
+  ref,
+  userId,
+) async {
+  try {
+    final response = await _client
+        .from('profiles')
+        .select('full_name, role, premium_until')
+        .eq('id', userId)
+        .single();
+    
+    final fullName = response['full_name'] as String? ?? 'Anonymous';
+    final role = response['role'] as String? ?? 'user';
+    final premiumUntilStr = response['premium_until'] as String?;
+    final premiumUntil = premiumUntilStr != null ? DateTime.tryParse(premiumUntilStr) : null;
+
+    return CommunityUserProfile(
+      fullName: fullName,
+      role: role,
+      premiumUntil: premiumUntil,
+    );
+  } catch (e) {
+    return CommunityUserProfile(
+      fullName: 'User',
+      role: 'user',
+      premiumUntil: null,
+    );
+  }
+});
+
 // -----------------------------------------------------------------------------
 // SINGLE POST + REPLIES STREAM
 // -----------------------------------------------------------------------------

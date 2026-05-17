@@ -4201,7 +4201,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get aiImprove => 'تحسين';
 
   @override
-  String get backupAndRestore => 'النسخ الاحتياطي والاستعادة';
+  String get backupAndRestore => 'النسخ الاحتياطي والمزامنة';
 
   @override
   String get autoBackup => 'النسخ الاحتياطي التلقائي';

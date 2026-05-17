@@ -656,7 +656,8 @@ class _AdminPostTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authorNameAsync = ref.watch(profileNameProvider(post.userId));
+    final authorProfileAsync = ref.watch(communityUserProfileProvider(post.userId));
+    final isPremium = authorProfileAsync.valueOrNull?.isPremium ?? false;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -675,16 +676,29 @@ class _AdminPostTile extends ConsumerWidget {
         children: [
           Row(
             children: [
-              authorNameAsync.when(
-                data: (name) => Text(
-                  name,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  authorProfileAsync.when(
+                    data: (profile) => Text(
+                      profile.fullName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    loading: () => const Text('Loading...'),
+                    error: (_, _) => const Text('Unknown'),
                   ),
-                ),
-                loading: () => const Text('Loading...'),
-                error: (_, _) => const Text('Unknown'),
+                  if (isPremium) ...[
+                    const SizedBox(width: 5),
+                    const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFFF59E0B),
+                      size: 16,
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(width: 8),
               Text(

@@ -45,6 +45,7 @@ class _CommunityPostDetailState extends ConsumerState<CommunityPostDetail> {
       if (!mounted) return;
       _replyCtrl.clear();
       FocusScope.of(context).unfocus();
+      ref.invalidate(communityRepliesProvider(widget.post.id));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -280,10 +281,87 @@ class _OriginalPostDetail extends ConsumerWidget {
       (p) => p.id == post.id,
       orElse: () => post,
     );
-    final authorNameAsync = ref.watch(profileNameProvider(currentPost.userId));
+    final authorProfileAsync = ref.watch(communityUserProfileProvider(currentPost.userId));
+    final isPremium = authorProfileAsync.valueOrNull?.isPremium ?? false;
     final currentUser = ref.watch(currentUserProvider);
     final isOwner = currentUser?.id == currentPost.userId;
     final isAdmin = ref.watch(isAdminProvider).valueOrNull == true;
+
+    Widget avatarWidget = CircleAvatar(
+      radius: 20,
+      backgroundColor: isPremium
+          ? const Color(0xFFF59E0B).withValues(alpha: 0.1)
+          : AppTheme.primaryColor.withValues(alpha: 0.1),
+      child: authorProfileAsync.when(
+        data: (profile) => Text(
+          profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : '?',
+          style: TextStyle(
+            color: isPremium ? const Color(0xFFF59E0B) : AppTheme.primaryColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => Icon(
+          Icons.person,
+          color: isPremium ? const Color(0xFFF59E0B) : AppTheme.primaryColor,
+          size: 24,
+        ),
+      ),
+    );
+
+    if (isPremium) {
+      avatarWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              ),
+              child: avatarWidget,
+            ),
+          ),
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.star_rounded,
+                color: Colors.white,
+                size: 8,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return GestureDetector(
       onLongPress: () => _showReactionPicker(context, ref, currentPost.id),
@@ -295,45 +373,44 @@ class _OriginalPostDetail extends ConsumerWidget {
             // Author Header
             Row(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                  child: authorNameAsync.when(
-                    data: (name) => Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) =>
-                        const Icon(Icons.person, color: AppTheme.primaryColor),
-                  ),
-                ),
+                avatarWidget,
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      authorNameAsync.when(
-                        data: (name) => Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: isDark ? Colors.white : Colors.black,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          authorProfileAsync.when(
+                            data: (profile) => Flexible(
+                              child: Text(
+                                profile.fullName,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            loading: () => Container(
+                              width: 100,
+                              height: 16,
+                              color: isDark ? Colors.white10 : Colors.black12,
+                            ),
+                            error: (_, _) => const Text('User'),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        loading: () => Container(
-                          width: 100,
-                          height: 16,
-                          color: isDark ? Colors.white10 : Colors.black12,
-                        ),
-                        error: (_, _) => const Text('User'),
+                            if (isPremium) ...[
+                              const SizedBox(width: 5),
+                              const Icon(
+                                Icons.workspace_premium_rounded,
+                                color: Color(0xFFF59E0B),
+                                size: 18,
+                              ),
+                            ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Row(
@@ -702,37 +779,95 @@ class _ReplyTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authorNameAsync = ref.watch(profileNameProvider(reply.userId));
+    final authorProfileAsync = ref.watch(communityUserProfileProvider(reply.userId));
+    final isPremium = authorProfileAsync.valueOrNull?.isPremium ?? false;
 
     final currentUser = ref.watch(currentUserProvider);
     final isOwner = currentUser?.id == reply.userId;
     final isAdmin = ref.watch(isAdminProvider).valueOrNull == true;
+
+    Widget avatarWidget = CircleAvatar(
+      radius: 16,
+      backgroundColor: isPremium
+          ? const Color(0xFFF59E0B).withValues(alpha: 0.1)
+          : AppTheme.accentColor.withValues(alpha: 0.1),
+      child: authorProfileAsync.when(
+        data: (profile) => Text(
+          profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : '?',
+          style: TextStyle(
+            color: isPremium ? const Color(0xFFF59E0B) : AppTheme.accentColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => Icon(
+          Icons.person,
+          color: isPremium ? const Color(0xFFF59E0B) : AppTheme.accentColor,
+          size: 16,
+        ),
+      ),
+    );
+
+    if (isPremium) {
+      avatarWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(1.2),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(1.2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              ),
+              child: avatarWidget,
+            ),
+          ),
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                    blurRadius: 3,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.star_rounded,
+                color: Colors.white,
+                size: 7,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 24),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundColor: AppTheme.accentColor.withValues(alpha: 0.1),
-            child: authorNameAsync.when(
-              data: (name) => Text(
-                name.isNotEmpty ? name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: AppTheme.accentColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              loading: () => const SizedBox.shrink(),
-              error: (_, _) => const Icon(
-                Icons.person,
-                color: AppTheme.accentColor,
-                size: 16,
-              ),
-            ),
-          ),
+          avatarWidget,
           const SizedBox(width: 12),
           Expanded(
             child: Container(
@@ -753,21 +888,34 @@ class _ReplyTile extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      authorNameAsync.when(
-                        data: (name) => Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : Colors.black,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          authorProfileAsync.when(
+                            data: (profile) => Text(
+                              profile.fullName,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.black,
+                              ),
+                            ),
+                            loading: () => Container(
+                              width: 60,
+                              height: 12,
+                              color: isDark ? Colors.white10 : Colors.black12,
+                            ),
+                            error: (_, _) => const Text('User'),
                           ),
-                        ),
-                        loading: () => Container(
-                          width: 60,
-                          height: 12,
-                          color: isDark ? Colors.white10 : Colors.black12,
-                        ),
-                        error: (_, _) => const Text('User'),
+                          if (isPremium) ...[
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.workspace_premium_rounded,
+                              color: Color(0xFFF59E0B),
+                              size: 14,
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -814,6 +962,7 @@ class _ReplyTile extends ConsumerWidget {
                                     communityPostsPaginatedProvider.notifier,
                                   )
                                   .deleteReply(reply.id, postId);
+                              ref.invalidate(communityRepliesProvider(postId));
                             }
                           },
                           child: Icon(

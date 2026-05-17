@@ -407,7 +407,9 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               subtitle: Text(
-                AppLocalizations.of(context)!.autoBackupDesc,
+                Localizations.localeOf(context).languageCode == 'ar'
+                    ? 'إدارة النسخ الاحتياطي المحلي والمزامنة السحابية'
+                    : 'Manage local backups and cloud sync',
                 style: TextStyle(
                   fontSize: 12,
                   color: isDark

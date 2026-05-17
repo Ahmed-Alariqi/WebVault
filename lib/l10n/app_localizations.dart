@@ -7997,7 +7997,7 @@ abstract class AppLocalizations {
   /// No description provided for @backupAndRestore.
   ///
   /// In en, this message translates to:
-  /// **'Backup & Restore'**
+  /// **'Backup & Sync'**
   String get backupAndRestore;
 
   /// No description provided for @autoBackup.

@@ -4210,7 +4210,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiImprove => 'Improve';
 
   @override
-  String get backupAndRestore => 'Backup & Restore';
+  String get backupAndRestore => 'Backup & Sync';
 
   @override
   String get autoBackup => 'Auto Backup';

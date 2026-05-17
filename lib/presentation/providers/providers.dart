@@ -161,13 +161,13 @@ class SettingsNotifier extends StateNotifier<Map<String, dynamic>> {
 
 final themeModeProvider = Provider<ThemeMode>((ref) {
   final settings = ref.watch(settingsProvider);
-  switch (settings['themeMode'] as String? ?? 'dark') {
+  switch (settings['themeMode'] as String? ?? 'system') {
     case 'light':
       return ThemeMode.light;
     case 'dark':
       return ThemeMode.dark;
     default:
-      return ThemeMode.dark;
+      return ThemeMode.system;
   }
 });
 

@@ -100,6 +100,30 @@ Future<void> approveMembershipRequest({
   }
 }
 
+Widget _buildModernSwitch({
+  required bool value,
+  required Color activeColor,
+  required bool isDark,
+  required ValueChanged<bool>? onChanged,
+}) {
+  return Switch.adaptive(
+    value: value,
+    onChanged: onChanged,
+    thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+      if (states.contains(WidgetState.selected)) {
+        return Colors.white;
+      }
+      return isDark ? Colors.grey.shade400 : Colors.grey.shade100;
+    }),
+    trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+      if (states.contains(WidgetState.selected)) {
+        return activeColor;
+      }
+      return isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1);
+    }),
+  );
+}
+
 class AdminMembershipScreen extends ConsumerStatefulWidget {
   const AdminMembershipScreen({super.key});
   @override
@@ -331,9 +355,10 @@ class _SettingsTab extends ConsumerWidget {
               title: 'طلبات العضوية',
               subtitle: 'السماح بإرسال طلبات يدوية',
               isDark: isDark,
-              trailing: Switch.adaptive(
+              trailing: _buildModernSwitch(
                 value: reqEnabled,
-                activeTrackColor: AppTheme.primaryColor,
+                activeColor: const Color(0xFF10B981),
+                isDark: isDark,
                 onChanged: (v) => updateAppSetting('membership_requests_enabled', v ? 'true' : 'false', ref),
               ),
             ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05),
@@ -361,9 +386,10 @@ class _SettingsTab extends ConsumerWidget {
                     title: p['name'] as String,
                     subtitle: isPrem ? '✦ مميزة (Premium)' : 'مجانية للجميع',
                     isDark: isDark,
-                    trailing: Switch.adaptive(
+                    trailing: _buildModernSwitch(
                       value: isPrem,
-                      activeTrackColor: AppTheme.primaryColor,
+                      activeColor: AppTheme.primaryColor,
+                      isDark: isDark,
                       onChanged: (v) async {
                         await togglePersonaPremium(p['id'] as String, v, ref);
                         ref.invalidate(adminPersonasProvider);
@@ -400,9 +426,10 @@ class _SettingsTab extends ConsumerWidget {
                     title: c['title'] as String,
                     subtitle: isPrem ? '✦ مميزة (Premium)' : 'عامة للجميع',
                     isDark: isDark,
-                    trailing: Switch.adaptive(
+                    trailing: _buildModernSwitch(
                       value: isPrem,
-                      activeTrackColor: const Color(0xFFF59E0B),
+                      activeColor: const Color(0xFFF59E0B),
+                      isDark: isDark,
                       onChanged: (v) async {
                         await toggleCollectionPremium(c['id'] as String, v, ref);
                         ref.invalidate(adminCollectionsProvider);
@@ -576,9 +603,10 @@ class _ActiveCampaignsSectionState extends ConsumerState<_ActiveCampaignsSection
                       const Expanded(
                         child: Text('إرسال إشعار للمستخدمين؟', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       ),
-                      Switch.adaptive(
+                      _buildModernSwitch(
                         value: sendNotification,
-                        activeTrackColor: const Color(0xFFA855F7),
+                        activeColor: const Color(0xFFA855F7),
+                        isDark: widget.isDark,
                         onChanged: _isSaving ? null : (v) => setDialogState(() => sendNotification = v),
                       ),
                     ],
@@ -701,9 +729,10 @@ class _ActiveCampaignsSectionState extends ConsumerState<_ActiveCampaignsSection
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Switch.adaptive(
+                        _buildModernSwitch(
                           value: isActive,
-                          activeTrackColor: const Color(0xFFA855F7),
+                          activeColor: const Color(0xFFA855F7),
+                          isDark: widget.isDark,
                           onChanged: isExpired ? null : (v) => _toggleCampaign(c['id'], v),
                         ),
                         IconButton(

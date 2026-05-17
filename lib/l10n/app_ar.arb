@@ -1483,7 +1483,7 @@
   "aiRegenerating": "جاري...",
   "aiImprove": "تحسين",
 
-  "backupAndRestore": "النسخ الاحتياطي والاستعادة",
+  "backupAndRestore": "النسخ الاحتياطي والمزامنة",
   "autoBackup": "النسخ الاحتياطي التلقائي",
   "autoBackupDesc": "حفظ نسخة محلية من بياناتك تلقائياً",
   "backupFrequency": "وتيرة النسخ",

@@ -269,7 +269,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
           decoration: _cardDecoration(isDark),
           child: Column(
             children: [
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 title: Text(
                   l10n.cloudSync,
@@ -279,11 +279,24 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                   l10n.cloudSyncDesc,
                   style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black54),
                 ),
-                value: cloudSyncEnabled,
-                activeThumbColor: AppTheme.primaryLight,
-                onChanged: (val) {
-                  ref.read(settingsProvider.notifier).setCloudSyncEnabled(val);
-                },
+                trailing: Switch.adaptive(
+                  value: cloudSyncEnabled,
+                  thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Colors.white;
+                    }
+                    return isDark ? Colors.grey.shade400 : Colors.grey.shade100;
+                  }),
+                  trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppTheme.primaryColor;
+                    }
+                    return isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1);
+                  }),
+                  onChanged: (val) {
+                    ref.read(settingsProvider.notifier).setCloudSyncEnabled(val);
+                  },
+                ),
               ),
               if (cloudSyncEnabled && lastSync != null) ...[
                 Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
@@ -332,7 +345,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
                     ref.watch(clipboardGroupsProvider).where((g) => g.syncEnabled).length >= kMaxSyncClipboardGroups)
                   _buildWarningCard(isDark, 'لقد بلغت حد المزامنة لبعض العناصر. البيانات الجديدة سيتم حفظها محلياً فقط. يرجى عمل نسخة احتياطية يدوية من تبويب "النسخ الاحتياطي المحلي" لتجنب فقدان البيانات.'),
                 
-                _buildInfoCard(isDark, 'نظام التخزين: يتم حفظ جميع بياناتك محلياً على جهازك لضمان الخصوصية. المزامنة السحابية هي ميزة إضافية لنقل بياناتك بين الأجهزة. العناصر التي تتجاوز الحدود المسموحة أو الطول الأقصى ($kMaxSyncValueLength حرف) تبقى مخزنة محلياً فقط.'),
+                _buildInfoCard(isDark, 'نظام التخزين: يتم حفظ جميع بياناتك محلياً على جهازك بدون حدود لضمان الخصوصية. المزامنة السحابية هي ميزة إضافية لحفظ بياناتك في السحابة بين الأجهزة. العناصر التي تتجاوز الحدود المسموحة أو الطول الأقصى (20,000 حرف) تبقى مخزنة محلياً فقط.'),
               ],
             ),
           ),
@@ -434,15 +447,28 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
           decoration: _cardDecoration(isDark),
           child: Column(
             children: [
-              SwitchListTile(
+              ListTile(
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 title: Text(l10n.autoBackup, style: const TextStyle(fontWeight: FontWeight.w700)),
                 subtitle: Text(l10n.autoBackupDesc, style: TextStyle(fontSize: 12, color: isDark ? Colors.white54 : Colors.black54)),
-                value: autoBackupEnabled,
-                activeThumbColor: AppTheme.primaryLight,
-                onChanged: (val) {
-                  ref.read(settingsProvider.notifier).setAutoBackupEnabled(val);
-                },
+                trailing: Switch.adaptive(
+                  value: autoBackupEnabled,
+                  thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Colors.white;
+                    }
+                    return isDark ? Colors.grey.shade400 : Colors.grey.shade100;
+                  }),
+                  trackColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return AppTheme.primaryColor;
+                    }
+                    return isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1);
+                  }),
+                  onChanged: (val) {
+                    ref.read(settingsProvider.notifier).setAutoBackupEnabled(val);
+                  },
+                ),
               ),
               if (autoBackupEnabled) ...[
                 Divider(height: 1, color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
@@ -476,7 +502,7 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
               child: _buildActionButton(
                 l10n.exportBackup, 
                 Icons.upload_rounded, 
-                AppTheme.primaryLight, 
+                isDark ? AppTheme.primaryLight : AppTheme.primaryColor, 
                 _handleExport, 
                 isDark
               ),
@@ -598,16 +624,17 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
   }
 
   Widget _buildInfoCard(bool isDark, String message) {
+    final themeColor = isDark ? AppTheme.primaryLight : AppTheme.primaryColor;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryLight.withValues(alpha: 0.08),
+        color: themeColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.primaryLight.withValues(alpha: 0.1)),
+        border: Border.all(color: themeColor.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline_rounded, color: AppTheme.primaryLight, size: 22),
+          Icon(Icons.info_outline_rounded, color: themeColor, size: 22),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

@@ -1763,7 +1763,7 @@
   "aiRegenerating": "Regenerating...",
   "aiImprove": "Improve",
 
-  "backupAndRestore": "Backup & Restore",
+  "backupAndRestore": "Backup & Sync",
   "autoBackup": "Auto Backup",
   "autoBackupDesc": "Automatically save a local copy of your data",
   "backupFrequency": "Backup Frequency",

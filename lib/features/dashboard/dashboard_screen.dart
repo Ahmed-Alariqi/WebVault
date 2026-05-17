@@ -1406,49 +1406,83 @@ class _HeaderAvatar extends ConsumerWidget {
   }
 
   Widget _buildShell({required WidgetRef ref, required Widget child}) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Solid primary ring + soft glow (no gradient — uses the app's
-        // single brand colour as requested).
-        Container(
-          padding: const EdgeInsets.all(2),
+    final isPremium = ref.watch(membershipStatusProvider).isActive;
+
+    Widget avatarCore = Container(
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: isPremium
+            ? const LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: isPremium ? null : AppTheme.primaryColor,
+        boxShadow: [
+          BoxShadow(
+            color: isPremium
+                ? const Color(0xFFF59E0B).withValues(alpha: 0.35)
+                : AppTheme.primaryColor.withValues(alpha: 0.28),
+            blurRadius: isPremium ? 16 : 14,
+            spreadRadius: isPremium ? 1 : 0,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      // Background-coloured hairline between the ring and the inner
+      // disc — gives the avatar a clean two-tone separation similar to
+      // premium banking / messaging apps.
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+        ),
+        padding: const EdgeInsets.all(2),
+        child: Container(
+          width: 40,
+          height: 40,
+          alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppTheme.primaryColor,
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: 0.28),
-                blurRadius: 14,
-                spreadRadius: 0,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            border: isPremium
+                ? Border.all(
+                    color: const Color(0xFFFBBF24).withValues(alpha: 0.5),
+                    width: 1,
+                  )
+                : null,
           ),
-          // Background-coloured hairline between the ring and the inner
-          // disc — gives the avatar a clean two-tone separation similar to
-          // premium banking / messaging apps.
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-            ),
-            padding: const EdgeInsets.all(2),
-            child: Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.primaryColor,
-              ),
-              child: child,
-            ),
-          ),
+          child: child,
         ),
+      ),
+    );
+
+    if (isPremium) {
+      avatarCore = avatarCore.animate(
+        onPlay: (controller) => controller.repeat(reverse: true),
+      )
+      .shimmer(
+        duration: 3.seconds,
+        color: const Color(0xFFFEF3C7).withValues(alpha: 0.3),
+        angle: 45,
+      )
+      .scale(
+        begin: const Offset(1.0, 1.0),
+        end: const Offset(1.03, 1.03),
+        duration: 3.seconds,
+        curve: Curves.easeInOut,
+      );
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        avatarCore,
         
         // PRO badge for active members
-        if (ref.watch(membershipStatusProvider).isActive)
+        if (isPremium)
           Positioned(
             bottom: -2,
             right: -2,

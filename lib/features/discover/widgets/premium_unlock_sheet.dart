@@ -318,13 +318,27 @@ class PremiumFeatureSheet extends ConsumerWidget {
 
     final requestsList = (existingRequest as List?) ?? [];
     
-    // Find a request that specifically targets this collection OR is a global request
+    // Find a request by prioritizing:
+    // 1. Pending specific target request
+    // 2. Pending global request
+    // 3. Approved specific target request
+    // 4. Approved global request
     dynamic relevantRequest;
     try {
-      relevantRequest = requestsList.firstWhere((r) {
-        return r.targetId == collection?.id || r.targetId == null;
-      });
-    } catch (_) {}
+      relevantRequest = requestsList.firstWhere((r) => r.targetId == collection?.id && r.status == 'pending');
+    } catch (_) {
+      try {
+        relevantRequest = requestsList.firstWhere((r) => r.targetId == null && r.status == 'pending');
+      } catch (_) {
+        try {
+          relevantRequest = requestsList.firstWhere((r) => r.targetId == collection?.id && r.status == 'approved');
+        } catch (_) {
+          try {
+            relevantRequest = requestsList.firstWhere((r) => r.targetId == null && r.status == 'approved');
+          } catch (_) {}
+        }
+      }
+    }
 
     // Already has an active or pending request for THIS item
     if (relevantRequest != null) {
@@ -332,11 +346,9 @@ class PremiumFeatureSheet extends ConsumerWidget {
       final isPending = status == 'pending';
       final isApproved = status == 'approved';
       
-      // If it's rejected, we want to allow them to try again, so we don't return here.
-      // We only show the status card for pending/approved.
-      if (isPending || isApproved) {
-        final color = isPending ? Colors.amber : const Color(0xFF10B981);
-        final label = isPending ? 'طلبك قيد المراجعة ⏳' : 'تم قبول طلبك ✅';
+      if (isPending) {
+        const color = Colors.amber;
+        const label = 'طلبك قيد المراجعة ⏳';
 
         return Padding(
           padding: const EdgeInsets.only(top: 16),
@@ -350,11 +362,92 @@ class PremiumFeatureSheet extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(isPending ? PhosphorIcons.clock() : PhosphorIcons.checkCircle(), size: 16, color: color),
+                Icon(PhosphorIcons.clock(), size: 16, color: color),
                 const SizedBox(width: 8),
-                Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
+                Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: color)),
               ],
             ),
+          ),
+        ).animate().fadeIn(delay: 550.ms);
+      } else if (isApproved) {
+        // Approved but still locked means they only have access to specific other items
+        const color = Color(0xFF10B981);
+        final label = Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تم تفعيل عضويتك لبعض المزايا الأخرى مسبقاً 🔓\nهذا العنصر غير مشمول في صلاحياتك الحالية.'
+            : 'Your membership is activated for other features 🔓\nThis item is not included in your current access.';
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(PhosphorIcons.checkCircle(PhosphorIconsStyle.fill), size: 18, color: color),
+                        const SizedBox(width: 8),
+                        Text(
+                          Localizations.localeOf(context).languageCode == 'ar' ? 'تم قبول طلب تفعيل سابق' : 'Previous Request Approved',
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: color),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06))),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      Localizations.localeOf(context).languageCode == 'ar' ? 'طلب وصول إضافي' : 'Request Additional Access', 
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white38 : Colors.black38)
+                    ),
+                  ),
+                  Expanded(child: Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.06))),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showRequestDialog(context, ref),
+                  icon: Icon(PhosphorIcons.envelopeSimple(), size: 16),
+                  label: Text(
+                    Localizations.localeOf(context).languageCode == 'ar' ? 'طلب فتح هذا العنصر المميز' : 'Request Access for This Item',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: isDark ? Colors.white70 : Colors.black54,
+                    side: BorderSide(color: isDark ? Colors.white12 : Colors.black12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
         ).animate().fadeIn(delay: 550.ms);
       }

@@ -302,25 +302,39 @@ class _PagesScreenState extends ConsumerState<PagesScreen> {
       },
       onDismissed: (_) {
         ref.read(pagesProvider.notifier).deletePage(page.id);
+        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 Icon(
                   PhosphorIcons.checkCircle(PhosphorIconsStyle.fill),
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF10B981) : const Color(0xFF059669),
                   size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text('تم حذف "${page.title}"'),
+                Text(
+                  'تم حذف "${page.title}"',
+                  style: TextStyle(
+                    color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-            elevation: 2,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(
+                color: isDark ? AppTheme.darkDivider : AppTheme.lightDivider.withValues(alpha: 0.8),
+                width: 1,
+              ),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 5),
+            persist: false,
             action: SnackBarAction(
               label: 'تراجع',
               textColor: AppTheme.primaryColor,

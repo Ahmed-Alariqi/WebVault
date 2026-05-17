@@ -126,9 +126,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: CustomScrollView(
         slivers: [
-          // Campaign banner
-          const SliverToBoxAdapter(child: CampaignTopBanner()),
-
           // ─── Hero Header ───
           SliverAppBar(
             expandedHeight: 220,
@@ -461,6 +458,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const CampaignTopBanner(),
+          const SizedBox(height: 8),
+          
           // Group 1: Account Settings
           _ProfileSectionCard(
             title: 'إعدادات الحساب',

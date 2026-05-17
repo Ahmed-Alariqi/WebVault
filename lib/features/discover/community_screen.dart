@@ -457,10 +457,86 @@ class _CommunityPostCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authorNameAsync = ref.watch(profileNameProvider(post.userId));
+    final authorProfileAsync = ref.watch(communityUserProfileProvider(post.userId));
+    final isPremium = authorProfileAsync.valueOrNull?.isPremium ?? false;
     final currentUser = ref.watch(currentUserProvider);
     final isOwner = currentUser?.id == post.userId;
     final isAdmin = ref.watch(isAdminProvider).valueOrNull == true;
+
+    Widget avatarWidget = CircleAvatar(
+      radius: 18,
+      backgroundColor: isPremium
+          ? const Color(0xFFF59E0B).withValues(alpha: 0.1)
+          : AppTheme.primaryColor.withValues(alpha: 0.1),
+      child: authorProfileAsync.when(
+        data: (profile) => Text(
+          profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : '?',
+          style: TextStyle(
+            color: isPremium ? const Color(0xFFF59E0B) : AppTheme.primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        loading: () => const SizedBox.shrink(),
+        error: (_, _) => Icon(
+          Icons.person,
+          color: isPremium ? const Color(0xFFF59E0B) : AppTheme.primaryColor,
+          size: 20,
+        ),
+      ),
+    );
+
+    if (isPremium) {
+      avatarWidget = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFFBBF24), Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(1.5),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+              ),
+              child: avatarWidget,
+            ),
+          ),
+          Positioned(
+            bottom: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.star_rounded,
+                color: Colors.white,
+                size: 8,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
 
     return GestureDetector(
       onTap: () => context.push('/community/post/${post.id}', extra: post),
@@ -492,49 +568,44 @@ class _CommunityPostCard extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppTheme.primaryColor.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: authorNameAsync.when(
-                      data: (name) => Text(
-                        name.isNotEmpty ? name[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      loading: () => const SizedBox.shrink(),
-                      error: (_, _) => const Icon(
-                        Icons.person,
-                        color: AppTheme.primaryColor,
-                        size: 20,
-                      ),
-                    ),
-                  ),
+                  avatarWidget,
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        authorNameAsync.when(
-                          data: (name) => Text(
-                            name,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : Colors.black,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            authorProfileAsync.when(
+                              data: (profile) => Flexible(
+                                child: Text(
+                                  profile.fullName,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              loading: () => Container(
+                                width: 80,
+                                height: 14,
+                                color: isDark ? Colors.white10 : Colors.black12,
+                              ),
+                              error: (_, _) => const Text('User'),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          loading: () => Container(
-                            width: 80,
-                            height: 14,
-                            color: isDark ? Colors.white10 : Colors.black12,
-                          ),
-                          error: (_, _) => const Text('User'),
+                            if (isPremium) ...[
+                              const SizedBox(width: 5),
+                              const Icon(
+                                Icons.workspace_premium_rounded,
+                                color: Color(0xFFF59E0B),
+                                size: 16,
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Row(
