@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -38,7 +40,9 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
   void initState() {
     super.initState();
     _initPage();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+    if (kIsWeb || !Platform.isWindows) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+    }
   }
 
   Future<void> _checkTutorial() async {
@@ -63,6 +67,16 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
 
     ref.read(pagesProvider.notifier).incrementVisit(widget.pageId);
 
+    if (!kIsWeb && Platform.isWindows) {
+      launchUrl(Uri.parse(_page!.url), mode: LaunchMode.externalApplication);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pop();
+        }
+      });
+      return;
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -83,6 +97,14 @@ class _BrowserScreenState extends ConsumerState<BrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && Platform.isWindows) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     if (_page == null) {
       return Scaffold(
         appBar: AppBar(title: Text(AppLocalizations.of(context)!.error)),

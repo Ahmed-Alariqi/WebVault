@@ -6,6 +6,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../presentation/providers/providers.dart';
 
 class PinLockScreen extends ConsumerStatefulWidget {
@@ -197,7 +198,9 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
     final biometricEnabled = settings['biometricEnabled'] == true;
     final isUnlockMode = !widget.isSetup && !widget.isChanging;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 480,
+      child: Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -398,8 +401,9 @@ class _PinLockScreenState extends ConsumerState<PinLockScreen>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNumberPad(bool isDark) {
     return Padding(

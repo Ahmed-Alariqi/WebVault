@@ -45,7 +45,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                         end: Alignment.bottomRight,
                         colors: [
                           const Color(0xFF1E293B), // Slate 800
-                          AppTheme.primaryColor,   // Indigo
+                          AppTheme.primaryColor, // Indigo
                           const Color(0xFF0F172A), // Slate 900
                         ],
                         stops: const [0.0, 0.4, 1.0],
@@ -165,10 +165,13 @@ class AdminDashboardScreen extends ConsumerWidget {
               SliverPadding(
                 padding: const EdgeInsets.all(20),
                 sliver: SliverGrid.count(
-                  crossAxisCount: 2,
+                  crossAxisCount: MediaQuery.of(context).size.width > 900
+                      ? 4
+                      : 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
-                  childAspectRatio: 1.3, // Slightly taller to accommodate wrapping text safely
+                  childAspectRatio:
+                      1.3, // Slightly taller to accommodate wrapping text safely
                   children: [
                     if (perms.contains('analytics'))
                       _ActionCard(
@@ -203,7 +206,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                           return _ActionCard(
                             title: 'المسودات',
                             subtitle: 'إدارة مسودات المحتوى',
-                            icon: PhosphorIcons.notepad(PhosphorIconsStyle.duotone),
+                            icon: PhosphorIcons.notepad(
+                              PhosphorIconsStyle.duotone,
+                            ),
                             color: const Color(0xFFF59E0B),
                             isDark: isDark,
                             onTap: () => context.push('/admin/drafts'),
@@ -330,9 +335,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       _ActionCard(
                         title: 'إدارة الذكاء الاصطناعي',
                         subtitle: 'الشخصيات والمزودين',
-                        icon: PhosphorIcons.brain(
-                          PhosphorIconsStyle.duotone,
-                        ),
+                        icon: PhosphorIcons.brain(PhosphorIconsStyle.duotone),
                         color: AppTheme.primaryColor,
                         isDark: isDark,
                         onTap: () => context.push('/admin/ai-management'),
@@ -342,7 +345,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                     if (perms.contains('membership'))
                       Consumer(
                         builder: (context, ref, _) {
-                          final pendingCount = ref.watch(pendingMembershipCountProvider).valueOrNull ?? 0;
+                          final pendingCount =
+                              ref
+                                  .watch(pendingMembershipCountProvider)
+                                  .valueOrNull ??
+                              0;
                           return _ActionCard(
                             title: 'إدارة العضوية',
                             subtitle: 'الدعوات والطلبات',
@@ -353,7 +360,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                             isDark: isDark,
                             onTap: () => context.push('/admin/membership'),
                             delay: 355,
-                            badge: pendingCount > 0 ? _buildBadge(pendingCount) : null,
+                            badge: pendingCount > 0
+                                ? _buildBadge(pendingCount)
+                                : null,
                           );
                         },
                       ),
@@ -362,9 +371,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       _ActionCard(
                         title: 'الخدمات السحابية والصيانة',
                         subtitle: 'إدارة الميديا، الكوتا، والنسخ الاحتياطي',
-                        icon: PhosphorIcons.cloud(
-                          PhosphorIconsStyle.duotone,
-                        ),
+                        icon: PhosphorIcons.cloud(PhosphorIconsStyle.duotone),
                         color: const Color(0xFF0EA5E9),
                         isDark: isDark,
                         onTap: () => context.push('/admin/cloud-control'),
@@ -421,38 +428,41 @@ class _StatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            label: AppLocalizations.of(context)!.totalUsers,
-            value: stats['users']?.toString() ?? '0',
-            icon: PhosphorIcons.users(PhosphorIconsStyle.bold),
-            color: const Color(0xFF6366F1),
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            label: AppLocalizations.of(context)!.websitesTitle,
-            value: stats['websites']?.toString() ?? '0',
-            icon: PhosphorIcons.globe(PhosphorIconsStyle.bold),
-            color: const Color(0xFF10B981),
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            label: AppLocalizations.of(context)!.categoriesTitle,
-            value: stats['categories']?.toString() ?? '0',
-            icon: PhosphorIcons.tag(PhosphorIconsStyle.bold),
-            color: const Color(0xFFF59E0B),
-            isDark: isDark,
-          ),
-        ),
-      ],
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, curve: Curves.easeOutCubic);
+          children: [
+            Expanded(
+              child: _StatCard(
+                label: AppLocalizations.of(context)!.totalUsers,
+                value: stats['users']?.toString() ?? '0',
+                icon: PhosphorIcons.users(PhosphorIconsStyle.bold),
+                color: const Color(0xFF6366F1),
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                label: AppLocalizations.of(context)!.websitesTitle,
+                value: stats['websites']?.toString() ?? '0',
+                icon: PhosphorIcons.globe(PhosphorIconsStyle.bold),
+                color: const Color(0xFF10B981),
+                isDark: isDark,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                label: AppLocalizations.of(context)!.categoriesTitle,
+                value: stats['categories']?.toString() ?? '0',
+                icon: PhosphorIcons.tag(PhosphorIconsStyle.bold),
+                color: const Color(0xFFF59E0B),
+                isDark: isDark,
+              ),
+            ),
+          ],
+        )
+        .animate()
+        .fadeIn(duration: 400.ms)
+        .slideY(begin: 0.1, curve: Curves.easeOutCubic);
   }
 }
 
@@ -479,8 +489,8 @@ class _StatCard extends StatelessWidget {
         color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.1) 
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.1)
               : AppTheme.primaryColor.withValues(alpha: 0.1),
           width: 1,
         ),
@@ -528,8 +538,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-
-
 class _ActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -554,115 +562,114 @@ class _ActionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.darkCard : Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: isDark 
-                ? color.withValues(alpha: 0.2) 
-                : color.withValues(alpha: 0.15),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: isDark ? 0.15 : 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -12,
-              bottom: -12,
-              child: Icon(
-                icon,
-                size: 70,
-                color: color.withValues(alpha: 0.04),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.darkCard : Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isDark
+                    ? color.withValues(alpha: 0.2)
+                    : color.withValues(alpha: 0.15),
+                width: 1.2,
               ),
-            ),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        color,
-                        color.withValues(alpha: 0.8),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.4),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w900,
-                                color: isDark ? Colors.white : Colors.black87,
-                                letterSpacing: -0.1,
-                                height: 1.1,
-                              ),
-                            ),
-                          ),
-                          if (badge != null) ...[
-                            const SizedBox(width: 6),
-                            badge!,
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isDark ? Colors.white38 : Colors.black45,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.1,
-                          height: 1.1,
-                        ),
-                      ),
-                    ],
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: isDark ? 0.15 : 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    ).animate(delay: delay.ms).fadeIn(duration: 400.ms).scale(
-      begin: const Offset(0.92, 0.92),
-      curve: Curves.easeOutBack,
-    );
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -12,
+                  bottom: -12,
+                  child: Icon(
+                    icon,
+                    size: 70,
+                    color: color.withValues(alpha: 0.04),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [color, color.withValues(alpha: 0.8)],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
+                                    letterSpacing: -0.1,
+                                    height: 1.1,
+                                  ),
+                                ),
+                              ),
+                              if (badge != null) ...[
+                                const SizedBox(width: 6),
+                                badge!,
+                              ],
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: isDark ? Colors.white38 : Colors.black45,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.1,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate(delay: delay.ms)
+        .fadeIn(duration: 400.ms)
+        .scale(begin: const Offset(0.92, 0.92), curve: Curves.easeOutBack);
   }
 }
 

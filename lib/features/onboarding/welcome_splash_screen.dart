@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/repositories/settings_repository.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 /// Full-screen splash shown ONCE on the very first app launch.
 /// Displays the welcome image beautifully for 5 seconds, then navigates away.
@@ -50,72 +51,91 @@ class _WelcomeSplashScreenState extends State<WelcomeSplashScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      body: AnimatedOpacity(
-        duration: const Duration(milliseconds: 500),
-        opacity: _fadingOut ? 0.0 : 1.0,
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: isDark
-                  ? [
-                      AppTheme.darkBg,
-                      AppTheme.darkSurface,
-                      const Color(0xFF1A1440),
-                    ]
-                  : [
-                      const Color(0xFFE8EAF6),
-                      const Color(0xFFC5CAE9),
-                      const Color(0xFFD5CCF5),
-                    ],
-            ),
-          ),
-          child: Stack(
-            children: [
-              // ── Decorative background blobs ──
-              _buildBlob(
-                isDark: isDark,
-                top: -size.height * 0.12,
-                right: -size.width * 0.15,
-                diameter: size.width * 0.65,
-                colorDark: AppTheme.primaryColor,
-                colorLight: AppTheme.primaryLight,
-                opacityDark: 0.18,
-                opacityLight: 0.35,
-              ),
-              _buildBlob(
-                isDark: isDark,
-                bottom: size.height * 0.08,
-                left: -size.width * 0.25,
-                diameter: size.width * 0.55,
-                colorDark: const Color(0xFF7C4DFF),
-                colorLight: const Color(0xFFEDE7F6),
-                opacityDark: 0.12,
-                opacityLight: 0.5,
-              ),
-              _buildBlob(
-                isDark: isDark,
-                bottom: -size.height * 0.05,
-                right: -size.width * 0.1,
-                diameter: size.width * 0.4,
-                colorDark: const Color(0xFF448AFF),
-                colorLight: const Color(0xFFBBDEFB),
-                opacityDark: 0.10,
-                opacityLight: 0.30,
-              ),
-
-              // ── Centered welcome image ──
-              Center(child: _buildWelcomeImage(size, isDark)),
-            ],
-          ),
+    final bgWidget = Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  AppTheme.darkBg,
+                  AppTheme.darkSurface,
+                  const Color(0xFF1A1440),
+                ]
+              : [
+                  const Color(0xFFE8EAF6),
+                  const Color(0xFFC5CAE9),
+                  const Color(0xFFD5CCF5),
+                ],
         ),
       ),
+      child: Stack(
+        children: [
+          // ── Decorative background blobs ──
+          _buildBlob(
+            isDark: isDark,
+            top: -size.height * 0.12,
+            right: -size.width * 0.15,
+            diameter: size.width * 0.65,
+            colorDark: AppTheme.primaryColor,
+            colorLight: AppTheme.primaryLight,
+            opacityDark: 0.18,
+            opacityLight: 0.35,
+          ),
+          _buildBlob(
+            isDark: isDark,
+            bottom: size.height * 0.08,
+            left: -size.width * 0.25,
+            diameter: size.width * 0.55,
+            colorDark: const Color(0xFF7C4DFF),
+            colorLight: const Color(0xFFEDE7F6),
+            opacityDark: 0.12,
+            opacityLight: 0.5,
+          ),
+          _buildBlob(
+            isDark: isDark,
+            bottom: -size.height * 0.05,
+            right: -size.width * 0.1,
+            diameter: size.width * 0.4,
+            colorDark: const Color(0xFF448AFF),
+            colorLight: const Color(0xFFBBDEFB),
+            opacityDark: 0.10,
+            opacityLight: 0.30,
+          ),
+        ],
+      ),
     );
-  }
+
+    return ResponsiveLayout(
+      maxWidth: 480,
+      background: bgWidget,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          if (size.width <= 900) bgWidget,
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 500),
+            opacity: _fadingOut ? 0.0 : 1.0,
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.transparent,
+              child: Stack(
+                children: [
+                  // ── Centered welcome image ──
+                  Center(child: _buildWelcomeImage(size, isDark)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   // ── Welcome image with glow and entrance animation ──
   Widget _buildWelcomeImage(Size size, bool isDark) {

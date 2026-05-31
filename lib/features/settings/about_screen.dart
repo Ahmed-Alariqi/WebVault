@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../l10n/app_localizations.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -14,7 +15,9 @@ class AboutScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       body: CustomScrollView(
         slivers: [
           // ── Collapsing hero header ─────────────────────────────────────
@@ -443,8 +446,9 @@ class AboutScreen extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -118,7 +118,10 @@ class _AdvertisementDetailScreenState
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-      body: Stack(
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Stack(
         children: [
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
@@ -299,8 +302,10 @@ class _AdvertisementDetailScreenState
           ),
         ],
       ),
-    );
-  }
+    ),
+  ),
+);
+}
 
   Widget _buildActionButton(Advertisement ad, String buttonText) {
     Color baseColor;

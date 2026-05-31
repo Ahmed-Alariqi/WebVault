@@ -281,7 +281,7 @@ class ShimmerListTile extends StatelessWidget {
   }
 }
 
-/// A column of shimmer list tiles for initial loading
+/// A list of shimmer list tiles for initial loading
 class ShimmerListColumn extends StatelessWidget {
   final int count;
   const ShimmerListColumn({super.key, this.count = 4});
@@ -290,8 +290,10 @@ class ShimmerListColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: List.generate(count, (_) => const ShimmerListTile()),
+      child: ListView.builder(
+        padding: EdgeInsets.zero,
+        itemCount: count,
+        itemBuilder: (context, index) => const ShimmerListTile(),
       ),
     );
   }

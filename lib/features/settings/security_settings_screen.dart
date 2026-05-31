@@ -5,6 +5,7 @@ import 'package:local_auth/local_auth.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../core/constants.dart';
 import '../../presentation/providers/providers.dart';
 import '../../l10n/app_localizations.dart';
@@ -78,7 +79,9 @@ class _SecuritySettingsScreenState
     final biometricEnabled = settings['biometricEnabled'] == true;
     final autoLockTimeout = settings['autoLockTimeout'] as int? ?? 0;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       body: CustomScrollView(
         slivers: [
           // Premium AppBar
@@ -368,8 +371,9 @@ class _SecuritySettingsScreenState
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSecurityStatusCard(
     bool isDark,

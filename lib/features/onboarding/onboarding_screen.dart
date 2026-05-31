@@ -1,3 +1,4 @@
+import '../../presentation/widgets/responsive_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -127,14 +128,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isLastPage = _currentPage == _pages.length - 1;
     final isFirstPage = _currentPage == 0;
+    final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppTheme.darkBg : const Color(0xFFF8F9FA),
+    final bgWidget = Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: isDark ? AppTheme.darkBg : const Color(0xFFF8F9FA),
+      child: Stack(
+        children: [
+          _buildBackgroundDecoration(isDark),
+        ],
+      ),
+    );
+
+    return ResponsiveLayout(
+      maxWidth: 480,
+      background: bgWidget,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Subtle background decoration (Glassmorphism blobs)
-          _buildBackgroundDecoration(isDark),
-
+          if (size.width <= 900) bgWidget,
           SafeArea(
             child: Column(
               children: [
@@ -163,8 +177,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildBackgroundDecoration(bool isDark) {
     return Positioned.fill(

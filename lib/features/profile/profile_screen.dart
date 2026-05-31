@@ -19,6 +19,7 @@ import 'package:share_plus/share_plus.dart';
 import 'referral_share_screen.dart';
 import '../../presentation/widgets/campaign_overlay.dart';
 import '../../core/utils/admin_ui_utils.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -122,7 +123,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = SupabaseConfig.client.auth.currentUser;
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 650,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: CustomScrollView(
         slivers: [
@@ -176,7 +179,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   // ─── Hero Header Content ───

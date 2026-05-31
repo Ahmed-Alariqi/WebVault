@@ -21,7 +21,6 @@ import '../../l10n/app_localizations.dart';
 import '../../features/ai_assistant/ai_chat_screen.dart';
 import 'custom_quill_editor.dart';
 
-
 class WebsiteDetailsDialog extends ConsumerStatefulWidget {
   final WebsiteModel site;
 
@@ -609,7 +608,9 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                                  color: isDark
+                                      ? AppTheme.darkTextPrimary
+                                      : AppTheme.lightTextPrimary,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -618,7 +619,8 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                 child: ListView.separated(
                                   scrollDirection: Axis.horizontal,
                                   itemCount: widget.site.galleryImages.length,
-                                  separatorBuilder: (ctx, idx) => const SizedBox(width: 12),
+                                  separatorBuilder: (ctx, idx) =>
+                                      const SizedBox(width: 12),
                                   itemBuilder: (ctx, idx) {
                                     final url = widget.site.galleryImages[idx];
                                     return GestureDetector(
@@ -633,15 +635,29 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                           placeholder: (ctx, url) => Container(
                                             width: 120,
                                             height: 80,
-                                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                                            child: const Center(child: CircularProgressIndicator()),
+                                            color: isDark
+                                                ? Colors.white10
+                                                : Colors.black.withValues(
+                                                    alpha: 0.05,
+                                                  ),
+                                            child: const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
                                           ),
-                                          errorWidget: (ctx, url, err) => Container(
-                                            width: 120,
-                                            height: 80,
-                                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-                                            child: const Icon(Icons.broken_image),
-                                          ),
+                                          errorWidget: (ctx, url, err) =>
+                                              Container(
+                                                width: 120,
+                                                height: 80,
+                                                color: isDark
+                                                    ? Colors.white10
+                                                    : Colors.black.withValues(
+                                                        alpha: 0.05,
+                                                      ),
+                                                child: const Icon(
+                                                  Icons.broken_image,
+                                                ),
+                                              ),
                                         ),
                                       ),
                                     );
@@ -666,44 +682,50 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     ),
 
                     // Pinned Action Buttons Footer
-                    if (widget.site.hasUrl || (widget.site.contentType == 'prompt' && widget.site.hasCopyableValue) || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue))
+                    if (widget.site.hasUrl ||
+                        (widget.site.contentType == 'prompt' &&
+                            widget.site.hasCopyableValue) ||
+                        (widget.site.contentType == 'offer' &&
+                            widget.site.hasCopyableValue))
                       Container(
                         padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                              alpha: isDark ? 0.2 : 0.05,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppTheme.darkCard
+                              : AppTheme.lightCard,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: isDark ? 0.2 : 0.05,
+                              ),
+                              offset: const Offset(0, -4),
+                              blurRadius: 16,
                             ),
-                            offset: const Offset(0, -4),
-                            blurRadius: 16,
+                          ],
+                          border: Border(
+                            top: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.03),
+                            ),
                           ),
-                        ],
-                        border: Border(
-                          top: BorderSide(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.05)
-                                : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(28),
                           ),
                         ),
-                        borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Original action buttons
+                            _buildDialogActions(
+                              context,
+                              ref,
+                              widget.site,
+                              isDark,
+                            ),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Original action buttons
-                          _buildDialogActions(
-                            context,
-                            ref,
-                            widget.site,
-                            isDark,
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
 
@@ -778,7 +800,14 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
                 // Floating AI Assistant Button (Bottom Center Pill)
                 Positioned(
-                  bottom: (widget.site.hasUrl || (widget.site.contentType == 'prompt' && widget.site.hasCopyableValue) || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue)) ? 100 : 20,
+                  bottom:
+                      (widget.site.hasUrl ||
+                          (widget.site.contentType == 'prompt' &&
+                              widget.site.hasCopyableValue) ||
+                          (widget.site.contentType == 'offer' &&
+                              widget.site.hasCopyableValue))
+                      ? 100
+                      : 20,
                   left: 0,
                   right: 0,
                   child: Align(
@@ -804,7 +833,9 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                   gradient: LinearGradient(
                                     colors: [
                                       AppTheme.primaryColor,
-                                      AppTheme.primaryColor.withValues(alpha: 0.85),
+                                      AppTheme.primaryColor.withValues(
+                                        alpha: 0.85,
+                                      ),
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -812,7 +843,9 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.primaryColor.withValues(alpha: 0.35),
+                                      color: AppTheme.primaryColor.withValues(
+                                        alpha: 0.35,
+                                      ),
                                       blurRadius: 10,
                                       offset: const Offset(0, 4),
                                     ),
@@ -1229,7 +1262,7 @@ class _VideoSectionState extends State<_VideoSection> {
 
   bool get _isExternalVideo {
     final url = widget.videoUrl.toLowerCase();
-    
+
     // Direct Facebook video links
     if (url.contains('fbcdn.net')) return false;
 

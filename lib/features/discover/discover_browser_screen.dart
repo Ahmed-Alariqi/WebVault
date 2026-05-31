@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +41,9 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
   void initState() {
     super.initState();
     _initPage();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+    if (kIsWeb || !Platform.isWindows) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkTutorial());
+    }
   }
 
   Future<void> _checkTutorial() async {
@@ -58,6 +62,16 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
   }
 
   void _initPage() {
+    if (!kIsWeb && Platform.isWindows) {
+      launchUrl(Uri.parse(widget.site.url), mode: LaunchMode.externalApplication);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.pop();
+        }
+      });
+      return;
+    }
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
@@ -96,6 +110,14 @@ class _DiscoverBrowserScreenState extends ConsumerState<DiscoverBrowserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!kIsWeb && Platform.isWindows) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: _isFullscreen
           ? null

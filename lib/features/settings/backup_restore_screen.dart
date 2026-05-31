@@ -8,6 +8,7 @@ import '../../core/constants.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
 import '../../core/utils/admin_ui_utils.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 class BackupRestoreScreen extends ConsumerStatefulWidget {
   const BackupRestoreScreen({super.key});
@@ -145,7 +146,9 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
     final autoBackupFreq = settings['autoBackupFrequency'] as String? ?? 'weekly';
     final cloudSyncEnabled = settings[kCloudSyncEnabled] as bool? ?? true;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: Text(
@@ -252,8 +255,9 @@ class _BackupRestoreScreenState extends ConsumerState<BackupRestoreScreen> {
             ).animate().fadeIn(),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCloudSyncTab(AppLocalizations l10n, bool isDark, bool cloudSyncEnabled) {
     final pages = ref.watch(pagesProvider);

@@ -1,3 +1,4 @@
+import '../../presentation/widgets/responsive_layout.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -296,76 +297,85 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
+    final bgWidget = Stack(
+      children: [
+        // 1. Background Gradient
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: isDark
+                  ? [
+                      const Color(0xFF0F172A), // Slate 900
+                      const Color(0xFF020617), // Slate 950
+                    ]
+                  : [
+                      const Color(0xFFF8FAFC),
+                      const Color(0xFFEEF2FF),
+                      const Color(0xFFF1F5F9),
+                    ],
+            ),
+          ),
+        ),
+
+        // 2. Decorative Blobs
+        Positioned(
+          top: -50,
+          right: -30,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        if (isDark)
+          Positioned(
+            bottom: -150,
+            left: -100,
+            child: Container(
+              width: size.width * 0.9,
+              height: size.width * 0.9,
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        Positioned(
+          bottom: 100,
+          left: -50,
+          child: Container(
+            width: 250,
+            height: 250,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryLight.withValues(alpha: isDark ? 0.05 : 0.5),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+
+    return ResponsiveLayout(
+      maxWidth: 460,
+      background: bgWidget,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // 1. Background Gradient
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: isDark
-                    ? [
-                        const Color(0xFF0F172A), // Slate 900
-                        const Color(0xFF020617), // Slate 950
-                      ]
-                    : [
-                        const Color(0xFFF8FAFC),
-                        const Color(0xFFEEF2FF),
-                        const Color(0xFFF1F5F9),
-                      ],
-              ),
-            ),
-          ),
-
-          // 2. Decorative Blobs
-          Positioned(
-            top: -50,
-            right: -30,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          if (isDark)
-            Positioned(
-              bottom: -150,
-              left: -100,
-              child: Container(
-                width: size.width * 0.9,
-                height: size.width * 0.9,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          Positioned(
-            bottom: 100,
-            left: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryLight.withValues(alpha: isDark ? 0.05 : 0.5),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned.fill(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: const SizedBox.shrink(),
-              ),
-            ),
-
+          if (size.width <= 900) bgWidget,
           // 3. Main Content
           SafeArea(
             child: SingleChildScrollView(
@@ -401,8 +411,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSuccessCard(bool isDark) {
     return Container(

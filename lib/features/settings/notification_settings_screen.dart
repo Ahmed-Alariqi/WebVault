@@ -9,6 +9,7 @@ import '../../presentation/providers/auth_providers.dart';
 import '../../presentation/providers/notification_settings_providers.dart';
 
 import '../../presentation/widgets/tutorial_overlay.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 class NotificationSettingsScreen extends ConsumerStatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -89,7 +90,9 @@ class _NotificationSettingsScreenState extends ConsumerState<NotificationSetting
     final loc = AppLocalizations.of(context)!;
     final prefsAsync = ref.watch(notificationPrefsProvider);
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       appBar: AppBar(title: Text(loc.notifSettingsTitle)),
       body: prefsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -135,8 +138,9 @@ class _NotificationSettingsScreenState extends ConsumerState<NotificationSetting
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildToggleCard({
     Key? key,

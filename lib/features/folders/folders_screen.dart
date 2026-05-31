@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/folder_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
@@ -62,7 +63,9 @@ class FoldersScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final folders = ref.watch(foldersProvider);
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 900,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)!.folders),
@@ -72,8 +75,8 @@ class FoldersScreen extends ConsumerWidget {
           ? _buildEmpty(context, isDark)
           : GridView.builder(
               padding: const EdgeInsets.all(20),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: MediaQuery.of(context).size.width > 700 ? 4 : 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 childAspectRatio: 1.1,
@@ -88,7 +91,8 @@ class FoldersScreen extends ConsumerWidget {
         icon: Icon(PhosphorIcons.folderPlus(PhosphorIconsStyle.fill)),
         label: Text(AppLocalizations.of(context)!.newFolder),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildFolderCard(

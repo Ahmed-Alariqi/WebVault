@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/theme/app_theme.dart';
 import '../../presentation/providers/providers.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../presentation/widgets/suggestion_dialog.dart';
 import '../../data/models/folder_model.dart';
 import '../../data/models/page_model.dart';
@@ -48,8 +49,11 @@ class FolderDetailScreen extends ConsumerWidget {
     final folderIndex = folders.indexWhere((f) => f.id == folderId);
 
     if (folderIndex == -1) {
-      return Scaffold(
-        body: Center(child: Text(AppLocalizations.of(context)!.folderNotFound)),
+      return ResponsiveLayout(
+        maxWidth: 650,
+        child: Scaffold(
+          body: Center(child: Text(AppLocalizations.of(context)!.folderNotFound)),
+        ),
       );
     }
 
@@ -59,7 +63,9 @@ class FolderDetailScreen extends ConsumerWidget {
     final allPages = ref.watch(pagesProvider);
     final folderPages = allPages.where((p) => p.folderId == folderId).toList();
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 650,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         leading: BackButton(
@@ -180,7 +186,8 @@ class FolderDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   String _formatDate(DateTime date) {

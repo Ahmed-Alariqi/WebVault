@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/models/page_model.dart';
 import '../../presentation/widgets/modern_form_widgets.dart';
@@ -130,7 +131,9 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final folders = ref.watch(foldersProvider);
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 650,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         forceMaterialTransparency: true,
@@ -393,6 +396,7 @@ class _AddEditPageScreenState extends ConsumerState<AddEditPageScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

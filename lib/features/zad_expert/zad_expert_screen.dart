@@ -22,6 +22,7 @@ import '../../presentation/providers/membership_providers.dart';
 
 
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 
 import '../../data/models/ai_chat_model.dart';
 
@@ -986,7 +987,9 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
 
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 760,
+      child: Scaffold(
 
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
 
@@ -1140,7 +1143,8 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
 
       ),
 
-    );
+    ),
+  );
 
   }
 

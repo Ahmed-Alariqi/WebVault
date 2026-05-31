@@ -267,9 +267,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     if (location.startsWith('/clipboard')) return 3;
 
-    if (isAdmin && location.startsWith('/admin')) return 4;
-
-    if (!isAdmin && location.startsWith('/community')) return 4;
+    if (location.startsWith('/admin') || location.startsWith('/community')) return 4;
 
     if (location.startsWith('/settings')) return 5;
 
@@ -353,748 +351,675 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
 
+  @override
   Widget build(BuildContext context) {
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final isAdmin = ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
-
     final selectedIndex = _calculateSelectedIndex(context, isAdmin);
-
-
-
-    return Scaffold(
-
-      body: Stack(
-
-        children: [
-
-          widget.child,
-
-          // Support Chat Bubble Overlay for Users OR Admin Message Alert for Admins
-
-          Positioned(
-
-            top: MediaQuery.of(context).padding.top + 16,
-
-            left: 20,
-
-            right: 20,
-
-            child: Consumer(
-
-              builder: (context, ref, child) {
-
-                final isAdmin =
-
-                    ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
-
-
-
-                if (isAdmin) {
-
-                  final adminUnreadCount = ref.watch(
-
-                    adminTotalUnreadCountProvider,
-
-                  );
-
-                  if (adminUnreadCount <= 0 || _isChatBubbleDismissed) {
-
-                    return const SizedBox.shrink();
-
-                  }
-
-
-
-                  return TweenAnimationBuilder<double>(
-
-                    tween: Tween(begin: 0.0, end: 1.0),
-
-                    duration: const Duration(milliseconds: 600),
-
-                    curve: Curves.elasticOut,
-
-                    builder: (context, value, child) {
-
-                      return Transform.translate(
-
-                        offset: Offset(0, -60 * (1 - value)),
-
-                        child: Opacity(
-
-                          opacity: value.clamp(0.0, 1.0),
-
-                          child: child,
-
-                        ),
-
-                      );
-
-                    },
-
-                    child: GestureDetector(
-
-                      onTap: () {
-
-                        setState(() => _isChatBubbleDismissed = true);
-
-                        context.push('/admin/user-chats');
-
-                      },
-
-                      child: Container(
-
-                        padding: const EdgeInsets.symmetric(
-
-                          horizontal: 16,
-
-                          vertical: 12,
-
-                        ),
-
-                        decoration: BoxDecoration(
-
-                          gradient: LinearGradient(
-
-                            colors: [
-
-                              Colors.amber.shade700,
-
-                              Colors.amber.shade900,
-
-                            ],
-
-                            begin: Alignment.topLeft,
-
-                            end: Alignment.bottomRight,
-
-                          ),
-
-                          borderRadius: BorderRadius.circular(24),
-
-                          boxShadow: [
-
-                            BoxShadow(
-
-                              color: Colors.amber.withValues(alpha: 0.3),
-
-                              blurRadius: 16,
-
-                              offset: const Offset(0, 8),
-
-                            ),
-
-                          ],
-
-                        ),
-
-                        child: Row(
-
-                          children: [
-
-                            Container(
-
-                              padding: const EdgeInsets.all(8),
-
-                              decoration: const BoxDecoration(
-
-                                color: Colors.white24,
-
-                                shape: BoxShape.circle,
-
-                              ),
-
-                              child: const Icon(
-
-                                PhosphorIconsRegular.usersThree,
-
-                                color: Colors.white,
-
-                                size: 20,
-
-                              ),
-
-                            ),
-
-                            const SizedBox(width: 12),
-
-                            Expanded(
-
-                              child: Column(
-
-                                crossAxisAlignment: CrossAxisAlignment.start,
-
-                                mainAxisSize: MainAxisSize.min,
-
-                                children: [
-
-                                  const Text(
-
-                                    'رسائل المستخدمين',
-
-                                    style: TextStyle(
-
-                                      color: Colors.white70,
-
-                                      fontSize: 12,
-
-                                      fontWeight: FontWeight.w600,
-
-                                    ),
-
-                                  ),
-
-                                  Text(
-
-                                    'لديك ($adminUnreadCount) محادثات بانتظار الرد',
-
-                                    style: const TextStyle(
-
-                                      color: Colors.white,
-
-                                      fontSize: 13,
-
-                                      fontWeight: FontWeight.bold,
-
-                                    ),
-
-                                  ),
-
-                                ],
-
-                              ),
-
-                            ),
-
-                            GestureDetector(
-
-                              onTap: () {
-
-                                setState(() => _isChatBubbleDismissed = true);
-
-                              },
-
-                              child: Container(
-
-                                padding: const EdgeInsets.all(6),
-
-                                decoration: const BoxDecoration(
-
-                                  color: Colors.white24,
-
-                                  shape: BoxShape.circle,
-
-                                ),
-
-                                child: const Icon(
-
-                                  Icons.close,
-
-                                  color: Colors.white,
-
-                                  size: 16,
-
-                                ),
-
-                              ),
-
-                            ),
-
-                          ],
-
-                        ),
-
-                      ),
-
-                    ),
-
-                  );
-
-                }
-
-
-
-                // Normal user chat bubble logic
-
-                final unreadCount =
-
-                    ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
-
-                if (unreadCount <= 0 || _isChatBubbleDismissed) {
-
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 900;
+
+    Widget bodyContent = Stack(
+      children: [
+        widget.child,
+        // Support Chat Bubble Overlay for Users OR Admin Message Alert for Admins
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 20,
+          right: 20,
+          child: Consumer(
+            builder: (context, ref, child) {
+              final isAdmin =
+                  ref.watch(hasAdminAccessProvider).valueOrNull ?? false;
+
+              if (isAdmin) {
+                final adminUnreadCount = ref.watch(
+                  adminTotalUnreadCountProvider,
+                );
+                if (adminUnreadCount <= 0 || _isChatBubbleDismissed) {
                   return const SizedBox.shrink();
-
                 }
-
-
 
                 return TweenAnimationBuilder<double>(
-
                   tween: Tween(begin: 0.0, end: 1.0),
-
                   duration: const Duration(milliseconds: 600),
-
                   curve: Curves.elasticOut,
-
                   builder: (context, value, child) {
-
                     return Transform.translate(
-
                       offset: Offset(0, -60 * (1 - value)),
-
                       child: Opacity(
-
                         opacity: value.clamp(0.0, 1.0),
-
                         child: child,
-
                       ),
-
                     );
-
                   },
-
                   child: GestureDetector(
-
                     onTap: () {
-
                       setState(() => _isChatBubbleDismissed = true);
-
-                      context.push('/chat');
-
+                      context.push('/admin/user-chats');
                     },
-
                     child: Container(
-
                       padding: const EdgeInsets.symmetric(
-
                         horizontal: 16,
-
                         vertical: 12,
-
                       ),
-
                       decoration: BoxDecoration(
-
                         gradient: LinearGradient(
-
                           colors: [
-
-                            AppTheme.primaryColor,
-
-                            AppTheme.primaryColor.withValues(alpha: 0.8),
-
+                            Colors.amber.shade700,
+                            Colors.amber.shade900,
                           ],
-
                           begin: Alignment.topLeft,
-
                           end: Alignment.bottomRight,
-
                         ),
-
                         borderRadius: BorderRadius.circular(24),
-
                         boxShadow: [
-
                           BoxShadow(
-
-                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-
+                            color: Colors.amber.withValues(alpha: 0.3),
                             blurRadius: 16,
-
                             offset: const Offset(0, 8),
-
                           ),
-
                         ],
-
                       ),
-
                       child: Row(
-
                         children: [
-
                           Container(
-
                             padding: const EdgeInsets.all(8),
-
                             decoration: const BoxDecoration(
-
                               color: Colors.white24,
-
                               shape: BoxShape.circle,
-
                             ),
-
                             child: const Icon(
-
-                              Icons.chat_bubble_rounded,
-
+                              PhosphorIconsRegular.usersThree,
                               color: Colors.white,
-
                               size: 20,
-
                             ),
-
                           ),
-
                           const SizedBox(width: 12),
-
                           Expanded(
-
                             child: Column(
-
                               crossAxisAlignment: CrossAxisAlignment.start,
-
                               mainAxisSize: MainAxisSize.min,
-
                               children: [
-
-                                Text(
-
-                                  AppLocalizations.of(context)!.chatSupport,
-
-                                  style: const TextStyle(
-
+                                const Text(
+                                  'رسائل المستخدمين',
+                                  style: TextStyle(
                                     color: Colors.white70,
-
                                     fontSize: 12,
-
                                     fontWeight: FontWeight.w600,
-
                                   ),
-
                                 ),
-
                                 Text(
-
-                                  AppLocalizations.of(
-
-                                    context,
-
-                                  )!.chatNew(unreadCount),
-
+                                  'لديك ($adminUnreadCount) محادثات بانتظار الرد',
                                   style: const TextStyle(
-
                                     color: Colors.white,
-
-                                    fontSize: 14,
-
+                                    fontSize: 13,
                                     fontWeight: FontWeight.bold,
-
                                   ),
-
                                 ),
-
                               ],
-
                             ),
-
                           ),
-
                           GestureDetector(
-
                             onTap: () {
-
                               setState(() => _isChatBubbleDismissed = true);
-
                             },
-
                             child: Container(
-
                               padding: const EdgeInsets.all(6),
-
                               decoration: const BoxDecoration(
-
                                 color: Colors.white24,
-
                                 shape: BoxShape.circle,
-
                               ),
-
                               child: const Icon(
-
                                 Icons.close,
-
                                 color: Colors.white,
-
                                 size: 16,
-
                               ),
-
                             ),
-
                           ),
-
                         ],
-
                       ),
-
                     ),
-
                   ),
-
                 );
+              }
 
-              },
+              // Normal user chat bubble logic
+              final unreadCount =
+                  ref.watch(userUnreadCountStreamProvider).valueOrNull ?? 0;
+              if (unreadCount <= 0 || _isChatBubbleDismissed) {
+                return const SizedBox.shrink();
+              }
 
-            ),
-
-          ),
-
-
-
-          // ── Zad Expert FAB ──
-
-          Positioned(
-
-            bottom: 140, // Positioning above the bottom nav on the left edge
-
-            left: 0,
-
-            child: _ZadExpertFab(isDark: isDark),
-
-          ),
-
-        ],
-
-      ),
-
-      bottomNavigationBar: SafeArea(
-
-        child: Padding(
-
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
-
-          child: Container(
-
-            decoration: BoxDecoration(
-
-              color: isDark
-
-                  ? AppTheme.darkSurface.withValues(alpha: 0.92)
-
-                  : Colors.white.withValues(alpha: 0.92),
-
-              borderRadius: BorderRadius.circular(28),
-
-              border: Border.all(
-
-                color: isDark
-
-                    ? Colors.white.withValues(alpha: 0.06)
-
-                    : Colors.black.withValues(alpha: 0.04),
-
-                width: 1,
-
-              ),
-
-              boxShadow: [
-
-                BoxShadow(
-
-                  color: AppTheme.primaryColor.withValues(
-
-                    alpha: isDark ? 0.10 : 0.08,
-
-                  ),
-
-                  blurRadius: 24,
-
-                  spreadRadius: 0,
-
-                  offset: const Offset(0, 8),
-
-                ),
-
-                BoxShadow(
-
-                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
-
-                  blurRadius: 12,
-
-                  offset: const Offset(0, 4),
-
-                ),
-
-              ],
-
-            ),
-
-            child: ClipRRect(
-
-              borderRadius: BorderRadius.circular(28),
-
-              child: BackdropFilter(
-
-                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-
-                child: Padding(
-
-                  padding: const EdgeInsets.symmetric(
-
-                    horizontal: 8,
-
-                    vertical: 8,
-
-                  ),
-
-                  child: Row(
-
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                    children: [
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: PhosphorIcons.squaresFour(
-
-                          PhosphorIconsStyle.fill,
-
+              return TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.0, end: 1.0),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.elasticOut,
+                builder: (context, value, child) {
+                  return Transform.translate(
+                    offset: Offset(0, -60 * (1 - value)),
+                    child: Opacity(
+                      opacity: value.clamp(0.0, 1.0),
+                      child: child,
+                    ),
+                  );
+                },
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() => _isChatBubbleDismissed = true);
+                    context.push('/chat');
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primaryColor,
+                          AppTheme.primaryColor.withValues(alpha: 0.8),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
                         ),
-
-                        inactiveIcon: PhosphorIcons.squaresFour(),
-
-                        label: AppLocalizations.of(context)!.home,
-
-                        index: 0,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                      ),
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
-
-                        inactiveIcon: PhosphorIcons.browsers(),
-
-                        label: AppLocalizations.of(context)!.pages,
-
-                        index: 1,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                      ),
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
-
-                        inactiveIcon: PhosphorIcons.compass(),
-
-                        label: AppLocalizations.of(context)!.discover,
-
-                        index: 2,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                      ),
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: PhosphorIcons.clipboardText(
-
-                          PhosphorIconsStyle.fill,
-
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Colors.white24,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.chat_bubble_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                         ),
-
-                        inactiveIcon: PhosphorIcons.clipboardText(),
-
-                        label: AppLocalizations.of(context)!.clipboard,
-
-                        index: 3,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                      ),
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: isAdmin
-
-                            ? PhosphorIcons.crown(PhosphorIconsStyle.fill)
-
-                            : PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
-
-                        inactiveIcon: isAdmin
-
-                            ? PhosphorIcons.crown()
-
-                            : PhosphorIcons.usersThree(),
-
-                        label: isAdmin
-
-                            ? AppLocalizations.of(context)!.adminDashboard
-
-                            : AppLocalizations.of(context)!.communityTitle,
-
-                        index: 4,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                        isAdmin: isAdmin,
-
-                      ),
-
-                      _buildNavItem(
-
-                        context,
-
-                        icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
-
-                        inactiveIcon: PhosphorIcons.gear(),
-
-                        label: AppLocalizations.of(context)!.settings,
-
-                        index: 5,
-
-                        selectedIndex: selectedIndex,
-
-                        isDark: isDark,
-
-                      ),
-
-                    ],
-
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.chatSupport,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                AppLocalizations.of(
+                                  context,
+                                )!.chatNew(unreadCount),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _isChatBubbleDismissed = true);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Colors.white24,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-
                 ),
-
-              ),
-
-            ),
-
+              );
+            },
           ),
-
         ),
 
-      ),
-
+        // ── Zad Expert FAB ──
+        Positioned(
+          bottom: isWide ? 40 : 140,
+          left: isWide ? 24 : 0,
+          child: _ZadExpertFab(isDark: isDark),
+        ),
+      ],
     );
 
+    if (isWide) {
+      return Scaffold(
+        body: Row(
+          children: [
+            _buildSidebar(context, isDark, selectedIndex, isAdmin),
+            Expanded(child: bodyContent),
+          ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      body: bodyContent,
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppTheme.darkSurface.withValues(alpha: 0.92)
+                  : Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(
+                    alpha: isDark ? 0.10 : 0.08,
+                  ),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 8),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildNavItem(
+                        context,
+                        icon: PhosphorIcons.squaresFour(
+                          PhosphorIconsStyle.fill,
+                        ),
+                        inactiveIcon: PhosphorIcons.squaresFour(),
+                        label: AppLocalizations.of(context)!.home,
+                        index: 0,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
+                        inactiveIcon: PhosphorIcons.browsers(),
+                        label: AppLocalizations.of(context)!.pages,
+                        index: 1,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
+                        inactiveIcon: PhosphorIcons.compass(),
+                        label: AppLocalizations.of(context)!.discover,
+                        index: 2,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: PhosphorIcons.clipboardText(
+                          PhosphorIconsStyle.fill,
+                        ),
+                        inactiveIcon: PhosphorIcons.clipboardText(),
+                        label: AppLocalizations.of(context)!.clipboard,
+                        index: 3,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: isAdmin
+                            ? PhosphorIcons.crown(PhosphorIconsStyle.fill)
+                            : PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+                        inactiveIcon: isAdmin
+                            ? PhosphorIcons.crown()
+                            : PhosphorIcons.usersThree(),
+                        label: isAdmin
+                            ? AppLocalizations.of(context)!.adminDashboard
+                            : AppLocalizations.of(context)!.communityTitle,
+                        index: 4,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                        isAdmin: isAdmin,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
+                        inactiveIcon: PhosphorIcons.gear(),
+                        label: AppLocalizations.of(context)!.settings,
+                        index: 5,
+                        selectedIndex: selectedIndex,
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSidebar(
+    BuildContext context,
+    bool isDark,
+    int selectedIndex,
+    bool isAdmin,
+  ) {
+    final inactiveColor =
+        isDark ? Colors.white.withValues(alpha: 0.62) : Colors.black54;
+
+    final profileAsync = ref.watch(userProfileProvider);
+    String userName = '';
+    String userEmail = SupabaseConfig.client.auth.currentUser?.email ?? '';
+
+    if (profileAsync is AsyncData) {
+      final profile = profileAsync.value;
+      if (profile != null) {
+        userName = profile['full_name'] as String? ?? profile['username'] as String? ?? '';
+      }
+    }
+
+    final location = GoRouterState.of(context).matchedLocation;
+
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.darkSurface : Colors.white,
+        border: Border(
+          right: BorderSide(
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.08) 
+                : Colors.black.withValues(alpha: 0.05),
+            width: 1,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header / Logo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Image.asset(
+                  isDark
+                      ? 'assets/onboarding/welcome_image_dark.png'
+                      : 'assets/onboarding/welcome_image_light.png',
+                  width: 38,
+                  height: 38,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'زاد التقني',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Nav Items
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.squaresFour(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.squaresFour(),
+                  label: AppLocalizations.of(context)!.home,
+                  isSelected: location.startsWith('/dashboard'),
+                  onTap: () => context.go('/dashboard'),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.browsers(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.browsers(),
+                  label: AppLocalizations.of(context)!.pages,
+                  isSelected: location.startsWith('/pages'),
+                  onTap: () => context.go('/pages'),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.compass(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.compass(),
+                  label: AppLocalizations.of(context)!.discover,
+                  isSelected: location.startsWith('/discover') || location.startsWith('/notifications'),
+                  onTap: () => context.go('/discover'),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.clipboardText(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.clipboardText(),
+                  label: AppLocalizations.of(context)!.clipboard,
+                  isSelected: location.startsWith('/clipboard'),
+                  onTap: () => context.go('/clipboard'),
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                if (isAdmin) ...[
+                  _buildSidebarItem(
+                    context,
+                    icon: PhosphorIcons.crown(PhosphorIconsStyle.fill),
+                    inactiveIcon: PhosphorIcons.crown(),
+                    label: AppLocalizations.of(context)!.adminDashboard,
+                    isSelected: location.startsWith('/admin'),
+                    onTap: () => context.push('/admin'),
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.usersThree(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.usersThree(),
+                  label: AppLocalizations.of(context)!.communityTitle,
+                  isSelected: location.startsWith('/community'),
+                  onTap: () {
+                    if (_hasNewCommunityPosts) {
+                      setState(() => _hasNewCommunityPosts = false);
+                      _lastCommunityVisit = DateTime.now().toUtc();
+                      Hive.box(kSettingsBox).put(
+                        'last_community_visit',
+                        _lastCommunityVisit!.toIso8601String(),
+                      );
+                    }
+                    context.go('/community');
+                  },
+                  isDark: isDark,
+                  showDot: _hasNewCommunityPosts,
+                ),
+                const SizedBox(height: 8),
+                _buildSidebarItem(
+                  context,
+                  icon: PhosphorIcons.gear(PhosphorIconsStyle.fill),
+                  inactiveIcon: PhosphorIcons.gear(),
+                  label: AppLocalizations.of(context)!.settings,
+                  isSelected: location.startsWith('/settings'),
+                  onTap: () => context.go('/settings'),
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+
+          // User Profile Section
+          if (userEmail.isNotEmpty) ...[
+            const Divider(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    child: Text(
+                      userName.isNotEmpty 
+                          ? userName.substring(0, 1).toUpperCase() 
+                          : userEmail.substring(0, 1).toUpperCase(),
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (userName.isNotEmpty)
+                          Text(
+                            userName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        Text(
+                          userEmail,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: inactiveColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem(
+    BuildContext context, {
+    required IconData icon,
+    required IconData inactiveIcon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+    bool showDot = false,
+  }) {
+    final inactiveColor =
+        isDark ? Colors.white.withValues(alpha: 0.62) : Colors.black54;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.primaryColor.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  isSelected ? icon : inactiveIcon,
+                  size: 22,
+                  color: isSelected ? AppTheme.primaryColor : inactiveColor,
+                ),
+                if (showDot)
+                  Positioned(
+                    top: -2,
+                    right: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  color: isSelected ? AppTheme.primaryColor : inactiveColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 

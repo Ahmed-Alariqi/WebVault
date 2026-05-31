@@ -17,6 +17,7 @@ import '../../core/supabase_config.dart';
 import '../../presentation/providers/admin_providers.dart';
 import '../../presentation/providers/discover_providers.dart';
 import '../../presentation/widgets/offline_warning_widget.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
@@ -840,7 +841,9 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 800,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       appBar: AppBar(
         title: Text(
@@ -2463,6 +2466,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 }

@@ -465,8 +465,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     childAspectRatio: 0.72,
@@ -575,8 +575,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: SliverGrid(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                       childAspectRatio: 0.72,
@@ -888,7 +888,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ).animate().fadeIn(),
           const SizedBox(height: 14),
           SizedBox(
-            height: 290,
+            height: 320,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -949,7 +949,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ).animate().fadeIn(),
           const SizedBox(height: 14),
           SizedBox(
-            height: 290,
+            height: 320,
             child: NotificationListener<ScrollNotification>(
               onNotification: (scrollInfo) {
                 if (scrollInfo.metrics.pixels >=
@@ -1392,6 +1392,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (site.hasCopyableValue) ...[
                             Container(
@@ -1475,7 +1476,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       Wrap(
                         spacing: 4,
                         runSpacing: 4,
-                        children: site.tags
+                        children: site.tags.take(3)
                             .map(
                               (tag) => Container(
                                 padding: const EdgeInsets.symmetric(

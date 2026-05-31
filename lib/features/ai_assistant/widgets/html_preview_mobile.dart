@@ -1,10 +1,13 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// Mobile HTML/CSS/JS preview rendered inside a native WebView.
+/// Mobile/Desktop HTML/CSS/JS preview.
 ///
-/// Uses `webview_flutter` to load HTML content via `loadHtmlString`.
-/// Provides expand/collapse and fullscreen controls matching the web version.
+/// Uses `webview_flutter` on mobile and falls back to a clean external browser viewer on Windows.
 class HtmlPreviewWidget extends StatefulWidget {
   final String htmlContent;
   final bool isDark;
@@ -21,36 +24,63 @@ class HtmlPreviewWidget extends StatefulWidget {
 class _HtmlPreviewWidgetState extends State<HtmlPreviewWidget> {
   late final WebViewController _controller;
   bool _expanded = false;
+  bool _isExporting = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(
-        widget.isDark ? const Color(0xFF0F172A) : Colors.white,
-      )
-      ..loadHtmlString(widget.htmlContent);
+    if (kIsWeb || !Platform.isWindows) {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(
+          widget.isDark ? const Color(0xFF0F172A) : Colors.white,
+        )
+        ..loadHtmlString(widget.htmlContent);
+    }
   }
 
   @override
   void didUpdateWidget(covariant HtmlPreviewWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.htmlContent != widget.htmlContent) {
-      _controller.loadHtmlString(widget.htmlContent);
+    if (kIsWeb || !Platform.isWindows) {
+      if (oldWidget.htmlContent != widget.htmlContent) {
+        _controller.loadHtmlString(widget.htmlContent);
+      }
+    }
+  }
+
+  Future<void> _openHtmlExternally() async {
+    if (_isExporting) return;
+    setState(() => _isExporting = true);
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/preview_${DateTime.now().millisecondsSinceEpoch}.html');
+      await tempFile.writeAsString(widget.htmlContent);
+      await launchUrl(Uri.file(tempFile.path), mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('عذراً، فشل فتح المعاينة الخارجية')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isExporting = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
+    final isWindows = !kIsWeb && Platform.isWindows;
     final height = _expanded ? 420.0 : 220.0;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutCubic,
       margin: const EdgeInsets.only(top: 8),
-      height: height + 36, // 36 for the header bar
+      height: isWindows ? 180.0 : height + 36, // 36 for the header bar
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : Colors.white,
         borderRadius: BorderRadius.circular(10),
@@ -111,14 +141,14 @@ class _HtmlPreviewWidgetState extends State<HtmlPreviewWidget> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(
+                const Icon(
                   Icons.language_rounded,
                   size: 13,
-                  color: const Color(0xFF3B82F6),
+                  color: Color(0xFF3B82F6),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'معاينة مباشرة',
+                  isWindows ? 'معاينة HTML المباشرة' : 'معاينة مباشرة',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -127,43 +157,92 @@ class _HtmlPreviewWidgetState extends State<HtmlPreviewWidget> {
                   ),
                 ),
                 const Spacer(),
-                // Expand/collapse button
-                GestureDetector(
-                  onTap: () => setState(() => _expanded = !_expanded),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      _expanded
-                          ? Icons.unfold_less_rounded
-                          : Icons.unfold_more_rounded,
-                      size: 16,
-                      color: isDark ? Colors.white38 : Colors.black38,
+                if (!isWindows) ...[
+                  // Expand/collapse button
+                  GestureDetector(
+                    onTap: () => setState(() => _expanded = !_expanded),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        _expanded
+                            ? Icons.unfold_less_rounded
+                            : Icons.unfold_more_rounded,
+                        size: 16,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
                     ),
                   ),
-                ),
-                // Fullscreen button
-                GestureDetector(
-                  onTap: () => _openFullscreen(context),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.fullscreen_rounded,
-                      size: 16,
-                      color: isDark ? Colors.white38 : Colors.black38,
+                  // Fullscreen button
+                  GestureDetector(
+                    onTap: () => _openFullscreen(context),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.fullscreen_rounded,
+                        size: 16,
+                        color: isDark ? Colors.white38 : Colors.black38,
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
-          // ── WebView body ──
+          // ── Body ──
           Expanded(
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(10),
                 bottomRight: Radius.circular(10),
               ),
-              child: WebViewWidget(controller: _controller),
+              child: isWindows
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'اضغط على الزر أدناه لفتح معاينة الصفحة التفاعلية مباشرة في متصفحك الافتراضي.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: 'Cairo',
+                                color: isDark ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ElevatedButton.icon(
+                              onPressed: _openHtmlExternally,
+                              icon: _isExporting
+                                  ? const SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                                      ),
+                                    )
+                                  : const Icon(Icons.open_in_new_rounded, size: 16),
+                              label: const Text(
+                                'فتح المعاينة الخارجية',
+                                style: TextStyle(fontFamily: 'Cairo', fontSize: 12),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF3B82F6),
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : WebViewWidget(controller: _controller),
             ),
           ),
         ],
@@ -203,17 +282,21 @@ class _FullscreenPreviewDialogState extends State<_FullscreenPreviewDialog> {
   @override
   void initState() {
     super.initState();
-    _fsController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(
-        widget.isDark ? const Color(0xFF0F172A) : Colors.white,
-      )
-      ..loadHtmlString(widget.htmlContent);
+    if (kIsWeb || !Platform.isWindows) {
+      _fsController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(
+          widget.isDark ? const Color(0xFF0F172A) : Colors.white,
+        )
+        ..loadHtmlString(widget.htmlContent);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
+    final isWindows = !kIsWeb && Platform.isWindows;
+
     return Dialog(
       insetPadding: const EdgeInsets.all(16),
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -236,10 +319,10 @@ class _FullscreenPreviewDialogState extends State<_FullscreenPreviewDialog> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.language_rounded,
                     size: 16,
-                    color: const Color(0xFF3B82F6),
+                    color: Color(0xFF3B82F6),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -248,7 +331,7 @@ class _FullscreenPreviewDialogState extends State<_FullscreenPreviewDialog> {
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'Cairo',
-                      color: isDark ? Colors.white70 : Colors.black87,
+                      color: isDark ? Colors.white70 : Colors.black87, // fallback to black87 if black87 is too harsh
                     ),
                   ),
                   const Spacer(),
@@ -261,14 +344,24 @@ class _FullscreenPreviewDialogState extends State<_FullscreenPreviewDialog> {
                 ],
               ),
             ),
-            // WebView
+            // WebView / Fallback
             Expanded(
               child: ClipRRect(
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
                 ),
-                child: WebViewWidget(controller: _fsController),
+                child: isWindows
+                    ? Center(
+                        child: Text(
+                          'المعاينة التفاعلية بشاشة كاملة غير مدعومة على هذا النظام.',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                        ),
+                      )
+                    : WebViewWidget(controller: _fsController),
               ),
             ),
           ],

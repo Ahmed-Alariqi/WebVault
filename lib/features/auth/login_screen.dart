@@ -1,3 +1,4 @@
+import '../../presentation/widgets/responsive_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -110,150 +111,160 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 1. Background Gradient
-          Container(
-            width: double.infinity,
-            height: double.infinity,
+    final bgWidget = Stack(
+      children: [
+        // 1. Background Gradient
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: isDark
+                  ? [
+                      const Color(0xFF0F172A), // Slate 900
+                      const Color(0xFF020617), // Slate 950
+                    ]
+                  : [
+                      const Color(0xFFF8FAFC), // Slate 50
+                      const Color(0xFFF1F5F9), // Slate 100
+                      const Color(0xFFEFF6FF), // Very soft blue (Indigo 50 equivalent)
+                    ],
+            ),
+          ),
+        ),
+
+        // 2. Decorative Blobs
+        Positioned(
+          top: -100,
+          right: -50,
+          child: Container(
+            width: size.width * 0.8,
+            height: size.width * 0.8,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: isDark
-                    ? [
-                        const Color(0xFF0F172A), // Slate 900
-                        const Color(0xFF020617), // Slate 950
-                      ]
-                    : [
-                        const Color(0xFFF8FAFC), // Slate 50
-                        const Color(0xFFF1F5F9), // Slate 100
-                        const Color(0xFFEFF6FF), // Very soft blue (Indigo 50 equivalent)
-                      ],
+              color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          left: -100,
+          child: Container(
+            width: size.width * 0.9,
+            height: size.width * 0.9,
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? AppTheme.primaryColor.withValues(alpha: 0.05)
+                  : AppTheme.primaryColor.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 50,
+          left: -50,
+          child: Container(
+            width: size.width * 0.6,
+            height: size.width * 0.6,
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? AppTheme.primaryColor.withValues(alpha: 0.1) 
+                  : AppTheme.primaryColor.withValues(alpha: 0.06),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        // Center-ish blue glow behind the card for Light Mode
+        if (!isDark) ...[
+          Positioned(
+            top: size.height * 0.3,
+            left: size.width * 0.1,
+            right: size.width * 0.1,
+            child: Container(
+              width: size.width * 0.8,
+              height: size.width * 0.6,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.12),
+                    Colors.transparent,
+                  ],
+                ),
               ),
             ),
           ),
-
-          // 2. Decorative Blobs
+          // Extra top-right spot for Light Mode
           Positioned(
-            top: -100,
+            top: -50,
             right: -50,
+            child: Container(
+              width: size.width * 0.7,
+              height: size.width * 0.7,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    AppTheme.primaryColor.withValues(alpha: 0.1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Extra bottom-left spot for Light Mode
+          Positioned(
+            bottom: -100,
+            left: -100,
             child: Container(
               width: size.width * 0.8,
               height: size.width * 0.8,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.08 : 0.12),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -150,
-            left: -100,
-            child: Container(
-              width: size.width * 0.9,
-              height: size.width * 0.9,
-              decoration: BoxDecoration(
-                color: isDark 
-                    ? AppTheme.primaryColor.withValues(alpha: 0.05)
-                    : AppTheme.primaryColor.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-              bottom: 50,
-              left: -50,
-              child: Container(
-                width: size.width * 0.6,
-                height: size.width * 0.6,
-                decoration: BoxDecoration(
-                  color: isDark 
-                      ? AppTheme.primaryColor.withValues(alpha: 0.1) 
-                      : AppTheme.primaryColor.withValues(alpha: 0.06),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          // Center-ish blue glow behind the card for Light Mode
-          if (!isDark) ...[
-            Positioned(
-              top: size.height * 0.3,
-              left: size.width * 0.1,
-              right: size.width * 0.1,
-              child: Container(
-                width: size.width * 0.8,
-                height: size.width * 0.6,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.12),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Extra top-right spot for Light Mode
-            Positioned(
-              top: -50,
-              right: -50,
-              child: Container(
-                width: size.width * 0.7,
-                height: size.width * 0.7,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.1),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // Extra bottom-left spot for Light Mode
-            Positioned(
-              bottom: -100,
-              left: -100,
-              child: Container(
-                width: size.width * 0.8,
-                height: size.width * 0.8,
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      AppTheme.primaryColor.withValues(alpha: 0.08),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-          // New Top-Right subtle bubble
-          Positioned(
-            top: 40,
-            right: -20,
-            child: Container(
-              width: size.width * 0.4,
-              height: size.width * 0.4,
-              decoration: BoxDecoration(
                 gradient: RadialGradient(
                   colors: [
-                    isDark ? Colors.purpleAccent.withValues(alpha: 0.15) : Colors.purpleAccent.withValues(alpha: 0.1),
+                    AppTheme.primaryColor.withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                 ),
-                shape: BoxShape.circle,
               ),
             ),
           ),
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                child: const SizedBox.shrink(),
+        ],
+        // New Top-Right subtle bubble
+        Positioned(
+          top: 40,
+          right: -20,
+          child: Container(
+            width: size.width * 0.4,
+            height: size.width * 0.4,
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                colors: [
+                  isDark ? Colors.purpleAccent.withValues(alpha: 0.15) : Colors.purpleAccent.withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
               ),
+              shape: BoxShape.circle,
             ),
+          ),
+        ),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      ],
+    );
+
+    return ResponsiveLayout(
+      maxWidth: 460,
+      background: bgWidget,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          if (size.width <= 900) bgWidget,
           // 3. Main Content
           SafeArea(
             child: SingleChildScrollView(
@@ -279,8 +290,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildLogo(bool isDark) {
     return Column(

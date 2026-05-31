@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -22,6 +24,7 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
   bool _isDialogShowing = false;
   String? _selectedImageUrl;
   bool _showSelectedBanner = false;
+  final _urlInputController = TextEditingController();
 
   // For the pulsing select button animation
   late final AnimationController _pulseController;
@@ -34,32 +37,34 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    final query = Uri.encodeComponent(widget.initialQuery);
-    final url = 'https://www.google.com/search?tbm=isch&q=$query&tbs=isz:l';
+    if (kIsWeb || !Platform.isWindows) {
+      final query = Uri.encodeComponent(widget.initialQuery);
+      final url = 'https://www.google.com/search?tbm=isch&q=$query&tbs=isz:l';
 
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0x00000000))
-      ..addJavaScriptChannel(
-        'ImagePicker',
-        onMessageReceived: (JavaScriptMessage message) {
-          final src = message.message;
-          if (src.startsWith('http') && mounted) {
-            _onImageSelected(src);
-          }
-        },
-      )
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (String url) {
-            if (mounted) {
-              setState(() => _isLoading = false);
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(const Color(0x00000000))
+        ..addJavaScriptChannel(
+          'ImagePicker',
+          onMessageReceived: (JavaScriptMessage message) {
+            final src = message.message;
+            if (src.startsWith('http') && mounted) {
+              _onImageSelected(src);
             }
-            _injectImageInterceptor();
           },
-        ),
-      )
-      ..loadRequest(Uri.parse(url));
+        )
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (String url) {
+              if (mounted) {
+                setState(() => _isLoading = false);
+              }
+              _injectImageInterceptor();
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse(url));
+    }
   }
 
   void _injectImageInterceptor() {
@@ -462,6 +467,7 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
   @override
   void dispose() {
     _pulseController.dispose();
+    _urlInputController.dispose();
     super.dispose();
   }
 
@@ -469,6 +475,170 @@ class _GoogleImageSearchSheetState extends State<GoogleImageSearchSheet>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
+    final isWindows = !kIsWeb && Platform.isWindows;
+
+    if (isWindows) {
+      return Container(
+        height: MediaQuery.of(context).size.height * 0.95,
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF121218) : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          children: [
+            // ── Header ──
+            _buildHeader(isDark, loc),
+
+            // ── Instruction Banner ──
+            _buildInstructionBanner(isDark, loc),
+
+            // ── Fallback Input UI ──
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.05),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.bold),
+                            size: 32,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'البحث المباشر غير مدعوم على هذا النظام',
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'تصفح الصور عبر تطبيق الويب غير مدعوم حالياً في نسخة ويندوز. يمكنك البحث في متصفحك ونسخ رابط الصورة المباشر ولصقه في الحقل أدناه لاستخدامه كغلاف.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Cairo',
+                            fontSize: 12,
+                            height: 1.5,
+                            color: isDark ? Colors.white60 : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        TextField(
+                          controller: _urlInputController,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontFamily: 'Cairo',
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'أدخل رابط الصورة المباشر هنا...',
+                            hintStyle: const TextStyle(fontFamily: 'Cairo', fontSize: 13),
+                            prefixIcon: Icon(PhosphorIcons.link(), size: 18),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    side: BorderSide(
+                                      color: isDark ? Colors.white12 : Colors.black12,
+                                    ),
+                                  ),
+                                ),
+                                child: Text(
+                                  loc.cancelLabel,
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? Colors.white60 : Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: FilledButton(
+                                onPressed: () {
+                                  final val = _urlInputController.text.trim();
+                                  if (val.startsWith('http')) {
+                                    Navigator.pop(context, val);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(loc.imageSearchNoValidUrl),
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryColor,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'تأكيد واستخدام',
+                                  style: TextStyle(
+                                    fontFamily: 'Cairo',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.95,

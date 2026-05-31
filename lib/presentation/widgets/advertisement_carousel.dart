@@ -102,8 +102,10 @@ class _AdvertisementCarouselState extends ConsumerState<AdvertisementCarousel> {
 
         return Padding(
           padding: widget.padding,
-          child:
-              SizedBox(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: SizedBox(
                     height: 160,
                     child: Stack(
                       children: [
@@ -153,6 +155,8 @@ class _AdvertisementCarouselState extends ConsumerState<AdvertisementCarousel> {
                   .animate()
                   .fadeIn(duration: 400.ms)
                   .slideY(begin: -0.1, curve: Curves.easeOutQuad),
+            ),
+          ),
         );
       },
       loading: () => const SizedBox.shrink(),
@@ -382,10 +386,12 @@ class _ProgressBarState extends State<_ProgressBar>
       builder: (context, child) {
         return Align(
           alignment: Alignment.centerLeft,
-          child: Container(
-            height: 3,
-            width: MediaQuery.of(context).size.width * _controller.value,
-            color: Colors.white.withValues(alpha: 0.6),
+          child: FractionallySizedBox(
+            widthFactor: _controller.value,
+            child: Container(
+              height: 3,
+              color: Colors.white.withValues(alpha: 0.6),
+            ),
           ),
         );
       },

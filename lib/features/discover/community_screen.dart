@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
+
 import '../../presentation/widgets/offline_warning_widget.dart';
 import '../../data/models/community_model.dart';
 import '../../presentation/providers/community_providers.dart';
@@ -143,7 +144,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             PhosphorIcons.caretLeft(),
             color: isDark ? Colors.white : Colors.black,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
         ),
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -386,7 +393,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               label: Text(AppLocalizations.of(context)!.post),
             ).animate().slideY(begin: 1.0, curve: Curves.easeOutBack),
     );
-  }
+}
 
   void _showNewPostSheet(BuildContext context) {
     showModalBottomSheet(

@@ -3023,7 +3023,10 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
       // back into this screen's input without needing a private state ref.
       body: ChatPromptBridge(
         inject: injectPromptAndFocus,
-        child: Column(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
           children: [
             // ── Premium Header (Hidden in Bottom Sheet) ──
             if (widget.showHeader) _buildHeader(context, isDark, loc),
@@ -3044,11 +3047,13 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               chatState.isLoading,
               chatState.messages.isEmpty,
             ),
-          ],
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Header with item context ──
   Widget _buildHeader(BuildContext context, bool isDark, AppLocalizations loc) {
@@ -4050,6 +4055,12 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
         _timer?.cancel();
         _displayedText = widget.content;
         _isComplete = false;
+      } else if (oldWidget.isStreaming && !widget.isStreaming) {
+        // Stream has finished. Keep the content as-is and mark complete
+        // to prevent rewriting the message again with typewriter effect.
+        _timer?.cancel();
+        _displayedText = widget.content;
+        _isComplete = true;
       } else if (widget.animate && !_isComplete) {
         _startTypewriter();
       } else {

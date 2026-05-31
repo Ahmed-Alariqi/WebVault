@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// Lightweight controller exposed to parents so they can drive zoom and
@@ -293,31 +295,33 @@ class _ZadMermaidViewState extends State<ZadMermaidView> {
 
     final String htmlContent = _buildHtml();
 
-    _webController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(
-          widget.isDark ? const Color(0xFF1E293B) : Colors.white)
-      ..addJavaScriptChannel(
-        'MermaidBridge',
-        onMessageReceived: _handleBridgeMessage,
-      )
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageFinished: (_) {
-            if (mounted) setState(() => _isLoading = false);
-          },
-        ),
-      )
-      ..loadHtmlString(htmlContent);
+    if (kIsWeb || !Platform.isWindows) {
+      _webController = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(
+            widget.isDark ? const Color(0xFF1E293B) : Colors.white)
+        ..addJavaScriptChannel(
+          'MermaidBridge',
+          onMessageReceived: _handleBridgeMessage,
+        )
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageFinished: (_) {
+              if (mounted) setState(() => _isLoading = false);
+            },
+          ),
+        )
+        ..loadHtmlString(htmlContent);
 
-    widget.controller?._attach(
-      zoomIn: _zoomIn,
-      zoomOut: _zoomOut,
-      zoomReset: _zoomReset,
-      getSvg: _getSvg,
-      getPng: _getPng,
-      transform: _transformCtl,
-    );
+      widget.controller?._attach(
+        zoomIn: _zoomIn,
+        zoomOut: _zoomOut,
+        zoomReset: _zoomReset,
+        getSvg: _getSvg,
+        getPng: _getPng,
+        transform: _transformCtl,
+      );
+    }
   }
 
   @override
@@ -328,18 +332,20 @@ class _ZadMermaidViewState extends State<ZadMermaidView> {
     // chunk forever (which usually fails to parse and triggers a false
     // "fix with AI" error). We reload the page with the latest code, but
     // debounce by 350ms so we don't thrash on every token.
-    final codeChanged = oldWidget.code != widget.code;
-    final themeChanged = oldWidget.isDark != widget.isDark;
-    if (codeChanged || themeChanged) {
-      _reloadDebounce?.cancel();
-      _reloadDebounce = Timer(const Duration(milliseconds: 350), () {
-        if (!mounted) return;
-        setState(() {
-          _isLoading = true;
-          _ready = false;
+    if (kIsWeb || !Platform.isWindows) {
+      final codeChanged = oldWidget.code != widget.code;
+      final themeChanged = oldWidget.isDark != widget.isDark;
+      if (codeChanged || themeChanged) {
+        _reloadDebounce?.cancel();
+        _reloadDebounce = Timer(const Duration(milliseconds: 350), () {
+          if (!mounted) return;
+          setState(() {
+            _isLoading = true;
+            _ready = false;
+          });
+          _webController.loadHtmlString(_buildHtml());
         });
-        _webController.loadHtmlString(_buildHtml());
-      });
+      }
     }
   }
 
@@ -411,6 +417,7 @@ class _ZadMermaidViewState extends State<ZadMermaidView> {
   /// back through `MermaidBridge`. Times out gracefully so the UI never
   /// hangs on a wedged WebView.
   Future<String> _exportViaBridge(String jsCallTemplate) async {
+    if (!kIsWeb && Platform.isWindows) return '';
     final id = _nextExportId++;
     final completer = Completer<String>();
     _pendingExports[id] = completer;
@@ -431,12 +438,14 @@ class _ZadMermaidViewState extends State<ZadMermaidView> {
   }
 
   Future<String?> _getSvg() async {
+    if (!kIsWeb && Platform.isWindows) return null;
     if (!_ready) return null;
     final value = await _exportViaBridge(r'window.requestSvgExport($id);');
     return value.isEmpty ? null : value;
   }
 
   Future<Uint8List?> _getPng({double scale = 2}) async {
+    if (!kIsWeb && Platform.isWindows) return null;
     if (!_ready) return null;
     final value = await _exportViaBridge(
       'window.requestPngExport(\$id, $scale);',
@@ -464,6 +473,91 @@ class _ZadMermaidViewState extends State<ZadMermaidView> {
 
   @override
   Widget build(BuildContext context) {
+    final isWindows = !kIsWeb && Platform.isWindows;
+    if (isWindows) {
+      final codeColor = widget.isDark ? Colors.teal.shade400 : Colors.teal.shade800;
+      return Container(
+        height: widget.height,
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: widget.isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: widget.isDark ? 0.35 : 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: Border.all(
+            color: widget.isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.schema_outlined,
+                  size: 16,
+                  color: codeColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'مخطط Mermaid',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isDark ? Colors.white70 : Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  tooltip: 'نسخ الكود',
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: widget.code));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم نسخ كود مخطط Mermaid بنجاح')),
+                    );
+                  },
+                  color: widget.isDark ? Colors.white54 : Colors.black54,
+                ),
+              ],
+            ),
+            const Divider(height: 12, thickness: 0.5),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: widget.isDark ? Colors.black26 : Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    widget.code,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: codeColor,
+                    ),
+                    textDirection: TextDirection.ltr,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final webView = WebViewWidget(controller: _webController);
 
     // The WebView itself never receives gestures — they're consumed by the

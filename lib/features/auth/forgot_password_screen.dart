@@ -1,3 +1,4 @@
+import '../../presentation/widgets/responsive_layout.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -145,51 +146,62 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
+    final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 1. Background Gradient
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: isDark
-                    ? [const Color(0xFF020617), const Color(0xFF0F172A)]
-                    : [const Color(0xFFF0F4FF), AppTheme.primaryLight],
-              ),
+    final bgWidget = Stack(
+      children: [
+        // 1. Background Gradient
+        Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: isDark
+                  ? [const Color(0xFF020617), const Color(0xFF0F172A)]
+                  : [const Color(0xFFF0F4FF), AppTheme.primaryLight],
             ),
           ),
-          // 2. Decorative Blobs
+        ),
+        // 2. Decorative Blobs
+        Positioned(
+          top: -100,
+          right: -50,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.06 : 0.1),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ),
+        if (isDark)
           Positioned(
-            top: -100,
-            right: -50,
+            bottom: -100,
+            left: -80,
             child: Container(
-              width: 300,
-              height: 300,
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: isDark ? 0.06 : 0.1),
+                color: AppTheme.primaryColor.withValues(alpha: 0.04),
                 shape: BoxShape.circle,
               ),
             ),
           ),
-          if (isDark)
-            Positioned(
-              bottom: -100,
-              left: -80,
-              child: Container(
-                width: 350,
-                height: 350,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.04),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-        SafeArea(
+      ],
+    );
+
+    return ResponsiveLayout(
+      maxWidth: 460,
+      background: bgWidget,
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          if (size.width <= 900) bgWidget,
+          SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 28),
               child: Column(
@@ -268,8 +280,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildIcon() {
     IconData icon;

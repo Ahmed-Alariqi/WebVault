@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../presentation/providers/providers.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/utils/admin_ui_utils.dart';
@@ -27,7 +28,9 @@ class _ClipboardSettingsScreenState
     final isAdvancedCopyEnabled =
         settings['isAdvancedCopyEnabled'] as bool? ?? false;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       body: CustomScrollView(
         slivers: [
           // ── Premium header ──────────────────────────────────────
@@ -244,8 +247,9 @@ class _ClipboardSettingsScreenState
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Info tile ─────────────────────────────────────────────────────
   Widget _buildInfoTile({

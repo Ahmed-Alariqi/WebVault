@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_theme.dart';
+import '../../presentation/widgets/responsive_layout.dart';
 import '../../core/utils/admin_ui_utils.dart';
 import '../../presentation/providers/providers.dart';
 import '../../data/repositories/settings_repository.dart';
@@ -100,7 +101,9 @@ class _CloudRestoreScreenState extends ConsumerState<CloudRestoreScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
+    return ResponsiveLayout(
+      maxWidth: 520,
+      child: Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: Stack(
         children: [
@@ -434,8 +437,9 @@ class _CloudRestoreScreenState extends ConsumerState<CloudRestoreScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCountRow(IconData icon, String label, int count, bool isDark) {
     return Padding(
