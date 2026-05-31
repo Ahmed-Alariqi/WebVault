@@ -29,6 +29,7 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
   String? _selectedFolder; // null means 'All'
   String _selectedFileType = 'all'; // 'all', 'image', 'non-image'
   String _tableSearchQuery = ''; // Filter tables in quotas tab
+  final Set<String> _selectedFileIds = {}; // Track selected media for batch operations
 
   // Uploading state
   bool _isUploading = false;
@@ -52,7 +53,13 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {
+          if (_tabController.index != 0) {
+            _selectedFileIds.clear();
+          }
+        });
+      }
     });
     _tableSearchController.addListener(() {
       if (mounted) {
@@ -71,11 +78,13 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
     super.dispose();
   }
 
-  Future<void> _loadMedia() async {
+  Future<void> _loadMedia({bool silent = false}) async {
     if (!mounted) return;
-    setState(() {
-      _isLoadingMedia = true;
-    });
+    if (!silent) {
+      setState(() {
+        _isLoadingMedia = true;
+      });
+    }
 
     try {
       final results = await ImageKitService.listFiles(
@@ -152,18 +161,111 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
 
     if (confirm == true) {
       if (!mounted) return;
-      setState(() => _isLoadingMedia = true);
+      
+      // Optimistic UI Update: remove file from screen instantly
+      setState(() {
+        _files.removeWhere((f) => f['fileId'] == fileId);
+        _selectedFileIds.remove(fileId);
+      });
 
       final success = await ImageKitService.deleteFile(fileId);
 
       if (mounted) {
         if (success) {
           AdminUIUtils.showSuccess(context, 'تم حذف الملف بنجاح!');
-          _loadMedia();
         } else {
-          setState(() => _isLoadingMedia = false);
-          AdminUIUtils.showError(context, 'فشل حذف الملف.');
+          AdminUIUtils.showError(context, 'فشل حذف الملف من الخادم السحابي.');
         }
+        // Silent refresh after a short delay to ensure API listing index is updated
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            _loadMedia(silent: true);
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteSelectedMedia() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final count = _selectedFileIds.length;
+    if (count == 0) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(PhosphorIcons.warning(PhosphorIconsStyle.fill), color: Colors.red, size: 24),
+            const SizedBox(width: 10),
+            const Text(
+              'تأكيد الحذف المتعدد',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: Text(
+          'هل أنت متأكد من حذف $count ملفات نهائياً من حساب ImageKit السحابي؟',
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.black87,
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              'إلغاء',
+              style: TextStyle(color: isDark ? Colors.white60 : Colors.black54),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('حذف نهائي'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      if (!mounted) return;
+
+      final fileIdsToDelete = List<String>.from(_selectedFileIds);
+
+      // Optimistic UI Update: remove selected files from screen instantly
+      setState(() {
+        _files.removeWhere((file) => fileIdsToDelete.contains(file['fileId']));
+        _selectedFileIds.clear();
+      });
+
+      AdminUIUtils.showSuccess(context, 'جاري حذف الملفات في الخلفية...');
+
+      // Call API in parallel
+      final results = await Future.wait(
+        fileIdsToDelete.map((id) => ImageKitService.deleteFile(id))
+      );
+
+      final successCount = results.where((r) => r).length;
+
+      if (mounted) {
+        AdminUIUtils.showSuccess(
+          context,
+          'تم حذف $successCount من أصل ${fileIdsToDelete.length} ملفات بنجاح!',
+        );
+
+        // Silent refresh after 1.5 seconds to sync with server
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          if (mounted) {
+            _loadMedia(silent: true);
+          }
+        });
       }
     }
   }
@@ -283,8 +385,23 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
       if (mounted) {
         setState(() => _isUploading = false);
         if (url != null) {
+          final tempFile = {
+            'fileId': 'temp_${DateTime.now().millisecondsSinceEpoch}',
+            'name': url.split('/').last,
+            'url': url,
+            'size': 0,
+            'fileType': type == 'image' ? 'image' : 'non-image',
+          };
+          setState(() {
+            _files.insert(0, tempFile);
+          });
           AdminUIUtils.showSuccess(context, 'تم رفع الـ $_uploadType بنجاح!');
-          _loadMedia();
+          // Silent reload after 2.0 seconds to fetch official details from server
+          Future.delayed(const Duration(milliseconds: 2000), () {
+            if (mounted) {
+              _loadMedia(silent: true);
+            }
+          });
         } else {
           AdminUIUtils.showWarning(context, 'تم إلغاء عملية الرفع.');
         }
@@ -364,27 +481,64 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-      appBar: AppBar(
-        title: const Text(
-          'مركز التحكم والخدمات السحابية',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
-        ),
-        backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-        elevation: 0,
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppTheme.primaryColor,
-          labelColor: AppTheme.primaryColor,
-          unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          tabs: [
-            Tab(text: 'إدارة الوسائط 📁', icon: Icon(PhosphorIcons.folderOpen(), size: 20)),
-            Tab(text: 'النسخ الاحتياطي ☁️', icon: Icon(PhosphorIcons.cloudArrowUp(), size: 20)),
-            Tab(text: 'حصص الكوتا 📊', icon: Icon(PhosphorIcons.chartBar(), size: 20)),
-          ],
-        ),
-      ),
+      appBar: _selectedFileIds.isNotEmpty
+          ? AppBar(
+              backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+              elevation: 2,
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    _selectedFileIds.clear();
+                  });
+                },
+              ),
+              title: Text(
+                'تم تحديد ${_selectedFileIds.length} عنصر',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  tooltip: 'تحديد الكل',
+                  onPressed: () {
+                    setState(() {
+                      _selectedFileIds.addAll(
+                        _files
+                            .map((f) => f['fileId'] as String?)
+                            .whereType<String>()
+                      );
+                    });
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.redAccent),
+                  onPressed: _deleteSelectedMedia,
+                ),
+                const SizedBox(width: 8),
+              ],
+            )
+          : AppBar(
+              title: const Text(
+                'مركز التحكم والخدمات السحابية',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+              ),
+              backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
+              elevation: 0,
+              centerTitle: true,
+              bottom: TabBar(
+                controller: _tabController,
+                indicatorColor: AppTheme.primaryColor,
+                labelColor: AppTheme.primaryColor,
+                unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                tabs: [
+                  Tab(text: 'إدارة الوسائط 📁', icon: Icon(PhosphorIcons.folderOpen(), size: 20)),
+                  Tab(text: 'النسخ الاحتياطي ☁️', icon: Icon(PhosphorIcons.cloudArrowUp(), size: 20)),
+                  Tab(text: 'حصص الكوتا 📊', icon: Icon(PhosphorIcons.chartBar(), size: 20)),
+                ],
+              ),
+            ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -403,7 +557,7 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
           _buildQuotasTab(isDark),
         ],
       ),
-      floatingActionButton: _tabController.index == 0
+      floatingActionButton: _tabController.index == 0 && _selectedFileIds.isEmpty
           ? FloatingActionButton.extended(
               onPressed: _startUploadFlow,
               backgroundColor: AppTheme.primaryColor,
@@ -547,141 +701,210 @@ class _CloudControlCenterScreenState extends State<CloudControlCenterScreen>
                         final url = file['url'] as String? ?? '';
                         final name = file['name'] as String? ?? '';
                         final size = file['size'] as int? ?? 0;
+                        final fileId = file['fileId'] as String? ?? '';
+                        final isSelected = _selectedFileIds.contains(fileId);
                         final isVideo = file['fileType'] == 'non-image' || url.toLowerCase().contains('.mp4') || url.toLowerCase().contains('.mov');
 
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                        return GestureDetector(
+                          onLongPress: () {
+                            if (fileId.isEmpty) return;
+                            HapticFeedback.lightImpact();
+                            setState(() {
+                              if (isSelected) {
+                                _selectedFileIds.remove(fileId);
+                              } else {
+                                _selectedFileIds.add(fileId);
+                              }
+                            });
+                          },
+                          onTap: () {
+                            if (_selectedFileIds.isNotEmpty) {
+                              if (fileId.isEmpty) return;
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedFileIds.remove(fileId);
+                                } else {
+                                  _selectedFileIds.add(fileId);
+                                }
+                              });
+                            } else {
+                              if (isVideo) {
+                                _previewVideo(url);
+                              } else {
+                                _previewImage(url);
+                              }
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)),
+                                width: isSelected ? 2.0 : 1.0,
+                              ),
                             ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Visual thumbnail / placeholder
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                  child: isVideo
-                                      ? Container(
-                                          color: Colors.black.withValues(alpha: 0.05),
-                                          child: Stack(
-                                            alignment: Alignment.center,
-                                            children: [
-                                              Icon(
-                                                PhosphorIcons.videoCamera(PhosphorIconsStyle.duotone),
-                                                size: 40,
-                                                color: Colors.purple.withValues(alpha: 0.7),
-                                              ),
-                                              Positioned(
-                                                bottom: 8,
-                                                left: 8,
-                                                child: Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black54,
-                                                    borderRadius: BorderRadius.circular(4),
+                            child: Stack(
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Visual thumbnail / placeholder
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                        child: isVideo
+                                            ? Container(
+                                                color: Colors.black.withValues(alpha: 0.05),
+                                                child: Stack(
+                                                  alignment: Alignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      PhosphorIcons.videoCamera(PhosphorIconsStyle.duotone),
+                                                      size: 40,
+                                                      color: Colors.purple.withValues(alpha: 0.7),
+                                                    ),
+                                                    Positioned(
+                                                      bottom: 8,
+                                                      left: 8,
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.black54,
+                                                          borderRadius: BorderRadius.circular(4),
+                                                        ),
+                                                        child: const Text('فيديو', style: TextStyle(color: Colors.white, fontSize: 10)),
+                                                      ),
+                                                    ),
+                                                    // Play Button Overlay
+                                                    CircleAvatar(
+                                                      backgroundColor: Colors.black.withValues(alpha: 0.6),
+                                                      child: IconButton(
+                                                        icon: const Icon(Icons.play_arrow, color: Colors.white),
+                                                        onPressed: _selectedFileIds.isNotEmpty ? null : () => _previewVideo(url),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : CachedNetworkImage(
+                                                imageUrl: ImageKitService.thumbnail(url),
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) => Container(
+                                                  color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03),
+                                                  child: const Center(
+                                                    child: CircularProgressIndicator(strokeWidth: 2),
                                                   ),
-                                                  child: const Text('فيديو', style: TextStyle(color: Colors.white, fontSize: 10)),
+                                                ),
+                                                errorWidget: (context, url, error) => const Center(
+                                                  child: Icon(Icons.broken_image),
                                                 ),
                                               ),
-                                              // Play Button Overlay
-                                              CircleAvatar(
-                                                backgroundColor: Colors.black.withValues(alpha: 0.6),
-                                                child: IconButton(
-                                                  icon: const Icon(Icons.play_arrow, color: Colors.white),
-                                                  onPressed: () => _previewVideo(url),
-                                                ),
+                                      ),
+                                    ),
+
+                                    // Description & actions
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                _formatBytes(size),
+                                                style: const TextStyle(fontSize: 10, color: Colors.grey),
                                               ),
+                                              if (_selectedFileIds.isEmpty)
+                                                Row(
+                                                  children: [
+                                                    // Copy link button
+                                                    IconButton(
+                                                      icon: Icon(PhosphorIcons.copy(), size: 14),
+                                                      padding: EdgeInsets.zero,
+                                                      constraints: const BoxConstraints(),
+                                                      style: IconButton.styleFrom(
+                                                        minimumSize: const Size(26, 26),
+                                                      ),
+                                                      onPressed: () {
+                                                        Clipboard.setData(ClipboardData(text: url));
+                                                        AdminUIUtils.showSuccess(context, 'تم نسخ رابط الملف بنجاح!');
+                                                      },
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    // Delete button
+                                                    IconButton(
+                                                      icon: Icon(PhosphorIcons.trash(), size: 14, color: Colors.redAccent),
+                                                      padding: EdgeInsets.zero,
+                                                      constraints: const BoxConstraints(),
+                                                      style: IconButton.styleFrom(
+                                                        minimumSize: const Size(26, 26),
+                                                      ),
+                                                      onPressed: () => _deleteMedia(file),
+                                                    ),
+                                                  ],
+                                                )
+                                              else
+                                                Icon(
+                                                  isSelected
+                                                      ? Icons.check_circle
+                                                      : Icons.radio_button_unchecked,
+                                                  size: 18,
+                                                  color: isSelected
+                                                      ? AppTheme.primaryColor
+                                                      : Colors.grey,
+                                                ),
                                             ],
                                           ),
-                                        )
-                                      : Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            CachedNetworkImage(
-                                              imageUrl: ImageKitService.thumbnail(url),
-                                              fit: BoxFit.cover,
-                                              placeholder: (context, url) => Container(
-                                                color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.03),
-                                                child: const Center(
-                                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                                ),
-                                              ),
-                                              errorWidget: (context, url, error) => const Center(
-                                                child: Icon(Icons.broken_image),
-                                              ),
-                                            ),
-                                            // Clickable cover for zoom preview
-                                            Positioned.fill(
-                                              child: Material(
-                                                color: Colors.transparent,
-                                                child: InkWell(
-                                                  onTap: () => _previewImage(url),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                ),
-                              ),
-
-                              // Description & actions
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      name,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          _formatBytes(size),
-                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                        ),
-                                        Row(
-                                          children: [
-                                            // Copy link button
-                                            IconButton(
-                                              icon: Icon(PhosphorIcons.copy(), size: 14),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              style: IconButton.styleFrom(
-                                                minimumSize: const Size(26, 26),
-                                              ),
-                                              onPressed: () {
-                                                Clipboard.setData(ClipboardData(text: url));
-                                                AdminUIUtils.showSuccess(context, 'تم نسخ رابط الملف بنجاح!');
-                                              },
-                                            ),
-                                            const SizedBox(width: 8),
-                                            // Delete button
-                                            IconButton(
-                                              icon: Icon(PhosphorIcons.trash(), size: 14, color: Colors.redAccent),
-                                              padding: EdgeInsets.zero,
-                                              constraints: const BoxConstraints(),
-                                              style: IconButton.styleFrom(
-                                                minimumSize: const Size(26, 26),
-                                              ),
-                                              onPressed: () => _deleteMedia(file),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
+                                if (isSelected)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 1.5),
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      child: const Icon(
+                                        Icons.check,
+                                        size: 12,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                else if (_selectedFileIds.isNotEmpty)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.black38,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white70, width: 1.5),
+                                      ),
+                                      width: 22,
+                                      height: 22,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ).animate(delay: (index * 20).ms).fadeIn(duration: 250.ms).scale(begin: const Offset(0.95, 0.95));
                       },

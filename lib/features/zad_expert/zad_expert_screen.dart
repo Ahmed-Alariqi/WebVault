@@ -1486,17 +1486,19 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
                       children: [
 
                         Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              persona.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
+                            Flexible(
+                              child: Text(
+                                persona.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.3,
+                                  fontFamily: 'Cairo',
+                                ),
                               ),
                             ),
                             if (persona.isPremium) ...[

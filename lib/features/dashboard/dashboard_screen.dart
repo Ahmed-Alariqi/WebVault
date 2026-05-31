@@ -48,143 +48,147 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
-      body: CustomScrollView(
-        slivers: [
-          // Dynamic modern App Bar/Header
-          SliverToBoxAdapter(child: _DashboardHeader(isDark: isDark)),
-
-          // Campaign top banner
-          const SliverToBoxAdapter(child: CampaignTopBanner()),
-          // Advertisement Panel
-          const SliverToBoxAdapter(
-            child: AdvertisementCarousel(
-              targetScreen: 'home',
-              padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
-            ),
-          ),
-
-          // Referral Reminder for new users
-          const SliverToBoxAdapter(
-            child: ReferralReminderCard(),
-          ),
-
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                // Quick Actions Grid
-                const _QuickActions(),
-                const SizedBox(height: 20),
-
-                // Search Bar
-                _SearchBar(isDark: isDark),
-                const SizedBox(height: 24),
-
-                // Stats Section Header
-                _SectionHeader(
-                  title: AppLocalizations.of(context)!.vaultOverview,
-                  icon: PhosphorIcons.chartBar(),
-                  isDark: isDark,
-                ),
-                const SizedBox(height: 12),
-
-                // Premium Compact Stats Grid (2×2)
-                Row(
-                  children: [
-                    Expanded(
-                      child: _CompactStatCard(
-                        icon: PhosphorIcons.browsers(
-                          PhosphorIconsStyle.duotone,
-                        ),
-                        label: AppLocalizations.of(context)!.totalPages,
-                        value: '$totalPages',
-                        color: AppTheme.primaryColor,
-                        isDark: isDark,
-                        index: 0,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _CompactStatCard(
-                        icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                        label: AppLocalizations.of(context)!.favorites,
-                        value: '$favCount',
-                        color: const Color(0xFFEF4444),
-                        isDark: isDark,
-                        index: 1,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _CompactStatCard(
-                        icon: PhosphorIcons.folderOpen(
-                          PhosphorIconsStyle.duotone,
-                        ),
-                        label: AppLocalizations.of(context)!.folders,
-                        value: '$foldersCount',
-                        color: const Color(0xFF10B981),
-                        isDark: isDark,
-                        index: 2,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _CompactStatCard(
-                        icon: PhosphorIcons.clipboardText(
-                          PhosphorIconsStyle.duotone,
-                        ),
-                        label: AppLocalizations.of(context)!.clipboard,
-                        value: '$clipboardCount',
-                        color: const Color(0xFFF59E0B),
-                        isDark: isDark,
-                        index: 3,
-                      ),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          _DashboardHeader(isDark: isDark),
+          Expanded(
+            child: CustomScrollView(
+              slivers: [
+                // Campaign top banner
+                const SliverToBoxAdapter(child: CampaignTopBanner()),
+                // Advertisement Panel
+                const SliverToBoxAdapter(
+                  child: AdvertisementCarousel(
+                    targetScreen: 'home',
+                    padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  ),
                 ),
 
-                const SizedBox(height: 32),
+                // Referral Reminder for new users
+                const SliverToBoxAdapter(
+                  child: ReferralReminderCard(),
+                ),
 
-                // Top Vault / Most Visited
-                if (mostVisited != null) ...[
-                  _SectionHeader(
-                    title: AppLocalizations.of(context)!.topVault,
-                    icon: PhosphorIcons.star(PhosphorIconsStyle.fill),
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
-                  _TopVaultCard(page: mostVisited, isDark: isDark),
-                  const SizedBox(height: 32),
-                ],
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Quick Actions Grid
+                      const _QuickActions(),
+                      const SizedBox(height: 20),
 
-                // Recent activity
-                if (recentPages.isNotEmpty) ...[
-                  _SectionHeader(
-                    title: AppLocalizations.of(context)!.recentActivity,
-                    icon: PhosphorIcons.clockCounterClockwise(),
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 16),
-                  ...recentPages.asMap().entries.map(
-                    (entry) => _RecentItem(
-                      page: entry.value,
-                      isDark: isDark,
-                      index: entry.key,
-                      onSuggestion: () => showSuggestionDialog(
-                        context,
-                        ref,
-                        title: entry.value.title,
-                        url: entry.value.url,
+                      // Search Bar
+                      _SearchBar(isDark: isDark),
+                      const SizedBox(height: 24),
+
+                      // Stats Section Header
+                      _SectionHeader(
+                        title: AppLocalizations.of(context)!.vaultOverview,
+                        icon: PhosphorIcons.chartBar(),
+                        isDark: isDark,
                       ),
-                    ),
+                      const SizedBox(height: 12),
+
+                      // Premium Compact Stats Grid (2×2)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _CompactStatCard(
+                              icon: PhosphorIcons.browsers(
+                                PhosphorIconsStyle.duotone,
+                              ),
+                              label: AppLocalizations.of(context)!.totalPages,
+                              value: '$totalPages',
+                              color: AppTheme.primaryColor,
+                              isDark: isDark,
+                              index: 0,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _CompactStatCard(
+                              icon: PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                              label: AppLocalizations.of(context)!.favorites,
+                              value: '$favCount',
+                              color: const Color(0xFFEF4444),
+                              isDark: isDark,
+                              index: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _CompactStatCard(
+                              icon: PhosphorIcons.folderOpen(
+                                PhosphorIconsStyle.duotone,
+                              ),
+                              label: AppLocalizations.of(context)!.folders,
+                              value: '$foldersCount',
+                              color: const Color(0xFF10B981),
+                              isDark: isDark,
+                              index: 2,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _CompactStatCard(
+                              icon: PhosphorIcons.clipboardText(
+                                PhosphorIconsStyle.duotone,
+                              ),
+                              label: AppLocalizations.of(context)!.clipboard,
+                              value: '$clipboardCount',
+                              color: const Color(0xFFF59E0B),
+                              isDark: isDark,
+                              index: 3,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Top Vault / Most Visited
+                      if (mostVisited != null) ...[
+                        _SectionHeader(
+                          title: AppLocalizations.of(context)!.topVault,
+                          icon: PhosphorIcons.star(PhosphorIconsStyle.fill),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 16),
+                        _TopVaultCard(page: mostVisited, isDark: isDark),
+                        const SizedBox(height: 32),
+                      ],
+
+                      // Recent activity
+                      if (recentPages.isNotEmpty) ...[
+                        _SectionHeader(
+                          title: AppLocalizations.of(context)!.recentActivity,
+                          icon: PhosphorIcons.clockCounterClockwise(),
+                          isDark: isDark,
+                        ),
+                        const SizedBox(height: 16),
+                        ...recentPages.asMap().entries.map(
+                          (entry) => _RecentItem(
+                            page: entry.value,
+                            isDark: isDark,
+                            index: entry.key,
+                            onSuggestion: () => showSuggestionDialog(
+                              context,
+                              ref,
+                              title: entry.value.title,
+                              url: entry.value.url,
+                            ),
+                          ),
+                        ),
+                      ] else if (totalPages == 0)
+                        _EmptyState(isDark: isDark),
+                    ]),
                   ),
-                ] else if (totalPages == 0)
-                  _EmptyState(isDark: isDark),
-              ]),
+                ),
+              ],
             ),
           ),
         ],

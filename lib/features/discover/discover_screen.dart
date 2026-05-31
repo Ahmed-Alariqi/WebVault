@@ -469,7 +469,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : 2,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 0.72,
+                    childAspectRatio: MediaQuery.of(context).size.width > 900 ? 0.72 : 0.58,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (ctx, i) => const ShimmerGridCard(),
@@ -579,7 +579,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       crossAxisCount: MediaQuery.of(context).size.width > 900 ? 4 : 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 0.72,
+                      childAspectRatio: MediaQuery.of(context).size.width > 900 ? 0.72 : 0.58,
                     ),
                     delegate: SliverChildBuilderDelegate(
                       (ctx, i) {
@@ -1389,94 +1389,85 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          if (site.hasCopyableValue) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.05)
-                                    : Colors.black.withValues(alpha: 0.03),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: isDark
-                                      ? Colors.white10
-                                      : Colors.black.withValues(alpha: 0.06),
-                                ),
-                              ),
-                              child: Text(
-                                site.actionValue,
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  fontFamily: 'monospace',
-                                  color: isDark
-                                      ? Colors.white70
-                                      : Colors.black54,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ] else ...[
-                            Text(
-                              TextUtils.getPlainTextFromDescription(
-                                site.description,
-                              ),
-                              style: TextStyle(
-                                fontSize: isGrid ? 10 : 11,
-                                color: isDark
-                                    ? AppTheme.darkTextSecondary
-                                    : AppTheme.lightTextSecondary,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                          Padding(
-                            padding: const EdgeInsets.only(top: 3),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  PhosphorIcons.arrowSquareOut(),
-                                  size: 10,
-                                  color: AppTheme.primaryColor.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                ),
-                                const SizedBox(width: 3),
-                                Text(
-                                  AppLocalizations.of(context)!.discoverTitle ==
-                                          'المستكشف'
-                                      ? 'اضغط للتفاصيل'
-                                      : 'Tap for details',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.primaryColor.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                    if (site.hasCopyableValue) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.black.withValues(alpha: 0.06),
+                          ),
+                        ),
+                        child: Text(
+                          site.actionValue,
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontFamily: 'monospace',
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.black54,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ] else ...[
+                      Text(
+                        TextUtils.getPlainTextFromDescription(
+                          site.description,
+                        ),
+                        style: TextStyle(
+                          fontSize: isGrid ? 10 : 11,
+                          color: isDark
+                              ? AppTheme.darkTextSecondary
+                              : AppTheme.lightTextSecondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 3),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          PhosphorIcons.arrowSquareOut(),
+                          size: 10,
+                          color: AppTheme.primaryColor.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          AppLocalizations.of(context)!.discoverTitle ==
+                                  'المستكشف'
+                              ? 'اضغط للتفاصيل'
+                              : 'Tap for details',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.primaryColor.withValues(
+                              alpha: 0.7,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    const Spacer(),
                     if (site.tags.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 4,
                         runSpacing: 4,
-                        children: site.tags.take(3)
+                        children: site.tags
                             .map(
                               (tag) => Container(
                                 padding: const EdgeInsets.symmetric(
