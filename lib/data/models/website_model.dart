@@ -13,6 +13,7 @@ class WebsiteModel {
   final String? createdBy;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> galleryImages;
 
   // ── New fields ──
   final String contentType; // 'website' | 'prompt' | 'offer' | 'announcement'
@@ -44,6 +45,7 @@ class WebsiteModel {
     this.videoUrl,
     this.pricingModel = 'free',
     this.isPremiumOnly = false,
+    this.galleryImages = const [],
   });
 
   /// Whether this item has expired
@@ -58,6 +60,9 @@ class WebsiteModel {
 
   /// Whether this item has a video
   bool get hasVideo => videoUrl != null && videoUrl!.trim().isNotEmpty;
+
+  /// Whether this item has gallery images
+  bool get hasGallery => galleryImages.isNotEmpty;
 
   WebsiteModel copyWith({
     String? title,
@@ -76,6 +81,7 @@ class WebsiteModel {
     String? videoUrl,
     String? pricingModel,
     bool? isPremiumOnly,
+    List<String>? galleryImages,
   }) {
     return WebsiteModel(
       id: id,
@@ -98,6 +104,7 @@ class WebsiteModel {
       videoUrl: videoUrl ?? this.videoUrl,
       pricingModel: pricingModel ?? this.pricingModel,
       isPremiumOnly: isPremiumOnly ?? this.isPremiumOnly,
+      galleryImages: galleryImages ?? this.galleryImages,
     );
   }
 
@@ -125,6 +132,7 @@ class WebsiteModel {
       videoUrl: json['video_url'] as String?,
       pricingModel: json['pricing_model'] as String? ?? 'free',
       isPremiumOnly: json['is_premium_only'] as bool? ?? false,
+      galleryImages: (json['gallery_images'] as List<dynamic>?)?.cast<String>() ?? [],
     );
   }
 
@@ -146,6 +154,7 @@ class WebsiteModel {
       'video_url': videoUrl,
       'pricing_model': pricingModel,
       'is_premium_only': isPremiumOnly,
+      'gallery_images': galleryImages,
     };
   }
 }

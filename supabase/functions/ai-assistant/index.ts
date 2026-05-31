@@ -235,7 +235,7 @@ Deno.serve(async (req: Request) => {
 
     try {
         const body = await req.json();
-        const { item_context, messages, page_content, external_context } = body;
+        const { item_context, messages, page_content, external_context, stream } = body;
 
         if (!messages || !Array.isArray(messages)) {
             return new Response(JSON.stringify({ error: 'messages array is required' }), {
@@ -244,12 +244,41 @@ Deno.serve(async (req: Request) => {
             });
         }
 
-        const systemPrompt = buildSystemPrompt(item_context ?? {}, page_content, external_context);
+        let resolvedPageContent = page_content;
+
+        // Pre-fetch URL if we are streaming and have a URL but no page content
+        if (stream === true && !resolvedPageContent) {
+            let urlToFetch = '';
+            if (external_context && typeof external_context === 'string' && external_context.trim().startsWith('http')) {
+                urlToFetch = external_context.trim();
+            } else if (messages && messages.length > 0) {
+                const lastMsg = messages[messages.length - 1];
+                if (lastMsg && lastMsg.role === 'user' && typeof lastMsg.content === 'string') {
+                    const match = lastMsg.content.match(/https?:\/\/[^\s]+/);
+                    if (match) {
+                        urlToFetch = match[0];
+                    }
+                }
+            }
+            if (urlToFetch) {
+                console.log(`[ai-assistant] Pre-fetching URL for stream: ${urlToFetch}`);
+                const content = await fetchUrlContent(urlToFetch);
+                if (content && !content.startsWith('[Error')) {
+                    resolvedPageContent = content;
+                }
+            }
+        }
+
+        const systemPrompt = buildSystemPrompt(item_context ?? {}, resolvedPageContent, external_context);
 
         const llmMessages = [
             { role: 'system', content: systemPrompt },
             ...messages,
         ];
+
+        if (stream === true) {
+            return await callLLMStream(llmMessages);
+        }
 
         let llmResponse = await callLLM(llmMessages, true);
 
@@ -381,4 +410,152 @@ async function callLLM(
     }
 
     throw lastError || new Error('All AI Assistant providers/keys failed.');
+}
+
+async function callLLMStream(
+    messages: Array<Record<string, unknown>>,
+): Promise<Response> {
+    const providers = await loadProviders();
+
+    if (providers.length === 0) {
+        throw new Error(
+            'No active AI Assistant providers configured. Add one from the admin AI Management screen (Providers tab → "المساعد الذكي العام").',
+        );
+    }
+
+    let lastError: Error | null = null;
+    let upstream: Response | null = null;
+
+    for (const provider of providers) {
+        const payload: Record<string, unknown> = {
+            model: provider.model,
+            messages,
+            stream: true,
+        };
+
+        for (const key of provider.keys) {
+            try {
+                const res = await fetch(provider.baseUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${key}`,
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (res.ok) {
+                    upstream = res;
+                    break;
+                }
+
+                const errorText = await res.text();
+                if (res.status === 401 || res.status === 429) {
+                    console.log(
+                        `[ai-assistant] ${provider.baseUrl} stream key ...${key.slice(-4)} failed ${res.status}; trying next.`,
+                    );
+                    lastError = new Error(`LLM API error ${res.status}: ${errorText}`);
+                    try { await res.body?.cancel(); } catch {}
+                    continue;
+                }
+                throw new Error(`LLM API error ${res.status}: ${errorText}`);
+            } catch (err: any) {
+                lastError = err;
+            }
+        }
+        if (upstream) break;
+    }
+
+    if (!upstream || !upstream.body) {
+        throw lastError || new Error('All AI Assistant providers/keys failed.');
+    }
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const writeContent = (controller: ReadableStreamDefaultController, content: string) => {
+        if (typeof content === 'string' && content.length > 0) {
+            const out = JSON.stringify({ content });
+            controller.enqueue(encoder.encode(`data: ${out}\n\n`));
+        }
+    };
+
+    const stream = new ReadableStream({
+        async start(controller) {
+            const reader = upstream!.body!.getReader();
+            let buffer = '';
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let nl;
+                    while ((nl = buffer.indexOf('\n')) !== -1) {
+                        const rawLine = buffer.slice(0, nl);
+                        buffer = buffer.slice(nl + 1);
+                        const line = rawLine.replace(/\r$/, '').trim();
+                        if (line.length === 0) continue;
+
+                        let payload = line;
+                        if (line.startsWith('data:')) {
+                            payload = line.slice(5).trim();
+                            if (payload === '[DONE]') {
+                                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                                controller.close();
+                                return;
+                            }
+                        } else if (!line.startsWith('{')) {
+                            continue;
+                        }
+
+                        try {
+                            const j = JSON.parse(payload);
+                            const delta = j.choices?.[0]?.delta?.content;
+                            if (typeof delta === 'string') writeContent(controller, delta);
+                            const fullMsg = j.choices?.[0]?.message?.content;
+                            if (typeof fullMsg === 'string') writeContent(controller, fullMsg);
+                            if (j.message?.content && typeof j.message.content === 'string') {
+                                writeContent(controller, j.message.content);
+                            }
+                            if (j.done === true) {
+                                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                                controller.close();
+                                return;
+                            }
+                        } catch (_) { /* skip malformed */ }
+                    }
+                }
+                if (buffer.trim().length > 0) {
+                    try {
+                        const tail = buffer.startsWith('data:') ? buffer.slice(5).trim() : buffer.trim();
+                        if (tail !== '[DONE]') {
+                            const j = JSON.parse(tail);
+                            const delta = j.choices?.[0]?.delta?.content
+                                ?? j.choices?.[0]?.message?.content
+                                ?? j.message?.content;
+                            if (typeof delta === 'string') writeContent(controller, delta);
+                        }
+                    } catch (_) {}
+                }
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                controller.close();
+            } catch (err: any) {
+                const msg = err?.message ?? 'stream error';
+                const out = JSON.stringify({ error: msg });
+                controller.enqueue(encoder.encode(`data: ${out}\n\n`));
+                controller.close();
+            }
+        },
+    });
+
+    return new Response(stream, {
+        headers: {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'Cache-Control': 'no-cache, no-transform',
+            'Connection': 'keep-alive',
+            'X-Accel-Buffering': 'no',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+        },
+    });
 }

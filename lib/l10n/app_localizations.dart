@@ -728,6 +728,12 @@ abstract class AppLocalizations {
   /// **'User deleted successfully'**
   String get userDeleted;
 
+  /// No description provided for @deleteUserHasAssociatedDataError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete this user because they have associated data in the system (e.g. referrals, posts, or activities). Please clean up or delete their associated data first.'**
+  String get deleteUserHasAssociatedDataError;
+
   /// No description provided for @userUpdated.
   ///
   /// In en, this message translates to:
@@ -5215,6 +5221,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Trending'**
   String get filterTrending;
+
+  /// No description provided for @filterAccessType.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Type'**
+  String get filterAccessType;
+
+  /// No description provided for @filterPremiumOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusive Only (PRO)'**
+  String get filterPremiumOnly;
+
+  /// No description provided for @filterAllAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'All Content'**
+  String get filterAllAccess;
 
   /// No description provided for @filterErrorLoading.
   ///

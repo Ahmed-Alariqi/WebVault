@@ -341,6 +341,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get userDeleted => 'تم حذف المستخدم بنجاح';
 
   @override
+  String get deleteUserHasAssociatedDataError =>
+      'لا يمكن حذف هذا المستخدم لوجود بيانات مرتبطة به في النظام (مثل إحالات أو منشورات أو أنشطة). يرجى تصفية أو حذف بياناته المرتبطة أولاً.';
+
+  @override
   String get userUpdated => 'تم تحديث بيانات المستخدم';
 
   @override
@@ -2745,6 +2749,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get filterTrending => 'الرائج';
+
+  @override
+  String get filterAccessType => 'نوع الوصول';
+
+  @override
+  String get filterPremiumOnly => 'محتوى حصري فقط (PRO)';
+
+  @override
+  String get filterAllAccess => 'كل المحتوى';
 
   @override
   String get filterErrorLoading => 'خطأ في تحميل الفئات';

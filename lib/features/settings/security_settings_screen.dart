@@ -363,11 +363,6 @@ class _SecuritySettingsScreenState
                 ),
 
                 const SizedBox(height: 40),
-
-                // Security tip
-                _buildSecurityTip(isDark, context),
-
-                const SizedBox(height: 40),
               ]),
             ),
           ),
@@ -776,63 +771,6 @@ class _SecuritySettingsScreenState
               backgroundColor: AppTheme.errorColor,
             ),
             child: Text(AppLocalizations.of(context)!.remove),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSecurityTip(bool isDark, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: isDark
-            ? AppTheme.accentColor.withValues(alpha: 0.08)
-            : AppTheme.accentColor.withValues(alpha: 0.05),
-        border: Border.all(color: AppTheme.accentColor.withValues(alpha: 0.15)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppTheme.accentColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.tips_and_updates_rounded,
-              color: AppTheme.accentColor,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(context)!.securityTip,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.accentColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  AppLocalizations.of(context)!.securityTipDesc,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark
-                        ? AppTheme.darkTextSecondary
-                        : AppTheme.lightTextSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),

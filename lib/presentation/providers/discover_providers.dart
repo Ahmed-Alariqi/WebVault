@@ -194,6 +194,7 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
   final String?
   _filterField; // e.g. 'is_trending', 'is_popular', 'is_featured', or null for all
   final Ref _ref;
+  int _dbOffset = 0;
 
   PaginatedWebsitesNotifier(this._ref, this._filterField)
     : super(const PaginatedWebsitesState()) {
@@ -210,11 +211,15 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
       final contentType = _ref.read(selectedContentTypeProvider);
       final pricingModel = _ref.read(selectedPricingModelProvider);
       final sortBy = _ref.read(discoverSortByProvider);
+      final showPremiumOnly = _ref.read(showPremiumOnlyProvider);
 
       var query = _client.from('websites').select().eq('is_active', true);
 
       if (_filterField != null) {
         query = query.eq(_filterField, true);
+      }
+      if (showPremiumOnly) {
+        query = query.eq('is_premium_only', true);
       }
       if (categoryId != null) {
         query = query.eq('category_id', categoryId);
@@ -244,22 +249,33 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
         ascending = true;
       }
 
-      final from = state.items.length;
+      final from = _dbOffset;
       final to = from + kDiscoverPageSize - 1;
 
       final response = await query
           .order('created_at', ascending: ascending)
           .range(from, to);
 
-      final newItems = (response as List)
-          .map((e) => WebsiteModel.fromJson(e))
-          .toList();
-      final filtered = _filterActive(newItems);
+      final rawList = response as List;
+      final newItems = <WebsiteModel>[];
+      for (final item in rawList) {
+        try {
+          newItems.add(WebsiteModel.fromJson(item as Map<String, dynamic>));
+        } catch (e) {
+          print('Error parsing website item: $e');
+        }
+      }
+      
+      _dbOffset += rawList.length;
+      final activeItems = _filterActive(newItems);
+      final filtered = showPremiumOnly
+          ? activeItems.where((item) => item.isPremiumOnly).toList()
+          : activeItems;
 
       state = state.copyWith(
         items: [...state.items, ...filtered],
         isLoading: false,
-        hasMore: newItems.length >= kDiscoverPageSize,
+        hasMore: rawList.length >= kDiscoverPageSize,
         isInitialLoad: false,
       );
     } catch (e) {
@@ -268,6 +284,7 @@ class PaginatedWebsitesNotifier extends StateNotifier<PaginatedWebsitesState> {
   }
 
   void reset() {
+    _dbOffset = 0;
     state = const PaginatedWebsitesState();
     loadMore();
   }
@@ -285,6 +302,7 @@ final discoverPaginatedProvider =
       ref.watch(selectedContentTypeProvider);
       ref.watch(selectedPricingModelProvider);
       ref.watch(discoverSortByProvider);
+      ref.watch(showPremiumOnlyProvider);
       return PaginatedWebsitesNotifier(ref, null);
     });
 
@@ -298,6 +316,7 @@ final trendingPaginatedProvider =
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
       ref.watch(selectedPricingModelProvider);
+      ref.watch(showPremiumOnlyProvider);
       return PaginatedWebsitesNotifier(ref, 'is_trending');
     });
 
@@ -311,6 +330,7 @@ final popularPaginatedProvider =
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
       ref.watch(selectedPricingModelProvider);
+      ref.watch(showPremiumOnlyProvider);
       return PaginatedWebsitesNotifier(ref, 'is_popular');
     });
 
@@ -324,6 +344,7 @@ final featuredPaginatedProvider =
       ref.watch(discoverSearchProvider);
       ref.watch(selectedContentTypeProvider);
       ref.watch(selectedPricingModelProvider);
+      ref.watch(showPremiumOnlyProvider);
       return PaginatedWebsitesNotifier(ref, 'is_featured');
     });
 
@@ -498,6 +519,9 @@ final selectedCategoryProvider = StateProvider<String?>((ref) => null);
 final selectedContentTypeProvider = StateProvider<String?>((ref) => null);
 final selectedPricingModelProvider = StateProvider<String?>((ref) => null);
 final discoverSortByProvider = StateProvider<String>((ref) => 'newest');
+final showPremiumOnlyProvider = StateProvider<bool>((ref) => false);
+/// Layout mode for Newly Added section: true = grid layout, false = list (horizontal) layout
+final discoverViewModeProvider = StateProvider<bool>((ref) => true);
 
 // --------------- User Saved ---------------
 

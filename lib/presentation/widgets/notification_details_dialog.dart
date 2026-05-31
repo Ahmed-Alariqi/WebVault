@@ -380,6 +380,11 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                   width: double.infinity,
                                   child: ElevatedButton.icon(
                                     onPressed: () async {
+
+                                      final membershipStatus = ref.read(membershipStatusProvider);
+
+                                      final premiumIds = ref.read(userPremiumCollectionIdsProvider).valueOrNull ?? const <String>{};
+
                                       // Capture the root navigator context BEFORE popping
                                       final navContext = Navigator.of(
                                         context,
@@ -412,8 +417,8 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                               final collection = await findPremiumCollectionForItem(site.id);
                                               bool hasAccess = false;
                                               if (collection != null) {
-                                                final membershipAccess = ref.read(membershipStatusProvider).hasAccessTo(type: 'collection', id: collection.id);
-                                                final premiumIds = ref.read(userPremiumCollectionIdsProvider).valueOrNull ?? const <String>{};
+                                                final membershipAccess = membershipStatus.hasAccessTo(type: 'collection', id: collection.id);
+
                                                 final referralAccess = premiumIds.contains(collection.id);
                                                 
                                                 hasAccess = membershipAccess || referralAccess;
@@ -434,13 +439,16 @@ class NotificationDetailsDialog extends ConsumerWidget {
                                                       context: rootCtx,
                                                       isScrollControlled: true,
                                                       backgroundColor: Colors.transparent,
+                                                      useRootNavigator: true,
                                                       builder: (_) => PremiumFeatureSheet.fromWebsite(
                                                         site: site,
                                                         collection: collection,
                                                         isDark: isDarkNow,
-                                                        onAction: () async {
+                                                        onAction: (sheetRef) async {
+
                                                           HapticFeedback.lightImpact();
-                                                          await shareViralInvitation(ref);
+                                                          await shareViralInvitation(sheetRef);
+
                                                         },
                                                       ),
                                                     );

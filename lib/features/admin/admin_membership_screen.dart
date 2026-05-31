@@ -1537,8 +1537,8 @@ class _MembersTab extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(m['full_name'] ?? m['username'] ?? 'مستخدم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                          Text(isPermanent ? 'عضوية دائمة ♾️' : 'تنتهي: ${DateFormat('yyyy/MM/dd').format(premiumUntil!)}', 
+                           Text(m['full_name'] ?? m['username'] ?? 'مستخدم', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(isPermanent ? 'عضوية دائمة ♾️' : (premiumUntil != null ? 'تنتهي: ${DateFormat('yyyy/MM/dd').format(premiumUntil)}' : 'غير محدد'), 
                               style: TextStyle(fontSize: 12, color: isExpired ? AppTheme.errorColor : (isDark ? Colors.white38 : Colors.black38))),
                         ],
                       ),

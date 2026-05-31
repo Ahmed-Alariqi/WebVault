@@ -97,6 +97,7 @@
   "deleteUserTitle": "حذف المستخدم؟",
   "deleteUserConfirm": "هل أنت متأكد من حذف {email}؟ لا يمكن التراجع عن هذا الإجراء.",
   "userDeleted": "تم حذف المستخدم بنجاح",
+  "deleteUserHasAssociatedDataError": "لا يمكن حذف هذا المستخدم لوجود بيانات مرتبطة به في النظام (مثل إحالات أو منشورات أو أنشطة). يرجى تصفية أو حذف بياناته المرتبطة أولاً.",
   "userUpdated": "تم تحديث بيانات المستخدم",
   "userCreated": "تم إنشاء المستخدم",
   "email": "البريد الإلكتروني",
@@ -994,6 +995,9 @@
   "filterOldest": "الأقدم",
   "filterPopular": "الأكثر شعبية",
   "filterTrending": "الرائج",
+  "filterAccessType": "نوع الوصول",
+  "filterPremiumOnly": "محتوى حصري فقط (PRO)",
+  "filterAllAccess": "كل المحتوى",
   "filterErrorLoading": "خطأ في تحميل الفئات",
 
   "adminSearchItems": "البحث في العناصر...",

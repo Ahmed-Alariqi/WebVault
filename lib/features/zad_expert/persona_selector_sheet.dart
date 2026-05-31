@@ -277,9 +277,11 @@ class PersonaSelectorSheet extends ConsumerWidget {
         title: 'شخصيات خبير زاد PRO 👑',
         description: 'الوصول إلى شخصية "${persona.name}" يتطلب تفعيل العضوية. يمكنك فتحها الآن من خلال دعوة أصدقائك للتطبيق.',
         icon: PhosphorIcons.brain(PhosphorIconsStyle.fill),
-        onAction: () async {
+        onAction: (sheetRef) async {
+
           HapticFeedback.lightImpact();
-          await shareViralInvitation(ref);
+          await shareViralInvitation(sheetRef);
+
         },
         actionLabel: 'ادعُ أصدقاءك لفتح الميزة',
         themeColor: const Color(0xFFF59E0B),

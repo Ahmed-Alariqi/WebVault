@@ -178,4 +178,70 @@ class ImageKitService {
       return null;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> listFiles({
+    String? folder,
+    String fileType = 'image',
+  }) async {
+    try {
+      final String authHeader =
+          'Basic ${base64Encode(utf8.encode('$_privateKey:'))}';
+      
+      // Build URI with query parameters
+      // e.g. https://api.imagekit.io/v1/files?fileType=image&sort=DESC_CREATED
+      final queryParameters = {
+        'fileType': fileType,
+        'sort': 'DESC_CREATED',
+        'path':? folder,
+      };
+      
+      final uri = Uri.https('api.imagekit.io', '/v1/files', queryParameters);
+      
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': authHeader,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => Map<String, dynamic>.from(item)).toList();
+      } else {
+        debugPrint('ImageKit listFiles failed: ${response.statusCode} ${response.body}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('ImageKit listFiles error: $e');
+      return [];
+    }
+  }
+
+  /// Delete a file from ImageKit by its fileId.
+  static Future<bool> deleteFile(String fileId) async {
+    try {
+      final String authHeader =
+          'Basic ${base64Encode(utf8.encode('$_privateKey:'))}';
+      
+      final uri = Uri.https('api.imagekit.io', '/v1/files/$fileId');
+      
+      final response = await http.delete(
+        uri,
+        headers: {
+          'Authorization': authHeader,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        debugPrint('ImageKit delete success for fileId: $fileId');
+        return true;
+      } else {
+        debugPrint('ImageKit delete failed: ${response.statusCode} ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('ImageKit delete error: $e');
+      return false;
+    }
+  }
 }

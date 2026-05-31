@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/supabase_config.dart';
-import '../../core/constants.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/models/draft_model.dart';
@@ -67,6 +65,7 @@ import '../../features/zad_expert/zad_expert_screen.dart';
 import '../../features/admin/admin_ai_management_screen.dart';
 import '../../features/admin/admin_membership_screen.dart';
 import '../../features/settings/cloud_restore_screen.dart';
+import '../../features/admin/cloud_control_center_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -187,6 +186,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             'events',
             'ai_management',
             'membership',
+            'cloud_control',
           ];
         } else if (role == 'content_creator') {
           perms = const [
@@ -252,6 +252,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           return '/admin';
         }
         if (location.startsWith('/admin/membership') && !perms.contains('membership')) {
+          return '/admin';
+        }
+        if (location.startsWith('/admin/cloud-control') && !perms.contains('cloud_control')) {
           return '/admin';
         }
       }
@@ -577,6 +580,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/ai-management',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AdminAiManagementScreen(),
+      ),
+      GoRoute(
+        path: '/admin/cloud-control',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CloudControlCenterScreen(),
       ),
       GoRoute(
         path: '/pin-setup',

@@ -338,6 +338,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userDeleted => 'User deleted successfully';
 
   @override
+  String get deleteUserHasAssociatedDataError =>
+      'Cannot delete this user because they have associated data in the system (e.g. referrals, posts, or activities). Please clean up or delete their associated data first.';
+
+  @override
   String get userUpdated => 'User updated';
 
   @override
@@ -2751,6 +2755,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterTrending => 'Trending';
+
+  @override
+  String get filterAccessType => 'Access Type';
+
+  @override
+  String get filterPremiumOnly => 'Exclusive Only (PRO)';
+
+  @override
+  String get filterAllAccess => 'All Content';
 
   @override
   String get filterErrorLoading => 'Error loading categories';

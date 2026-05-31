@@ -358,6 +358,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                         },
                       ),
 
+                    if (perms.contains('cloud_control'))
+                      _ActionCard(
+                        title: 'الخدمات السحابية والصيانة',
+                        subtitle: 'إدارة الميديا، الكوتا، والنسخ الاحتياطي',
+                        icon: PhosphorIcons.cloud(
+                          PhosphorIconsStyle.duotone,
+                        ),
+                        color: const Color(0xFF0EA5E9),
+                        isDark: isDark,
+                        onTap: () => context.push('/admin/cloud-control'),
+                        delay: 360,
+                      ),
+
                     Consumer(
                       builder: (context, ref, _) {
                         // User messages is a special card — show if user has 'users' permission

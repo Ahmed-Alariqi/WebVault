@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -325,7 +326,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
                             ? _buildWelcome(isDark)
                             : _buildChatList(context, isDark, messages, isLoading),
                       ),
-                      _buildInputBar(isDark, isLoading, messages.isEmpty),
+                      _buildInputBar(isDark, isLoading, isLoading, messages.isEmpty),
                     ],
                   ),
                 ),
@@ -547,15 +548,20 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
     List<AiChatMessage> messages,
     bool isLoading,
   ) {
+    final last = messages.isNotEmpty ? messages.last : null;
+    final showTyping = isLoading && (last == null || last.isUser);
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.all(16),
-      itemCount: messages.length + (isLoading ? 1 : 0),
+      itemCount: messages.length + (showTyping ? 1 : 0),
       itemBuilder: (ctx, i) {
-        if (i == messages.length && isLoading) {
+        if (i == messages.length && showTyping) {
           return _buildTypingIndicator(isDark);
         }
         final msg = messages[i];
+        if (!msg.isUser && msg.content.isEmpty && isLoading) {
+          return _buildTypingIndicator(isDark);
+        }
         return _ChatBubble(msg: msg, isDark: isDark, context: ctx);
       },
     );
@@ -620,7 +626,7 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
 
   // ── Input Bar ────────────────────────────────────────────────────────────
 
-  Widget _buildInputBar(bool isDark, bool isLoading, bool isEmpty) {
+  Widget _buildInputBar(bool isDark, bool isLoading, bool isStreaming, bool isEmpty) {
     return Container(
       padding: EdgeInsets.only(
         left: 14,
@@ -698,23 +704,76 @@ class _ExternalAiChatScreenState extends ConsumerState<ExternalAiChatScreen>
 
               const SizedBox(width: 8),
 
-              // Send button
+              // Send/Stop button
               GestureDetector(
-                onTap: isLoading ? null : () => _sendMessage(_controller.text),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                onTap: isStreaming
+                    ? () {
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .read(quickSessionsProvider.notifier)
+                            .stopGeneration();
+                      }
+                    : (isLoading ? null : () => _sendMessage(_controller.text)),
+                child: Container(
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    color: isLoading
-                        ? AppTheme.primaryColor.withValues(alpha: 0.4)
-                        : AppTheme.primaryColor,
+                    gradient: (isLoading && !isStreaming)
+                        ? null
+                        : LinearGradient(
+                            colors: isStreaming
+                                ? [Colors.red.shade500, Colors.red.shade700]
+                                : [
+                                    AppTheme.primaryColor,
+                                    AppTheme.accentColor,
+                                  ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                    color: (isLoading && !isStreaming)
+                        ? (isDark ? Colors.white10 : Colors.black12)
+                        : null,
                     borderRadius: BorderRadius.circular(16),
+                    boxShadow: (isLoading && !isStreaming)
+                        ? null
+                        : [
+                            BoxShadow(
+                              color: (isStreaming ? Colors.red : AppTheme.primaryColor).withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                   ),
-                  child: Icon(
-                    PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
-                    color: Colors.white,
-                    size: 20,
+                  child: Center(
+                    child: isStreaming
+                        ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
+                                  valueColor: const AlwaysStoppedAnimation(
+                                    Colors.white70,
+                                  ),
+                                ),
+                              ).animate(onPlay: (c) => c.repeat())
+                               .rotate(duration: 2000.ms),
+                              Icon(
+                                PhosphorIcons.stop(PhosphorIconsStyle.fill),
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )
+                        : Icon(
+                            PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
+                            color: (isLoading && !isStreaming) ? Colors.grey : Colors.white,
+                            size: 20,
+                          ),
                   ),
                 ),
               ),

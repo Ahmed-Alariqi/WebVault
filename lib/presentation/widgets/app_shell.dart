@@ -12,9 +12,6 @@ import '../../core/supabase_config.dart';
 import '../../core/constants.dart';
 import '../../presentation/providers/chat_providers.dart';
 
-import '../../core/utils/admin_ui_utils.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
 import 'package:hive_flutter/hive_flutter.dart';
 import 'dart:ui';
 import 'referral_dialog.dart';

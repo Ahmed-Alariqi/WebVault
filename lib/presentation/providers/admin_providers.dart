@@ -935,3 +935,10 @@ Future<void> adminMarkDraftPublished(String draftId, String websiteId) async {
     'status': 'ready',
   }).eq('id', draftId);
 }
+
+/// Dynamic Supabase database usage stats
+final supabaseDatabaseUsageProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final response = await _client.rpc('get_database_usage');
+  return Map<String, dynamic>.from(response as Map);
+});
+

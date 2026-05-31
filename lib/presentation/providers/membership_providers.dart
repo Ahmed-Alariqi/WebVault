@@ -133,6 +133,20 @@ class MembershipStatus {
   String? get remainingTimeText {
     if (isAdmin) return 'وصول أدمن دائم';
     if (!isActive) return null;
+    if (premiumUntil == null) {
+      // Active via campaign
+      final globalCampaign = activeCampaigns.cast<Campaign?>().firstWhere(
+        (c) => c?.targetType == 'global',
+        orElse: () => null,
+      );
+      if (globalCampaign != null) {
+        final diff = globalCampaign.endAt.difference(DateTime.now());
+        if (diff.inDays > 0) return 'ينتهي العرض خلال ${diff.inDays} يوم';
+        if (diff.inHours > 0) return 'ينتهي العرض خلال ${diff.inHours} ساعة';
+        return 'ينتهي العرض قريباً';
+      }
+      return 'نشط عبر عرض';
+    }
     if (premiumUntil!.year > 2099) return 'عضوية دائمة';
     
     final diff = premiumUntil!.difference(DateTime.now());

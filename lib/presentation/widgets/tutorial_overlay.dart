@@ -225,7 +225,6 @@ class TutorialManager {
       case TutorialSection.notifications:
         return !(data['hasSeenNotificationsTutorial'] as bool? ?? false);
     }
-    return false;
   }
 
   static Future<void> markSectionSeen(TutorialSection section) async {

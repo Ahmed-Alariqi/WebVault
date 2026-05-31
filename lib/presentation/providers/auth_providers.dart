@@ -57,6 +57,7 @@ const kAllPermissions = [
   'events',
   'ai_management',
   'membership',
+  'cloud_control',
 ];
 
 /// Preset permissions for the Content Creator role

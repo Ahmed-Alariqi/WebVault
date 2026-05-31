@@ -126,6 +126,7 @@
     }
   },
   "userDeleted": "User deleted successfully",
+  "deleteUserHasAssociatedDataError": "Cannot delete this user because they have associated data in the system (e.g. referrals, posts, or activities). Please clean up or delete their associated data first.",
   "userUpdated": "User updated",
   "userCreated": "User created",
   "email": "Email",
@@ -1250,6 +1251,9 @@
   "filterOldest": "Oldest",
   "filterPopular": "Popular",
   "filterTrending": "Trending",
+  "filterAccessType": "Access Type",
+  "filterPremiumOnly": "Exclusive Only (PRO)",
+  "filterAllAccess": "All Content",
   "filterErrorLoading": "Error loading categories",
 
   "adminSearchItems": "Search items...",

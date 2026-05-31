@@ -472,9 +472,11 @@ class _ZadExpertScreenState extends ConsumerState<ZadExpertScreen>
           title: 'شخصيات خبير زاد PRO 👑',
           description: 'الوصول إلى شخصية "${persona.name}" يتطلب تفعيل العضوية. يمكنك فتحها الآن من خلال دعوة أصدقائك للتطبيق.',
           icon: PhosphorIcons.brain(PhosphorIconsStyle.fill),
-          onAction: () async {
+          onAction: (sheetRef) async {
+
             HapticFeedback.lightImpact();
-            await shareViralInvitation(ref);
+            await shareViralInvitation(sheetRef);
+
           },
           actionLabel: 'ادعُ أصدقاءك لفتح الميزة',
           themeColor: const Color(0xFFF59E0B),
@@ -3428,7 +3430,11 @@ class _ComposerSendButton extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.06)
         : Colors.black.withValues(alpha: 0.05);
 
-    return AnimatedContainer(
+    final tooltipMsg = isLoading
+        ? 'إيقاف توليد الرد'
+        : (isEnabled ? 'إرسال' : null);
+
+    Widget button = AnimatedContainer(
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
       width: 42,
@@ -3473,18 +3479,17 @@ class _ComposerSendButton extends StatelessWidget {
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.5,
-                          valueColor: AlwaysStoppedAnimation(
-                            isDark ? Colors.white70 : Colors.black54,
+                          valueColor: const AlwaysStoppedAnimation(
+                            Colors.white70,
                           ),
                         ),
                       ).animate(onPlay: (c) => c.repeat())
                        .rotate(duration: 2000.ms),
                       Icon(
-                        PhosphorIcons.robot(PhosphorIconsStyle.fill),
-                        size: 14,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ).animate(onPlay: (c) => c.repeat(reverse: true))
-                       .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.1, 1.1), duration: 1000.ms),
+                        PhosphorIcons.stop(PhosphorIconsStyle.fill),
+                        size: 12,
+                        color: Colors.white,
+                      ),
                     ],
                   )
                 : AnimatedSwitcher(
@@ -3506,6 +3511,11 @@ class _ComposerSendButton extends StatelessWidget {
         ),
       ),
     );
+
+    if (tooltipMsg != null) {
+      return Tooltip(message: tooltipMsg, child: button);
+    }
+    return button;
   }
 }
 
@@ -4213,7 +4223,7 @@ class _ExpertBubbleState extends State<_ExpertBubble> {
 
                           builders: {
 
-                            'code': CodeElementBuilder(isDark, context, onActionRequested: onSuggestionSelected, messageContent: msg.content),
+                            'code': CodeElementBuilder(isDark, context, onActionRequested: onSuggestionSelected, messageContent: msg.content, enableExec: true),
 
                           },
 

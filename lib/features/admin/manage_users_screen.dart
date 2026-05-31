@@ -123,6 +123,13 @@ class _ManageUsersScreenState extends ConsumerState<ManageUsersScreen> {
               context,
               AppLocalizations.of(context)!.formOfflineError,
             );
+          } else if (errStr.contains('database error deleting user') ||
+              errStr.contains('foreign key') ||
+              errStr.contains('violates foreign key constraint')) {
+            AdminUIUtils.showError(
+              context,
+              AppLocalizations.of(context)!.deleteUserHasAssociatedDataError,
+            );
           } else {
             AdminUIUtils.showError(
               context,
@@ -458,6 +465,7 @@ class _UserDialogState extends State<_UserDialog> {
     ('events', Icons.celebration, Color(0xFFE11D48)),
     ('ai_management', Icons.psychology, AppTheme.primaryColor),
     ('membership', PhosphorIcons.crownSimple(), Color(0xFFD946EF)),
+    ('cloud_control', PhosphorIcons.cloud(), Color(0xFF0EA5E9)),
   ];
 
   @override
@@ -581,6 +589,8 @@ class _UserDialogState extends State<_UserDialog> {
         return 'إدارة الذكاء الاصطناعي';
       case 'membership':
         return 'إدارة العضوية';
+      case 'cloud_control':
+        return 'الخدمات السحابية والصيانة';
       default:
         return key;
     }

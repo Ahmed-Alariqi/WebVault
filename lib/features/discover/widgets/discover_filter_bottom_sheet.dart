@@ -19,6 +19,7 @@ class _DiscoverFilterBottomSheetState
   String? _tempCategoryId;
   String? _tempPricingModel;
   String _tempSortBy = 'newest';
+  bool _tempShowPremiumOnly = false;
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _DiscoverFilterBottomSheetState
     _tempCategoryId = ref.read(selectedCategoryProvider);
     _tempPricingModel = ref.read(selectedPricingModelProvider);
     _tempSortBy = ref.read(discoverSortByProvider);
+    _tempShowPremiumOnly = ref.read(showPremiumOnlyProvider);
   }
 
   void _applyFilters() {
@@ -34,6 +36,7 @@ class _DiscoverFilterBottomSheetState
     ref.read(selectedCategoryProvider.notifier).state = _tempCategoryId;
     ref.read(selectedPricingModelProvider.notifier).state = _tempPricingModel;
     ref.read(discoverSortByProvider.notifier).state = _tempSortBy;
+    ref.read(showPremiumOnlyProvider.notifier).state = _tempShowPremiumOnly;
     Navigator.of(context).pop();
   }
 
@@ -43,6 +46,7 @@ class _DiscoverFilterBottomSheetState
       _tempCategoryId = null;
       _tempPricingModel = null;
       _tempSortBy = 'newest';
+      _tempShowPremiumOnly = false;
     });
   }
 
@@ -134,6 +138,11 @@ class _DiscoverFilterBottomSheetState
                 _buildSectionTitle(l10n.filterPricingModel, isDark),
                 const SizedBox(height: 12),
                 _buildPricingModelChips(isDark, l10n),
+                const SizedBox(height: 24),
+
+                _buildSectionTitle(l10n.filterAccessType, isDark),
+                const SizedBox(height: 12),
+                _buildAccessTypeChips(isDark, l10n),
                 const SizedBox(height: 24),
 
                 _buildSectionTitle(l10n.filterSortBy, isDark),
@@ -326,6 +335,48 @@ class _DiscoverFilterBottomSheetState
           selected: isSelected,
           onSelected: (selected) {
             setState(() => _tempPricingModel = val);
+          },
+          selectedColor: AppTheme.primaryColor.withValues(alpha: 0.15),
+          backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+          labelStyle: TextStyle(
+            color: isSelected
+                ? AppTheme.primaryColor
+                : (isDark ? Colors.white70 : Colors.black87),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+          showCheckmark: false,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: isSelected
+                  ? AppTheme.primaryColor.withValues(alpha: 0.5)
+                  : (isDark ? Colors.white12 : Colors.black12),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildAccessTypeChips(bool isDark, AppLocalizations l10n) {
+    final accessTypes = <({bool value, String label})>[
+      (value: false, label: l10n.filterAllAccess),
+      (value: true, label: l10n.filterPremiumOnly),
+    ];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 10,
+      children: accessTypes.map((type) {
+        final val = type.value;
+        final label = type.label;
+        final isSelected = _tempShowPremiumOnly == val;
+
+        return ChoiceChip(
+          label: Text(label),
+          selected: isSelected,
+          onSelected: (selected) {
+            setState(() => _tempShowPremiumOnly = val);
           },
           selectedColor: AppTheme.primaryColor.withValues(alpha: 0.15),
           backgroundColor: isDark ? AppTheme.darkCard : AppTheme.lightCard,

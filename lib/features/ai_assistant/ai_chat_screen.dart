@@ -33,7 +33,14 @@ class CodeElementBuilder extends MarkdownElementBuilder {
   final BuildContext context;
   final void Function(String prompt)? onActionRequested;
   final String messageContent;
-  CodeElementBuilder(this.isDark, this.context, {this.onActionRequested, this.messageContent = ''});
+  final bool enableExec;
+  CodeElementBuilder(
+    this.isDark,
+    this.context, {
+    this.onActionRequested,
+    this.messageContent = '',
+    this.enableExec = false,
+  });
 
   @override
   Widget? visitElementAfter(md.Element element, TextStyle? preferredStyle) {
@@ -82,6 +89,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
         isDark: isDark,
         onActionRequested: onActionRequested,
         messageContent: messageContent,
+        enableExec: enableExec,
       ),
     );
   }
@@ -96,6 +104,7 @@ class _CodeBlockWithExec extends StatefulWidget {
   final bool isDark;
   final void Function(String prompt)? onActionRequested;
   final String messageContent;
+  final bool enableExec;
 
   const _CodeBlockWithExec({
     required this.codeText,
@@ -103,6 +112,7 @@ class _CodeBlockWithExec extends StatefulWidget {
     required this.isDark,
     this.onActionRequested,
     this.messageContent = '',
+    this.enableExec = false,
   });
 
   @override
@@ -462,7 +472,7 @@ $jsBlock
   @override
   Widget build(BuildContext context) {
     final isDark = widget.isDark;
-    final canExec = CodeExecService.isExecutable(widget.language);
+    final canExec = widget.enableExec && CodeExecService.isExecutable(widget.language);
     final isWebPreview = _isWebPreviewable || _isJsWithDom;
     final showStdinFields = _stdinDetectedPreRun || _needsStdin;
 
@@ -3031,6 +3041,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
               isDark,
               loc,
               chatState.isLoading || _isScanningMode,
+              chatState.isLoading,
               chatState.messages.isEmpty,
             ),
           ],
@@ -3425,6 +3436,8 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     AiChatState chatState,
   ) {
     final messages = chatState.messages;
+    final last = messages.isNotEmpty ? messages.last : null;
+    final showTyping = chatState.isLoading && (last == null || last.isUser);
     final lastIsAssistant = messages.isNotEmpty && !messages.last.isUser;
     final showDynamicChips = lastIsAssistant && !chatState.isLoading;
     final chipsIndex = messages.length;
@@ -3432,7 +3445,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     final totalCount =
         messages.length +
         (showDynamicChips ? 1 : 0) +
-        (chatState.isLoading ? 1 : 0);
+        (showTyping ? 1 : 0);
 
     return ListView.builder(
       controller: _scrollController,
@@ -3457,7 +3470,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
           return _buildDynamicChips(context, isDark, suggestions);
         }
         // Typing indicator while loading
-        if (chatState.isLoading && i == typingIndex) {
+        if (showTyping && i == typingIndex) {
           return _buildTypingIndicator(isDark);
         }
         return const SizedBox.shrink();
@@ -3472,9 +3485,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     int index,
   ) {
+    final chatState = ref.read(aiChatProvider(widget.site));
     final isUser = msg.isUser;
     if (isUser) {
-      final chatState = ref.read(aiChatProvider(widget.site));
       final messages = chatState.messages;
       // Locate the most recent user-authored message so the edit affordance
       // surfaces there even after one or more assistant replies follow it.
@@ -3506,6 +3519,11 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             : null,
       );
     }
+
+    if (msg.content.isEmpty && chatState.isLoading) {
+      return _buildTypingIndicator(isDark);
+    }
+
     return Align(
           alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
           child: Column(
@@ -3606,13 +3624,9 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                             child: _TypewriterMarkdown(
                               content: msg.content,
                               isDark: isDark,
-                              animate:
-                                  index ==
-                                  ref
-                                          .read(aiChatProvider(widget.site))
-                                          .messages
-                                          .length -
-                                      1,
+                              animate: index == chatState.messages.length - 1,
+                              isStreaming: chatState.isLoading &&
+                                  (index == chatState.messages.length - 1),
                               onActionRequested: (prompt) {
                                 ref
                                     .read(aiChatProvider(widget.site).notifier)
@@ -3765,6 +3779,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     bool isDark,
     AppLocalizations loc,
     bool isLoading,
+    bool isStreaming,
     bool isChatEmpty,
   ) {
     return Container(
@@ -3905,32 +3920,41 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
               const SizedBox(width: 8),
 
-              // ── Send button ─────────────────────────────────────────────
+              // ── Send/Stop button ─────────────────────────────────────────────
               GestureDetector(
-                onTap: isLoading ? null : () => _sendMessage(_controller.text),
+                onTap: isStreaming
+                    ? () {
+                        HapticFeedback.mediumImpact();
+                        ref
+                            .read(aiChatProvider(widget.site).notifier)
+                            .stopGeneration();
+                      }
+                    : (isLoading ? null : () => _sendMessage(_controller.text)),
                 child: Container(
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    gradient: isLoading
+                    gradient: (isLoading && !isStreaming)
                         ? null
                         : LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor,
-                              AppTheme.accentColor,
-                            ],
+                            colors: isStreaming
+                                ? [Colors.red.shade500, Colors.red.shade700]
+                                : [
+                                    AppTheme.primaryColor,
+                                    AppTheme.accentColor,
+                                  ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                    color: isLoading
+                    color: (isLoading && !isStreaming)
                         ? (isDark ? Colors.white10 : Colors.black12)
                         : null,
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: isLoading
+                    boxShadow: (isLoading && !isStreaming)
                         ? null
                         : [
                             BoxShadow(
-                              color: AppTheme.primaryColor.withValues(
+                              color: (isStreaming ? Colors.red : AppTheme.primaryColor).withValues(
                                 alpha: 0.3,
                               ),
                               blurRadius: 12,
@@ -3938,10 +3962,34 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                             ),
                           ],
                   ),
-                  child: Icon(
-                    PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
-                    color: isLoading ? Colors.grey : Colors.white,
-                    size: 20,
+                  child: Center(
+                    child: isStreaming
+                        ? Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 1.5,
+                                  valueColor: const AlwaysStoppedAnimation(
+                                    Colors.white70,
+                                  ),
+                                ),
+                              ).animate(onPlay: (c) => c.repeat())
+                               .rotate(duration: 2000.ms),
+                              Icon(
+                                PhosphorIcons.stop(PhosphorIconsStyle.fill),
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                            ],
+                          )
+                        : Icon(
+                            PhosphorIcons.paperPlaneRight(PhosphorIconsStyle.fill),
+                            color: (isLoading && !isStreaming) ? Colors.grey : Colors.white,
+                            size: 20,
+                          ),
                   ),
                 ),
               ),
@@ -3960,12 +4008,14 @@ class _TypewriterMarkdown extends StatefulWidget {
   final String content;
   final bool isDark;
   final bool animate;
+  final bool isStreaming;
   final void Function(String prompt)? onActionRequested;
 
   const _TypewriterMarkdown({
     required this.content,
     required this.isDark,
     this.animate = false,
+    this.isStreaming = false,
     this.onActionRequested,
   });
 
@@ -3981,7 +4031,10 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
   @override
   void initState() {
     super.initState();
-    if (widget.animate && widget.content.isNotEmpty) {
+    if (widget.isStreaming) {
+      _displayedText = widget.content;
+      _isComplete = false;
+    } else if (widget.animate && widget.content.isNotEmpty) {
       _startTypewriter();
     } else {
       _displayedText = widget.content;
@@ -3992,10 +4045,15 @@ class _TypewriterMarkdownState extends State<_TypewriterMarkdown> {
   @override
   void didUpdateWidget(covariant _TypewriterMarkdown oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.content != widget.content) {
-      if (widget.animate && !_isComplete) {
+    if (oldWidget.content != widget.content || oldWidget.isStreaming != widget.isStreaming) {
+      if (widget.isStreaming) {
+        _timer?.cancel();
+        _displayedText = widget.content;
+        _isComplete = false;
+      } else if (widget.animate && !_isComplete) {
         _startTypewriter();
       } else {
+        _timer?.cancel();
         _displayedText = widget.content;
         _isComplete = true;
       }

@@ -47,14 +47,19 @@ final userMessagesStreamProvider = StreamProvider.autoDispose<List<MessageModel>
   final user = ref.watch(currentUserProvider);
   if (user == null) return const Stream.empty();
 
-  // We stream messages where the sender_id is user or the conversation belongs to the user
-  // To keep it simple, we stream based on conversation_id. But since RLS enforces users only see their own,
-  // we can just stream all rows the user has access to.
-  return _supabase
-      .from('messages')
-      .stream(primaryKey: ['id'])
-      .order('created_at', ascending: true)
-      .map((data) => data.map((e) => MessageModel.fromJson(e)).toList());
+  final conversationAsync = ref.watch(userConversationProvider);
+  return conversationAsync.maybeWhen(
+    data: (conv) {
+      if (conv == null) return const Stream.empty();
+      return _supabase
+          .from('messages')
+          .stream(primaryKey: ['id'])
+          .eq('conversation_id', conv.id)
+          .order('created_at', ascending: true)
+          .map((data) => data.map((e) => MessageModel.fromJson(e)).toList());
+    },
+    orElse: () => const Stream.empty(),
+  );
 });
 
 /// Streams the unread count for the current user (used for Badge)
@@ -330,7 +335,6 @@ Future<void> updateMessage(
       .from('messages')
       .update({
         'content': newContent,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
       })
       .eq('id', messageId);
 

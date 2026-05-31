@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../data/models/ai_chat_model.dart';
@@ -35,9 +36,16 @@ class AiChatState {
 /// Notifier that manages the chat session state (for in-app website chats)
 class AiChatNotifier extends StateNotifier<AiChatState> {
   final WebsiteModel item;
+  StreamSubscription? _streamingSubscription;
 
   AiChatNotifier(this.item) : super(const AiChatState()) {
     _loadChatHistory();
+  }
+
+  @override
+  void dispose() {
+    _streamingSubscription?.cancel();
+    super.dispose();
   }
 
   void _loadChatHistory() {
@@ -68,7 +76,16 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     }
   }
 
-  /// Send a user message and get AI response
+  void stopGeneration() {
+    if (_streamingSubscription != null) {
+      _streamingSubscription?.cancel();
+      _streamingSubscription = null;
+    }
+    state = state.copyWith(isLoading: false);
+    _saveChatHistory();
+  }
+
+  /// Send a user message and get AI response stream
   Future<void> sendMessage(String content, [String? pageContent]) async {
     if (content.trim().isEmpty || state.isLoading) return;
 
@@ -85,26 +102,79 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
       error: null,
     );
 
+    final aiTimestamp = DateTime.now();
+    AiChatMessage aiMsg = AiChatMessage(
+      role: 'assistant',
+      content: '',
+      timestamp: aiTimestamp,
+    );
+    state = state.copyWith(
+      messages: [...updatedMessages, aiMsg],
+    );
+
     try {
-      final responseText = await AiAssistantService.sendMessage(
+      final buffer = StringBuffer();
+      final stream = AiAssistantService.sendMessageStream(
         item: item,
         chatHistory: updatedMessages,
         pageContent: pageContent,
       );
 
-      final assistantMessage = AiChatMessage(
-        role: 'assistant',
-        content: responseText,
-        timestamp: DateTime.now(),
+      final completer = Completer<void>();
+      _streamingSubscription = stream.listen(
+        (chunk) {
+          buffer.write(chunk);
+          aiMsg = aiMsg.copyWith(content: buffer.toString());
+          state = state.copyWith(
+            messages: [...updatedMessages, aiMsg],
+          );
+        },
+        onError: (e) {
+          if (!completer.isCompleted) completer.completeError(e);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete();
+        },
+        cancelOnError: true,
       );
 
-      state = state.copyWith(
-        messages: [...updatedMessages, assistantMessage],
-        isLoading: false,
-      );
+      await completer.future;
+      _streamingSubscription = null;
+
+      // Defensive fallback: if streaming silently produced nothing
+      if (buffer.isEmpty) {
+        try {
+          final fallback = await AiAssistantService.sendMessage(
+            item: item,
+            chatHistory: updatedMessages,
+            pageContent: pageContent,
+          );
+          if (fallback.trim().isNotEmpty) {
+            aiMsg = aiMsg.copyWith(content: fallback);
+            state = state.copyWith(
+              messages: [...updatedMessages, aiMsg],
+              isLoading: false,
+            );
+            _saveChatHistory();
+            return;
+          }
+        } catch (_) {}
+
+        state = state.copyWith(
+          messages: updatedMessages,
+          isLoading: false,
+          error: 'لم يصل أي رد من الخدمة',
+        );
+        return;
+      }
+
+      state = state.copyWith(isLoading: false);
       _saveChatHistory();
     } catch (e) {
+      _streamingSubscription = null;
+      // Drop the assistant placeholder on error
       state = state.copyWith(
+        messages: updatedMessages,
         isLoading: false,
         error: e.toString().replaceAll('Exception: ', ''),
       );
@@ -207,8 +277,16 @@ class QuickSessionsState {
 }
 
 class QuickSessionsNotifier extends StateNotifier<QuickSessionsState> {
+  StreamSubscription? _streamingSubscription;
+
   QuickSessionsNotifier() : super(const QuickSessionsState()) {
     _loadAllSessions();
+  }
+
+  @override
+  void dispose() {
+    _streamingSubscription?.cancel();
+    super.dispose();
   }
 
   // ── Persistence Helpers ──────────────────────────────────────────────────
@@ -302,6 +380,15 @@ class QuickSessionsNotifier extends StateNotifier<QuickSessionsState> {
     _saveAllSessions();
   }
 
+  void stopGeneration() {
+    if (_streamingSubscription != null) {
+      _streamingSubscription?.cancel();
+      _streamingSubscription = null;
+    }
+    state = state.copyWith(isLoading: false);
+    _saveAllSessions();
+  }
+
   // ── Messaging ────────────────────────────────────────────────────────────
 
   Future<void> sendMessage(String content, String contextText) async {
@@ -320,26 +407,74 @@ class QuickSessionsNotifier extends StateNotifier<QuickSessionsState> {
       timestamp: DateTime.now(),
     );
 
-    _updateActiveMessages([...state.activeMessages, userMessage]);
+    final updatedMessages = [...state.activeMessages, userMessage];
+    _updateActiveMessages(updatedMessages);
     state = state.copyWith(isLoading: true, error: null, clearError: true);
 
+    final aiTimestamp = DateTime.now();
+    AiChatMessage aiMsg = AiChatMessage(
+      role: 'assistant',
+      content: '',
+      timestamp: aiTimestamp,
+    );
+    _updateActiveMessages([...updatedMessages, aiMsg]);
+
     try {
-      final responseText = await AiAssistantService.sendMessage(
+      final buffer = StringBuffer();
+      final stream = AiAssistantService.sendMessageStream(
         item: null,
-        chatHistory: state.activeMessages,
+        chatHistory: updatedMessages,
         externalUrlOrText: contextText.isNotEmpty ? contextText : null,
       );
 
-      final assistantMessage = AiChatMessage(
-        role: 'assistant',
-        content: responseText,
-        timestamp: DateTime.now(),
+      final completer = Completer<void>();
+      _streamingSubscription = stream.listen(
+        (chunk) {
+          buffer.write(chunk);
+          aiMsg = aiMsg.copyWith(content: buffer.toString());
+          _updateActiveMessages([...updatedMessages, aiMsg]);
+        },
+        onError: (e) {
+          if (!completer.isCompleted) completer.completeError(e);
+        },
+        onDone: () {
+          if (!completer.isCompleted) completer.complete();
+        },
+        cancelOnError: true,
       );
 
-      _updateActiveMessages([...state.activeMessages, assistantMessage]);
+      await completer.future;
+      _streamingSubscription = null;
+
+      if (buffer.isEmpty) {
+        try {
+          final fallback = await AiAssistantService.sendMessage(
+            item: null,
+            chatHistory: updatedMessages,
+            externalUrlOrText: contextText.isNotEmpty ? contextText : null,
+          );
+          if (fallback.trim().isNotEmpty) {
+            aiMsg = aiMsg.copyWith(content: fallback);
+            _updateActiveMessages([...updatedMessages, aiMsg]);
+            state = state.copyWith(isLoading: false);
+            _saveAllSessions();
+            return;
+          }
+        } catch (_) {}
+
+        _updateActiveMessages(updatedMessages);
+        state = state.copyWith(
+          isLoading: false,
+          error: 'لم يصل أي رد من الخدمة',
+        );
+        return;
+      }
+
       state = state.copyWith(isLoading: false);
       _saveAllSessions();
     } catch (e) {
+      _streamingSubscription = null;
+      _updateActiveMessages(updatedMessages);
       state = state.copyWith(
         isLoading: false,
         error: e.toString().replaceAll('Exception: ', ''),

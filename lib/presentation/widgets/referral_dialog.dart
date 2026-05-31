@@ -17,29 +17,6 @@ Future<void> showReferralCodeDialog(
   bool submitting = false;
   String? errorMsg;
 
-  String rewardText = '';
-  if (campaign != null) {
-    switch (campaign.referredRewardType) {
-      case 'giveaway_entry':
-        rewardText =
-            'تذكرة انضمام مجانية في سحب ${campaign.referredRewardDescription ?? "الجوائز"} 🎟️';
-        break;
-      case 'giveaway_boost':
-        rewardText = 'تعزيز فرصتك في السحب بـ 3 مشاركات إضافية ⚡';
-        break;
-      case 'collection_access':
-        rewardText = 'صلاحية فتح المجموعات المميزة 🔓';
-        break;
-      case 'custom':
-      default:
-        rewardText = campaign.referredRewardDescription?.isNotEmpty == true
-            ? campaign.referredRewardDescription!
-            : 'مزايا حصرية 🎁';
-    }
-  } else {
-    rewardText = 'الوصول إلى المحتوى المميز والميزات الحصرية ✨';
-  }
-
   final primaryBlue = AppTheme.primaryColor;
   final accentTeal = AppTheme.accentColor;
 

@@ -22,7 +22,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
   final String description;
   final String? teaserText;
   final IconData icon;
-  final VoidCallback onAction;
+  final void Function(WidgetRef ref) onAction;
   final String actionLabel;
   final Color themeColor;
   final bool isDark;
@@ -46,7 +46,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
     required WebsiteModel site,
     required CollectionModel? collection,
     required bool isDark,
-    required VoidCallback onAction,
+    required void Function(WidgetRef ref) onAction,
   }) {
     return PremiumFeatureSheet(
       title: 'محتوى حصري 🔒',
@@ -158,7 +158,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
                     ],
 
                     // Action Button
-                    _buildActionButton(context),
+                    _buildActionButton(context, ref),
 
                     // ── Membership Request Section ──
                     _buildMembershipRequestSection(
@@ -279,7 +279,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
     ).animate().fadeIn(delay: 420.ms).slideY(begin: 0.1);
   }
 
-  Widget _buildActionButton(BuildContext context) {
+  Widget _buildActionButton(BuildContext context, WidgetRef ref) {
     return Container(
       width: double.infinity, height: 54,
       decoration: BoxDecoration(
@@ -290,7 +290,7 @@ class PremiumFeatureSheet extends ConsumerWidget {
       child: ElevatedButton(
         onPressed: () {
           HapticFeedback.mediumImpact();
-          onAction();
+          onAction(ref);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent, shadowColor: Colors.transparent,

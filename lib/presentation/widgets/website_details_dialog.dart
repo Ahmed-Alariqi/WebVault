@@ -602,6 +602,55 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                               const SizedBox(height: 16),
                             ],
 
+                            // Gallery Images Section
+                            if (widget.site.hasGallery) ...[
+                              Text(
+                                'صور توضيحية 📸',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: isDark ? AppTheme.darkTextPrimary : AppTheme.lightTextPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                height: 80,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: widget.site.galleryImages.length,
+                                  separatorBuilder: (ctx, idx) => const SizedBox(width: 12),
+                                  itemBuilder: (ctx, idx) {
+                                    final url = widget.site.galleryImages[idx];
+                                    return GestureDetector(
+                                      onTap: () => _showFullImage(context, url),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: CachedNetworkImage(
+                                          imageUrl: url,
+                                          width: 120,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          placeholder: (ctx, url) => Container(
+                                            width: 120,
+                                            height: 80,
+                                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                            child: const Center(child: CircularProgressIndicator()),
+                                          ),
+                                          errorWidget: (ctx, url, err) => Container(
+                                            width: 120,
+                                            height: 80,
+                                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                            child: const Icon(Icons.broken_image),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+
                             // Video Player Section
                             if (widget.site.hasVideo) ...[
                               _VideoSection(
@@ -617,7 +666,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
                     ),
 
                     // Pinned Action Buttons Footer
-                    if (widget.site.hasUrl || widget.site.contentType == 'prompt' || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue))
+                    if (widget.site.hasUrl || (widget.site.contentType == 'prompt' && widget.site.hasCopyableValue) || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue))
                       Container(
                         padding: const EdgeInsets.fromLTRB(24, 20, 24, 28),
                       decoration: BoxDecoration(
@@ -729,7 +778,7 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
 
                 // Floating AI Assistant Button (Bottom Center Pill)
                 Positioned(
-                  bottom: (widget.site.hasUrl || widget.site.contentType == 'prompt' || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue)) ? 100 : 20,
+                  bottom: (widget.site.hasUrl || (widget.site.contentType == 'prompt' && widget.site.hasCopyableValue) || (widget.site.contentType == 'offer' && widget.site.hasCopyableValue)) ? 100 : 20,
                   left: 0,
                   right: 0,
                   child: Align(
@@ -877,57 +926,58 @@ class _WebsiteDetailsDialogState extends ConsumerState<WebsiteDetailsDialog> {
       case 'prompt':
         return Row(
           children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Clipboard.setData(
-                    ClipboardData(text: widget.site.actionValue),
-                  );
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Row(
-                        children: [
-                          const Icon(
-                            Icons.check_circle,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            AppLocalizations.of(context)!.promptCopiedTooltip,
-                          ),
-                        ],
+            if (widget.site.hasCopyableValue)
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Clipboard.setData(
+                      ClipboardData(text: widget.site.actionValue),
+                    );
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              AppLocalizations.of(context)!.promptCopiedTooltip,
+                            ),
+                          ],
+                        ),
+                        backgroundColor: Colors.green.shade600,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                      backgroundColor: Colors.green.shade600,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF9C27B0),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF9C27B0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    elevation: 0,
                   ),
-                  elevation: 0,
-                ),
-                icon: Icon(PhosphorIcons.copy(), size: 20),
-                label: Text(
-                  AppLocalizations.of(context)!.copyPrompt,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
+                  icon: Icon(PhosphorIcons.copy(), size: 20),
+                  label: Text(
+                    AppLocalizations.of(context)!.copyPrompt,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
-            ),
             if (widget.site.hasUrl) ...[
-              const SizedBox(width: 12),
+              if (widget.site.hasCopyableValue) const SizedBox(width: 12),
               Container(
                 decoration: BoxDecoration(
                   color: isDark

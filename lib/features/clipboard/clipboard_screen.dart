@@ -153,7 +153,6 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
               onPressed: () {
                 final allItemsInState = ref.read(clipboardItemsProvider);
                 int currentSyncedCount = allItemsInState.where((i) => i.syncEnabled).length;
-                int addedSyncCount = 0;
 
                 for (final id in _selectedIds) {
                   final item = allItemsInState.firstWhere((i) => i.id == id);
@@ -169,7 +168,6 @@ class _ClipboardScreenState extends ConsumerState<ClipboardScreen> {
                     }
                     ref.read(clipboardItemsProvider.notifier).updateItem(item.copyWith(syncEnabled: true));
                     currentSyncedCount++;
-                    addedSyncCount++;
                   }
                 }
                 setState(() {

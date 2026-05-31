@@ -37,12 +37,27 @@ class DiscoverScreen extends ConsumerStatefulWidget {
 }
 
 class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
+  final ScrollController _scrollController = ScrollController();
   Timer? _searchDebounce;
 
   @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _searchDebounce?.cancel();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      ref.read(discoverPaginatedProvider.notifier).loadMore();
+    }
   }
 
   @override
@@ -59,6 +74,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     return Scaffold(
       backgroundColor: isDark ? AppTheme.darkBg : AppTheme.lightBg,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // App Bar
           SliverAppBar(
@@ -207,13 +223,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                   (ref.watch(selectedContentTypeProvider) !=
                                           null ||
                                       ref.watch(selectedCategoryProvider) !=
-                                          null)
+                                          null ||
+                                      ref.watch(selectedPricingModelProvider) !=
+                                          null ||
+                                      ref.watch(showPremiumOnlyProvider))
                                   ? AppTheme.primaryColor
                                   : (isDark ? Colors.white70 : Colors.black87),
                             ),
                             if (ref.watch(selectedContentTypeProvider) !=
                                     null ||
-                                ref.watch(selectedCategoryProvider) != null)
+                                ref.watch(selectedCategoryProvider) != null ||
+                                ref.watch(selectedPricingModelProvider) !=
+                                    null ||
+                                ref.watch(showPremiumOnlyProvider))
                               Positioned(
                                 top: 12,
                                 right: 12,
@@ -438,9 +460,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               ),
             ),
 
-            // All / Filter Results Section — Two Horizontal Rows
+            // All / Filter Results Section — 2-Column Vertical Grid
             if (discoverState.isInitialLoad)
-              SliverToBoxAdapter(child: _buildShimmerSection(isDark))
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.72,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (ctx, i) => const ShimmerGridCard(),
+                    childCount: 4,
+                  ),
+                ),
+              )
             else if (discoverState.items.isNotEmpty) ...[
               // Section header
               SliverToBoxAdapter(
@@ -466,110 +502,138 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               : AppTheme.lightTextPrimary,
                         ),
                       ),
+                      const Spacer(),
+                      // ── Layout Toggle Button ──
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                ref.read(discoverViewModeProvider.notifier).state = false;
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: !ref.watch(discoverViewModeProvider)
+                                      ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  PhosphorIcons.rows(),
+                                  size: 16,
+                                  color: !ref.watch(discoverViewModeProvider)
+                                      ? AppTheme.primaryColor
+                                      : (isDark ? Colors.white38 : Colors.black38),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 2),
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                ref.read(discoverViewModeProvider.notifier).state = true;
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: ref.watch(discoverViewModeProvider)
+                                      ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  PhosphorIcons.squaresFour(),
+                                  size: 16,
+                                  color: ref.watch(discoverViewModeProvider)
+                                      ? AppTheme.primaryColor
+                                      : (isDark ? Colors.white38 : Colors.black38),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ).animate().fadeIn(),
                 ),
               ),
-              // Two Independent Horizontal Rows
-              SliverToBoxAdapter(
-                child: Builder(
-                  builder: (context) {
-                    final row1Items = <WebsiteModel>[];
-                    final row2Items = <WebsiteModel>[];
-                    for (int i = 0; i < discoverState.items.length; i++) {
-                      if (i.isEven) {
-                        row1Items.add(discoverState.items[i]);
-                      } else {
-                        row2Items.add(discoverState.items[i]);
-                      }
-                    }
-
-                    return Column(
-                      children: [
-                        // Row 1
-                        SizedBox(
-                          height: 290,
-                          child: NotificationListener<ScrollNotification>(
-                            onNotification: (scrollInfo) {
-                              if (scrollInfo.metrics.pixels >=
-                                  scrollInfo.metrics.maxScrollExtent - 200) {
-                                ref
-                                    .read(discoverPaginatedProvider.notifier)
-                                    .loadMore();
-                              }
-                              return false;
-                            },
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                              ),
-                              itemCount:
-                                  row1Items.length +
-                                  (discoverState.hasMore ? 1 : 0),
-                              itemBuilder: (ctx, i) {
-                                if (i >= row1Items.length) {
-                                  return const ShimmerCard();
-                                }
-                                int originalIndex = i * 2;
-                                return _buildDiscoverCard(
-                                  context,
-                                  ref,
-                                  row1Items[i],
-                                  isDark,
-                                  false,
-                                  originalIndex,
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        if (row2Items.isNotEmpty || discoverState.hasMore) ...[
-                          const SizedBox(height: 14),
-                          // Row 2
-                          SizedBox(
-                            height: 290,
-                            child: NotificationListener<ScrollNotification>(
-                              onNotification: (scrollInfo) {
-                                if (scrollInfo.metrics.pixels >=
-                                    scrollInfo.metrics.maxScrollExtent - 200) {
-                                  ref
-                                      .read(discoverPaginatedProvider.notifier)
-                                      .loadMore();
-                                }
-                                return false;
-                              },
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                ),
-                                itemCount:
-                                    row2Items.length +
-                                    (discoverState.hasMore ? 1 : 0),
-                                itemBuilder: (ctx, i) {
-                                  if (i >= row2Items.length) {
-                                    return const ShimmerCard();
-                                  }
-                                  int originalIndex = i * 2 + 1;
-                                  return _buildDiscoverCard(
-                                    context,
-                                    ref,
-                                    row2Items[i],
-                                    isDark,
-                                    false,
-                                    originalIndex,
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    );
-                  },
+              if (ref.watch(discoverViewModeProvider))
+                // ── Grid Mode (2-Column Grid) ──
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverGrid(
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.72,
+                    ),
+                    delegate: SliverChildBuilderDelegate(
+                      (ctx, i) {
+                        if (i >= discoverState.items.length) {
+                          return const ShimmerGridCard();
+                        }
+                        return _buildDiscoverCard(
+                          context,
+                          ref,
+                          discoverState.items[i],
+                          isDark,
+                          false,
+                          i,
+                          isGrid: true,
+                        );
+                      },
+                      childCount: discoverState.items.length + (discoverState.hasMore ? 1 : 0),
+                    ),
+                  ),
+                )
+              else
+                // ── List Mode (Horizontal scroll list) ──
+                SliverToBoxAdapter(
+                  child: SizedBox(
+                    height: 290,
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (scrollInfo) {
+                        if (scrollInfo.metrics.pixels >=
+                            scrollInfo.metrics.maxScrollExtent - 200) {
+                          ref.read(discoverPaginatedProvider.notifier).loadMore();
+                        }
+                        return false;
+                      },
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: discoverState.items.length + (discoverState.hasMore ? 1 : 0),
+                        itemBuilder: (ctx, i) {
+                          if (i >= discoverState.items.length) {
+                            return const ShimmerCard();
+                          }
+                          return _buildDiscoverCard(
+                            context,
+                            ref,
+                            discoverState.items[i],
+                            isDark,
+                            false,
+                            i,
+                          );
+                        },
+                      ),
+                    ),
+                  ),
                 ),
-              ),
             ],
 
             const SliverToBoxAdapter(child: SizedBox(height: 100)),
@@ -920,25 +984,23 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
-  // ── Dynamic Card Builder ──
   Widget _buildDiscoverCard(
     BuildContext context,
     WidgetRef ref,
     WebsiteModel site,
     bool isDark,
     bool showBadge,
-    int index,
-  ) {
+    int index, {
+    bool isGrid = false,
+  }) {
     final premiumAccessIds = ref.watch(userPremiumCollectionIdsProvider).valueOrNull ?? const <String>{};
     final bool isLocked = site.isPremiumOnly;
 
     return GestureDetector(
       onTap: () async {
         if (isLocked) {
-          // Check if user has access
           final collection = await findPremiumCollectionForItem(site.id);
           if (collection != null && premiumAccessIds.contains(collection.id)) {
-            // User has access — show details
             if (context.mounted) {
               showDialog(
                 context: context,
@@ -946,7 +1008,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               );
             }
           } else {
-            // Locked — show unlock sheet
             HapticFeedback.mediumImpact();
             if (context.mounted) {
               final isDarkNow = Theme.of(context).brightness == Brightness.dark;
@@ -958,9 +1019,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   site: site,
                   collection: collection,
                   isDark: isDarkNow,
-                  onAction: () async {
+                  onAction: (sheetRef) async {
+
                     HapticFeedback.lightImpact();
-                    await shareViralInvitation(ref);
+                    await shareViralInvitation(sheetRef);
+
                   },
                 ),
               );
@@ -974,8 +1037,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         }
       },
       child: Container(
-        width: 260,
-        margin: const EdgeInsets.only(right: 14),
+        width: isGrid ? double.infinity : 260,
+        height: null,
+        margin: isGrid ? EdgeInsets.zero : const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: isDark ? AppTheme.darkCard : AppTheme.lightCard,
           borderRadius: BorderRadius.circular(20),
@@ -995,7 +1059,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Image + Badges ──
             ClipRRect(
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
@@ -1003,7 +1066,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               child: Stack(
                 children: [
                   SizedBox(
-                    height: 120,
+                    height: isGrid ? 100 : 120,
                     width: double.infinity,
                     child: site.imageUrl != null && site.imageUrl!.isNotEmpty
                         ? CachedNetworkImage(
@@ -1026,67 +1089,70 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               context,
                               isDark,
                               site.contentType,
+                              height: isGrid ? 100 : 120,
                             ),
                           )
                         : _placeholderImage(
                             context,
                             isDark,
                             site.contentType,
+                            height: isGrid ? 100 : 120,
                           ),
                   ),
-                  // Trending badge
                   if (showBadge)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child:
-                          Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFFF6B6B),
-                                      Color(0xFFFF8E53),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      PhosphorIcons.trendUp(),
-                                      size: 12,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      AppLocalizations.of(
-                                        context,
-                                      )!.badgeTrending,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                              .animate(onPlay: (c) => c.repeat(reverse: true))
-                              .shimmer(
-                                duration: 2000.ms,
-                                color: Colors.white.withValues(alpha: 0.3),
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
+                      top: isGrid ? null : 8,
+                      bottom: isGrid ? 8 : null,
+                      start: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFF6B6B),
+                              Color(0xFFFF8E53),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              PhosphorIcons.trendUp(),
+                              size: 12,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.badgeTrending,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
                               ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .shimmer(
+                        duration: 2000.ms,
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
                     ),
-                  // Premium PRO badge
                   if (isLocked)
-                    Positioned(
-                      top: 8,
-                      left: showBadge ? 80 : 8,
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
+                      top: isGrid ? null : 8,
+                      bottom: isGrid ? 8 : null,
+                      start: showBadge ? 80 : 8,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: BackdropFilter(
@@ -1136,11 +1202,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         ),
                       ),
                     ),
-                  // Content type badge
                   if (site.contentType != 'website')
-                    Positioned(
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
                       top: 8,
-                      right: 8,
+                      start: isGrid ? 8 : null,
+                      end: isGrid ? null : 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -1173,11 +1240,18 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         ),
                       ),
                     ),
-                  // Video badge
+                  if (isGrid)
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
+                      top: 8,
+                      end: 8,
+                      child: _bookmarkButton(ref, site, isDark, isGrid: true),
+                    ),
                   if (site.hasVideo)
-                    Positioned(
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
                       bottom: 8,
-                      left: 8,
+                      start: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 7,
@@ -1208,11 +1282,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         ),
                       ),
                     ),
-                  // Expiry badge
                   if (site.expiresAt != null)
-                    Positioned(
+                    Positioned.directional(
+                      textDirection: Directionality.of(context),
                       bottom: 8,
-                      right: 8,
+                      end: 8,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -1246,11 +1320,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ],
               ),
             ),
-
-            // ── Content ──
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+                padding: isGrid
+                    ? const EdgeInsets.fromLTRB(8, 8, 8, 8)
+                    : const EdgeInsets.fromLTRB(12, 10, 12, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1261,18 +1335,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                           child: Text(
                             site.title,
                             style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? AppTheme.darkTextPrimary
-                                  : AppTheme.lightTextPrimary,
+                              fontSize: isGrid ? 12 : 14,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (site.pricingModel != 'free' &&
-                            site.pricingModel.isNotEmpty) ...[
+                        if (site.pricingModel != 'free') ...[
                           const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -1286,10 +1357,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
                                 color: site.pricingModel == 'paid'
-                                    ? Colors.redAccent.withValues(alpha: 0.3)
-                                    : Colors.orangeAccent.withValues(
-                                        alpha: 0.3,
-                                      ),
+                                  ? Colors.redAccent.withValues(alpha: 0.3)
+                                  : Colors.orangeAccent.withValues(
+                                      alpha: 0.3,
+                                    ),
                                 width: 0.5,
                               ),
                             ),
@@ -1322,7 +1393,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // For prompts/offers: show the copyable value preview
                           if (site.hasCopyableValue) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
@@ -1343,7 +1413,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               child: Text(
                                 site.actionValue,
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontFamily: 'monospace',
                                   color: isDark
                                       ? Colors.white70
@@ -1359,7 +1429,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                 site.description,
                               ),
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: isGrid ? 10 : 11,
                                 color: isDark
                                     ? AppTheme.darkTextSecondary
                                     : AppTheme.lightTextSecondary,
@@ -1368,7 +1438,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ],
-                          // ── Universal "tap for details" hint ──
                           Padding(
                             padding: const EdgeInsets.only(top: 3),
                             child: Row(
@@ -1407,7 +1476,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                         spacing: 4,
                         runSpacing: 4,
                         children: site.tags
-                            .take(6)
                             .map(
                               (tag) => Container(
                                 padding: const EdgeInsets.symmetric(
@@ -1436,11 +1504,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                       ),
                     ],
                     const SizedBox(height: 8),
-                    // ── Dynamic Action Buttons (gated for premium) ──
                     if (isLocked)
-                      _buildLockedActionRow(context, isDark)
+                      _buildLockedActionRow(context, isDark, isGrid: isGrid)
                     else
-                      _buildActionButtons(context, ref, site, isDark),
+                      _buildActionButtons(context, ref, site, isDark, isGrid: isGrid),
                   ],
                 ),
               ),
@@ -1448,11 +1515,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ],
         ),
       ),
-    ).animate(delay: (index * 100).ms).fadeIn().slideX(begin: 0.1);
+    ).animate(delay: (index * 100).ms).fadeIn().slide(begin: isGrid ? const Offset(0, 0.1) : const Offset(0.1, 0));
   }
 
   // ── Locked Premium Row (replaces action buttons) ──
-  Widget _buildLockedActionRow(BuildContext context, bool isDark) {
+  Widget _buildLockedActionRow(BuildContext context, bool isDark, {bool isGrid = false}) {
     return Container(
       height: 32,
       decoration: BoxDecoration(
@@ -1475,11 +1542,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             size: 13,
             color: Colors.amber,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 4),
           Text(
-            'محتوى حصري — اضغط للتفاصيل',
+            isGrid ? 'حصري' : 'محتوى حصري — اضغط للتفاصيل',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: isGrid ? 9 : 10,
               fontWeight: FontWeight.w700,
               color: Colors.amber.withValues(alpha: 0.8),
             ),
@@ -1494,38 +1561,56 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     BuildContext context,
     WidgetRef ref,
     WebsiteModel site,
-    bool isDark,
-  ) {
+    bool isDark, {
+    bool isGrid = false,
+  }) {
     switch (site.contentType) {
       case 'prompt':
         return Row(
           children: [
-            // Copy button
             Expanded(
               child: SizedBox(
                 height: 32,
-                child: ElevatedButton.icon(
-                  onPressed: () => _copyToClipboard(context, site.actionValue),
-                  icon: Icon(PhosphorIcons.copy(), size: 14),
-                  label: Text(
-                    AppLocalizations.of(context)!.copyButton,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF9C27B0),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+                child: isGrid
+                    ? ElevatedButton(
+                        onPressed: () => _copyToClipboard(context, site.actionValue),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9C27B0),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          AppLocalizations.of(context)!.copyButton,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: () => _copyToClipboard(context, site.actionValue),
+                        icon: Icon(PhosphorIcons.copy(), size: 14),
+                        label: Text(
+                          AppLocalizations.of(context)!.copyButton,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF9C27B0),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
               ),
             ),
-            // Try button (only if URL exists)
             if (site.hasUrl) ...[
               const SizedBox(width: 6),
               SizedBox(
@@ -1549,41 +1634,75 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ],
-            const SizedBox(width: 6),
-            _bookmarkButton(ref, site, isDark),
+            if (!isGrid) ...[
+              const SizedBox(width: 6),
+              _bookmarkButton(ref, site, isDark),
+            ],
           ],
         );
 
       case 'offer':
         return Row(
           children: [
-            // Copy code button
             Expanded(
               child: SizedBox(
                 height: 32,
-                child: ElevatedButton.icon(
-                  onPressed: site.hasCopyableValue
-                      ? () => _copyToClipboard(context, site.actionValue)
-                      : null,
-                  icon: Icon(PhosphorIcons.key(), size: 14),
-                  label: Text(
-                    site.hasCopyableValue
-                        ? AppLocalizations.of(context)!.copyButton
-                        : AppLocalizations.of(context)!.detailsButton,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF9800),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+                child: isGrid
+                    ? ElevatedButton(
+                        onPressed: site.hasCopyableValue
+                            ? () => _copyToClipboard(context, site.actionValue)
+                            : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => WebsiteDetailsDialog(site: site),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF9800),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          site.hasCopyableValue
+                              ? AppLocalizations.of(context)!.copyButton
+                              : AppLocalizations.of(context)!.detailsButton,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: site.hasCopyableValue
+                            ? () => _copyToClipboard(context, site.actionValue)
+                            : () {
+                                showDialog(
+                                  context: context,
+                                  builder: (ctx) => WebsiteDetailsDialog(site: site),
+                                );
+                              },
+                        icon: Icon(PhosphorIcons.key(), size: 14),
+                        label: Text(
+                          site.hasCopyableValue
+                              ? AppLocalizations.of(context)!.copyButton
+                              : AppLocalizations.of(context)!.detailsButton,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF9800),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
               ),
             ),
             if (site.hasUrl) ...[
@@ -1609,8 +1728,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ],
-            const SizedBox(width: 6),
-            _bookmarkButton(ref, site, isDark),
+            if (!isGrid) ...[
+              const SizedBox(width: 6),
+              _bookmarkButton(ref, site, isDark),
+            ],
           ],
         );
 
@@ -1622,39 +1743,67 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             Expanded(
               child: SizedBox(
                 height: 32,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => WebsiteDetailsDialog(site: site),
-                    );
-                  },
-                  icon: Icon(
-                    isAnnouncement
-                        ? PhosphorIcons.article()
-                        : PhosphorIcons.chalkboardTeacher(),
-                    size: 14,
-                  ),
-                  label: Text(
-                    isAnnouncement
-                        ? AppLocalizations.of(context)!.actionRead
-                        : AppLocalizations.of(context)!.actionView,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isAnnouncement
-                        ? const Color(0xFF2196F3)
-                        : const Color(0xFFE91E63),
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+                child: isGrid
+                    ? ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => WebsiteDetailsDialog(site: site),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isAnnouncement
+                              ? const Color(0xFF2196F3)
+                              : const Color(0xFFE91E63),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          isAnnouncement
+                              ? AppLocalizations.of(context)!.actionRead
+                              : AppLocalizations.of(context)!.actionView,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => WebsiteDetailsDialog(site: site),
+                          );
+                        },
+                        icon: Icon(
+                          isAnnouncement
+                              ? PhosphorIcons.article()
+                              : PhosphorIcons.chalkboardTeacher(),
+                          size: 14,
+                        ),
+                        label: Text(
+                          isAnnouncement
+                              ? AppLocalizations.of(context)!.actionRead
+                              : AppLocalizations.of(context)!.actionView,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isAnnouncement
+                              ? const Color(0xFF2196F3)
+                              : const Color(0xFFE91E63),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
               ),
             ),
             if (site.hasUrl) ...[
@@ -1680,8 +1829,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ],
-            const SizedBox(width: 6),
-            _bookmarkButton(ref, site, isDark),
+            if (!isGrid) ...[
+              const SizedBox(width: 6),
+              _bookmarkButton(ref, site, isDark),
+            ],
           ],
         );
 
@@ -1712,8 +1863,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     site.hasUrl
                         ? AppLocalizations.of(context)!.openButton
                         : AppLocalizations.of(context)!.detailsButton,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: TextStyle(
+                      fontSize: isGrid ? 10 : 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -1743,8 +1894,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ],
-            const SizedBox(width: 6),
-            _bookmarkButton(ref, site, isDark),
+            if (!isGrid) ...[
+              const SizedBox(width: 6),
+              _bookmarkButton(ref, site, isDark),
+            ],
           ],
         );
 
@@ -1774,8 +1927,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     site.hasUrl
                         ? AppLocalizations.of(context)!.openButton
                         : AppLocalizations.of(context)!.detailsButton,
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: TextStyle(
+                      fontSize: isGrid ? 10 : 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
@@ -1805,20 +1958,22 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
               ),
             ],
-            const SizedBox(width: 6),
-            _bookmarkButton(ref, site, isDark),
+            if (!isGrid) ...[
+              const SizedBox(width: 6),
+              _bookmarkButton(ref, site, isDark),
+            ],
           ],
         );
     }
   }
 
-  Widget _bookmarkButton(WidgetRef ref, WebsiteModel site, bool isDark) {
+  Widget _bookmarkButton(WidgetRef ref, WebsiteModel site, bool isDark, {bool isGrid = false}) {
     final bookmarkedIds = ref.watch(bookmarkedIdsProvider).valueOrNull ?? {};
     final isBookmarked = bookmarkedIds.contains(site.id);
 
     return SizedBox(
-      height: 32,
-      width: 32,
+      height: isGrid ? 28 : 32,
+      width: isGrid ? 28 : 32,
       child: IconButton(
         onPressed: () async {
           await toggleBookmark(site.id);
@@ -1830,20 +1985,24 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           isBookmarked
               ? PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill)
               : PhosphorIcons.bookmarkSimple(),
-          size: 18,
+          size: isGrid ? 14 : 18,
         ),
         padding: EdgeInsets.zero,
         style: IconButton.styleFrom(
-          backgroundColor: isBookmarked
-              ? AppTheme.primaryColor.withValues(alpha: 0.15)
-              : (isDark
-                    ? Colors.white10
-                    : Colors.black.withValues(alpha: 0.05)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          backgroundColor: isGrid
+              ? (isBookmarked ? AppTheme.primaryColor : Colors.black45)
+              : (isBookmarked
+                  ? AppTheme.primaryColor.withValues(alpha: 0.15)
+                  : (isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.05))),
+          shape: isGrid ? const CircleBorder() : RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        color: isBookmarked
-            ? AppTheme.primaryColor
-            : (isDark ? Colors.white54 : Colors.black45),
+        color: isGrid
+            ? Colors.white
+            : (isBookmarked
+                ? AppTheme.primaryColor
+                : (isDark ? Colors.white54 : Colors.black45)),
       ),
     );
   }
@@ -1852,10 +2011,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   Widget _placeholderImage(
     BuildContext context,
     bool isDark,
-    String contentType,
-  ) {
+    String contentType, {
+    double height = 120,
+  }) {
     return Container(
-      height: 120,
+      height: height,
       color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
       child: Center(
         child: Column(

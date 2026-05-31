@@ -22,6 +22,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   String? _conversationId;
+  MessageModel? _editingMessage;
 
   @override
   void dispose() {
@@ -42,8 +43,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty || _conversationId == null) return;
+    if (text.isEmpty) return;
 
+    if (_editingMessage != null) {
+      final messageToUpdate = _editingMessage!;
+      setState(() {
+        _editingMessage = null;
+        _messageController.clear();
+      });
+      try {
+        await updateMessage(
+          messageToUpdate.id,
+          messageToUpdate.conversationId,
+          text,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Edit failed: $e')),
+          );
+        }
+      }
+      return;
+    }
+
+    if (_conversationId == null) return;
     _messageController.clear();
     await userSendMessage(_conversationId!, text);
     _scrollToBottom();
@@ -420,6 +444,67 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                   child: Column(
                     children: [
+                      if (_editingMessage != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                PhosphorIcons.pencilLine(PhosphorIconsStyle.fill),
+                                color: AppTheme.primaryColor,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'تعديل الرسالة',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                        color: AppTheme.primaryColor,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _editingMessage!.content,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                  size: 16,
+                                  color: isDark ? Colors.white54 : Colors.black54,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _editingMessage = null;
+                                    _messageController.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       if (_isUploadingImage)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
@@ -507,9 +592,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ),
                             child: IconButton(
                               icon: Icon(
-                                PhosphorIcons.paperPlaneTilt(
-                                  PhosphorIconsStyle.fill,
-                                ),
+                                _editingMessage != null
+                                    ? PhosphorIcons.check(PhosphorIconsStyle.bold)
+                                    : PhosphorIcons.paperPlaneTilt(PhosphorIconsStyle.fill),
                                 color: Colors.white,
                                 size: 22,
                               ),
@@ -596,7 +681,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 title: Text(l10n.edit),
                 onTap: () {
                   Navigator.pop(context);
-                  _showEditDialog(message);
+                  setState(() {
+                    _editingMessage = message;
+                    _messageController.text = message.content;
+                  });
                 },
               ),
               ListTile(
@@ -614,73 +702,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showEditDialog(MessageModel message) {
-    final editCtrl = TextEditingController(text: message.content);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final l10n = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: isDark ? AppTheme.darkCard : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.edit),
-        content: TextField(
-          controller: editCtrl,
-          maxLines: 5,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.grey[100],
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newContent = editCtrl.text.trim();
-              if (newContent.isNotEmpty && newContent != message.content) {
-                try {
-                  await updateMessage(
-                    message.id,
-                    message.conversationId,
-                    newContent,
-                  );
-                  if (context.mounted) Navigator.pop(context);
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text('Edit failed: $e')));
-                  }
-                }
-              } else {
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(l10n.save),
-          ),
-        ],
       ),
     );
   }

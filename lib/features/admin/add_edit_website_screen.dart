@@ -9,6 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/imagekit_service.dart';
 import 'widgets/google_image_search_sheet.dart';
+import 'widgets/imagekit_library_sheet.dart';
 import '../../data/models/website_model.dart';
 import '../../data/models/suggestion_model.dart';
 import '../../data/repositories/suggestion_repository.dart';
@@ -43,6 +44,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   late final TextEditingController _actionValueCtrl;
   late final TextEditingController _videoUrlCtrl;
   late final TextEditingController _tagsCtrl;
+  late final TextEditingController _customNotifBodyCtrl;
   late final QuillController _quillController;
 
   bool _isTrending = false;
@@ -56,12 +58,13 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
   DateTime? _expiresAt;
   bool _sendNotification = false;
   bool _isSaving = false;
-  bool _isUploading = false;
-  double _uploadProgress = 0;
   bool _showVideoSection = false;
   bool _isUploadingVideo = false;
   double _videoUploadProgress = 0;
   bool _isSavingDraft = false;
+  
+  // ── Gallery Images ──
+  List<String> _galleryImages = [];
 
   // ── AI Content Prep ──
   Future<void> _openAiContentPrep(List<CategoryModel> categories) async {
@@ -215,6 +218,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _tagsCtrl = TextEditingController(
       text: widget.existing?.tags.join(', ') ?? widget.draft?.tags.join(', ') ?? '',
     );
+    _customNotifBodyCtrl = TextEditingController();
     _showVideoSection = widget.existing?.hasVideo ?? false;
 
     _isTrending = widget.existing?.isTrending ?? false;
@@ -225,6 +229,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _contentType = widget.existing?.contentType ?? widget.draft?.contentType ?? 'website';
     _pricingModel = widget.existing?.pricingModel ?? widget.draft?.pricingModel ?? 'free';
     _expiresAt = widget.existing?.expiresAt;
+    _galleryImages = List.from(widget.existing?.galleryImages ?? []);
 
     Document doc;
     try {
@@ -277,6 +282,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
     _actionValueCtrl.dispose();
     _videoUrlCtrl.dispose();
     _tagsCtrl.dispose();
+    _customNotifBodyCtrl.dispose();
     _quillController.dispose();
     super.dispose();
   }
@@ -329,6 +335,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                   .where((e) => e.isNotEmpty)
                   .toList(),
         'pricing_model': _pricingModel,
+        'gallery_images': _galleryImages,
       };
 
       // Notification translation strings
@@ -376,55 +383,61 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
         await adminMarkDraftPublished(widget.draft!.id, newItemId);
       }
 
-      // Notifications for newly created items only.
-      if (widget.existing == null) {
-        final notifTitle = '✨ ${_titleCtrl.text.trim()}';
-        final notifBody = _contentType == 'offer'
-            ? notifOffer
-            : _contentType == 'prompt'
-            ? notifPrompt
-            : _contentType == 'announcement'
-            ? notifAnnouncement
-            : notifDefault;
-        final notifTargetUrl = newItemId != null
-            ? 'app://discover/item/$newItemId'
-            : 'app://discover';
-        final notifImageUrl = _imgCtrl.text.trim().isEmpty
-            ? null
-            : _imgCtrl.text.trim();
+      // Notifications dispatch.
+      final notifTitle = '✨ ${_titleCtrl.text.trim()}';
+      final isAr = Localizations.localeOf(context).languageCode == 'ar';
+      final defaultBody = widget.existing == null
+          ? (_contentType == 'offer'
+              ? notifOffer
+              : _contentType == 'prompt'
+                  ? notifPrompt
+                  : _contentType == 'announcement'
+                      ? notifAnnouncement
+                      : notifDefault)
+          : (isAr ? 'متاح الآن في قسم المستكشف.' : 'Available now in the explorer section.');
 
-        if (_sendNotification) {
-          // Admin opted to broadcast to everyone — also creates a DB notification record.
-          try {
-            await adminSendNotification({
+      final finalNotifBody = _customNotifBodyCtrl.text.trim().isNotEmpty
+          ? _customNotifBodyCtrl.text.trim()
+          : defaultBody;
+
+      final notifTargetUrl = newItemId != null
+          ? 'app://discover/item/$newItemId'
+          : 'app://discover';
+      final notifImageUrl = _imgCtrl.text.trim().isEmpty
+          ? null
+          : _imgCtrl.text.trim();
+
+      if (_sendNotification) {
+        // Admin opted to broadcast to everyone — also creates a DB notification record.
+        try {
+          await adminSendNotification({
+            'title': notifTitle,
+            'body': finalNotifBody,
+            'type': 'new_item',
+            'target_url': notifTargetUrl,
+            'image_url': notifImageUrl,
+          });
+        } catch (_) {
+          // Notification failure shouldn't block save
+        }
+      } else if (widget.existing == null) {
+        // Admin DID NOT broadcast: still push silently to users who opted-in
+        // to receive every new explorer item (notif_all_new_content = true).
+        // No DB row inserted — these are silent opt-in deliveries.
+        try {
+          await SupabaseConfig.client.functions.invoke(
+            'send-notification',
+            body: {
+              'mode': 'auto_content_only',
               'title': notifTitle,
-              'body': notifBody,
-              'type': 'new_item',
+              'body': finalNotifBody,
+              'type': 'content_auto',
               'target_url': notifTargetUrl,
               'image_url': notifImageUrl,
-            });
-          } catch (_) {
-            // Notification failure shouldn't block save
-          }
-        } else {
-          // Admin DID NOT broadcast: still push silently to users who opted-in
-          // to receive every new explorer item (notif_all_new_content = true).
-          // No DB row inserted — these are silent opt-in deliveries.
-          try {
-            await SupabaseConfig.client.functions.invoke(
-              'send-notification',
-              body: {
-                'mode': 'auto_content_only',
-                'title': notifTitle,
-                'body': notifBody,
-                'type': 'content_auto',
-                'target_url': notifTargetUrl,
-                'image_url': notifImageUrl,
-              },
-            );
-          } catch (_) {
-            // Silent — opt-in push is best-effort.
-          }
+            },
+          );
+        } catch (_) {
+          // Silent — opt-in push is best-effort.
         }
       }
 
@@ -501,6 +514,7 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                   .where((e) => e.isNotEmpty)
                   .toList(),
         'pricing_model': _pricingModel,
+        'gallery_images': _galleryImages,
         'status': 'in_progress',
         'priority': 'normal',
       };
@@ -1131,51 +1145,26 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                             children: [
                               Expanded(
                                 child: InkWell(
-                                  onTap: _isUploading
-                                      ? null
-                                      : () async {
-                                          setState(() {
-                                            _isUploading = true;
-                                            _uploadProgress = 0;
-                                          });
-                                          try {
-                                            final url =
-                                                await ImageKitService.pickAndUpload(
-                                                  folder: '/discover',
-                                                  onProgress: (p) {
-                                                    if (mounted) {
-                                                      setState(
-                                                        () =>
-                                                            _uploadProgress = p,
-                                                      );
-                                                    }
-                                                  },
-                                                );
-                                            if (url != null &&
-                                                context.mounted) {
-                                              setState(() {
-                                                _imgCtrl.text = url;
-                                              });
-                                              AdminUIUtils.showSuccess(
-                                                context,
-                                                AppLocalizations.of(context)!.notifImgUploadSuccess,
-                                              );
-                                            } else if (context.mounted &&
-                                                _uploadProgress > 0) {
-                                              AdminUIUtils.showError(
-                                                context,
-                                                AppLocalizations.of(context)!.notifImgUploadFail,
-                                              );
-                                            }
-                                          } finally {
-                                            if (mounted) {
-                                              setState(() {
-                                                _isUploading = false;
-                                                _uploadProgress = 0;
-                                              });
-                                            }
-                                          }
-                                        },
+                                  onTap: () async {
+                                    final url = await showModalBottomSheet<String>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      enableDrag: false,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (ctx) => const ImageKitLibrarySheet(
+                                        folder: '/discover',
+                                      ),
+                                    );
+                                    if (url != null && context.mounted) {
+                                      setState(() {
+                                        _imgCtrl.text = url;
+                                      });
+                                      AdminUIUtils.showSuccess(
+                                        context,
+                                        'تم اختيار صورة الغلاف بنجاح!',
+                                      );
+                                    }
+                                  },
                                   borderRadius: BorderRadius.circular(16),
                                   child: Container(
                                     height: 100,
@@ -1196,42 +1185,28 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                     child: Center(
-                                      child: _isUploading
-                                          ? SizedBox(
-                                              height: 32,
-                                              width: 32,
-                                              child: CircularProgressIndicator(
-                                                value: _uploadProgress > 0
-                                                    ? _uploadProgress
-                                                    : null,
-                                                strokeWidth: 3,
-                                                color: AppTheme.primaryColor,
-                                              ),
-                                            )
-                                          : Column(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Icon(
-                                                  PhosphorIcons.uploadSimple(),
-                                                  size: 28,
-                                                  color: AppTheme.primaryColor,
-                                                ),
-                                                const SizedBox(height: 6),
-                                                Text(
-                                                  AppLocalizations.of(
-                                                    context,
-                                                  )!.formUploadDevice,
-                                                  style: TextStyle(
-                                                    color:
-                                                        AppTheme.primaryColor,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 13,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ],
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            PhosphorIcons.imageSquare(),
+                                            size: 28,
+                                            color: AppTheme.primaryColor,
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            'المكتبة السحابية',
+                                            style: TextStyle(
+                                              color:
+                                                  AppTheme.primaryColor,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
                                             ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1407,6 +1382,129 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         ],
                       ),
                     ).animate().fadeIn(delay: 100.ms, duration: 400.ms).slideY(begin: 0.1),
+
+                    // ── Gallery Images Section ──
+                    _buildCard(
+                      isDark: isDark,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionHeader(
+                            'صور توضيحية',
+                            PhosphorIcons.images(),
+                            isDark,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                              ..._galleryImages.asMap().entries.map((e) {
+                                final index = e.key;
+                                final url = e.value;
+                                return Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: CachedNetworkImage(
+                                        imageUrl: url,
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                        placeholder: (ctx, url) => Container(
+                                          width: 100,
+                                          height: 100,
+                                          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                          child: const Center(child: CircularProgressIndicator()),
+                                        ),
+                                        errorWidget: (ctx, url, err) => Container(
+                                          width: 100,
+                                          height: 100,
+                                          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                                          child: const Icon(Icons.broken_image),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _galleryImages.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black54,
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(Icons.close, size: 14, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }),
+                              if (_galleryImages.length < 5)
+                                InkWell(
+                                  onTap: () async {
+                                    final url = await showModalBottomSheet<String>(
+                                      context: context,
+                                      isScrollControlled: true,
+                                      enableDrag: false,
+                                      backgroundColor: Colors.transparent,
+                                      builder: (ctx) => const ImageKitLibrarySheet(
+                                        folder: '/discover/gallery',
+                                      ),
+                                    );
+                                    if (url != null && context.mounted) {
+                                      setState(() {
+                                        _galleryImages.add(url);
+                                      });
+                                      AdminUIUtils.showSuccess(
+                                        context,
+                                        'تمت إضافة الصورة التوضيحية بنجاح!',
+                                      );
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: BoxDecoration(
+                                      color: isDark ? AppTheme.primaryColor.withValues(alpha: 0.1) : AppTheme.primaryColor.withValues(alpha: 0.05),
+                                      border: Border.all(
+                                        color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                        width: 1.5,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(PhosphorIcons.plus(), color: AppTheme.primaryColor),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${_galleryImages.length}/5',
+                                            style: TextStyle(
+                                              color: AppTheme.primaryColor,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.1),
 
                     // ── Video Section (Toggle) ──
                     _buildCard(
@@ -2176,53 +2274,73 @@ class _AddEditWebsiteScreenState extends ConsumerState<AddEditWebsiteScreen> {
                         .fadeIn(delay: 400.ms, duration: 400.ms)
                         .slideY(begin: 0.1),
 
-                    // ── Notification Toggle (only for new items) ──
-                    if (widget.existing == null)
-                      _buildCard(
-                            isDark: isDark,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildSectionHeader(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.formNotification,
-                                  PhosphorIcons.bellRinging(),
-                                  isDark,
+                    // ── Notification Toggle (always available) ──
+                    _buildCard(
+                          isDark: isDark,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionHeader(
+                                AppLocalizations.of(
+                                  context,
+                                )!.formNotification,
+                                PhosphorIcons.bellRinging(),
+                                isDark,
+                              ),
+                              SwitchListTile(
+                                title: Text(
+                                  AppLocalizations.of(context)!.formSendNotif,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                SwitchListTile(
-                                  title: Text(
-                                    AppLocalizations.of(context)!.formSendNotif,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                subtitle: Text(
+                                  widget.existing == null
+                                      ? AppLocalizations.of(context)!.formSendNotifSub
+                                      : (Localizations.localeOf(context).languageCode == 'ar'
+                                          ? 'إرسال إشعار تذكيري لجميع المستخدمين حول هذا المحتوى.'
+                                          : 'Send a reminder notification to all users about this content.'),
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white54
+                                        : Colors.black54,
+                                    fontSize: 12,
                                   ),
-                                  subtitle: Text(
-                                    AppLocalizations.of(
-                                      context,
-                                    )!.formSendNotifSub,
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.black54,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  value: _sendNotification,
-                                  activeTrackColor: const Color(
-                                    0xFFFF6B6B,
-                                  ).withValues(alpha: 0.5),
-                                  activeThumbColor: const Color(0xFFFF6B6B),
-                                  onChanged: (v) =>
-                                      setState(() => _sendNotification = v),
-                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                value: _sendNotification,
+                                activeTrackColor: const Color(
+                                  0xFFFF6B6B,
+                                ).withValues(alpha: 0.5),
+                                activeThumbColor: const Color(0xFFFF6B6B),
+                                onChanged: (v) =>
+                                    setState(() => _sendNotification = v),
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                              if (_sendNotification) ...[
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  controller: _customNotifBodyCtrl,
+                                  label: Localizations.localeOf(context).languageCode == 'ar'
+                                      ? 'نص الإشعار المخصص (اختياري)'
+                                      : 'Custom Notification Text (Optional)',
+                                  prefixIcon: PhosphorIcons.chatText(),
+                                  isDark: isDark,
+                                  maxLines: 2,
+                                  helperText: widget.existing == null
+                                      ? (Localizations.localeOf(context).languageCode == 'ar'
+                                          ? 'سيتم إرسال النص التلقائي بناءً على نوع المحتوى إذا ترك فارغاً.'
+                                          : 'Default text based on content type will be sent if left empty.')
+                                      : (Localizations.localeOf(context).languageCode == 'ar'
+                                          ? 'سيتم إرسال: "متاح الآن في قسم المستكشف." إذا ترك فارغاً.'
+                                          : 'Will send: "Available now in the explorer section." if left empty.'),
                                 ),
                               ],
-                            ),
-                          )
-                          .animate()
-                          .fadeIn(delay: 500.ms, duration: 400.ms)
-                          .slideY(begin: 0.1),
+                            ],
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(delay: 500.ms, duration: 400.ms)
+                        .slideY(begin: 0.1),
 
                     const SizedBox(height: 30),
                   ],

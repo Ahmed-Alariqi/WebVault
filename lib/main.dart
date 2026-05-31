@@ -269,9 +269,42 @@ Future<void> main() async {
   // Trigger sync engine to flush any pending offline actions
   unawaited(container.read(syncEngineProvider).drainQueue());
 
+  // Register app lifecycle observer for auto-lock
+  WidgetsBinding.instance.addObserver(AppLifecycleLockObserver(container));
+
   runApp(
     UncontrolledProviderScope(container: container, child: const WebVaultApp()),
   );
+}
+
+/// Observer for app lifecycle to handle auto-locking based on timeout setting
+class AppLifecycleLockObserver extends WidgetsBindingObserver {
+  final ProviderContainer container;
+  DateTime? _backgroundTime;
+
+  AppLifecycleLockObserver(this.container);
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _backgroundTime = DateTime.now();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_backgroundTime != null) {
+        final settings = container.read(settingsProvider);
+        final pinEnabled = settings['pinEnabled'] == true;
+        final isLocked = container.read(appLockedProvider);
+
+        if (pinEnabled && !isLocked) {
+          final timeout = settings['autoLockTimeout'] as int? ?? 0;
+          final elapsed = DateTime.now().difference(_backgroundTime!);
+          if (elapsed.inSeconds >= timeout) {
+            container.read(appLockedProvider.notifier).state = true;
+          }
+        }
+      }
+      _backgroundTime = null;
+    }
+  }
 }
 
 class WebVaultApp extends ConsumerWidget {
